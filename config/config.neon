@@ -1,0 +1,153 @@
+parameters:
+	basePresenterParameters:
+		pageTitle: 'App-starter'
+		storageName: 'appstarterstorage'
+
+includes:
+	- forms.neon
+
+application:
+	errorPresenter: Error:Error
+	mapping:
+		*: ['App', '*', '*\UI\*Presenter']
+		Error: App\UI\Error\*Presenter
+
+session:
+	autoStart: true
+	expiration: 14 days
+
+tracy:
+	maxDepth: 6
+	showLocation: true
+	dumpTheme: dark
+	editor: 'phpstorm://open?file=%file&line=%line'
+
+extensions:
+	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
+	dbal: Nettrine\DBAL\DI\DbalExtension
+	dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension
+	orm: Nettrine\ORM\DI\OrmExtension
+	orm.console: Nettrine\ORM\DI\OrmConsoleExtension
+	orm.cache: Nettrine\Cache\DI\CacheExtension
+	migrations: Nettrine\Migrations\DI\MigrationsExtension
+	orm.attributes: Nettrine\ORM\DI\OrmAttributesExtension
+	monolog: Contributte\Monolog\DI\MonologExtension
+
+	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
+	custompresenterfactory: App\UI\Extension\PresenterFactory\DI\CustomPresenterFactoryExtension
+	latteMacros: App\UI\Extension\Latte\LatteMacrosExtension
+
+dbal:
+	debug:
+		panel: %debugMode%
+	connection:
+		host: %database.host%
+		port: %database.port%
+		user: %database.user%
+		password: %database.password%
+		dbname: %database.dbname%
+		driver: 'pdo_mysql'
+
+		types:
+			uuid:
+				class: Ramsey\Uuid\Doctrine\UuidType
+				commented: false
+			datetime_immutable:
+				class: Mistrfilda\Datetime\Doctrine\DatetimeImmutableType
+				commented: false
+			date_immutable:
+				class: Mistrfilda\Datetime\Doctrine\DateImmutableType
+				commented: false
+
+orm:
+	configuration:
+		customStringFunctions:
+			group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
+
+orm.attributes:
+	mapping:
+		App: %appDir%
+
+migrations:
+    table: doctrine_migrations
+    column: version
+    directory: %appDir%/../migrations
+    namespace: Migrations
+
+monolog:
+	channel:
+		default:
+			handlers:
+				- Monolog\Handler\RotatingFileHandler(%appDir%/../log/app-log.log, 30)
+				- Monolog\Handler\StreamHandler("php://stdout")
+			processors:
+				- Monolog\Processor\MemoryPeakUsageProcessor()
+				- Monolog\Processor\WebProcessor()
+				- Monolog\Processor\IntrospectionProcessor()
+
+console:
+    url: %console.url%
+    catchExceptions: false
+    lazy: false
+
+webpackassets:
+	assetsDirs:
+		- %wwwDir%/build/admin
+
+latteMacros:
+	svgDir: %appDir%/../assets/svg
+
+custompresenterfactory:
+	presenterDir: %appDir%
+	customMapping:
+		Admin:Login: App\Login\UI\LoginPresenter
+		Admin:AppAdmin: App\Admin\UI\AppAdminPresenter
+		Admin:AppAdminChangePassword: App\Admin\UI\AppAdminChangePasswordPresenter
+		Admin:AppAdminEdit: App\Admin\UI\AppAdminEditPresenter
+		Admin:Dashboard: App\Dashboard\UI\DashboardPresenter
+
+services:
+	- App\Router\RouterFactory::createRouter
+
+	latte.latteFactory:
+		setup:
+			- setStrictTypes(true)
+			- addFilter(datetimeFormat, [@datetimeFormatFilter, format])
+			- addFilter(secondsFormat, [@secondsFormatFilter, format])
+			- addFilter(nullablestring, [@nullableStringFilter, format])
+			- addFilter(flashMessageColor, [@flashMessageColorFilter, format])
+
+	#CUSTOM LATTE FILTERS
+	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
+	secondsFormatFilter: App\UI\Filter\SecondsFormatFilter
+	nullableStringFilter: App\UI\Filter\NullableStringFilter
+	flashMessageColorFilter: App\UI\Filter\FlashMessageColorFilter
+
+	#BASE PRESENTER PARAMETERS
+	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
+
+	#FORM
+	- App\UI\Control\Form\AdminFormFactory
+	- App\UI\Control\Form\AdminFormRenderer
+
+	#DATETIME FACTORY
+	- Mistrfilda\Datetime\DatetimeFactory
+
+	#DATAGRID
+	- App\UI\Control\Datagrid\DatagridFactory
+
+	#AppAdmin
+	- App\Admin\AppAdminRepository(App\Admin\AppAdmin)
+	- App\Admin\AppAdminAuthenticator
+	- App\Admin\AppAdminFacade
+	- App\Admin\CurrentAppAdminGetter
+	- App\Admin\Command\CreateAppAdminCommand
+	- App\Admin\UI\AppAdminGridFactory
+	- App\Admin\UI\AppAdminFormFactory
+	- App\Admin\UI\AppAdminChangePasswordFormFactory
+
+	#Login
+	- App\Login\UI\Form\LoginFormFactory
+
+	#Dashboard
+	- App\Dashboard\DashboardValueBuilder

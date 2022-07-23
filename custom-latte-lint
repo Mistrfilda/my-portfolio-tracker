@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+// zadejte skutečnou cestu k soubor autoload.php
+require __DIR__ . '/vendor/autoload.php';
+
+$engine = new Latte\Engine;
+// tady zaregistruje jednotlivá rozšíření
+$engine->addExtension();
+
+$path = $argv[1];
+$linter = new Latte\Tools\Linter(engine: $engine);
+
+$linter = new Latte\Tools\Linter($engine);
+$linter->scanDirectory($path);
+
+$ok = $linter->scanDirectory($path);
+exit($ok ? 0 : 1);

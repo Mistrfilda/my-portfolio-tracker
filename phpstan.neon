@@ -1,0 +1,12 @@
+parameters:
+	level: max
+	paths:
+		- src
+		- tests
+
+	doctrine:
+		repositoryClass: App\Doctrine\BaseRepository
+		objectManagerLoader: tools/DoctrineObjectManager.php
+
+	ignoreErrors:
+		- '#Call to an undefined method Nette\\ComponentModel\\IComponent\:\:addError\(\)#'

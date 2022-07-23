@@ -1,0 +1,13 @@
+{varType string $value}
+{varType App\UI\Front\Control\Datagrid\Column\ColumnDatetime $column}
+{varType App\Doctrine\IEntity $item}
+
+{parameters
+    string $value,
+    App\UI\Front\Control\Datagrid\Column\ColumnText $column,
+    App\Doctrine\IEntity $item
+}
+
+<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+    {$value}
+</td>

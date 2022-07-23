@@ -1,0 +1,16 @@
+config/config.local.neon
+
+vendor/*
+.idea/*
+tmp/*
+var/*
+temp/*
+log/*
+
+www/build/*
+
+.phpunit.result.cache
+
+node_modules/*
+
+!www/build/admin/.gitkeep

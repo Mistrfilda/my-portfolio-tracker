@@ -1,0 +1,19 @@
+{varType string $value}
+{varType App\UI\Front\Control\Datagrid\Column\ColumnBadge $column}
+{varType App\Doctrine\IEntity $item}
+
+{parameters
+    string $value,
+    App\UI\Front\Control\Datagrid\Column\ColumnBadge $column,
+    App\Doctrine\IEntity $item
+}
+
+<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+    {if $column->isNull($value)}
+        {$value}
+    {else}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {$column->getColorClasses($item)}">
+        {$value}
+    </span>
+    {/if}
+</td>

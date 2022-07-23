@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html class="h-full bg-gray-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="robots" content="noindex">
+    <title>APP STARTER</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {ifset #head}
+        {include #head}
+    {/ifset}
+
+    {webpackCss 'admin'}
+</head>
+
+<body n:class="bg-blue-700, min-h-full">
+<div class="min-h-full flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    {ifset #content}
+        {include #content}
+    {/ifset}
+</div>
+{webpackJs 'admin'}
+</body>
