@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\UI\Icon\SvgIcon;
+
 class DashboardValue
 {
 
@@ -11,7 +13,7 @@ class DashboardValue
 		private string $label,
 		private string $value,
 		private string $color,
-		private string|null $svgIcon,
+		private SvgIcon|null $svgIcon,
 	)
 	{
 	}
@@ -33,7 +35,7 @@ class DashboardValue
 
 	public function getSvgIcon(): string|null
 	{
-		return $this->svgIcon;
+		return $this->svgIcon?->value;
 	}
 
 }

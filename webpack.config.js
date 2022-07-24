@@ -5,7 +5,7 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
     Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
 }
 
-var publicPath = '/app-starter/www/build/admin';
+var publicPath = '/my-portfolio-tracker/www/build/admin';
 var prodHost = process.env.PROD_HOST;
 if (prodHost !== undefined) {
     publicPath = '/build/admin';

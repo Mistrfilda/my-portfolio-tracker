@@ -20,6 +20,7 @@ use App\UI\Control\Datagrid\Filter\IFilter;
 use App\UI\Control\Datagrid\Pagination\Pagination;
 use App\UI\Control\Datagrid\Pagination\PaginationService;
 use App\UI\Control\Form\AdminForm;
+use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -153,7 +154,7 @@ class Datagrid extends Control
 		string $label,
 		string $destination,
 		array $parameters,
-		string|null $icon = null,
+		SvgIcon|null $icon = null,
 		string $color = TailwindColorConstant::BLUE,
 		bool $isAjax = false,
 		string|null $confirmationString = null,

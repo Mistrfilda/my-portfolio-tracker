@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\UI\Menu;
 
+use App\UI\Icon\SvgIcon;
+
 class MenuItem
 {
 
@@ -14,7 +16,7 @@ class MenuItem
 	public function __construct(
 		private string $presenter,
 		private string $action,
-		private string|null $icon,
+		private SvgIcon|null $icon,
 		private string $label,
 		private array $childrens = [],
 		private array $additionalActivePresenters = [],
@@ -40,7 +42,7 @@ class MenuItem
 
 	public function getIcon(): string|null
 	{
-		return $this->icon;
+		return $this->icon?->value;
 	}
 
 	public function getLabel(): string

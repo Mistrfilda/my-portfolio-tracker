@@ -8,6 +8,7 @@ use App\Admin\AppAdminRepository;
 use App\Dashboard\DashboardValue;
 use App\Dashboard\DashboardValueBuilder;
 use App\Test\UpdatedTestCase;
+use App\UI\Icon\SvgIcon;
 use Mockery;
 
 class DashboardValueBuilderTest extends UpdatedTestCase
@@ -22,9 +23,9 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 
 		$expectedDashboardValue = new DashboardValue(
 			'Celkový počet uživatelů',
-			'3c',
+			'3',
 			'blue',
-			'gift.svg',
+			SvgIcon::GIFT,
 		);
 
 		self::assertCount(1, $values);

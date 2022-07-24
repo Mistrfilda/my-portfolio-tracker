@@ -6,6 +6,7 @@ namespace App\UI\Control\Datagrid\Action;
 
 use App\Doctrine\IEntity;
 use App\UI\Control\Datagrid\Datagrid;
+use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use Ramsey\Uuid\UuidInterface;
 
@@ -26,7 +27,7 @@ class DatagridAction implements IDatagridAction
 		private string $label,
 		private string $destination,
 		private array $parameters,
-		private string|null $icon = null,
+		private SvgIcon|null $icon = null,
 		private string $color = TailwindColorConstant::BLUE,
 		callable|null $conditionCallback = null,
 		private bool $isAjax = false,
@@ -48,7 +49,7 @@ class DatagridAction implements IDatagridAction
 
 	public function getIcon(): string|null
 	{
-		return $this->icon;
+		return $this->icon?->value;
 	}
 
 	public function getDestination(): string

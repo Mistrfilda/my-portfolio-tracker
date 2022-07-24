@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Doctrine;
 
-class OrderBy
+enum OrderBy: string
 {
 
-	public const ASC = 'ASC';
+	case ASC = 'ASC';
 
-	public const DESC = 'DESC';
+	case DESC = 'DESC';
 
 }
