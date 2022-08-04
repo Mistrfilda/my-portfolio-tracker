@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid\Column;
 
-use App\Doctrine\IEntity;
+use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Datagrid;
 use Nette\Utils\Callback;
 
@@ -51,7 +51,7 @@ class ColumnBadgeArray extends ColumnText
 		return $value === Datagrid::NULLABLE_PLACEHOLDER;
 	}
 
-	public function getColorClasses(IEntity $entity): string
+	public function getColorClasses(Entity $entity): string
 	{
 		$colorTemplate = 'bg-%s-100 text-%s-600';
 		if ($this->colorCallback !== null) {
