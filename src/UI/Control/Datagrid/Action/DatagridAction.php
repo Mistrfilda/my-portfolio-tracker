@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid\Action;
 
-use App\Doctrine\IEntity;
+use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
@@ -113,7 +113,7 @@ class DatagridAction implements IDatagridAction
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function formatParametersForAction(IEntity $row): array
+	public function formatParametersForAction(Entity $row): array
 	{
 		$formatedParameters = [];
 		foreach ($this->parameters as $parameter) {

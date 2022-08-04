@@ -13,7 +13,7 @@ trait Identifier
 	#[ORM\Id]
 	#[ORM\Column(type: Types::INTEGER)]
 	#[ORM\GeneratedValue]
-	private int $id;
+	private readonly int $id;
 
 	public function getId(): int
 	{

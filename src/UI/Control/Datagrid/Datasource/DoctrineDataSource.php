@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid\Datasource;
 
-use App\Doctrine\IEntity;
+use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Column\IColumn;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Filter\IFilter;
@@ -22,7 +22,7 @@ class DoctrineDataSource implements IDataSource
 
 	/**
 	 * @param ArrayCollection<string, IFilter> $filters
-	 * @return array<string|int, IEntity>
+	 * @return array<string|int, Entity>
 	 */
 	public function getData(int $offset, int $limit, ArrayCollection $filters): array
 	{
@@ -32,7 +32,7 @@ class DoctrineDataSource implements IDataSource
 
 		$this->addFilterToQuery($filters, $this->qb);
 
-		/** @var array<string|int, IEntity> $results */
+		/** @var array<string|int, Entity> $results */
 		$results = $this->qb
 			->getQuery()
 			->getResult();
@@ -60,7 +60,7 @@ class DoctrineDataSource implements IDataSource
 		return (int) $result;
 	}
 
-	public function getValueForColumn(IColumn $column, IEntity $row): string
+	public function getValueForColumn(IColumn $column, Entity $row): string
 	{
 		if ($column->getGetterMethod() !== null) {
 			return $column->getGetterMethod()($row);
@@ -81,7 +81,7 @@ class DoctrineDataSource implements IDataSource
 		return $column->processValue($row->{$getterMethod}());
 	}
 
-	public function getValueForKey(string $key, IEntity $row): string|int|float|UuidInterface
+	public function getValueForKey(string $key, Entity $row): string|int|float|UuidInterface
 	{
 		$getterMethod = 'get' . Strings::firstUpper($key);
 		if (method_exists($row, $getterMethod) === false) {

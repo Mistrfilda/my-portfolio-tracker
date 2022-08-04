@@ -7,7 +7,7 @@ namespace App\Doctrine;
 /**
  * Basic doctrine entity interface
  */
-interface IEntity
+interface Entity
 {
 
 }

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid;
 
-use App\Doctrine\IEntity;
+use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Action\IDatagridAction;
 use App\UI\Control\Datagrid\Column\IColumn;
 use App\UI\Control\Datagrid\Datasource\IDataSource;
@@ -27,7 +27,7 @@ class DatagridTemplate extends Template
 	/** @var ArrayCollection<int, IFilter> */
 	public ArrayCollection $filters;
 
-	/** @var array<int|string, IEntity> */
+	/** @var array<int|string, Entity> */
 	public array $items;
 
 	/** @var ArrayCollection<int, IDatagridAction> */

@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace App\Admin;
 
 use App\Doctrine\CreatedAt;
-use App\Doctrine\IEntity;
+use App\Doctrine\Entity;
 use App\Doctrine\UpdatedAt;
 use App\Doctrine\Uuid;
 use Doctrine\DBAL\Types\Types;
@@ -14,7 +14,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 #[ORM\Entity]
 #[ORM\Table('app_admin')]
-class AppAdmin implements IEntity
+class AppAdmin implements Entity
 {
 
 	use Uuid;
