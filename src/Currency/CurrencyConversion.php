@@ -13,6 +13,9 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 #[ORM\Entity]
 #[ORM\Table('currency_conversion')]
+#[ORM\UniqueConstraint(name: 'from_to_date_unidx', fields: ['fromCurrency', 'toCurrency', 'forDate'])]
+#[ORM\Index(fields: ['fromCurrency', 'toCurrency', 'forDate'], name: 'from_to_currency_date_idx')]
+#[ORM\Index(fields: ['fromCurrency', 'toCurrency'], name: 'from_to_currency_idx')]
 class CurrencyConversion implements Entity
 {
 
@@ -74,6 +77,11 @@ class CurrencyConversion implements Entity
 	public function getSource(): CurrencySourceEnum
 	{
 		return $this->source;
+	}
+
+	public function getForDate(): ImmutableDateTime
+	{
+		return $this->forDate;
 	}
 
 }

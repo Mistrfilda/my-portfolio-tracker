@@ -151,3 +151,14 @@ services:
 
 	#Dashboard
 	- App\Dashboard\DashboardValueBuilder
+
+	#HTTP
+	- App\Http\Psr7\Psr7RequestFactory
+	- App\Http\Psr18\Psr18ClientFactory
+
+	#Currency
+	- App\Currency\CurrencyConversionRepository(App\Currency\CurrencyConversion)
+	- App\Currency\Download\CNBCurrencyConversionDownloadFacade
+	- App\Currency\Download\ECBCurrencyConversionDownloadFacade
+	- App\Currency\Download\Command\CurrencyConversionDownloadCommand(typed(App\Currency\Download\CurrencyConversionDownloadFacade))
+	- App\Currency\Download\CurrencyConversionDownloadInverseRateHelper
