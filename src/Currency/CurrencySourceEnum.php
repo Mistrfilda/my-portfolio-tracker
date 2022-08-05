@@ -9,4 +9,6 @@ enum CurrencySourceEnum: string
 
 	case CNB = 'CNB';
 
+	case ECB = 'ECB';
+
 }
