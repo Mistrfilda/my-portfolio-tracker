@@ -10,10 +10,11 @@ class DashboardValue
 {
 
 	public function __construct(
-		private string $label,
-		private string $value,
-		private string $color,
-		private SvgIcon|null $svgIcon,
+		private readonly string $label,
+		private readonly string $value,
+		private readonly string $color,
+		private readonly SvgIcon|null $svgIcon = null,
+		private readonly string|null $description = null,
 	)
 	{
 	}
@@ -36,6 +37,11 @@ class DashboardValue
 	public function getSvgIcon(): string|null
 	{
 		return $this->svgIcon?->value;
+	}
+
+	public function getDescription(): string|null
+	{
+		return $this->description;
 	}
 
 }

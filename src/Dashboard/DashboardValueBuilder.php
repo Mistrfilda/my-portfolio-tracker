@@ -8,6 +8,7 @@ use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
+use App\Utils\Datetime\DatetimeConst;
 
 class DashboardValueBuilder
 {
@@ -24,33 +25,42 @@ class DashboardValueBuilder
 	 */
 	public function buildValues(): array
 	{
+		$eurCzk = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::EUR,
+			CurrencyEnum::CZK,
+		);
+
+		$usdCzk = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::USD,
+			CurrencyEnum::CZK,
+		);
+
+		$eurUsd = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::EUR,
+			CurrencyEnum::USD,
+		);
+
 		return [
 			new DashboardValue(
 				'EUR - CZK',
-				(string) $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-					CurrencyEnum::EUR,
-					CurrencyEnum::CZK,
-				)->getCurrentPrice(),
-				TailwindColorConstant::EMERALD,
-				SvgIcon::EURO,
+				(string) $eurCzk->getCurrentPrice(),
+				TailwindColorConstant::BLUE,
+				SvgIcon::CZECH_CROWN,
+				sprintf('Aktualizováno %s', $eurCzk->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT)),
 			),
 			new DashboardValue(
 				'USD - CZK',
-				(string) $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-					CurrencyEnum::USD,
-					CurrencyEnum::CZK,
-				)->getCurrentPrice(),
-				TailwindColorConstant::EMERALD,
-				SvgIcon::DOLLAR,
+				(string) $usdCzk->getCurrentPrice(),
+				TailwindColorConstant::BLUE,
+				SvgIcon::CZECH_CROWN,
+				sprintf('Aktualizováno %s', $usdCzk->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT)),
 			),
 			new DashboardValue(
 				'EUR - USD',
-				(string) $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-					CurrencyEnum::EUR,
-					CurrencyEnum::USD,
-				)->getCurrentPrice(),
-				TailwindColorConstant::EMERALD,
+				(string) $eurUsd->getCurrentPrice(),
+				TailwindColorConstant::BLUE,
 				SvgIcon::DOLLAR,
+				sprintf('Aktualizováno %s', $eurUsd->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT)),
 			),
 		];
 	}

@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Currency\Download;
 
 use App\Currency\CurrencyConversion;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class CurrencyConversionDownloadInverseRateHelper
 {
@@ -26,10 +27,12 @@ class CurrencyConversionDownloadInverseRateHelper
 	public function updateExistingInversedRate(
 		CurrencyConversion $conversionToBeConverted,
 		CurrencyConversion $existingConversion,
+		ImmutableDateTime $now,
 	): void
 	{
 		$existingConversion->update(
 			$this->inverseRate($conversionToBeConverted->getCurrentPrice()),
+			$now,
 		);
 	}
 

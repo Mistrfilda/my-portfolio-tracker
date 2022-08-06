@@ -7,6 +7,7 @@ namespace App\Currency;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\Identifier;
+use App\Doctrine\UpdatedAt;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -21,6 +22,7 @@ class CurrencyConversion implements Entity
 
 	use Identifier;
 	use CreatedAt;
+	use UpdatedAt;
 
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class)]
 	private CurrencyEnum $fromCurrency;
@@ -51,12 +53,14 @@ class CurrencyConversion implements Entity
 		$this->currentPrice = $currentPrice;
 		$this->source = $source;
 		$this->createdAt = $now;
+		$this->updatedAt = $now;
 		$this->forDate = $forDate->setTime(0, 0);
 	}
 
-	public function update(float $currentPrice): void
+	public function update(float $currentPrice, ImmutableDateTime $now): void
 	{
 		$this->currentPrice = $currentPrice;
+		$this->updatedAt = $now;
 	}
 
 	public function getFromCurrency(): CurrencyEnum

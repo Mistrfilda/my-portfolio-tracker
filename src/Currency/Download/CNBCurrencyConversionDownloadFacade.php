@@ -69,7 +69,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 			$parsedRate = (float) Strings::replace($parsedLine[4], '~,~', '.');
 
 			if ($rate !== null) {
-				$rate->update($parsedRate);
+				$rate->update($parsedRate, $now);
 			} else {
 				$rate = new CurrencyConversion(
 					self::RATES_TO_BE_DOWNLOADED[$parsedLine[3]],
@@ -95,6 +95,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 				$this->currencyConversionDownloadInverseRateHelper->updateExistingInversedRate(
 					$rate,
 					$inversedRate,
+					$now,
 				);
 			} else {
 				$inversedRate = $this->currencyConversionDownloadInverseRateHelper->getNewInversedRate($rate);
