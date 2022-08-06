@@ -19,6 +19,11 @@
                             {$dashboardValue->getValue()}
                         </p>
                     </dd>
+                    {if $dashboardValue->getDescription() !== null}
+                        <dd class="mt-4 flex items-baseline">
+                            <p class="text-sm text-gray-500">{$dashboardValue->getDescription()}</p>
+                        </dd>
+                    {/if}
                 </div>
             {/foreach}
         </dl>

@@ -71,7 +71,7 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 			);
 
 			if ($rate !== null) {
-				$rate->update($parsedRate);
+				$rate->update($parsedRate, $now);
 			} else {
 				$rate = new CurrencyConversion(
 					CurrencyEnum::EUR,
@@ -96,6 +96,7 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 				$this->currencyConversionDownloadInverseRateHelper->updateExistingInversedRate(
 					$rate,
 					$inversedRate,
+					$now,
 				);
 			} else {
 				$inversedRate = $this->currencyConversionDownloadInverseRateHelper->getNewInversedRate($rate);
