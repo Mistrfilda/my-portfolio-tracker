@@ -2,9 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace App\Asset\Price;
+namespace App\Stock\Price;
 
-enum AssetPriceDownloaderEnum: string
+enum StockAssetPriceDownloaderEnum: string
 {
 
 	case PRAGUE_EXCHANGE_DOWNLOADER = 'PSE';
