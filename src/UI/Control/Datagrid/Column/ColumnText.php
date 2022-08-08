@@ -58,7 +58,9 @@ class ColumnText implements IColumn
 		return self::TEMPLATE_FILE;
 	}
 
-	public function processValue(string|int|float|ImmutableDateTime|UuidInterface|null $value): string
+	public function processValue(
+		string|int|float|ImmutableDateTime|UuidInterface|DatagridRenderableEnum|null $value,
+	): string
 	{
 		if ($value instanceof ImmutableDateTime) {
 			throw new DatagridColumnException(
@@ -72,6 +74,10 @@ class ColumnText implements IColumn
 
 		if ($value instanceof UuidInterface) {
 			return $value->toString();
+		}
+
+		if ($value instanceof DatagridRenderableEnum) {
+			return $value->format();
 		}
 
 		return (string) $value;

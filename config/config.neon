@@ -3,9 +3,6 @@ parameters:
 		pageTitle: 'App-starter'
 		storageName: 'appstarterstorage'
 
-includes:
-	- forms.neon
-
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -97,15 +94,6 @@ webpackassets:
 latteMacros:
 	svgDir: %appDir%/../assets/svg
 
-custompresenterfactory:
-	presenterDir: %appDir%
-	customMapping:
-		Admin:Login: App\Login\UI\LoginPresenter
-		Admin:AppAdmin: App\Admin\UI\AppAdminPresenter
-		Admin:AppAdminChangePassword: App\Admin\UI\AppAdminChangePasswordPresenter
-		Admin:AppAdminEdit: App\Admin\UI\AppAdminEditPresenter
-		Admin:Dashboard: App\Dashboard\UI\DashboardPresenter
-
 services:
 	- App\Router\RouterFactory::createRouter
 
@@ -162,3 +150,9 @@ services:
 	- App\Currency\Download\ECBCurrencyConversionDownloadFacade
 	- App\Currency\Download\Command\CurrencyConversionDownloadCommand(typed(App\Currency\Download\CurrencyConversionDownloadFacade))
 	- App\Currency\Download\CurrencyConversionDownloadInverseRateHelper
+
+	#Stock asset
+	- App\Stock\Asset\StockAssetRepository(App\Stock\Asset\StockAsset)
+	- App\Stock\Asset\UI\StockAssetGridFactory
+	- App\Stock\Asset\UI\StockAssetFormFactory
+	- App\Stock\Asset\StockAssetFacade

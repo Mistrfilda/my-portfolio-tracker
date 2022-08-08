@@ -27,6 +27,8 @@ class Bootstrap
 			->register();
 
 		$configurator->addConfig($appDir . '/config/config.neon');
+		$configurator->addConfig($appDir . '/config/forms.neon');
+		$configurator->addConfig($appDir . '/config/routing.neon');
 
 		if (is_file($appDir . '/config/config.local.neon')) {
 			$configurator->addConfig($appDir . '/config/config.local.neon');

@@ -53,4 +53,6 @@ enum SvgIcon: string
 
 	case CZECH_CROWN = 'czech-crown.svg';
 
+	case COLLECTION = 'collection.svg';
+
 }

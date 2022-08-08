@@ -10,14 +10,16 @@ use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
-use App\Doctrine\Identifier;
+use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('stock_asset')]
@@ -27,7 +29,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class StockAsset implements Entity, Asset
 {
 
-	use Identifier;
+	use SimpleUuid;
 	use UpdatedAt;
 	use CreatedAt;
 
@@ -37,7 +39,7 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::STRING, enumType: StockAssetPriceDownloaderEnum::class)]
 	private StockAssetPriceDownloaderEnum $assetPriceDownloader;
 
-	#[ORM\Column(type: Types::STRING)]
+	#[ORM\Column(type: Types::STRING, unique: true)]
 	private string $ticker;
 
 	#[ORM\Column(type: Types::STRING, enumType: StockAssetExchange::class)]
@@ -46,11 +48,9 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class)]
 	private CurrencyEnum $currency;
 
-	/**
-	 * @var ArrayCollection<int, StockPosition>
-	 */
+	/** @var ArrayCollection<int, StockPosition> */
 	#[ORM\OneToMany(targetEntity: StockPosition::class, mappedBy: 'stockAsset')]
-	private ArrayCollection $positions;
+	private Collection $positions;
 
 	public function __construct(
 		string $name,
@@ -61,6 +61,7 @@ class StockAsset implements Entity, Asset
 		ImmutableDateTime $now,
 	)
 	{
+		$this->id = Uuid::uuid4();
 		$this->name = $name;
 		$this->assetPriceDownloader = $assetPriceDownloader;
 		$this->ticker = $ticker;
@@ -73,6 +74,23 @@ class StockAsset implements Entity, Asset
 		$this->positions = new ArrayCollection();
 	}
 
+	public function update(
+		string $name,
+		StockAssetPriceDownloaderEnum $assetPriceDownloader,
+		string $ticker,
+		StockAssetExchange $exchange,
+		CurrencyEnum $currency,
+		ImmutableDateTime $now,
+	): void
+	{
+		$this->name = $name;
+		$this->assetPriceDownloader = $assetPriceDownloader;
+		$this->ticker = $ticker;
+		$this->exchange = $exchange;
+		$this->currency = $currency;
+		$this->updatedAt = $now;
+	}
+
 	public function getType(): AssetTypeEnum
 	{
 		return AssetTypeEnum::STOCK;
@@ -83,7 +101,7 @@ class StockAsset implements Entity, Asset
 		return $this->name;
 	}
 
-	public function getAssetPriceDownloader(): StockAssetPriceDownloaderEnum|null
+	public function getAssetPriceDownloader(): StockAssetPriceDownloaderEnum
 	{
 		return $this->assetPriceDownloader;
 	}
