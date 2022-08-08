@@ -21,10 +21,10 @@ class MenuBuilder
 				'default',
 				SvgIcon::USERS,
 				'Uživatelé',
-				[],
 				['AppAdminEdit'],
 				true,
 			),
+			new MenuItem('StockAsset', 'default', SvgIcon::COLLECTION, 'Akcie'),
 		];
 	}
 

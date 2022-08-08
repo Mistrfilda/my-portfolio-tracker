@@ -10,7 +10,6 @@ class MenuItem
 {
 
 	/**
-	 * @param array<MenuItem> $childrens
 	 * @param array<string> $additionalActivePresenters
 	 */
 	public function __construct(
@@ -18,9 +17,9 @@ class MenuItem
 		private string $action,
 		private SvgIcon|null $icon,
 		private string $label,
-		private array $childrens = [],
 		private array $additionalActivePresenters = [],
 		private bool $onlySysadmin = false,
+		private string|null $badge = null,
 	)
 	{
 	}
@@ -50,19 +49,6 @@ class MenuItem
 		return $this->label;
 	}
 
-	/**
-	 * @return array<MenuItem>
-	 */
-	public function getChildrens(): array
-	{
-		return $this->childrens;
-	}
-
-	public function isNested(): bool
-	{
-		return count($this->childrens) > 0;
-	}
-
 	public function isOnlySysadmin(): bool
 	{
 		return $this->onlySysadmin;
@@ -78,26 +64,16 @@ class MenuItem
 			$this->additionalActivePresenters,
 		);
 
-		return $this->getChildrenLinks($condition);
-	}
-
-	/**
-	 * @param array<string> $condition
-	 * @return array<string>
-	 */
-	private function getChildrenLinks(array &$condition): array
-	{
 		if ($this->presenter !== '') {
 			$condition[] = $this->presenter . ':*';
 		}
 
-		if (count($this->childrens) > 0) {
-			foreach ($this->childrens as $children) {
-				$children->getChildrenLinks($condition);
-			}
-		}
-
 		return $condition;
+	}
+
+	public function getBadge(): string|null
+	{
+		return $this->badge;
 	}
 
 }

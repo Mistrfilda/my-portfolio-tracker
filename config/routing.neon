@@ -1,0 +1,10 @@
+custompresenterfactory:
+	presenterDir: %appDir%
+	customMapping:
+		Admin:Login: App\Login\UI\LoginPresenter
+		Admin:AppAdmin: App\Admin\UI\AppAdminPresenter
+		Admin:AppAdminChangePassword: App\Admin\UI\AppAdminChangePasswordPresenter
+		Admin:AppAdminEdit: App\Admin\UI\AppAdminEditPresenter
+		Admin:Dashboard: App\Dashboard\UI\DashboardPresenter
+		Admin:StockAsset: App\Stock\Asset\UI\StockAssetPresenter
+		Admin:StockAssetEdit: App\Stock\Asset\UI\StockAssetEditPresenter

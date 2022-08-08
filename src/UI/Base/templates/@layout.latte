@@ -137,7 +137,11 @@
                                     {if $menuItem->getIcon() !== null}
                                         {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
-                                    {$menuItem->getLabel()}
+                                    <span class="flex-1">{$menuItem->getLabel()}</span>
+
+                                    {if $menuItem->getBadge()}
+                                        <span class="bg-blue-600 ml-3 inline-block py-0.5 px-3 text-xs font-medium rounded-full"> {$menuItem->getBadge()} </span>
+                                    {/if}
                                 </a>
                             {else}
                                 <a n:href="$menuItem->getLink()"
@@ -146,7 +150,11 @@
                                     {if $menuItem->getIcon() !== null}
                                         {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
-                                    {$menuItem->getLabel()}
+                                    <span class="flex-1">{$menuItem->getLabel()}</span>
+
+                                    {if $menuItem->getBadge()}
+                                        <span class="bg-blue-800 ml-3 inline-block py-0.5 px-3 text-xs font-medium rounded-full">{$menuItem->getBadge()}</span>
+                                    {/if}
                                 </a>
                             {/if}
                         {/foreach}
