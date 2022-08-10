@@ -7,6 +7,7 @@ namespace App\Stock\Position;
 use App\Asset\Asset;
 use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
+use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\AssetPriceFactory;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
@@ -39,18 +40,23 @@ class StockPosition implements AssetPosition
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $orderDate;
 
+	#[ORM\Embedded(class: AssetPriceEmbeddable::class)]
+	private AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency;
+
 	public function __construct(
 		StockAsset $stockAsset,
 		int $orderPiecesCount,
 		float $pricePerPiece,
 		ImmutableDateTime $orderDate,
 		ImmutableDateTime $now,
+		AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency,
 	)
 	{
 		$this->stockAsset = $stockAsset;
 		$this->orderPiecesCount = $orderPiecesCount;
 		$this->pricePerPiece = $pricePerPiece;
 		$this->orderDate = $orderDate;
+		$this->totalInvestedAmountInBrokerCurrency = $totalInvestedAmountInBrokerCurrency;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -77,7 +83,11 @@ class StockPosition implements AssetPosition
 
 	public function getCurrentTotalAmount(): AssetPrice
 	{
-		// TODO: Implement getCurrentTotalAmount() method.
+		return AssetPriceFactory::createFromPieceCountPrice(
+			$this->stockAsset,
+			$this->orderPiecesCount,
+			$this->stockAsset->getAssetCurrentPrice()->getPrice(),
+		);
 	}
 
 	public function getPricePerPiece(): AssetPrice
@@ -92,6 +102,11 @@ class StockPosition implements AssetPosition
 	public function getCurrency(): CurrencyEnum
 	{
 		return $this->stockAsset->getCurrency();
+	}
+
+	public function getTotalInvestedAmountInBrokerCurrency(): AssetPrice
+	{
+		return $this->totalInvestedAmountInBrokerCurrency->getAssetPrice($this->stockAsset);
 	}
 
 }

@@ -1,7 +1,10 @@
 parameters:
 	basePresenterParameters:
-		pageTitle: 'App-starter'
-		storageName: 'appstarterstorage'
+		pageTitle: 'My portfolio app'
+		storageName: 'my-portfolio-app'
+
+	twelveData:
+		apiKey: __FILL_API_KEY__
 
 application:
 	errorPresenter: Error:Error
@@ -104,12 +107,14 @@ services:
 			- addFilter(secondsFormat, [@secondsFormatFilter, format])
 			- addFilter(nullablestring, [@nullableStringFilter, format])
 			- addFilter(flashMessageColor, [@flashMessageColorFilter, format])
+			- addFilter(assetPriceFormat, [@assetPriceFormatFilter, format])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
 	secondsFormatFilter: App\UI\Filter\SecondsFormatFilter
 	nullableStringFilter: App\UI\Filter\NullableStringFilter
 	flashMessageColorFilter: App\UI\Filter\FlashMessageColorFilter
+	assetPriceFormatFilter: App\UI\Filter\AssetPriceFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
@@ -156,3 +161,6 @@ services:
 	- App\Stock\Asset\UI\StockAssetGridFactory
 	- App\Stock\Asset\UI\StockAssetFormFactory
 	- App\Stock\Asset\StockAssetFacade
+	- App\Stock\Price\StockAssetPriceRecordRepository(App\Stock\Price\StockAssetPriceRecord)
+	- App\Stock\Price\Downloader\TwelveDataDownloader(apiKey: %twelveData.apiKey%)
+	- App\Stock\Price\Downloader\TwelveDataDownloaderCommand

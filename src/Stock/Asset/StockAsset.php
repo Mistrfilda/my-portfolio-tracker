@@ -7,6 +7,7 @@ namespace App\Stock\Asset;
 use App\Asset\Asset;
 use App\Asset\AssetTypeEnum;
 use App\Asset\Price\AssetPrice;
+use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -14,6 +15,7 @@ use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
+use App\Stock\Price\StockAssetPriceRecord;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -48,9 +50,19 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class)]
 	private CurrencyEnum $currency;
 
+	#[ORM\Embedded(class: AssetPriceEmbeddable::class)]
+	private AssetPriceEmbeddable $currentAssetPrice;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
+	private ImmutableDateTime $priceDownloadedAt;
+
 	/** @var ArrayCollection<int, StockPosition> */
 	#[ORM\OneToMany(targetEntity: StockPosition::class, mappedBy: 'stockAsset')]
 	private Collection $positions;
+
+	/** @var ArrayCollection<int, StockAssetPriceRecord> */
+	#[ORM\OneToMany(targetEntity: StockAssetPriceRecord::class, mappedBy: 'stockAsset')]
+	private Collection $priceRecords;
 
 	public function __construct(
 		string $name,
@@ -71,7 +83,11 @@ class StockAsset implements Entity, Asset
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 
+		$this->currentAssetPrice = new AssetPriceEmbeddable(0, $currency);
+		$this->priceDownloadedAt = $now;
+
 		$this->positions = new ArrayCollection();
+		$this->priceRecords = new ArrayCollection();
 	}
 
 	public function update(
@@ -89,6 +105,19 @@ class StockAsset implements Entity, Asset
 		$this->exchange = $exchange;
 		$this->currency = $currency;
 		$this->updatedAt = $now;
+	}
+
+	public function setCurrentPrice(
+		StockAssetPriceRecord $stockAssetPriceRecord,
+		ImmutableDateTime $now,
+	): void
+	{
+		$this->currentAssetPrice = new AssetPriceEmbeddable(
+			$stockAssetPriceRecord->getPrice(),
+			$stockAssetPriceRecord->getCurrency(),
+		);
+
+		$this->priceDownloadedAt = $now;
 	}
 
 	public function getType(): AssetTypeEnum
@@ -141,7 +170,12 @@ class StockAsset implements Entity, Asset
 
 	public function getAssetCurrentPrice(): AssetPrice
 	{
-		// TODO: Implement getAssetCurrentPrice() method.
+		return $this->currentAssetPrice->getAssetPrice($this);
+	}
+
+	public function getPriceDownloadedAt(): ImmutableDateTime
+	{
+		return $this->priceDownloadedAt;
 	}
 
 }

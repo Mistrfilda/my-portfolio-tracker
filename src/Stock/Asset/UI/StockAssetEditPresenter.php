@@ -36,9 +36,9 @@ class StockAssetEditPresenter extends BaseSysadminPresenter
 
 		$onSuccess = function () use ($id): void {
 			if ($id === null) {
-				$this->flashMessage('Akcie úspěšně upravena', FlashMessageType::SUCCESS);
-			} else {
 				$this->flashMessage('Akcie úspěšně vytvořena', FlashMessageType::SUCCESS);
+			} else {
+				$this->flashMessage('Akcie úspěšně upravena', FlashMessageType::SUCCESS);
 			}
 
 			$this->redirect('StockAsset:default');
