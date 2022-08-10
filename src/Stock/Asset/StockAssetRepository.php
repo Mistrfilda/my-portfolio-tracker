@@ -7,8 +7,10 @@ namespace App\Stock\Asset;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -40,6 +42,29 @@ class StockAssetRepository extends BaseRepository
 	public function findByTicker(string $ticker): StockAsset|null
 	{
 		return $this->doctrineRepository->findOneBy(['ticker' => $ticker]);
+	}
+
+	/**
+	 * @return array<StockAsset>
+	 */
+	public function findAllByAssetPriceDownloader(
+		StockAssetPriceDownloaderEnum $stockAssetPriceDownloader,
+		ImmutableDateTime $now,
+		int $limit = 8,
+	): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere($qb->expr()->eq('stockAsset.assetPriceDownloader', ':assetPriceDownloader'));
+		$qb->setParameter('assetPriceDownloader', $stockAssetPriceDownloader);
+
+		$qb->andWhere(
+			$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
+		);
+
+		$qb->setParameter('priceDownloadedAt', $now->modify('- 60 minutes'));
+		$qb->setMaxResults($limit);
+
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

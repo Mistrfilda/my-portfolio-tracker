@@ -12,7 +12,7 @@ class AssetPrice
 
 	public function __construct(
 		private readonly Asset $asset,
-		private readonly float $currentPrice,
+		private readonly float $price,
 		private readonly CurrencyEnum $currency,
 	)
 	{
@@ -23,9 +23,9 @@ class AssetPrice
 		return $this->asset;
 	}
 
-	public function getCurrentPrice(): float
+	public function getPrice(): float
 	{
-		return $this->currentPrice;
+		return $this->price;
 	}
 
 	public function getCurrency(): CurrencyEnum

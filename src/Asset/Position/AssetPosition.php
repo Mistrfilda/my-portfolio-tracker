@@ -23,4 +23,11 @@ interface AssetPosition
 
 	public function getCurrency(): CurrencyEnum;
 
+	/**
+	 * Broker degiro uses euro for all operations
+	 */
+	public function getTotalInvestedAmountInBrokerCurrency(): AssetPrice;
+
+	//public function getCurrentTotalAmountInBrokerCurrency(): AssetPrice;
+
 }

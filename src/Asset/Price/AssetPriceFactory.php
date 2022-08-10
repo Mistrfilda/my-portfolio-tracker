@@ -17,7 +17,7 @@ class AssetPriceFactory
 	{
 		return new AssetPrice(
 			$asset,
-			$piecesCount * $piecesCount,
+			$piecesCount * $price,
 			$asset->getCurrency(),
 		);
 	}
