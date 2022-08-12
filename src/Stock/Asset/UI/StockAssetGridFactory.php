@@ -34,17 +34,22 @@ class StockAssetGridFactory
 
 		$grid->setLimit(30);
 
-		$grid->addColumnText('name', 'Jméno')->setFilterText();
+		$name = $grid->addColumnText('name', 'Jméno');
+		$name->setFilterText();
+		$name->setSortable();
 
 		$grid->addColumnBadge('ticker', 'Ticker', TailwindColorConstant::BLUE)->setFilterText();
 
-		$grid->addColumnText('exchange', 'Burza')->setFilterText();
+		$exchange = $grid->addColumnText('exchange', 'Burza');
+		$exchange->setFilterText();
+		$exchange->setSortable();
 
-		$grid->addColumnText('currency', 'Měna');
+		$grid->addColumnText('currency', 'Měna')->setSortable();
 
 		$grid->addColumnText('assetPriceDownloader', 'Zdroj dat');
 
-		$grid->addColumnDatetime('priceDownloadedAt', 'Poslední aktualizace ceny');
+		$grid->addColumnDatetime('priceDownloadedAt', 'Poslední aktualizace ceny')
+			->setSortable();
 
 		$grid->addColumnText(
 			'currentPrice',

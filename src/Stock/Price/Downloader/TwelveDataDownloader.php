@@ -22,6 +22,7 @@ class TwelveDataDownloader implements AssetPriceDownloader
 
 	public function __construct(
 		private readonly string $apiKey,
+		private readonly int $updateStockAssetHoursThreshold,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
@@ -104,7 +105,10 @@ class TwelveDataDownloader implements AssetPriceDownloader
 
 		foreach ($this->stockAssetRepository->findAllByAssetPriceDownloader(
 			StockAssetPriceDownloaderEnum::TWELVE_DATA,
-			$this->datetimeFactory->createNow(),
+			8,
+			$this->datetimeFactory->createNow()->deductHoursFromDatetime(
+				$this->updateStockAssetHoursThreshold,
+			),
 		) as $stockAsset) {
 			$twelveDataRequest->addStockAsset($stockAsset);
 		}

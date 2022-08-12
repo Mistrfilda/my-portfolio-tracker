@@ -49,8 +49,8 @@ class StockAssetRepository extends BaseRepository
 	 */
 	public function findAllByAssetPriceDownloader(
 		StockAssetPriceDownloaderEnum $stockAssetPriceDownloader,
-		ImmutableDateTime $now,
-		int $limit = 8,
+		int|null $limit = null,
+		ImmutableDateTime|null $priceDownloadedBefore = null,
 	): array
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
@@ -61,8 +61,13 @@ class StockAssetRepository extends BaseRepository
 			$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
 		);
 
-		$qb->setParameter('priceDownloadedAt', $now->modify('- 60 minutes'));
-		$qb->setMaxResults($limit);
+		if ($priceDownloadedBefore !== null) {
+			$qb->setParameter('priceDownloadedAt', $priceDownloadedBefore);
+		}
+
+		if ($limit !== null) {
+			$qb->setMaxResults($limit);
+		}
 
 		return $qb->getQuery()->getResult();
 	}

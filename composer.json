@@ -82,6 +82,14 @@
 			"@stan",
 			"@cs",
 			"@test-unit"
+		],
+		"stock-assets-downloaders": [
+			"bin/console twelve-data:download"
+		],
+		"currency-download": "bin/console currency:download",
+		"download-all": [
+			"@currency-download",
+			"@stock-assets-downloaders"
 		]
 	},
 	"config": {
