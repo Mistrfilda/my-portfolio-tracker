@@ -19,6 +19,8 @@ enum SvgIcon: string
 
 	case CHEVRON_DOWN = 'chevron-down.svg';
 
+	case CHEVRON_UP = 'chevron-up.svg';
+
 	case CLIPBOARD_LIST = 'clipboard-list.svg';
 
 	case GIFT = 'gift.svg';
@@ -54,5 +56,7 @@ enum SvgIcon: string
 	case CZECH_CROWN = 'czech-crown.svg';
 
 	case COLLECTION = 'collection.svg';
+
+	case SWITCH_VERTICAL = 'switch-vertical.svg';
 
 }

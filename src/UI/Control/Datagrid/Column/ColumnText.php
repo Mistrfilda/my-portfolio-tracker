@@ -6,6 +6,7 @@ namespace App\UI\Control\Datagrid\Column;
 
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\Filter\FilterText;
+use App\UI\Control\Datagrid\Sort\Sort;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 use function sprintf;
@@ -18,6 +19,8 @@ class ColumnText implements IColumn
 	/** @var callable|null */
 	protected $getterMethod;
 
+	private Sort|null $sort;
+
 	public function __construct(
 		protected Datagrid $datagrid,
 		protected string $label,
@@ -26,6 +29,7 @@ class ColumnText implements IColumn
 	)
 	{
 		$this->getterMethod = $getterMethod;
+		$this->sort = null;
 	}
 
 	public function getColumn(): string
@@ -46,6 +50,19 @@ class ColumnText implements IColumn
 	public function setFilterText(): FilterText
 	{
 		return $this->datagrid->setFilterText($this);
+	}
+
+	public function setSortable(): Sort
+	{
+		$sort = $this->datagrid->setSortable($this);
+		$this->sort = $sort;
+
+		return $sort;
+	}
+
+	public function getSort(): Sort|null
+	{
+		return $this->sort;
 	}
 
 	public function getGetterMethod(): callable|null

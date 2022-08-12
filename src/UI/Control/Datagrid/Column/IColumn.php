@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Control\Datagrid\Column;
 
 use App\UI\Control\Datagrid\Datagrid;
+use App\UI\Control\Datagrid\Sort\Sort;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
@@ -24,5 +25,7 @@ interface IColumn
 	public function processValue(
 		string|int|float|ImmutableDateTime|UuidInterface|DatagridRenderableEnum|null $value,
 	): string;
+
+	public function getSort(): Sort|null;
 
 }
