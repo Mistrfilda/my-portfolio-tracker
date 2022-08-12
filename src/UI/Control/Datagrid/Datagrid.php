@@ -19,6 +19,9 @@ use App\UI\Control\Datagrid\Filter\FilterValue;
 use App\UI\Control\Datagrid\Filter\IFilter;
 use App\UI\Control\Datagrid\Pagination\Pagination;
 use App\UI\Control\Datagrid\Pagination\PaginationService;
+use App\UI\Control\Datagrid\Sort\Sort;
+use App\UI\Control\Datagrid\Sort\SortException;
+use App\UI\Control\Datagrid\Sort\SortService;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
@@ -44,6 +47,13 @@ class Datagrid extends Control
 	 */
 	public array $parameterFilters = [];
 
+	/**
+	 * @var array<string, string|null>
+	 *
+	 * @persistent
+	 */
+	public array $sortFilters = [];
+
 	/** @var ArrayCollection<int, IColumn> */
 	private ArrayCollection $columns;
 
@@ -55,15 +65,24 @@ class Datagrid extends Control
 
 	private PaginationService $paginationService;
 
+	/** @var ArrayCollection<string, Sort> */
+	private ArrayCollection $sorts;
+
+	private SortService $sortService;
+
 	private bool $filterApplied = false;
+
+	private bool $sortParametersApplied = false;
 
 	public function __construct(private IDataSource $datasource)
 	{
 		$this->setPagination();
 		$this->paginationService = new PaginationService();
+		$this->sortService = new SortService();
 		$this->columns = new ArrayCollection();
 		$this->filters = new ArrayCollection();
 		$this->actions = new ArrayCollection();
+		$this->sorts = new ArrayCollection();
 	}
 
 	public function addColumnText(
@@ -185,6 +204,14 @@ class Datagrid extends Control
 		return $filter;
 	}
 
+	public function setSortable(IColumn $column): Sort
+	{
+		$sort = new Sort($column);
+		$this->sorts->set($column->getColumn(), $sort);
+
+		return $sort;
+	}
+
 	public function handleChangePagination(int $offset, int $limit): void
 	{
 		$this->offset = $offset;
@@ -217,6 +244,24 @@ class Datagrid extends Control
 		$this->redrawGridData();
 	}
 
+	public function handleSort(string $column): void
+	{
+		$this->sortService->getFiltersFromParameters(
+			$this->sortFilters,
+			$this->sorts,
+		);
+
+		$sort = $this->sorts->get($column);
+		if ($sort === null) {
+			throw new SortException(sprintf('Unknown column %s', $column));
+		}
+
+		$this->sortService->setCurrentSortDirectionForColumn($sort);
+		$this->sortFilters[$column] = $sort->getCurrentDirection()?->value;
+
+		$this->redrawGridData();
+	}
+
 	public function getDatasource(): IDataSource
 	{
 		return $this->datasource;
@@ -235,8 +280,21 @@ class Datagrid extends Control
 			$this->filter($values);
 		}
 
+		if ($this->sortParametersApplied === false) {
+			$this->sortService->getFiltersFromParameters(
+				$this->sortFilters,
+				$this->sorts,
+			);
+		}
+
 		$dataCount = $this->datasource->getCount($this->filters);
-		$data = $this->datasource->getData($this->offset, $this->limit, $this->filters);
+
+		$data = $this->datasource->getData(
+			$this->offset,
+			$this->limit,
+			$this->filters,
+			$this->sorts,
+		);
 
 		$template->filters = $this->filters;
 		$template->columns = $this->columns;

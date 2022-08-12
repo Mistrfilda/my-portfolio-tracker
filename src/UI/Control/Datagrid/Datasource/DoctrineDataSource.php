@@ -8,6 +8,7 @@ use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Column\IColumn;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Filter\IFilter;
+use App\UI\Control\Datagrid\Sort\Sort;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 use Nette\Utils\Strings;
@@ -22,15 +23,17 @@ class DoctrineDataSource implements IDataSource
 
 	/**
 	 * @param ArrayCollection<string, IFilter> $filters
+	 * @param ArrayCollection<string, Sort> $sorts
 	 * @return array<string|int, Entity>
 	 */
-	public function getData(int $offset, int $limit, ArrayCollection $filters): array
+	public function getData(int $offset, int $limit, ArrayCollection $filters, ArrayCollection $sorts): array
 	{
 		$this->qb
 			->setFirstResult($offset)
 			->setMaxResults($limit);
 
 		$this->addFilterToQuery($filters, $this->qb);
+		$this->addSortToQuery($sorts, $this->qb);
 
 		/** @var array<string|int, Entity> $results */
 		$results = $this->qb
@@ -132,6 +135,24 @@ class DoctrineDataSource implements IDataSource
 			}
 
 			$index++;
+		}
+	}
+
+	/**
+	 * @param ArrayCollection<string, Sort> $sorts
+	 */
+	private function addSortToQuery(ArrayCollection $sorts, QueryBuilder $qb): void
+	{
+		$rootAlias = $this->getRootAlias();
+		foreach ($sorts as $sort) {
+			if ($sort->getCurrentDirection() === null) {
+				continue;
+			}
+
+			$qb->addOrderBy(
+				$rootAlias . '.' . $sort->getColumn()->getColumn(),
+				$sort->getCurrentDirection()->value,
+			);
 		}
 	}
 
