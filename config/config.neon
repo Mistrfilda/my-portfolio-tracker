@@ -5,7 +5,11 @@ parameters:
 
 	twelveData:
 		apiKey: __FILL_API_KEY__
-		updateStockAssetHoursThreshold: 8
+		updateStockAssetHoursThreshold: 2
+
+	pse:
+		updateStockAssetHoursThreshold: 1
+		verifySsl: true
 
 application:
 	errorPresenter: Error:Error
@@ -163,5 +167,7 @@ services:
 	- App\Stock\Asset\UI\StockAssetFormFactory
 	- App\Stock\Asset\StockAssetFacade
 	- App\Stock\Price\StockAssetPriceRecordRepository(App\Stock\Price\StockAssetPriceRecord)
-	- App\Stock\Price\Downloader\TwelveDataDownloader(apiKey: %twelveData.apiKey%, updateStockAssetHoursThreshold: %twelveData.updateStockAssetHoursThreshold%)
-	- App\Stock\Price\Downloader\TwelveDataDownloaderCommand
+	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderFacade(apiKey: %twelveData.apiKey%, updateStockAssetHoursThreshold: %twelveData.updateStockAssetHoursThreshold%)
+	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderCommand
+	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%)
+	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand

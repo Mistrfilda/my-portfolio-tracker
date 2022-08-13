@@ -56,6 +56,9 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $priceDownloadedAt;
 
+	#[ORM\Column(type: Types::STRING, nullable: true)]
+	private string|null $isin;
+
 	/** @var ArrayCollection<int, StockPosition> */
 	#[ORM\OneToMany(targetEntity: StockPosition::class, mappedBy: 'stockAsset')]
 	private Collection $positions;
@@ -71,6 +74,7 @@ class StockAsset implements Entity, Asset
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
 		ImmutableDateTime $now,
+		string|null $isin,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -79,6 +83,7 @@ class StockAsset implements Entity, Asset
 		$this->ticker = $ticker;
 		$this->exchange = $exchange;
 		$this->currency = $currency;
+		$this->isin = $isin;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -96,6 +101,7 @@ class StockAsset implements Entity, Asset
 		string $ticker,
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
+		string|null $isin,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -104,6 +110,7 @@ class StockAsset implements Entity, Asset
 		$this->ticker = $ticker;
 		$this->exchange = $exchange;
 		$this->currency = $currency;
+		$this->isin = $isin;
 		$this->updatedAt = $now;
 	}
 
@@ -176,6 +183,11 @@ class StockAsset implements Entity, Asset
 	public function getPriceDownloadedAt(): ImmutableDateTime
 	{
 		return $this->priceDownloadedAt;
+	}
+
+	public function getIsin(): string|null
+	{
+		return $this->isin;
 	}
 
 }

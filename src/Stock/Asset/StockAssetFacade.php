@@ -32,6 +32,7 @@ class StockAssetFacade
 		string $ticker,
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
+		string|null $isin,
 	): StockAsset
 	{
 		if ($this->stockAssetRepository->findByTicker($ticker) !== null) {
@@ -45,6 +46,7 @@ class StockAssetFacade
 			$exchange,
 			$currency,
 			$this->datetimeFactory->createNow(),
+			isin: $isin,
 		);
 
 		$this->entityManager->persist($stockAsset);
@@ -69,6 +71,7 @@ class StockAssetFacade
 		string $ticker,
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
+		string|null $isin,
 	): StockAsset
 	{
 		$stockAsset = $this->stockAssetRepository->getById($id);
@@ -78,7 +81,8 @@ class StockAssetFacade
 			$ticker,
 			$exchange,
 			$currency,
-			$this->datetimeFactory->createNow(),
+			isin: $isin,
+			now: $this->datetimeFactory->createNow(),
 		);
 
 		$this->entityManager->flush();

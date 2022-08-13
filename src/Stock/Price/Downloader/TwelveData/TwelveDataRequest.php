@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Price\Downloader;
+namespace App\Stock\Price\Downloader\TwelveData;
 
 use App\Stock\Asset\StockAsset;
 

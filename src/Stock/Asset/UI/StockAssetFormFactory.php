@@ -57,6 +57,8 @@ class StockAssetFormFactory
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
 			->setRequired();
 
+		$form->addText('isin', 'ISIN')->setNullable();
+
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
@@ -69,6 +71,7 @@ class StockAssetFormFactory
 					$values->ticker,
 					StockAssetExchange::from($values->exchange),
 					CurrencyEnum::from($values->currency),
+					$values->isin,
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -77,6 +80,7 @@ class StockAssetFormFactory
 					$values->ticker,
 					StockAssetExchange::from($values->exchange),
 					CurrencyEnum::from($values->currency),
+					$values->isin,
 				);
 			}
 
@@ -100,6 +104,7 @@ class StockAssetFormFactory
 			'ticker' => $stockAsset->getTicker(),
 			'exchange' => $stockAsset->getExchange()->value,
 			'currency' => $stockAsset->getCurrency()->value,
+			'isin' => $stockAsset->getIsin(),
 		]);
 	}
 
