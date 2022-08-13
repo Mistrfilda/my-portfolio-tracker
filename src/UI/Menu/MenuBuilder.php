@@ -24,7 +24,15 @@ class MenuBuilder
 				['AppAdminEdit'],
 				true,
 			),
-			new MenuItem('StockAsset', 'default', SvgIcon::COLLECTION, 'Akcie'),
+			new MenuItem(
+				'StockAsset',
+				'default',
+				SvgIcon::COLLECTION,
+				'Akcie',
+				[
+					'StockAssetEdit',
+				],
+			),
 		];
 	}
 

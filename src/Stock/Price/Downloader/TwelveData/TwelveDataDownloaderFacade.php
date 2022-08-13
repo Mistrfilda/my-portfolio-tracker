@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Price\Downloader;
+namespace App\Stock\Price\Downloader\TwelveData;
 
 use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
@@ -17,7 +17,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 
-class TwelveDataDownloader implements AssetPriceDownloader
+class TwelveDataDownloaderFacade implements AssetPriceDownloader
 {
 
 	public function __construct(
