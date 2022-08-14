@@ -202,7 +202,11 @@
                                     Výsledky od
                                     <span class="font-medium"> {$pagination->getOffset() + 1} </span>
                                     do
-                                    <span class="font-medium"> {$pagination->getOffset() + $pagination->getLimit()} </span>
+                                    {if $itemsCount < $pagination->getOffset() + $pagination->getLimit()}
+                                        <span class="font-medium"> {$itemsCount} </span>
+                                    {else}
+                                        <span class="font-medium"> {$pagination->getOffset() + $pagination->getLimit()} </span>
+                                    {/if}
                                     z celkem
                                     <span class="font-medium">{$itemsCount}</span>
                                 </p>
