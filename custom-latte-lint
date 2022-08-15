@@ -1,18 +1,25 @@
 #!/usr/bin/env php
 <?php
 
-// zadejte skutečnou cestu k soubor autoload.php
+declare(strict_types = 1);
+
+use App\UI\Extension\Svg\SvgLatteExtension;
+use App\UI\Extension\Webpack\WebpackAssetsFactory;
+use App\UI\Extension\Webpack\WebpackLatteExtension;
+use Nette\Bridges\ApplicationLatte\UIExtension;
+use Nette\Bridges\FormsLatte\FormsExtension;
+
+
 require __DIR__ . '/vendor/autoload.php';
 
 $engine = new Latte\Engine;
-// tady zaregistruje jednotlivá rozšíření
-$engine->addExtension();
+$engine->addExtension(new WebpackLatteExtension(new WebpackAssetsFactory([__DIR__ . '/www/build'])));
+$engine->addExtension(new SvgLatteExtension(__DIR__ . '/assets/svg'));
+$engine->addExtension(new FormsExtension());
+$engine->addExtension(new UIExtension(null));
 
 $path = $argv[1];
 $linter = new Latte\Tools\Linter(engine: $engine);
-
-$linter = new Latte\Tools\Linter($engine);
-$linter->scanDirectory($path);
 
 $ok = $linter->scanDirectory($path);
 exit($ok ? 0 : 1);

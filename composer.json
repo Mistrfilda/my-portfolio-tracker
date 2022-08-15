@@ -74,6 +74,7 @@
 		"fix": "@cs-fix",
 		"test-unit": "vendor/bin/phpunit --testsuite unit --colors=always --debug",
 		"test-integration": "vendor/bin/phpunit --testsuite integration --colors=always --debug",
+		"latte-lint":"./custom-latte-lint src/",
 		"build-all-local": [
 			"@comload",
 			"@build-all"
@@ -82,6 +83,7 @@
 			"@lint",
 			"@stan",
 			"@cs",
+			"@latte-lint",
 			"@test-unit"
 		],
 		"stock-assets-downloaders": [

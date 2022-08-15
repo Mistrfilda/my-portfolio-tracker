@@ -11,6 +11,8 @@ use App\Dashboard\DashboardValueBuilder;
 use App\Test\UpdatedTestCase;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
+use App\Utils\Datetime\DatetimeConst;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 
 class DashboardValueBuilderTest extends UpdatedTestCase
@@ -18,8 +20,10 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 
 	public function testDashboardValueBuilder(): void
 	{
+		$now = new ImmutableDateTime();
 		$currencyMock = Mockery::mock(CurrencyConversion::class)->makePartial();
 		$currencyMock->expects('getCurrentPrice')->andReturn(25.0);
+		$currencyMock->expects('getUpdatedAt')->andReturn($now);
 
 		$currencyConversionMock = Mockery::mock(CurrencyConversionRepository::class)->makePartial();
 		$currencyConversionMock->expects('getCurrentCurrencyPairConversion')->andReturn(
@@ -31,8 +35,12 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 		$expectedDashboardValue = new DashboardValue(
 			'USD - CZK',
 			'25',
-			TailwindColorConstant::EMERALD,
-			SvgIcon::DOLLAR,
+			TailwindColorConstant::BLUE,
+			SvgIcon::CZECH_CROWN,
+			sprintf(
+				'Aktualizováno %s',
+				$now->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+			),
 		);
 
 		self::assertCount(3, $values);
