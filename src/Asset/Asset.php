@@ -7,9 +7,12 @@ namespace App\Asset;
 use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
+use Ramsey\Uuid\UuidInterface;
 
 interface Asset
 {
+
+	public function getId(): UuidInterface;
 
 	public function getType(): AssetTypeEnum;
 

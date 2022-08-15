@@ -59,4 +59,6 @@ enum SvgIcon: string
 
 	case SWITCH_VERTICAL = 'switch-vertical.svg';
 
+	case DOCUMENT_DUPLICATE = 'document-duplicate.svg';
+
 }

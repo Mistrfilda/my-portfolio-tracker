@@ -24,9 +24,9 @@
     {if $form->hasHeading()}
         <div>
             {if $form->getHeadingTitle() !== null}
-            <h3 class="text-lg leading-6 font-medium text-gray-900">
-                {$form->getHeadingTitle()}
-            </h3>
+                <h3 class="text-lg leading-6 font-medium text-gray-900">
+                    {$form->getHeadingTitle()}
+                </h3>
             {/if}
             <p class="mt-1 max-w-2xl text-sm text-gray-500">
                 {$form->getHeadingText()}
@@ -50,7 +50,23 @@
             {var $errorClass = ' form-input-error'}
         {/if}
         {varType Nette\Forms\Controls\TextBase $component}
-        {if $component instanceof Nette\Forms\Controls\TextInput}
+        {if $component instanceof App\UI\Control\Form\Input\DatePickerInput}
+            {dump $component}
+            <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:border-solid sm:border-t sm:border-gray-200 sm:pt-5">
+                <label for="{$component->getName()}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
+                    {$component->getLabel()}
+                </label>
+                <div class="mt-1 sm:mt-0 sm:col-span-2">
+                    {$component->getControl()->addAttributes([
+                    'class' => 'max-w-lg block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass,
+                     'type' => 'date'
+                    ])}
+                    {if $componentError !== null}
+                        {$componentError}
+                    {/if}
+                </div>
+            </div>
+        {elseif $component instanceof Nette\Forms\Controls\TextInput}
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:border-solid sm:border-t sm:border-gray-200 sm:pt-5">
                 <label for="{$component->getName()}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {$component->getLabel()}
@@ -99,10 +115,10 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {if $component->getOption('full') === true}
-                        {include  './selectBox.latte', $component}
+                        {include './selectBox.latte', $component}
                     {else}
                         {$component->getControlPart()->addAttributes([
-                        'class' => 'sm:max-w-xl mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                        'class' => 'sm:max-w-xl mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md',
                         ])}
                     {/if}
 
@@ -122,10 +138,12 @@
                             <legend class="sr-only">Notifications</legend>
                             <div class="relative flex items-start">
                                 <div class="flex items-center h-5">
-                                    <input n:name="$component->getName():$key" type="checkbox" class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                    <input n:name="$component->getName():$key" type="checkbox"
+                                                                               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
                                 </div>
                                 <div class="ml-3 text-sm">
-                                    <label n:name="$component->getName():$key" class="font-medium text-gray-700">{$label}</label>
+                                    <label n:name="$component->getName():$key"
+                                            class="font-medium text-gray-700">{$label}</label>
                                 </div>
                             </div>
                         </fieldset>
@@ -158,7 +176,8 @@
                     <div class="max-w-xl flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                         <div class="space-y-1 text-center">
                             {if $component->getOption('fileUrl') !== null}
-                                <img src="{$baseUrl}/{$component->getOption('fileUrl')}" class="mx-auto max-h-sm max-w-sm">
+                                <img src="{$baseUrl}/{$component->getOption('fileUrl')}"
+                                     class="mx-auto max-h-sm max-w-sm">
                             {else}
                                 <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none"
                                      viewBox="0 0 48 48" aria-hidden="true">
@@ -166,11 +185,17 @@
                                           stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                                 </svg>
                             {/if}
+
+
+
                             <div class="flex text-sm text-gray-600 justify-center">
-                                <label class="border-2 border-gray-200 p-3 w-full block rounded cursor-pointer my-2 form-control" for="customFile" x-data="{ files: null }">
-                                    <span x-text="files ? files.map(file => file.name).join(', ') : 'Nahrajte soubor'"></span>
-                                    <input n:name="{$component->getName()}" type="file" class="sr-only" id="customFile" x-on:change="files = Object.values($event.target.files)">
-                                </label>
+                                    <label class="border-2 border-gray-200 p-3 w-full block rounded cursor-pointer my-2 form-control"
+                                           for="customFile" x-data="{ files: null }">
+                                        <span x-text="files ? files.map(file => file.name).join(', ') : 'Nahrajte soubor'"></span>
+                                        <input n:name="{$component->getName()}" type="file" class="sr-only"
+                                                                                id="customFile"
+                                                                                x-on:change="files = Object.values($event.target.files)">
+                                    </label>
                             </div>
                             {if $component->getOption('description') !== null}
                                 <p class="text-xs text-gray-500">
@@ -178,11 +203,11 @@
                                 </p>
                             {/if}
                             {if $component->getOption('deleteHref') !== null}
-                            <a
-                                    href="{$form->getPresenter()->link($component->getOption('deleteHref'))}"
-                                    class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                <a
+                                        href="{$form->getPresenter()->link($component->getOption('deleteHref'))}"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                                     Odstranit
-                            </a>
+                                </a>
                             {/if}
                             {if $componentError !== null}
                                 {$componentError}
@@ -198,13 +223,13 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getComponent('day')->getControl()->addAttributes([
-                        'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('month')->getControl()->addAttributes([
-                        'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('year')->getControl()->addAttributes([
-                        'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                 </div>
             </div>
@@ -237,9 +262,9 @@
         {elseif $component instanceof App\UI\Control\Form\Input\Multiplier}
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:border-solid sm:border-t sm:border-gray-200
              sm:pt-5"
-                 {if $component->getDivId() !== null}
-                     id="{$component->getDivId()}"
-                 {/if}
+                    {if $component->getDivId() !== null}
+                        id="{$component->getDivId()}"
+                    {/if}
             >
                 <label for="{$component->getName()}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {$component->getHeading()}
@@ -263,9 +288,9 @@
 
 {define #multiplier $component}
     {var $components = $component->getComponents()}
-        {foreach $components as $container}
-            {if $container instanceof Nette\Forms\Container}
-                <div class="pb-2 border-b border-gray-200">
+    {foreach $components as $container}
+        {if $container instanceof Nette\Forms\Container}
+            <div class="pb-2 border-b border-gray-200">
                 {foreach $container->getComponents() as $component}
                     {var $componentError = null}
                     {var $errorClass = ''}
@@ -279,7 +304,8 @@
                     {/if}
                     {if $component instanceof Nette\Forms\Controls\TextInput}
                         <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:pt-5 pb-2 mt-2 sm:mt-none">
-                            <label for="{$component->getName()}" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
+                            <label for="{$component->getName()}"
+                                   class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
                                 {$component->getLabel()}
                             </label>
                             <div class="mt-1 sm:mt-0 sm:col-span-2">
@@ -302,9 +328,9 @@
                         </div>
                     {/if}
                 {/foreach}
-                </div>
-            {/if}
-        {/foreach}
+            </div>
+        {/if}
+    {/foreach}
 
     {ifset $components['multiplier_creator']}
         <div class="pt-5">

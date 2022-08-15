@@ -21,15 +21,19 @@ class ColumnText implements IColumn
 
 	private Sort|null $sort;
 
+	private string|null $referencedColumn;
+
 	public function __construct(
 		protected Datagrid $datagrid,
 		protected string $label,
 		protected string $column,
 		callable|null $getterMethod = null,
+		string|null $referencedColumn = null,
 	)
 	{
 		$this->getterMethod = $getterMethod;
 		$this->sort = null;
+		$this->referencedColumn = $referencedColumn;
 	}
 
 	public function getColumn(): string
@@ -73,6 +77,11 @@ class ColumnText implements IColumn
 	public function getTemplate(): string
 	{
 		return self::TEMPLATE_FILE;
+	}
+
+	public function getReferencedColumn(): string|null
+	{
+		return $this->referencedColumn;
 	}
 
 	public function processValue(

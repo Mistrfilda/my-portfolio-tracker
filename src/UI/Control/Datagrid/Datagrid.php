@@ -89,9 +89,17 @@ class Datagrid extends Control
 		string $column,
 		string $label,
 		callable|null $getterMethod = null,
+		string|null $referencedColumn = null,
 	): ColumnText
 	{
-		$column = new ColumnText($this, $label, $column, $getterMethod);
+		$column = new ColumnText(
+			$this,
+			$label,
+			$column,
+			$getterMethod,
+			$referencedColumn,
+		);
+
 		$this->columns->add($column);
 
 		return $column;

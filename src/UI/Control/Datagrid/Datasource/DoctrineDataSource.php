@@ -126,8 +126,13 @@ class DoctrineDataSource implements IDataSource
 			if ($filter instanceof FilterText) {
 				$key = ':param_' . $index;
 				$value = $filter->getValue();
+
+				$x = $filter->getColumn()->getReferencedColumn() !== null
+					? $filter->getColumn()->getReferencedColumn()
+					: $rootAlias . '.' . $filter->getColumn()->getColumn();
+
 				$qb->andWhere($qb->expr()->like(
-					$rootAlias . '.' . $filter->getColumn()->getColumn(),
+					$x,
 					$key,
 				));
 
@@ -149,8 +154,12 @@ class DoctrineDataSource implements IDataSource
 				continue;
 			}
 
+			$x = $sort->getColumn()->getReferencedColumn() !== null
+				? $sort->getColumn()->getReferencedColumn()
+				: $rootAlias . '.' . $sort->getColumn()->getColumn();
+
 			$qb->addOrderBy(
-				$rootAlias . '.' . $sort->getColumn()->getColumn(),
+				$x,
 				$sort->getCurrentDirection()->value,
 			);
 		}

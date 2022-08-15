@@ -11,7 +11,7 @@ trait CreatedAt
 {
 
 	#[ORM\Column(type:'datetime_immutable')]
-	private readonly ImmutableDateTime $createdAt;
+	private ImmutableDateTime $createdAt;
 
 	public function getCreatedAt(): ImmutableDateTime
 	{

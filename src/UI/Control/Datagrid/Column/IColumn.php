@@ -28,4 +28,6 @@ interface IColumn
 
 	public function getSort(): Sort|null;
 
+	public function getReferencedColumn(): string|null;
+
 }
