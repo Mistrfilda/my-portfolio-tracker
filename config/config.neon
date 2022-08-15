@@ -161,6 +161,9 @@ services:
 	- App\Currency\Download\Command\CurrencyConversionDownloadCommand(typed(App\Currency\Download\CurrencyConversionDownloadFacade))
 	- App\Currency\Download\CurrencyConversionDownloadInverseRateHelper
 
+	#Asset price
+	- App\Asset\Price\AssetPriceRenderer
+
 	#Stock asset
 	- App\Stock\Asset\StockAssetRepository(App\Stock\Asset\StockAsset)
 	- App\Stock\Asset\UI\StockAssetGridFactory
@@ -171,3 +174,9 @@ services:
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderCommand
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%)
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
+
+	#Stock position
+	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
+	- App\Stock\Position\UI\StockPositionGridFactory
+	- App\Stock\Position\StockPositionFacade
+	- App\Stock\Position\UI\StockPositionFormFactory

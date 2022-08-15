@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Asset\Position;
 
+use App\Admin\AppAdmin;
 use App\Asset\Asset;
 use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
@@ -12,6 +13,8 @@ interface AssetPosition
 {
 
 	public function getAsset(): Asset;
+
+	public function getAppAdmin(): AppAdmin;
 
 	public function getOrderPiecesCount(): int;
 

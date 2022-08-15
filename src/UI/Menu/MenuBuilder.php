@@ -33,6 +33,16 @@ class MenuBuilder
 					'StockAssetEdit',
 				],
 			),
+			new MenuItem(
+				'StockPosition',
+				'default',
+				SvgIcon::DOCUMENT_DUPLICATE,
+				'Akciové pozice',
+				[
+					'StockPosition',
+					'StockPositionEdit',
+				],
+			),
 		];
 	}
 

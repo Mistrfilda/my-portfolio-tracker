@@ -6,6 +6,7 @@ namespace App\UI\Control\Form;
 
 use App\UI\Control\Form\Container\AdminFormContainer;
 use App\UI\Control\Form\Input\CustomFileUpload;
+use App\UI\Control\Form\Input\DatePickerInput;
 use App\UI\Control\Form\Input\Multiplier;
 use Nette\Application\UI\Form;
 use Nette\Forms\Controls\SelectBox;
@@ -88,6 +89,14 @@ class AdminForm extends Form
 		$control->setCurrentGroup($this->getCurrentGroup());
 		$control->setHeading($heading);
 
+		$this[$name] = $control;
+
+		return $control;
+	}
+
+	public function addDatePicker(string $name, string $label): DatePickerInput
+	{
+		$control = new DatePickerInput($label);
 		$this[$name] = $control;
 
 		return $control;

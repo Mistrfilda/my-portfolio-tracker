@@ -99,6 +99,19 @@ class StockAssetRepository extends BaseRepository
 		return $result;
 	}
 
+	/**
+	 * @return array<string, string>
+	 */
+	public function findPairs(): array
+	{
+		$pairs = [];
+		foreach ($this->findAll() as $stockAsset) {
+			$pairs[$stockAsset->getId()->toString()] = $stockAsset->getName() . ' - ' . $stockAsset->getTicker();
+		}
+
+		return $pairs;
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('stockAsset');
