@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit;
 
+use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyConversionRepository;
 use App\Dashboard\DashboardValue;
@@ -33,7 +34,11 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 
 		$stockPositionFacade = Mockery::mock(StockPositionFacade::class)->makePartial();
 
-		$values = (new DashboardValueBuilder($currencyConversionMock, $stockPositionFacade))->buildValues();
+		$values = (new DashboardValueBuilder(
+			$currencyConversionMock,
+			$stockPositionFacade,
+			new SummaryPriceService(),
+		))->buildValues();
 
 		$expectedDashboardValue = new DashboardValue(
 			'USD - CZK',

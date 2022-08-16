@@ -4,12 +4,17 @@ declare(strict_types = 1);
 
 namespace App\Asset\Price;
 
+use App\UI\Filter\CurrencyFilter;
+
 class AssetPriceRenderer
 {
 
 	public function getGridAssetPriceValue(AssetPrice $assetPrice): string
 	{
-		return $assetPrice->getPrice() . ' ' . $assetPrice->getCurrency()->format();
+		return CurrencyFilter::format(
+			$assetPrice->getPrice(),
+			$assetPrice->getCurrency(),
+		);
 	}
 
 }

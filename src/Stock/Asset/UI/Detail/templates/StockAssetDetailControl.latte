@@ -1,0 +1,150 @@
+{templateType App\Stock\Asset\UI\Detail\StockAssetDetailControlTemplate}
+{dump $stockAssetsPositionDTOs}
+{foreach $stockAssetsPositionDTOs as $stockPositionDTO}
+    <div class="flex flex-col mt-6">
+        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+                <div class="shadow overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
+                    <!-- This example requires Tailwind CSS v2.0+ -->
+                    <div class="px-4 sm:px-6 lg:px-8 my-4">
+                        <div class="sm:flex sm:items-center">
+                            <div class="sm:flex-auto">
+                                <h1 class="text-xl font-semibold text-gray-900">
+                                    {$stockPositionDTO->getStockAsset()->getName()}
+                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                        {$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
+                                    </span>
+                                </h1>
+                                <p class="mt-2 text-sm text-gray-700">
+                                    Cena aktualizována v
+                                    <time datetime="{$stockPositionDTO->getStockAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}">{$stockPositionDTO->getStockAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}</time>
+                                </p>
+                            </div>
+                            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                                {*                                <button type="button"*}
+{*                                        class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">*}
+{*                                    Print*}
+{*                                </button>*}
+                            </div>
+                        </div>
+                        <div class="-mx-4 mt-8 flex flex-col sm:-mx-6 md:mx-0">
+                            <table class="min-w-full divide-y divide-gray-300">
+                                <thead>
+                                <tr>
+                                    <th scope="col"
+                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 md:pl-0">
+                                        Pozice založena dne
+                                    </th>
+                                    <th scope="col"
+                                        class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                        Počet kusů
+                                    </th>
+                                    <th scope="col"
+                                        class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                        Nákupní cena
+                                    </th>
+                                    <th scope="col"
+                                        class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                        Aktuální cena
+                                    </th>
+                                    <th scope="col"
+                                        class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                        Zisk/ztráta
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {foreach $stockPositionDTO->getPositions() as $position}
+                                    <tr class="border-b border-gray-200">
+                                        <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                            <div class="font-medium text-gray-900">{$position->getStockPosition()->getOrderDate()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATE_FORMAT}
+                                            </div>
+                                            <div class="mt-0.5 text-gray-500 sm:hidden">
+                                                {$position->getStockPosition()->getOrderPiecesCount()} kus za {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
+                                            </div>
+                                        </td>
+                                        <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                            {$position->getStockPosition()->getOrderPiecesCount()}
+                                        </td>
+                                        <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                            {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
+                                        </td>
+                                        <td class="py-4 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
+                                            {$position->getStockPosition()->getCurrentTotalAmount()|assetPriceFormat}
+                                        </td>
+                                        <td class="py-4 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-100 text-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-800">
+                                            {renderSvg $position->getPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                            {$position->getPriceDiff()->getPriceDifference()|currency:$position->getPriceDiff()->getCurrencyEnum()}
+                                        </span>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+
+                                <!-- More projects... -->
+                                </tbody>
+                                <tfoot>
+                                <tr>
+                                    <th scope="row" colspan="4"
+                                        class="hidden pl-6 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
+                                        Celková investovaná častka
+                                    </th>
+                                    <th scope="row"
+                                        class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
+                                        Celková investovaná častka
+                                    </th>
+                                    <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
+                                        {$stockPositionDTO->getTotalInvestedAmount()|summaryPriceFormat}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" colspan="4"
+                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
+                                        Aktuální hodnota pozice
+                                    </th>
+                                    <th scope="row"
+                                        class="pl-4 pr-3 pt-4 text-left text-sm font-normal text-gray-500 sm:hidden">
+                                        Aktuální hodnota pozice
+                                    </th>
+                                    <td class="pl-3 pr-4 pt-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
+                                        {$stockPositionDTO->getCurrentAmount()|summaryPriceFormat}
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" colspan="4"
+                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">
+                                        Rozdíl v %
+                                    </th>
+                                    <th scope="row"
+                                        class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                                        Rozdíl v %
+                                    </th>
+                                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$stockPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-100 text-{$stockPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-800">
+                                            {renderSvg $stockPositionDTO->getCurrentPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                            {$stockPositionDTO->getCurrentPriceDiff()->getPercentageDifference()|percentage}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row" colspan="4"
+                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">
+                                        Zisk/ztráta
+                                    </th>
+                                    <th scope="row"
+                                        class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                                        Zisk/ztráta
+                                    </th>
+                                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                        {$stockPositionDTO->getCurrentPriceDiff()->getPriceDifference()|currency:$stockPositionDTO->getCurrentPriceDiff()->getCurrencyEnum()}
+                                    </td>
+                                </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{/foreach}

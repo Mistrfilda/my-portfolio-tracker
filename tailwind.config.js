@@ -18,7 +18,10 @@ module.exports = {
 		},
 		{
 			pattern: /ring-/
-		}
+		},
+		{
+			pattern: /text-/
+		},
 	],
 	theme: {
 		extend: {

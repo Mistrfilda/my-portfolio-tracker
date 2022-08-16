@@ -43,6 +43,13 @@ class MenuBuilder
 					'StockPositionEdit',
 				],
 			),
+			new MenuItem(
+				'StockAssetDetail',
+				'default',
+				SvgIcon::ADJUSTMENTS,
+				'Detaily akciových pozic',
+				[],
+			),
 		];
 	}
 

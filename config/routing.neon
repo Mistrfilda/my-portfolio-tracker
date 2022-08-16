@@ -10,3 +10,4 @@ custompresenterfactory:
 		Admin:StockAssetEdit: App\Stock\Asset\UI\StockAssetEditPresenter
 		Admin:StockPosition: App\Stock\Position\UI\StockPositionPresenter
 		Admin:StockPositionEdit: App\Stock\Position\UI\StockPositionEditPresenter
+		Admin:StockAssetDetail: App\Stock\Asset\UI\StockAssetDetailPresenter
