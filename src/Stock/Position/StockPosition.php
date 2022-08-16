@@ -47,6 +47,9 @@ class StockPosition implements AssetPosition, Entity
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $orderDate;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $differentBrokerAmount;
+
 	#[ORM\Embedded(class: AssetPriceEmbeddable::class)]
 	private AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency;
 
@@ -57,6 +60,7 @@ class StockPosition implements AssetPosition, Entity
 		float $pricePerPiece,
 		ImmutableDateTime $orderDate,
 		AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency,
+		bool $differentBrokerAmount,
 		ImmutableDateTime $now,
 	)
 	{
@@ -68,6 +72,7 @@ class StockPosition implements AssetPosition, Entity
 		$this->pricePerPiece = $pricePerPiece;
 		$this->orderDate = $orderDate;
 		$this->totalInvestedAmountInBrokerCurrency = $totalInvestedAmountInBrokerCurrency;
+		$this->differentBrokerAmount = $differentBrokerAmount;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -79,6 +84,7 @@ class StockPosition implements AssetPosition, Entity
 		float $pricePerPiece,
 		ImmutableDateTime $orderDate,
 		AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency,
+		bool $differentBrokerAmount,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -87,6 +93,7 @@ class StockPosition implements AssetPosition, Entity
 		$this->pricePerPiece = $pricePerPiece;
 		$this->orderDate = $orderDate;
 		$this->totalInvestedAmountInBrokerCurrency = $totalInvestedAmountInBrokerCurrency;
+		$this->differentBrokerAmount = $differentBrokerAmount;
 		$this->updatedAt = $now;
 	}
 
@@ -145,6 +152,11 @@ class StockPosition implements AssetPosition, Entity
 	public function getAppAdmin(): AppAdmin
 	{
 		return $this->appAdmin;
+	}
+
+	public function isDifferentBrokerAmount(): bool
+	{
+		return $this->differentBrokerAmount;
 	}
 
 }
