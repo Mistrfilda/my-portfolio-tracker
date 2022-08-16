@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Position;
 
+use App\Currency\CurrencyEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -43,6 +44,34 @@ class StockPositionRepository extends BaseRepository
 	public function findAll(): array
 	{
 		return $this->doctrineRepository->findAll();
+	}
+
+	/**
+	 * @return array<StockPosition>
+	 */
+	public function findAllOpened(): array
+	{
+		/**
+		 * TODO: AFTER CLOSE POSITION IS DONE
+		 */
+		return $this->findAll();
+	}
+
+	/**
+	 * @return array<StockPosition>
+	 */
+	public function findAllOpenedInCurrency(CurrencyEnum $currencyEnum): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('stockPosition.stockAsset', 'stockAsset');
+
+		$qb->andWhere($qb->expr()->eq('stockAsset.currency', ':currency'));
+		$qb->setParameter('currency', $currencyEnum);
+
+		$result = $qb->getQuery()->getResult();
+		assert(is_array($result));
+
+		return $result;
 	}
 
 	/**

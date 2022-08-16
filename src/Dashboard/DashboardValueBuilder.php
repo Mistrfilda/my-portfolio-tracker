@@ -6,6 +6,8 @@ namespace App\Dashboard;
 
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
+use App\Stock\Position\StockPositionFacade;
+use App\UI\Filter\CurrencyFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
@@ -15,9 +17,9 @@ class DashboardValueBuilder
 
 	public function __construct(
 		private readonly CurrencyConversionRepository $currencyConversionRepository,
+		private readonly StockPositionFacade $stockPositionFacade,
 	)
 	{
-
 	}
 
 	/**
@@ -40,6 +42,18 @@ class DashboardValueBuilder
 			CurrencyEnum::USD,
 		);
 
+		$stockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueSummaryPrice(
+			CurrencyEnum::CZK,
+		);
+		$czStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInCzechStocks(
+			CurrencyEnum::CZK,
+		);
+		$usdStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInUsdStocks(
+			CurrencyEnum::CZK,
+		);
+
+		$totalInvestedAmount = $this->stockPositionFacade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK);
+
 		return [
 			new DashboardValue(
 				'EUR - CZK',
@@ -61,6 +75,46 @@ class DashboardValueBuilder
 				TailwindColorConstant::BLUE,
 				SvgIcon::DOLLAR,
 				sprintf('Aktualizováno %s', $eurUsd->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT)),
+			),
+			new DashboardValue(
+				'Aktuální hodnota portfolia v akciích',
+				CurrencyFilter::format(
+					$stockPositionsSummaryPrice->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::EMERALD,
+				SvgIcon::COLLECTION,
+				sprintf('Celkový počet pozic %s', $stockPositionsSummaryPrice->getCounter()),
+			),
+			new DashboardValue(
+				'Aktuální hodnota portfolia v českých akciích',
+				CurrencyFilter::format(
+					$czStockPositionsSummaryPrice->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::EMERALD,
+				SvgIcon::CZECH_CROWN,
+				sprintf('Celkový počet pozic %s', $czStockPositionsSummaryPrice->getCounter()),
+			),
+			new DashboardValue(
+				'Aktuální hodnota portfolia v amerických akciích',
+				CurrencyFilter::format(
+					$usdStockPositionsSummaryPrice->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::EMERALD,
+				SvgIcon::DOLLAR,
+				sprintf('Celkový počet pozic %s', $usdStockPositionsSummaryPrice->getCounter()),
+			),
+			new DashboardValue(
+				'Aktuálně zainvestováno',
+				CurrencyFilter::format(
+					$totalInvestedAmount->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::CYAN,
+				SvgIcon::CZECH_CROWN,
+				sprintf('Celkový počet pozic %s', $totalInvestedAmount->getCounter()),
 			),
 		];
 	}

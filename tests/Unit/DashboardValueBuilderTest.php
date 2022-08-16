@@ -8,6 +8,7 @@ use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyConversionRepository;
 use App\Dashboard\DashboardValue;
 use App\Dashboard\DashboardValueBuilder;
+use App\Stock\Position\StockPositionFacade;
 use App\Test\UpdatedTestCase;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
@@ -30,7 +31,9 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 			$currencyMock,
 		);
 
-		$values = (new DashboardValueBuilder($currencyConversionMock))->buildValues();
+		$stockPositionFacade = Mockery::mock(StockPositionFacade::class)->makePartial();
+
+		$values = (new DashboardValueBuilder($currencyConversionMock, $stockPositionFacade))->buildValues();
 
 		$expectedDashboardValue = new DashboardValue(
 			'USD - CZK',

@@ -6,6 +6,9 @@ namespace App\Stock\Position;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
+use App\Asset\Price\SummaryPrice;
+use App\Currency\CurrencyConversionFacade;
+use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -19,6 +22,7 @@ class StockPositionFacade
 	public function __construct(
 		private readonly StockPositionRepository $stockPositionRepository,
 		private readonly StockAssetRepository $stockAssetRepository,
+		private readonly CurrencyConversionFacade $currencyConversionFacade,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
@@ -33,6 +37,7 @@ class StockPositionFacade
 		float $pricePerPiece,
 		ImmutableDateTime $orderDate,
 		AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency,
+		bool $differentBrokerAmount,
 	): StockPosition
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
@@ -44,6 +49,7 @@ class StockPositionFacade
 			$pricePerPiece,
 			$orderDate,
 			$totalInvestedAmountInBrokerCurrency,
+			$differentBrokerAmount,
 			$this->datetimeFactory->createNow(),
 		);
 
@@ -69,6 +75,7 @@ class StockPositionFacade
 		float $pricePerPiece,
 		ImmutableDateTime $orderDate,
 		AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency,
+		bool $differentBrokerAmount,
 	): StockPosition
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
@@ -80,6 +87,7 @@ class StockPositionFacade
 			$pricePerPiece,
 			$orderDate,
 			$totalInvestedAmountInBrokerCurrency,
+			$differentBrokerAmount,
 			$this->datetimeFactory->createNow(),
 		);
 
@@ -95,6 +103,102 @@ class StockPositionFacade
 		);
 
 		return $stockPosition;
+	}
+
+	public function getCurrentPortfolioValueSummaryPrice(
+		CurrencyEnum $inCurrency,
+	): SummaryPrice
+	{
+		return $this->getSummaryPriceForPositions(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpened(),
+		);
+	}
+
+	public function getCurrentPortfolioValueInCzechStocks(
+		CurrencyEnum $inCurrency,
+	): SummaryPrice
+	{
+		return $this->getSummaryPriceForPositions(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::CZK),
+		);
+	}
+
+	public function getCurrentPortfolioValueInUsdStocks(
+		CurrencyEnum $inCurrency,
+	): SummaryPrice
+	{
+		return $this->getSummaryPriceForPositions(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::USD),
+		);
+	}
+
+	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
+	{
+		return $this->getSummaryPriceForTotalInvestedAmount(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpened(),
+		);
+	}
+
+	/**
+	 * @param array<StockPosition> $positions
+	 */
+	private function getSummaryPriceForPositions(
+		CurrencyEnum $inCurrency,
+		array $positions,
+	): SummaryPrice
+	{
+		$summaryPrice = new SummaryPrice($inCurrency);
+
+		foreach ($positions as $position) {
+			$currentTotalAmount = $position->getCurrentTotalAmount();
+			if ($currentTotalAmount->getCurrency() !== $summaryPrice->getCurrency()) {
+				$summaryPrice->addAssetPrice(
+					$this->currencyConversionFacade->getConvertedAssetPrice(
+						$currentTotalAmount,
+						$summaryPrice->getCurrency(),
+					),
+				);
+
+				continue;
+			}
+
+			$summaryPrice->addAssetPrice($currentTotalAmount);
+		}
+
+		return $summaryPrice;
+	}
+
+	/**
+	 * @param array<StockPosition> $positions
+	 */
+	private function getSummaryPriceForTotalInvestedAmount(
+		CurrencyEnum $inCurrency,
+		array $positions,
+	): SummaryPrice
+	{
+		$summaryPrice = new SummaryPrice($inCurrency);
+
+		foreach ($positions as $position) {
+			$currentTotalAmount = $position->getTotalInvestedAmountInBrokerCurrency();
+			if ($currentTotalAmount->getCurrency() !== $summaryPrice->getCurrency()) {
+				$summaryPrice->addAssetPrice(
+					$this->currencyConversionFacade->getConvertedAssetPrice(
+						$currentTotalAmount,
+						$summaryPrice->getCurrency(),
+					),
+				);
+
+				continue;
+			}
+
+			$summaryPrice->addAssetPrice($currentTotalAmount);
+		}
+
+		return $summaryPrice;
 	}
 
 }

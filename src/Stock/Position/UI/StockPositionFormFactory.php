@@ -82,6 +82,7 @@ class StockPositionFormFactory
 						$stockAsset,
 						$values,
 					),
+					$values->samePriceForBroker,
 				);
 			} else {
 				$this->stockPositionFacade->create(
@@ -93,6 +94,7 @@ class StockPositionFormFactory
 						$stockAsset,
 						$values,
 					),
+					$values->samePriceForBroker,
 				);
 			}
 
@@ -132,11 +134,8 @@ class StockPositionFormFactory
 			'orderDate' => $stockPosition->getOrderDate()->format('Y-m-d'),
 			'totalBrokerPrice' => $stockPosition->getTotalInvestedAmountInBrokerCurrency()->getPrice(),
 			'brokerCurrency' => $stockPosition->getTotalInvestedAmountInBrokerCurrency()->getCurrency()->value,
+			'samePriceForBroker' => $stockPosition->isDifferentBrokerAmount(),
 		];
-
-		if ($stockPosition->getTotalInvestedAmountInBrokerCurrency()->getCurrency() !== $stockPosition->getAsset()->getCurrency()) {
-			$defaults['samePriceForBroker'] = true;
-		}
 
 		$form->setDefaults($defaults);
 	}

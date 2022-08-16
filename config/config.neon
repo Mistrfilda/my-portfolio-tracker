@@ -113,6 +113,7 @@ services:
 			- addFilter(nullablestring, [@nullableStringFilter, format])
 			- addFilter(flashMessageColor, [@flashMessageColorFilter, format])
 			- addFilter(assetPriceFormat, [@assetPriceFormatFilter, format])
+			- addFilter(currecy, [@currencyFilter, format])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
@@ -120,6 +121,7 @@ services:
 	nullableStringFilter: App\UI\Filter\NullableStringFilter
 	flashMessageColorFilter: App\UI\Filter\FlashMessageColorFilter
 	assetPriceFormatFilter: App\UI\Filter\AssetPriceFilter
+	currencyFilter: App\UI\Filter\CurrencyFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
@@ -160,6 +162,7 @@ services:
 	- App\Currency\Download\ECBCurrencyConversionDownloadFacade
 	- App\Currency\Download\Command\CurrencyConversionDownloadCommand(typed(App\Currency\Download\CurrencyConversionDownloadFacade))
 	- App\Currency\Download\CurrencyConversionDownloadInverseRateHelper
+	- App\Currency\CurrencyConversionFacade
 
 	#Asset price
 	- App\Asset\Price\AssetPriceRenderer
@@ -180,3 +183,4 @@ services:
 	- App\Stock\Position\UI\StockPositionGridFactory
 	- App\Stock\Position\StockPositionFacade
 	- App\Stock\Position\UI\StockPositionFormFactory
+	- App\Stock\Position\UI\Detail\StockPositionDetailControlFactory
