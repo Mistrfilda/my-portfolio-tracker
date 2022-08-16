@@ -4,10 +4,14 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\Asset\Price\Exception\PriceDiffException;
+use App\Asset\Price\SummaryPrice;
+use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
+use App\UI\Filter\PercentageFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
@@ -18,6 +22,7 @@ class DashboardValueBuilder
 	public function __construct(
 		private readonly CurrencyConversionRepository $currencyConversionRepository,
 		private readonly StockPositionFacade $stockPositionFacade,
+		private readonly SummaryPriceService $summaryPriceService,
 	)
 	{
 	}
@@ -54,7 +59,7 @@ class DashboardValueBuilder
 
 		$totalInvestedAmount = $this->stockPositionFacade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK);
 
-		return [
+		$values = [
 			new DashboardValue(
 				'EUR - CZK',
 				(string) $eurCzk->getCurrentPrice(),
@@ -115,6 +120,46 @@ class DashboardValueBuilder
 				TailwindColorConstant::CYAN,
 				SvgIcon::CZECH_CROWN,
 				sprintf('Celkový počet pozic %s', $totalInvestedAmount->getCounter()),
+			),
+		];
+
+		$values = array_merge($values, $this->getStockPositionDiff(
+			$stockPositionsSummaryPrice,
+			$totalInvestedAmount,
+		));
+
+		return $values;
+	}
+
+	/**
+	 * @return array<DashboardValue>
+	 * @throws PriceDiffException
+	 */
+	private function getStockPositionDiff(
+		SummaryPrice $currentValue,
+		SummaryPrice $investedAmount,
+	): array
+	{
+		$diff = $this->summaryPriceService->getSummaryPriceDiff(
+			$currentValue,
+			$investedAmount,
+		);
+
+		return [
+			new DashboardValue(
+				'Celkový zisk/ztráta v akciích',
+				CurrencyFilter::format(
+					$diff->getPriceDifference(),
+					$diff->getCurrencyEnum(),
+				),
+				$diff->getTrend()->getTailwindColor(),
+				$diff->getTrend()->getSvgIcon(),
+			),
+			new DashboardValue(
+				'Celkový zisk/ztráta v akciích v procentech',
+				PercentageFilter::format($diff->getPercentageDifference()),
+				$diff->getTrend()->getTailwindColor(),
+				$diff->getTrend()->getSvgIcon(),
 			),
 		];
 	}

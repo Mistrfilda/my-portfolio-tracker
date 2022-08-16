@@ -11,7 +11,10 @@ class AssetPriceFilter
 
 	public static function format(AssetPrice $assetPrice): string
 	{
-		return $assetPrice->getPrice() . ' ' . $assetPrice->getCurrency()->format();
+		return CurrencyFilter::format(
+			$assetPrice->getPrice(),
+			$assetPrice->getCurrency(),
+		);
 	}
 
 }

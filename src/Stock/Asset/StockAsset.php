@@ -61,6 +61,7 @@ class StockAsset implements Entity, Asset
 
 	/** @var ArrayCollection<int, StockPosition> */
 	#[ORM\OneToMany(targetEntity: StockPosition::class, mappedBy: 'stockAsset')]
+	#[ORM\OrderBy(['orderDate' => 'asc'])]
 	private Collection $positions;
 
 	/** @var ArrayCollection<int, StockAssetPriceRecord> */
@@ -160,6 +161,11 @@ class StockAsset implements Entity, Asset
 	public function hasMultiplePositions(): bool
 	{
 		return true;
+	}
+
+	public function hasPositions(): bool
+	{
+		return $this->positions->count() > 0;
 	}
 
 	/**

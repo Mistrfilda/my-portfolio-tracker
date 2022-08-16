@@ -7,6 +7,7 @@ namespace App\Stock\Asset;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Doctrine\OrderBy;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -77,7 +78,7 @@ class StockAssetRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->doctrineRepository->findBy([], ['name' => OrderBy::ASC->value]);
 	}
 
 	/**
@@ -92,6 +93,8 @@ class StockAssetRepository extends BaseRepository
 
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
 		$qb->andWhere($qb->expr()->in('stockAsset.id', $ids));
+
+		$qb->orderBy('stockAsset.name', OrderBy::ASC->value);
 
 		$result = $qb->getQuery()->getResult();
 		assert(is_array($result));

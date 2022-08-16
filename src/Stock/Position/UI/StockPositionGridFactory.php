@@ -5,12 +5,16 @@ declare(strict_types = 1);
 namespace App\Stock\Position\UI;
 
 use App\Asset\Price\AssetPriceRenderer;
+use App\Asset\Price\AssetPriceService;
+use App\Asset\Price\PriceDiff;
 use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Filter\CurrencyFilter;
+use App\UI\Filter\PercentageFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 
@@ -21,6 +25,7 @@ class StockPositionGridFactory
 		private readonly DatagridFactory $datagridFactory,
 		private readonly StockPositionRepository $stockPositionRepository,
 		private readonly AssetPriceRenderer $assetPriceRenderer,
+		private readonly AssetPriceService $assetPriceService,
 	)
 	{
 	}
@@ -84,6 +89,37 @@ class StockPositionGridFactory
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getCurrentTotalAmount(),
 			),
+		);
+
+		$summaryPriceCallback = fn (StockPosition $stockPosition): PriceDiff => $this->assetPriceService->getAssetPriceDiff(
+			$stockPosition->getCurrentTotalAmount(),
+			$stockPosition->getTotalInvestedAmount(),
+		);
+
+		$grid->addColumnBadge(
+			'summaryPrice',
+			'Zisk/ztráta',
+			TailwindColorConstant::GREEN,
+			static function (StockPosition $stockPosition) use ($summaryPriceCallback): string {
+				$priceDiff = $summaryPriceCallback($stockPosition);
+
+				return CurrencyFilter::format($priceDiff->getPriceDifference(), $priceDiff->getCurrencyEnum());
+			},
+			static fn (StockPosition $stockPosition): string => $summaryPriceCallback($stockPosition)->getTrend()->getTailwindColor(),
+			static fn (StockPosition $stockPosition): SvgIcon => $summaryPriceCallback($stockPosition)->getTrend()->getSvgIcon(),
+		);
+
+		$grid->addColumnBadge(
+			'summaryPricePercentage',
+			'Zisk/ztráta v %',
+			TailwindColorConstant::GREEN,
+			static function (StockPosition $stockPosition) use ($summaryPriceCallback): string {
+				$priceDiff = $summaryPriceCallback($stockPosition);
+
+				return PercentageFilter::format($priceDiff->getPercentageDifference());
+			},
+			static fn (StockPosition $stockPosition): string => $summaryPriceCallback($stockPosition)->getTrend()->getTailwindColor(),
+			static fn (StockPosition $stockPosition): SvgIcon => $summaryPriceCallback($stockPosition)->getTrend()->getSvgIcon(),
 		);
 
 		$grid->addAction(

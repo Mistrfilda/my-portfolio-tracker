@@ -6,9 +6,12 @@ namespace App\Stock\Position;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
+use App\Asset\Price\AssetPriceService;
+use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
-use App\Currency\CurrencyConversionFacade;
+use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -22,7 +25,9 @@ class StockPositionFacade
 	public function __construct(
 		private readonly StockPositionRepository $stockPositionRepository,
 		private readonly StockAssetRepository $stockAssetRepository,
-		private readonly CurrencyConversionFacade $currencyConversionFacade,
+		private readonly StockPositionSummaryPriceService $stockPositionSummaryPriceService,
+		private readonly AssetPriceService $assetPriceService,
+		private readonly SummaryPriceService $summaryPriceService,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
@@ -109,7 +114,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->getSummaryPriceForPositions(
+		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpened(),
 		);
@@ -119,7 +124,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->getSummaryPriceForPositions(
+		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::CZK),
 		);
@@ -129,7 +134,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->getSummaryPriceForPositions(
+		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::USD),
 		);
@@ -137,68 +142,54 @@ class StockPositionFacade
 
 	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
 	{
-		return $this->getSummaryPriceForTotalInvestedAmount(
+		return $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmount(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpened(),
 		);
 	}
 
-	/**
-	 * @param array<StockPosition> $positions
-	 */
-	private function getSummaryPriceForPositions(
-		CurrencyEnum $inCurrency,
-		array $positions,
-	): SummaryPrice
+	public function getStockAssetDetailDTO(UuidInterface $stockAssetId): StockAssetDetailDTO
 	{
-		$summaryPrice = new SummaryPrice($inCurrency);
+		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
 
-		foreach ($positions as $position) {
-			$currentTotalAmount = $position->getCurrentTotalAmount();
-			if ($currentTotalAmount->getCurrency() !== $summaryPrice->getCurrency()) {
-				$summaryPrice->addAssetPrice(
-					$this->currencyConversionFacade->getConvertedAssetPrice(
-						$currentTotalAmount,
-						$summaryPrice->getCurrency(),
-					),
-				);
-
-				continue;
-			}
-
-			$summaryPrice->addAssetPrice($currentTotalAmount);
+		if ($stockAsset->hasPositions() === false) {
+			return new StockAssetDetailDTO(
+				$stockAsset,
+				[],
+				new SummaryPrice(CurrencyEnum::CZK),
+				new SummaryPrice(CurrencyEnum::CZK),
+				new PriceDiff(0, 0, CurrencyEnum::CZK),
+			);
 		}
 
-		return $summaryPrice;
-	}
-
-	/**
-	 * @param array<StockPosition> $positions
-	 */
-	private function getSummaryPriceForTotalInvestedAmount(
-		CurrencyEnum $inCurrency,
-		array $positions,
-	): SummaryPrice
-	{
-		$summaryPrice = new SummaryPrice($inCurrency);
-
-		foreach ($positions as $position) {
-			$currentTotalAmount = $position->getTotalInvestedAmountInBrokerCurrency();
-			if ($currentTotalAmount->getCurrency() !== $summaryPrice->getCurrency()) {
-				$summaryPrice->addAssetPrice(
-					$this->currencyConversionFacade->getConvertedAssetPrice(
-						$currentTotalAmount,
-						$summaryPrice->getCurrency(),
-					),
-				);
-
-				continue;
-			}
-
-			$summaryPrice->addAssetPrice($currentTotalAmount);
+		$positionDetailDTOs = [];
+		foreach ($stockAsset->getPositions() as $position) {
+			$positionDetailDTOs[] = new StockAssetPositionDetailDTO(
+				$position,
+				$this->assetPriceService->getAssetPriceDiff(
+					$position->getCurrentTotalAmount(),
+					$position->getTotalInvestedAmount(),
+				),
+			);
 		}
 
-		return $summaryPrice;
+		$totalInvestedAmount = $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmount(
+			$stockAsset->getCurrency(),
+			$stockAsset->getPositions(),
+		);
+
+		$currentAmount = $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
+			$stockAsset->getCurrency(),
+			$stockAsset->getPositions(),
+		);
+
+		return new StockAssetDetailDTO(
+			$stockAsset,
+			$positionDetailDTOs,
+			$totalInvestedAmount,
+			$currentAmount,
+			$this->summaryPriceService->getSummaryPriceDiff($currentAmount, $totalInvestedAmount),
+		);
 	}
 
 }

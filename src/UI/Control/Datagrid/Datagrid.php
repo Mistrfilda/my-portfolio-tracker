@@ -111,6 +111,7 @@ class Datagrid extends Control
 		string $color,
 		callable|null $getterMethod = null,
 		callable|null $colorCallback = null,
+		callable|null $svgIconCallback = null,
 	): ColumnText
 	{
 		$column = new ColumnBadge(
@@ -120,6 +121,7 @@ class Datagrid extends Control
 			$color,
 			$getterMethod,
 			$colorCallback,
+			$svgIconCallback,
 		);
 		$this->columns->add($column);
 
