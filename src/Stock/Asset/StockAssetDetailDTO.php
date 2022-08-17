@@ -20,6 +20,7 @@ class StockAssetDetailDTO
 		private readonly SummaryPrice $totalInvestedAmount,
 		private readonly SummaryPrice $currentAmount,
 		private readonly PriceDiff $currentPriceDiff,
+		private readonly SummaryPrice $currentPriceInCzk,
 	)
 	{
 	}
@@ -50,6 +51,11 @@ class StockAssetDetailDTO
 	public function getCurrentPriceDiff(): PriceDiff
 	{
 		return $this->currentPriceDiff;
+	}
+
+	public function getCurrentPriceInCzk(): SummaryPrice
+	{
+		return $this->currentPriceInCzk;
 	}
 
 }

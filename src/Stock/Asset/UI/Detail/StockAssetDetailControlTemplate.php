@@ -13,4 +13,9 @@ class StockAssetDetailControlTemplate extends BaseControlTemplate
 	/** @var array<StockAssetDetailDTO> */
 	public array $stockAssetsPositionDTOs;
 
+	/** @var array<StockAssetDetailDTO> */
+	public array $sortedStockAssetsPositionsDTOs;
+
+	public float $totalInvestedAmountInCzk;
+
 }

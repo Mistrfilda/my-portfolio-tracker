@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Currency;
 
 use App\Asset\Price\AssetPrice;
+use App\Asset\Price\SummaryPrice;
 
 class CurrencyConversionFacade
 {
@@ -20,6 +21,10 @@ class CurrencyConversionFacade
 		CurrencyEnum $toCurrency,
 	): AssetPrice
 	{
+		if ($assetPriceForConvert->getCurrency() === $toCurrency) {
+			return $assetPriceForConvert;
+		}
+
 		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
 			$assetPriceForConvert->getCurrency(),
 			$toCurrency,
@@ -29,6 +34,27 @@ class CurrencyConversionFacade
 			$assetPriceForConvert->getAsset(),
 			$this->convertPrice($assetPriceForConvert->getPrice(), $currencyConversion),
 			$toCurrency,
+		);
+	}
+
+	public function getConvertedSummaryPrice(
+		SummaryPrice $summaryPrice,
+		CurrencyEnum $toCurrency,
+	): SummaryPrice
+	{
+		if ($summaryPrice->getCurrency() === $toCurrency) {
+			return $summaryPrice;
+		}
+
+		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			$summaryPrice->getCurrency(),
+			$toCurrency,
+		);
+
+		return new SummaryPrice(
+			$toCurrency,
+			$this->convertPrice($summaryPrice->getPrice(), $currencyConversion),
+			$summaryPrice->getCounter(),
 		);
 	}
 

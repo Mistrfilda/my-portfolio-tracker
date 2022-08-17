@@ -12,13 +12,15 @@ class SummaryPrice
 
 	private readonly CurrencyEnum $currency;
 
-	private float $price = 0;
+	private float $price;
 
-	private int $counter = 0;
+	private int $counter;
 
-	public function __construct(CurrencyEnum $currency)
+	public function __construct(CurrencyEnum $currency, float $price = 0, int $counter = 0)
 	{
 		$this->currency = $currency;
+		$this->price = $price;
+		$this->counter = $counter;
 	}
 
 	public function addAssetPrice(AssetPrice $assetPrice): void
