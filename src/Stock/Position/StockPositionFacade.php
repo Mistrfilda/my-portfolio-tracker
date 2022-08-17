@@ -10,6 +10,7 @@ use App\Asset\Price\AssetPriceService;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
+use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
@@ -28,6 +29,7 @@ class StockPositionFacade
 		private readonly StockPositionSummaryPriceService $stockPositionSummaryPriceService,
 		private readonly AssetPriceService $assetPriceService,
 		private readonly SummaryPriceService $summaryPriceService,
+		private readonly CurrencyConversionFacade $currencyConversionFacade,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
@@ -156,9 +158,10 @@ class StockPositionFacade
 			return new StockAssetDetailDTO(
 				$stockAsset,
 				[],
-				new SummaryPrice(CurrencyEnum::CZK),
-				new SummaryPrice(CurrencyEnum::CZK),
+				new SummaryPrice($stockAsset->getCurrency()),
+				new SummaryPrice($stockAsset->getCurrency()),
 				new PriceDiff(0, 0, CurrencyEnum::CZK),
+				new SummaryPrice(CurrencyEnum::CZK),
 			);
 		}
 
@@ -189,6 +192,7 @@ class StockPositionFacade
 			$totalInvestedAmount,
 			$currentAmount,
 			$this->summaryPriceService->getSummaryPriceDiff($currentAmount, $totalInvestedAmount),
+			$this->currencyConversionFacade->getConvertedSummaryPrice($currentAmount, CurrencyEnum::CZK),
 		);
 	}
 

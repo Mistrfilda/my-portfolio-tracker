@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\UI\Detail;
 
+use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
@@ -34,12 +35,28 @@ class StockAssetDetailControl extends BaseControl
 			: $this->stockAssetRepository->findByIds($this->stockAssetIds);
 
 		$stockAssetsPositionDTOs = [];
+		$totalInvestedAmountInCzk = 0;
 		foreach ($assets as $asset) {
-			$stockAssetsPositionDTOs[] = $this->stockPositionFacade->getStockAssetDetailDTO($asset->getId());
+			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO($asset->getId());
+
+			$stockAssetsPositionDTOs[] = $detailDTO;
+			$totalInvestedAmountInCzk += $detailDTO->getCurrentPriceInCzk()->getPrice();
 		}
 
 		$template = $this->getTemplate();
 		$template->stockAssetsPositionDTOs = $stockAssetsPositionDTOs;
+
+		$sortedStockAssetsPositionsDTOs = $stockAssetsPositionDTOs;
+		usort($sortedStockAssetsPositionsDTOs, static function (StockAssetDetailDTO $a, StockAssetDetailDTO $b): int {
+			if ($a->getCurrentPriceInCzk()->getPrice() > $b->getCurrentPriceInCzk()->getPrice()) {
+				return -1;
+			}
+
+			return 1;
+		});
+
+		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
+		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
 		$template->setFile(__DIR__ . '/templates/StockAssetDetailControl.latte');
 		$template->render();
 	}
