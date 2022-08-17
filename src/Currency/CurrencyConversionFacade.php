@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Currency;
 
 use App\Asset\Price\AssetPrice;
+use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 
 class CurrencyConversionFacade
@@ -55,6 +56,27 @@ class CurrencyConversionFacade
 			$toCurrency,
 			$this->convertPrice($summaryPrice->getPrice(), $currencyConversion),
 			$summaryPrice->getCounter(),
+		);
+	}
+
+	public function getConvertedPriceDiff(
+		PriceDiff $priceDiff,
+		CurrencyEnum $toCurrency,
+	): PriceDiff
+	{
+		if ($priceDiff->getCurrencyEnum() === $toCurrency) {
+			return $priceDiff;
+		}
+
+		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			$priceDiff->getCurrencyEnum(),
+			$toCurrency,
+		);
+
+		return new PriceDiff(
+			$this->convertPrice($priceDiff->getPriceDifference(), $currencyConversion),
+			$priceDiff->getRawPercentageDifference(),
+			$toCurrency,
 		);
 	}
 

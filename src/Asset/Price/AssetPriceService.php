@@ -19,7 +19,7 @@ class AssetPriceService
 		}
 
 		$diffPrice = $assetPrice1->getPrice() - $assetPrice2->getPrice();
-		$percentageDiff = $assetPrice2->getPrice() * 100 / $assetPrice1->getPrice();
+		$percentageDiff = $assetPrice1->getPrice() * 100 / $assetPrice2->getPrice();
 
 		return new PriceDiff(
 			$diffPrice,

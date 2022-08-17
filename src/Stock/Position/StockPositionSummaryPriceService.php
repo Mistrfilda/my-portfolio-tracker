@@ -75,4 +75,33 @@ class StockPositionSummaryPriceService
 		return $summaryPrice;
 	}
 
+	/**
+	 * @param array<StockPosition> $positions
+	 */
+	public function getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
+		CurrencyEnum $inCurrency,
+		array $positions,
+	): SummaryPrice
+	{
+		$summaryPrice = new SummaryPrice($inCurrency);
+
+		foreach ($positions as $position) {
+			$currentTotalAmount = $position->getTotalInvestedAmountInBrokerCurrency();
+			if ($currentTotalAmount->getCurrency() !== $summaryPrice->getCurrency()) {
+				$summaryPrice->addAssetPrice(
+					$this->currencyConversionFacade->getConvertedAssetPrice(
+						$currentTotalAmount,
+						$summaryPrice->getCurrency(),
+					),
+				);
+
+				continue;
+			}
+
+			$summaryPrice->addAssetPrice($currentTotalAmount);
+		}
+
+		return $summaryPrice;
+	}
+
 }

@@ -7,6 +7,7 @@ namespace App\Stock\Position\UI;
 use App\Asset\Price\AssetPriceRenderer;
 use App\Asset\Price\AssetPriceService;
 use App\Asset\Price\PriceDiff;
+use App\Currency\CurrencyConversionFacade;
 use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
@@ -26,6 +27,7 @@ class StockPositionGridFactory
 		private readonly StockPositionRepository $stockPositionRepository,
 		private readonly AssetPriceRenderer $assetPriceRenderer,
 		private readonly AssetPriceService $assetPriceService,
+		private readonly CurrencyConversionFacade $currencyConversionFacade,
 	)
 	{
 	}
@@ -84,6 +86,14 @@ class StockPositionGridFactory
 		);
 
 		$grid->addColumnText(
+			'totalInvestedAmount',
+			'Celková investovaná částka v měně brokera',
+			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
+				$stockPosition->getTotalInvestedAmountInBrokerCurrency(),
+			),
+		);
+
+		$grid->addColumnText(
 			'currentTotalAmount',
 			'Aktuální hodnota pozice',
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
@@ -92,8 +102,11 @@ class StockPositionGridFactory
 		);
 
 		$summaryPriceCallback = fn (StockPosition $stockPosition): PriceDiff => $this->assetPriceService->getAssetPriceDiff(
-			$stockPosition->getCurrentTotalAmount(),
-			$stockPosition->getTotalInvestedAmount(),
+			$this->currencyConversionFacade->getConvertedAssetPrice(
+				$stockPosition->getCurrentTotalAmount(),
+				$stockPosition->getTotalInvestedAmountInBrokerCurrency()->getCurrency(),
+			),
+			$stockPosition->getTotalInvestedAmountInBrokerCurrency(),
 		);
 
 		$grid->addColumnBadge(
