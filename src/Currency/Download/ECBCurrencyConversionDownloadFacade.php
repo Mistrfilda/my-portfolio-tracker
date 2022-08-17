@@ -65,8 +65,8 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 			$parsedRate = (float) $xpathResult->attributes()['rate'];
 
 			$rate = $this->currencyConversionRepository->findCurrencyPairConversionForDate(
-				$matchedEnum,
 				CurrencyEnum::EUR,
+				$matchedEnum,
 				$today,
 			);
 
@@ -87,8 +87,8 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 			$downloadedRates[] = $rate;
 
 			$inversedRate = $this->currencyConversionRepository->findCurrencyPairConversionForDate(
-				CurrencyEnum::EUR,
 				$matchedEnum,
+				CurrencyEnum::EUR,
 				$today,
 			);
 

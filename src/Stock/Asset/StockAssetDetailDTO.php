@@ -7,6 +7,7 @@ namespace App\Stock\Asset;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 use App\Stock\Position\StockAssetPositionDetailDTO;
+use Nette\Utils\Strings;
 
 class StockAssetDetailDTO
 {
@@ -19,8 +20,11 @@ class StockAssetDetailDTO
 		private readonly array $positions,
 		private readonly SummaryPrice $totalInvestedAmount,
 		private readonly SummaryPrice $currentAmount,
+		private readonly SummaryPrice $totalInvestedAmountInBrokerCurrency,
 		private readonly PriceDiff $currentPriceDiff,
+		private readonly PriceDiff $currentPriceDiffInBrokerCurrency,
 		private readonly SummaryPrice $currentPriceInCzk,
+		private readonly PriceDiff $currentPriceDiffInFromBrokerCurrencyToCzk,
 	)
 	{
 	}
@@ -48,14 +52,34 @@ class StockAssetDetailDTO
 		return $this->currentAmount;
 	}
 
+	public function getTotalInvestedAmountInBrokerCurrency(): SummaryPrice
+	{
+		return $this->totalInvestedAmountInBrokerCurrency;
+	}
+
 	public function getCurrentPriceDiff(): PriceDiff
 	{
 		return $this->currentPriceDiff;
 	}
 
+	public function getCurrentPriceDiffInBrokerCurrency(): PriceDiff
+	{
+		return $this->currentPriceDiffInBrokerCurrency;
+	}
+
 	public function getCurrentPriceInCzk(): SummaryPrice
 	{
 		return $this->currentPriceInCzk;
+	}
+
+	public function getCurrentPriceDiffInFromBrokerCurrencyToCzk(): PriceDiff
+	{
+		return $this->currentPriceDiffInFromBrokerCurrencyToCzk;
+	}
+
+	public function getHtmlTarget(): string
+	{
+		return Strings::webalize($this->stockAsset->getId()->toString());
 	}
 
 }

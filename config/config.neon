@@ -193,3 +193,4 @@ services:
 	- App\Stock\Position\UI\StockPositionFormFactory
 	- App\Stock\Asset\UI\Detail\StockAssetDetailControlFactory
 	- App\Stock\Position\StockPositionSummaryPriceService
+	- App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControlFactory

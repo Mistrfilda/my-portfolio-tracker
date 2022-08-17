@@ -47,7 +47,7 @@ class MenuBuilder
 				'StockAssetDetail',
 				'default',
 				SvgIcon::ADJUSTMENTS,
-				'Detaily akciových pozic',
+				'Detail akciových pozic',
 				[],
 			),
 		];

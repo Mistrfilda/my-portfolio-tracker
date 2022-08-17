@@ -50,9 +50,11 @@ class DashboardValueBuilder
 		$stockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueSummaryPrice(
 			CurrencyEnum::CZK,
 		);
+
 		$czStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInCzechStocks(
 			CurrencyEnum::CZK,
 		);
+
 		$usdStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInUsdStocks(
 			CurrencyEnum::CZK,
 		);

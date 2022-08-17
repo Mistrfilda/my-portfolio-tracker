@@ -144,7 +144,7 @@ class StockPositionFacade
 
 	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
 	{
-		return $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmount(
+		return $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpened(),
 		);
@@ -160,13 +160,19 @@ class StockPositionFacade
 				[],
 				new SummaryPrice($stockAsset->getCurrency()),
 				new SummaryPrice($stockAsset->getCurrency()),
+				new SummaryPrice($stockAsset->getCurrency()),
+				new PriceDiff(0, 0, CurrencyEnum::CZK),
 				new PriceDiff(0, 0, CurrencyEnum::CZK),
 				new SummaryPrice(CurrencyEnum::CZK),
+				new PriceDiff(0, 0, CurrencyEnum::CZK),
 			);
 		}
 
 		$positionDetailDTOs = [];
+		$brokerCurrency = CurrencyEnum::CZK;
 		foreach ($stockAsset->getPositions() as $position) {
+			$brokerCurrency = $position->getTotalInvestedAmountInBrokerCurrency()->getCurrency();
+
 			$positionDetailDTOs[] = new StockAssetPositionDetailDTO(
 				$position,
 				$this->assetPriceService->getAssetPriceDiff(
@@ -186,13 +192,32 @@ class StockPositionFacade
 			$stockAsset->getPositions(),
 		);
 
+		$totalInvestedAmountInBrokerCurrency = $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
+			$brokerCurrency,
+			$stockAsset->getPositions(),
+		);
+
+		$currentPriceDiffInBrokerCurrency = $this->summaryPriceService->getSummaryPriceDiff(
+			$this->currencyConversionFacade->getConvertedSummaryPrice(
+				$currentAmount,
+				$brokerCurrency,
+			),
+			$totalInvestedAmountInBrokerCurrency,
+		);
+
 		return new StockAssetDetailDTO(
 			$stockAsset,
 			$positionDetailDTOs,
 			$totalInvestedAmount,
 			$currentAmount,
+			$totalInvestedAmountInBrokerCurrency,
 			$this->summaryPriceService->getSummaryPriceDiff($currentAmount, $totalInvestedAmount),
+			$currentPriceDiffInBrokerCurrency,
 			$this->currencyConversionFacade->getConvertedSummaryPrice($currentAmount, CurrencyEnum::CZK),
+			$this->currencyConversionFacade->getConvertedPriceDiff(
+				$currentPriceDiffInBrokerCurrency,
+				CurrencyEnum::CZK,
+			),
 		);
 	}
 

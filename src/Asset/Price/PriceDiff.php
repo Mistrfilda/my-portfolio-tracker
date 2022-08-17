@@ -22,9 +22,14 @@ class PriceDiff
 		return $this->priceDifference;
 	}
 
+	public function getRawPercentageDifference(): float
+	{
+		return $this->percentageDifference;
+	}
+
 	public function getPercentageDifference(): float
 	{
-		return 100 - $this->percentageDifference;
+		return $this->percentageDifference - 100;
 	}
 
 	public function getCurrencyEnum(): CurrencyEnum

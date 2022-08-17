@@ -176,6 +176,11 @@ class StockAsset implements Entity, Asset
 		return $this->positions->toArray();
 	}
 
+	public function getFirstPosition(): StockPosition|null
+	{
+		return $this->positions->first() === false ? null : $this->positions->first();
+	}
+
 	public function getCurrency(): CurrencyEnum
 	{
 		return $this->currency;
