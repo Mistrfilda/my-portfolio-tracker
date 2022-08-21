@@ -19,7 +19,7 @@ class DashboardPresenter extends BaseAdminPresenter
 
 	public function renderDefault(): void
 	{
-		$this->template->dashboardValues = $this->dashboardValueBuilder->buildValues();
+		$this->template->dashboardValueGroups = $this->dashboardValueBuilder->buildValues();
 		$this->template->heading = 'Dashboard';
 	}
 

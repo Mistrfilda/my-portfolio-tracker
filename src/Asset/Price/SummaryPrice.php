@@ -39,6 +39,22 @@ class SummaryPrice
 		$this->counter++;
 	}
 
+	public function addSummaryPrice(SummaryPrice $summaryPrice): void
+	{
+		if ($summaryPrice->getCurrency() !== $this->currency) {
+			throw new SummaryPriceException(
+				sprintf(
+					'Different currency %s passed to summary - expected %s',
+					$summaryPrice->getCurrency()->format(),
+					$this->currency->format(),
+				),
+			);
+		}
+
+		$this->price += $summaryPrice->getPrice();
+		$this->counter += $summaryPrice->getCounter();
+	}
+
 	public function getCurrency(): CurrencyEnum
 	{
 		return $this->currency;

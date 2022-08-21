@@ -4,11 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit;
 
+use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyConversionRepository;
 use App\Dashboard\DashboardValue;
 use App\Dashboard\DashboardValueBuilder;
+use App\Portu\Position\PortuPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\Test\UpdatedTestCase;
 use App\UI\Icon\SvgIcon;
@@ -33,11 +35,16 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 		);
 
 		$stockPositionFacade = Mockery::mock(StockPositionFacade::class)->makePartial();
+		$portuPositionFacade = Mockery::mock(PortuPositionFacade::class)->makePartial();
+		$assetPriceSummaryFacade = Mockery::mock(AssetPriceSummaryFacade::class)->makePartial();
+		$summaryPriceService = Mockery::mock(SummaryPriceService::class)->makePartial();
 
 		$values = (new DashboardValueBuilder(
 			$currencyConversionMock,
 			$stockPositionFacade,
-			new SummaryPriceService(),
+			$summaryPriceService,
+			$portuPositionFacade,
+			$assetPriceSummaryFacade,
 		))->buildValues();
 
 		$expectedDashboardValue = new DashboardValue(

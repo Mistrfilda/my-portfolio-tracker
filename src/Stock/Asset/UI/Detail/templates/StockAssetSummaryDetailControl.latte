@@ -16,6 +16,10 @@
                         </th>
                         <th scope="col"
                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Hodnota 1 akcie
+                        </th>
+                        <th scope="col"
+                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Celková hodnota v CZK
                         </th>
                         <th scope="col"
@@ -44,24 +48,33 @@
                                 {$stockPositionDTO->getStockAsset()->getExchange()->format()}
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
+                                <div class="flex justify-center">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800">
+                                        {$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
                                 {$stockPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
-                                    {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
-                                </span>
-                            </td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
                                 <div class="flex justify-center">
-                                <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-100 text-{$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
-                                    {renderSvg $stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
-                                    {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
-                                </span>
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
+                                    </span>
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
                                 <div class="flex justify-center">
-                                {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
+                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-100 text-{$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
+                                        {renderSvg $stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                        {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                                <div class="flex justify-center">
+                                    {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
                                 </div>
                             </td>
                         </tr>
