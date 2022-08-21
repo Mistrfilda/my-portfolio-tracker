@@ -50,6 +50,18 @@ class MenuBuilder
 				'Detail akciových pozic',
 				[],
 			),
+			new MenuItem(
+				'PortuAsset',
+				'default',
+				SvgIcon::PORTU,
+				'Portu portfolia',
+				[
+					'PortuPosition',
+					'PortuPositionEdit',
+					'PortuAssetEdit',
+					'PortuPositionPrice',
+				],
+			),
 		];
 	}
 

@@ -61,4 +61,6 @@ enum SvgIcon: string
 
 	case DOCUMENT_DUPLICATE = 'document-duplicate.svg';
 
+	case PORTU = 'portu.svg';
+
 }

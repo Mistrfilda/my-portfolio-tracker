@@ -6,6 +6,7 @@ namespace App\Stock\Position;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
+use App\Asset\Price\AssetPriceFacade;
 use App\Asset\Price\AssetPriceService;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -20,13 +21,12 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 
-class StockPositionFacade
+class StockPositionFacade implements AssetPriceFacade
 {
 
 	public function __construct(
 		private readonly StockPositionRepository $stockPositionRepository,
 		private readonly StockAssetRepository $stockAssetRepository,
-		private readonly StockPositionSummaryPriceService $stockPositionSummaryPriceService,
 		private readonly AssetPriceService $assetPriceService,
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly CurrencyConversionFacade $currencyConversionFacade,
@@ -116,7 +116,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
+		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpened(),
 		);
@@ -126,7 +126,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
+		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::CZK),
 		);
@@ -136,7 +136,7 @@ class StockPositionFacade
 		CurrencyEnum $inCurrency,
 	): SummaryPrice
 	{
-		return $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
+		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::USD),
 		);
@@ -144,7 +144,7 @@ class StockPositionFacade
 
 	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
 	{
-		return $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
+		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$inCurrency,
 			$this->stockPositionRepository->findAllOpened(),
 		);
@@ -182,17 +182,17 @@ class StockPositionFacade
 			);
 		}
 
-		$totalInvestedAmount = $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmount(
+		$totalInvestedAmount = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmount(
 			$stockAsset->getCurrency(),
 			$stockAsset->getPositions(),
 		);
 
-		$currentAmount = $this->stockPositionSummaryPriceService->getSummaryPriceForPositions(
+		$currentAmount = $this->summaryPriceService->getSummaryPriceForPositions(
 			$stockAsset->getCurrency(),
 			$stockAsset->getPositions(),
 		);
 
-		$totalInvestedAmountInBrokerCurrency = $this->stockPositionSummaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
+		$totalInvestedAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$brokerCurrency,
 			$stockAsset->getPositions(),
 		);

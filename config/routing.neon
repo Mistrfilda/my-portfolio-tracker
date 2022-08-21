@@ -11,3 +11,8 @@ custompresenterfactory:
 		Admin:StockPosition: App\Stock\Position\UI\StockPositionPresenter
 		Admin:StockPositionEdit: App\Stock\Position\UI\StockPositionEditPresenter
 		Admin:StockAssetDetail: App\Stock\Asset\UI\StockAssetDetailPresenter
+		Admin:PortuAsset: App\Portu\Asset\UI\PortuAssetPresenter
+		Admin:PortuAssetEdit: App\Portu\Asset\UI\PortuAssetEditPresenter
+		Admin:PortuPosition: App\Portu\Position\UI\PortuPositionPresenter
+		Admin:PortuPositionEdit: App\Portu\Position\UI\PortuPositionEditPresenter
+		Admin:PortuPositionPrice: App\Portu\Position\UI\PortuPositionPricePresenter
