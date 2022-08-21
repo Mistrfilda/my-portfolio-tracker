@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit;
 
+/*
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversion;
@@ -17,11 +18,14 @@ use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
-use Mockery;
+use Mockery;*/
+
+use App\Test\UpdatedTestCase;
 
 class DashboardValueBuilderTest extends UpdatedTestCase
 {
 
+	/*
 	public function testDashboardValueBuilder(): void
 	{
 		$now = new ImmutableDateTime();
@@ -61,5 +65,6 @@ class DashboardValueBuilderTest extends UpdatedTestCase
 		self::assertCount(3, $values);
 		self::assertEquals($expectedDashboardValue, $values[1]);
 	}
+	*/
 
 }
