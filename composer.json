@@ -64,7 +64,7 @@
 	},
 	"minimum-stability": "stable",
 	"scripts": {
-		"clear": "rm -rf temp/cache/*",
+		"clear": "rm -rf temp/*",
 		"comload": "composer dump-autoload -o",
 		"stan": "vendor/bin/phpstan analyse -l max -c phpstan.neon src tests --ansi  --memory-limit=-1",
 		"phpstan": "@stan",
