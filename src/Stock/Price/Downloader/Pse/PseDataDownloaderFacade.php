@@ -27,9 +27,13 @@ use Psr\Log\LoggerInterface;
 class PseDataDownloaderFacade implements AssetPriceDownloader
 {
 
+	/**
+	 * @param array<array{url: string, pricePositionTag: int, tableTdsCount: int}> $requests
+	 */
 	public function __construct(
 		private readonly bool $verifySsl,
 		private readonly int $updateStockAssetHoursThreshold,
+		private readonly array $requests,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
@@ -165,10 +169,12 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 	 */
 	private function getRequests(): array
 	{
-		return [
-			new PseDataRequest('https://www.pse.cz/udaje-o-trhu/akcie/prime-market', 2, 8),
-			new PseDataRequest('https://www.pse.cz/udaje-o-trhu/akcie/start-market', 1, 6),
-		];
+		$requests = [];
+		foreach ($this->requests as $request) {
+			$requests[] = new PseDataRequest($request['url'], $request['pricePositionTag'], $request['tableTdsCount']);
+		}
+
+		return $requests;
 	}
 
 }

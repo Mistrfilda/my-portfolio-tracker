@@ -10,6 +10,11 @@ parameters:
 	pse:
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
+		requests:
+			-
+				url: https:/google.com
+				pricePositionTag: 1
+				tableTdsCount: 1
 
 application:
 	errorPresenter: Error:Error
@@ -184,7 +189,7 @@ services:
 	- App\Stock\Price\StockAssetPriceRecordRepository(App\Stock\Price\StockAssetPriceRecord)
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderFacade(apiKey: %twelveData.apiKey%, updateStockAssetHoursThreshold: %twelveData.updateStockAssetHoursThreshold%)
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderCommand
-	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%)
+	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%, requests: %pse.requests%)
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
 
 	#Stock position
