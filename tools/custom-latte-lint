@@ -10,7 +10,7 @@ use Nette\Bridges\ApplicationLatte\UIExtension;
 use Nette\Bridges\FormsLatte\FormsExtension;
 
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/../vendor/autoload.php';
 
 $engine = new Latte\Engine;
 $engine->addExtension(new WebpackLatteExtension(new WebpackAssetsFactory([__DIR__ . '/www/build'])));
