@@ -94,7 +94,8 @@
 		"download-all": [
 			"@currency-download",
 			"@stock-assets-downloaders"
-		]
+		],
+		"download-all-local": "sh ./tools/localDownloadAll.sh"
 	},
 	"config": {
 		"allow-plugins": {
