@@ -26,11 +26,12 @@ class PortuPositionPricePresenter extends BaseAdminPresenter
 		$this->template->id = $portuPositionId;
 	}
 
-	public function renderEditPrice(string $portuPositionId): void
+	public function renderEditPrice(string $portuPositionId, int|null $previousPortuPositionId): void
 	{
 		$portuPosition = $this->portuPositionRepository->getById($this->processParameterRequiredUuid(
 			'portuPositionId',
 		));
+
 		$this->template->heading = sprintf(
 			'Aktualizace ceny portu pozice %s',
 			$portuPosition->getPortuAsset()->getName(),
@@ -46,6 +47,7 @@ class PortuPositionPricePresenter extends BaseAdminPresenter
 	{
 		return $this->portuPositionPriceFormFactory->create(
 			$this->processParameterRequiredUuid('portuPositionId'),
+			$this->processParameterInt('previousPortuPositionId'),
 			function (): void {
 				$this->flashMessage('Cena úspěšně aktualizována');
 				$this->redirect(

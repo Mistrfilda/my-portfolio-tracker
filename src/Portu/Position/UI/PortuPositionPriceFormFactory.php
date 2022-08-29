@@ -5,8 +5,11 @@ declare(strict_types = 1);
 namespace App\Portu\Position\UI;
 
 use App\Portu\Position\PortuPositionFacade;
+use App\Portu\Price\PortuAssetPriceRecord;
+use App\Portu\Price\PortuAssetPriceRecordRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -16,12 +19,18 @@ class PortuPositionPriceFormFactory
 
 	public function __construct(
 		private readonly AdminFormFactory $adminFormFactory,
-		private PortuPositionFacade $portuPositionFacade,
+		private readonly PortuPositionFacade $portuPositionFacade,
+		private readonly PortuAssetPriceRecordRepository $portuAssetPriceRecordRepository,
+		private readonly DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
 
-	public function create(UuidInterface $portuPositionId, callable $onSuccess): AdminForm
+	public function create(
+		UuidInterface $portuPositionId,
+		int|null $previousPortuPositionPrice,
+		callable $onSuccess,
+	): AdminForm
 	{
 		$form = $this->adminFormFactory->create();
 
@@ -38,6 +47,13 @@ class PortuPositionPriceFormFactory
 		)->setRequired()->addRule(Form::FLOAT);
 
 		$form->addCheckbox('shouldUpdateWholePosition', 'Aktualizovat cenu celého portfolia');
+
+		if ($previousPortuPositionPrice !== null) {
+			$this->setDefaults(
+				$this->portuAssetPriceRecordRepository->getById($previousPortuPositionPrice),
+				$form,
+			);
+		}
 
 		$form->onSuccess[] = function (Form $form) use ($portuPositionId, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
@@ -57,6 +73,17 @@ class PortuPositionPriceFormFactory
 		$form->addSubmit('submit', 'Uložit');
 
 		return $form;
+	}
+
+	private function setDefaults(PortuAssetPriceRecord $previousPriceRecord, AdminForm $form): void
+	{
+		$defaults = [
+			'date' => $this->datetimeFactory->createToday(),
+			'currentValuePrice' => $previousPriceRecord->getCurrentValueAssetPrice()->getPrice(),
+			'totalInvestedToThisDatePrice' => $previousPriceRecord->getTotalInvestedAmountAssetPrice()->getPrice(),
+		];
+
+		$form->setDefaults($defaults);
 	}
 
 }
