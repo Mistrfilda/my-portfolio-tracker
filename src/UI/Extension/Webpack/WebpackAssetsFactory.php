@@ -36,6 +36,7 @@ class WebpackAssetsFactory
 			);
 		}
 
+		assert(is_array($assets[$entryName]));
 		if (array_key_exists('css', $assets[$entryName]) === false) {
 			throw new WebpackException(
 				sprintf('Missing css assets for entry %s', $entryName),
@@ -66,6 +67,7 @@ class WebpackAssetsFactory
 			);
 		}
 
+		assert(is_array($assets[$entryName]));
 		if (array_key_exists('js', $assets[$entryName]) === false) {
 			throw new WebpackException(
 				sprintf('Missing js assets for entry %s', $entryName),
@@ -88,7 +90,7 @@ class WebpackAssetsFactory
 	}
 
 	/**
-	 * @return array<mixed>
+	 * @return array<int|string, mixed>
 	 */
 	private function loadAssets(): array
 	{
