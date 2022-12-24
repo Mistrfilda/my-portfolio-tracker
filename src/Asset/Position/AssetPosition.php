@@ -31,6 +31,4 @@ interface AssetPosition
 	 */
 	public function getTotalInvestedAmountInBrokerCurrency(): AssetPrice;
 
-	//public function getCurrentTotalAmountInBrokerCurrency(): AssetPrice;
-
 }

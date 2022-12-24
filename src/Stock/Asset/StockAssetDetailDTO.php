@@ -25,6 +25,7 @@ class StockAssetDetailDTO
 		private readonly PriceDiff $currentPriceDiffInBrokerCurrency,
 		private readonly SummaryPrice $currentPriceInCzk,
 		private readonly PriceDiff $currentPriceDiffInFromBrokerCurrencyToCzk,
+		private readonly int $piecesCount,
 	)
 	{
 	}
@@ -75,6 +76,11 @@ class StockAssetDetailDTO
 	public function getCurrentPriceDiffInFromBrokerCurrencyToCzk(): PriceDiff
 	{
 		return $this->currentPriceDiffInFromBrokerCurrencyToCzk;
+	}
+
+	public function getPiecesCount(): int
+	{
+		return $this->piecesCount;
 	}
 
 	public function getHtmlTarget(): string
