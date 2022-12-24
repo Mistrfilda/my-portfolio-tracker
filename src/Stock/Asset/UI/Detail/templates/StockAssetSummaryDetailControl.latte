@@ -20,6 +20,10 @@
                         </th>
                         <th scope="col"
                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Počet akcíí
+                        </th>
+                        <th scope="col"
+                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Celková hodnota v CZK
                         </th>
                         <th scope="col"
@@ -55,6 +59,9 @@
                                 </div>
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
+                                {$stockPositionDTO->getPiecesCount()}
+                            </td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
                                 {$stockPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
@@ -80,6 +87,17 @@
                         </tr>
                     {/foreach}
                     </tbody>
+                    <tfoot>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
+                            {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
+                        </td>
+                    </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
