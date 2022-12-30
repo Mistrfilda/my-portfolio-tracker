@@ -11,6 +11,7 @@ use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use Ramsey\Uuid\UuidInterface;
@@ -37,7 +38,7 @@ class PortuPositionPriceGridFactory
 		$grid->setLimit(30);
 
 		$grid->addColumnDate('date', 'Datum')
-			->setSortable();
+			->setSortable(SortDirectionEnum::DESC);
 
 		$grid->addColumnText(
 			'totalInvestedAmount',

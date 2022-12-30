@@ -20,6 +20,7 @@ use App\UI\Control\Datagrid\Filter\IFilter;
 use App\UI\Control\Datagrid\Pagination\Pagination;
 use App\UI\Control\Datagrid\Pagination\PaginationService;
 use App\UI\Control\Datagrid\Sort\Sort;
+use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Control\Datagrid\Sort\SortException;
 use App\UI\Control\Datagrid\Sort\SortService;
 use App\UI\Control\Form\AdminForm;
@@ -214,9 +215,9 @@ class Datagrid extends Control
 		return $filter;
 	}
 
-	public function setSortable(IColumn $column): Sort
+	public function setSortable(IColumn $column, SortDirectionEnum|null $defaultDirection = null): Sort
 	{
-		$sort = new Sort($column);
+		$sort = new Sort($column, $defaultDirection);
 		$this->sorts->set($column->getColumn(), $sort);
 
 		return $sort;

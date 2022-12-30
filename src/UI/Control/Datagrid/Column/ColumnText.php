@@ -7,6 +7,7 @@ namespace App\UI\Control\Datagrid\Column;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Sort\Sort;
+use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 use function sprintf;
@@ -56,9 +57,9 @@ class ColumnText implements IColumn
 		return $this->datagrid->setFilterText($this);
 	}
 
-	public function setSortable(): Sort
+	public function setSortable(SortDirectionEnum|null $defaultDirection = null): Sort
 	{
-		$sort = $this->datagrid->setSortable($this);
+		$sort = $this->datagrid->setSortable($this, $defaultDirection);
 		$this->sort = $sort;
 
 		return $sort;
