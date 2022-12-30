@@ -26,6 +26,7 @@
     "webpack-notifier": "^1.14.1"
   },
   "scripts": {
-    "build-prod": "NODE_ENV=production yarn encore prod"
+    "build-dev": "NODE_ENV=production yarn encore prod",
+    "build-prod": "NODE_ENV=production PROD_HOST=1 yarn encore prod"
   }
 }
