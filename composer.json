@@ -98,6 +98,8 @@
 			"@save-current-portfolio-statistics"
 		],
 		"download-all-local": "sh ./tools/localDownloadAll.sh",
+		"migm": "bin/console migrations:migrate --no-interaction",
+		"yarn-prod": "yarn build-prod",
 		"deploy-all": [
 			"@migm",
 			"@clear",
