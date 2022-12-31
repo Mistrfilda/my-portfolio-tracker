@@ -97,7 +97,12 @@
 			"@stock-assets-downloaders",
 			"@save-current-portfolio-statistics"
 		],
-		"download-all-local": "sh ./tools/localDownloadAll.sh"
+		"download-all-local": "sh ./tools/localDownloadAll.sh",
+		"deploy-all": [
+			"@migm",
+			"@clear",
+			"@yarn-prod"
+		]
 	},
 	"config": {
 		"allow-plugins": {
