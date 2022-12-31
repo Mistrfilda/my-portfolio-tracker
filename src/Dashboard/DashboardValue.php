@@ -34,6 +34,11 @@ class DashboardValue
 		return $this->color;
 	}
 
+	public function getSvgIconEnum(): SvgIcon|null
+	{
+		return $this->svgIcon;
+	}
+
 	public function getSvgIcon(): string|null
 	{
 		return $this->svgIcon?->value;

@@ -91,9 +91,11 @@
 			"bin/console pse:download"
 		],
 		"currency-download": "bin/console currency:download",
+		"save-current-portfolio-statistics": "bin/console portfolio:statistics:save",
 		"download-all": [
 			"@currency-download",
-			"@stock-assets-downloaders"
+			"@stock-assets-downloaders",
+			"@save-current-portfolio-statistics"
 		],
 		"download-all-local": "sh ./tools/localDownloadAll.sh"
 	},

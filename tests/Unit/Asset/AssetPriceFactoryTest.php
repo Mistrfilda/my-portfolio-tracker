@@ -21,13 +21,22 @@ class AssetPriceFactoryTest extends UpdatedTestCase
 
 		$expectedAssetPrice = new AssetPrice($asset, 30.9, CurrencyEnum::USD);
 
+		$actual = AssetPriceFactory::createFromPieceCountPrice($asset, 3, 10.3);
+
 		self::assertEquals(
-			$expectedAssetPrice,
-			AssetPriceFactory::createFromPieceCountPrice(
-				$asset,
-				3,
-				10.3,
-			),
+			$expectedAssetPrice->getAsset(),
+			$actual->getAsset(),
+		);
+
+		self::assertEquals(
+			$expectedAssetPrice->getCurrency(),
+			$actual->getCurrency(),
+		);
+
+		self::assertEqualsWithDelta(
+			$expectedAssetPrice->getPrice(),
+			$actual->getPrice(),
+			0.00001,
 		);
 	}
 

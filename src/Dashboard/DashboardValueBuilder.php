@@ -60,6 +60,7 @@ class DashboardValueBuilder
 		);
 
 		return new DashboardValueGroup(
+			DashboardValueGroupEnum::CURRENCY,
 			'Kurzy měn',
 			'Aktuální kurzy měn',
 			[
@@ -113,6 +114,7 @@ class DashboardValueBuilder
 		);
 
 		return new DashboardValueGroup(
+			DashboardValueGroupEnum::TOTAL_VALUES,
 			'Celkové hodnoty portfolia',
 			positions: [
 				new DashboardValue(
@@ -176,6 +178,7 @@ class DashboardValueBuilder
 		);
 
 		return new DashboardValueGroup(
+			DashboardValueGroupEnum::STOCKS,
 			'Akcie',
 			positions:
 			[
@@ -254,6 +257,7 @@ class DashboardValueBuilder
 		);
 
 		return new DashboardValueGroup(
+			DashboardValueGroupEnum::PORTU,
 			'Portu',
 			positions:
 			[

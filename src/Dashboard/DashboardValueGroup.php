@@ -11,11 +11,17 @@ class DashboardValueGroup
 	 * @param array<DashboardValue> $positions
 	 */
 	public function __construct(
+		private readonly DashboardValueGroupEnum $name,
 		private readonly string $heading,
 		private readonly string|null $description = null,
 		private readonly array $positions = [],
 	)
 	{
+	}
+
+	public function getName(): DashboardValueGroupEnum
+	{
+		return $this->name;
 	}
 
 	public function getHeading(): string

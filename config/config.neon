@@ -214,3 +214,9 @@ services:
 	- App\Portu\Position\UI\PortuPositionPriceGridFactory
 	- App\Portu\Position\UI\PortuPositionPriceFormFactory
 	- App\Portu\Price\PortuAssetPriceRecordRepository(App\Portu\Price\PortuAssetPriceRecord)
+
+	#Portfolio statistics
+	- App\Statistic\PortfolioStatisticFacade
+	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)
+	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
+	- App\Statistic\PortfolioStatisticSaveCommand
