@@ -1,0 +1,41 @@
+{templateType App\Dashboard\UI\DashboardValueControl\DashboardValueControlTemplate}
+{foreach $dashboardValueGroups as $dasboardValueGroup}
+    <div class="pb-5 border-b border-gray-200 py-6">
+        <h2 class="text-2xl leading-6 font-medium text-gray-900">
+            {$dasboardValueGroup->getHeading()}
+        </h2>
+        {if $dasboardValueGroup->getDescription() !== null}
+            <p class="mt-2 max-w-4xl text-sm text-gray-500">
+                {$dasboardValueGroup->getDescription()}
+            </p>
+        {/if}
+    </div>
+
+    <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
+            {varType App\Dashboard\DashboardValue $dashboardValue}
+            <div class="relative bg-white pt-5 px-4 pb-6 sm:pt-6 sm:px-6 shadow rounded-lg overflow-hidden">
+                <dt>
+                    <div class="absolute bg-{$dashboardValue->getColor()}-500 rounded-md p-3">
+                        {if $dashboardValue->getSvgIcon() !== null}
+                            {renderSvg $dashboardValue->getSvgIcon(), ['class' => 'h-6 w-6 text-white']}
+                        {/if}
+                    </div>
+                    <p class="ml-16 text-sm font-medium text-gray-500">
+                        {$dashboardValue->getLabel()}
+                    </p>
+                </dt>
+                <dd class="ml-16 flex items-baseline">
+                    <p class="text-2xl font-semibold text-gray-900">
+                        {$dashboardValue->getValue()}
+                    </p>
+                </dd>
+                {if $dashboardValue->getDescription() !== null}
+                    <dd class="mt-4 flex items-baseline">
+                        <p class="text-sm text-gray-500">{$dashboardValue->getDescription()}</p>
+                    </dd>
+                {/if}
+            </div>
+        {/foreach}
+    </dl>
+{/foreach}

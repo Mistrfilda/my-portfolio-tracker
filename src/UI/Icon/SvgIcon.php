@@ -63,4 +63,6 @@ enum SvgIcon: string
 
 	case PORTU = 'portu.svg';
 
+	case TABLE_CELLS = 'table-cells.svg';
+
 }

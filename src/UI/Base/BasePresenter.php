@@ -74,6 +74,16 @@ abstract class BasePresenter extends Presenter
 		return (int) $id;
 	}
 
+	protected function processRequiredParameterInt(string $parameterName = 'id'): int
+	{
+		$id = $this->getParameter($parameterName);
+		if (is_scalar($id) === false) {
+			throw new BadRequestException('Missing parameter ID');
+		}
+
+		return (int) $id;
+	}
+
 	protected function processParameterStringId(string $parameterName = 'id'): string
 	{
 		$id = $this->getParameter($parameterName);

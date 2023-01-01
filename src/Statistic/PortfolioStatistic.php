@@ -38,10 +38,10 @@ class PortfolioStatistic implements Entity
 	private string $color;
 
 	#[ORM\Column(type: Types::STRING, enumType: SvgIcon::class, nullable: true)]
-	private SvgIcon|null $svgIcon = null;
+	private SvgIcon|null $svgIcon;
 
 	#[ORM\Column(type: Types::STRING, nullable: true)]
-	private string|null $description = null;
+	private string|null $description;
 
 	public function __construct(
 		PortfolioStatisticRecord $portfolioStatisticRecord,

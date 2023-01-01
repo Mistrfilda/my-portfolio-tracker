@@ -31,11 +31,11 @@ class PortfolioStatisticRecord implements Entity
 	}
 
 	/**
-	 * @return array<int, PortfolioStatistic>
+	 * @return ArrayCollection<int, PortfolioStatistic>
 	 */
-	public function getPortfolioStatistics(): array
+	public function getPortfolioStatistics(): Collection
 	{
-		return $this->portfolioStatistics->toArray();
+		return $this->portfolioStatistics;
 	}
 
 }

@@ -17,6 +17,12 @@ class MenuBuilder
 		return [
 			new MenuItem('Dashboard', 'default', SvgIcon::HOME, 'Dashboard'),
 			new MenuItem(
+				'PortfolioStatistic',
+				'default',
+				SvgIcon::TABLE_CELLS,
+				'Statistiky',
+			),
+			new MenuItem(
 				'AppAdmin',
 				'default',
 				SvgIcon::USERS,

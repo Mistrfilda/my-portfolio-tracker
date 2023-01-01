@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic;
 
-use App\Dashboard\DashboardValueBuilder;
+use App\Dashboard\DashboardValueBuilderFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
@@ -14,7 +14,7 @@ class PortfolioStatisticFacade
 {
 
 	public function __construct(
-		private readonly DashboardValueBuilder $dashboardValueBuilder,
+		private readonly DashboardValueBuilderFacade $dashboardValueBuilder,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,

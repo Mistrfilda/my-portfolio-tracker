@@ -161,7 +161,8 @@ services:
 	- App\Login\UI\Form\LoginFormFactory
 
 	#Dashboard
-	- App\Dashboard\DashboardValueBuilder
+	- App\Dashboard\DashboardValueBuilderFacade
+	- App\Dashboard\UI\DashboardValueControl\DashboardValueControlFactory
 
 	#HTTP
 	- App\Http\Psr7\Psr7RequestFactory
@@ -220,3 +221,4 @@ services:
 	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
+	- App\Statistic\UI\PortfolioStatisticRecordGridFactory
