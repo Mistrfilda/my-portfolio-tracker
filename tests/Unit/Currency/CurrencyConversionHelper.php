@@ -2,9 +2,7 @@
 
 declare(strict_types = 1);
 
-
 namespace App\Test\Unit\Currency;
-
 
 use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyConversionRepository;
@@ -13,9 +11,9 @@ use App\Currency\CurrencySourceEnum;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 
-
 class CurrencyConversionHelper
 {
+
 	public const USD_EUR = 0.9461;
 
 	public const EUR_USD = 1.057;
@@ -38,7 +36,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::USD,
 				CurrencyEnum::EUR,
 				self::USD_EUR,
-				CurrencySourceEnum::ECB
+				CurrencySourceEnum::ECB,
 			));
 
 		$mock->expects('getCurrentCurrencyPairConversion')
@@ -47,7 +45,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::EUR,
 				CurrencyEnum::USD,
 				self::EUR_USD,
-				CurrencySourceEnum::ECB
+				CurrencySourceEnum::ECB,
 			));
 
 		$mock->expects('getCurrentCurrencyPairConversion')
@@ -56,7 +54,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::CZK,
 				CurrencyEnum::USD,
 				self::CZK_USD,
-				CurrencySourceEnum::CNB
+				CurrencySourceEnum::CNB,
 			));
 
 		$mock->expects('getCurrentCurrencyPairConversion')
@@ -65,7 +63,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::USD,
 				CurrencyEnum::CZK,
 				self::USD_CZK,
-				CurrencySourceEnum::CNB
+				CurrencySourceEnum::CNB,
 			));
 
 		$mock->expects('getCurrentCurrencyPairConversion')
@@ -74,7 +72,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::CZK,
 				CurrencyEnum::EUR,
 				self::CZK_EUR,
-				CurrencySourceEnum::CNB
+				CurrencySourceEnum::CNB,
 			));
 
 		$mock->expects('getCurrentCurrencyPairConversion')
@@ -83,7 +81,7 @@ class CurrencyConversionHelper
 				CurrencyEnum::EUR,
 				CurrencyEnum::CZK,
 				self::EUR_CZK,
-				CurrencySourceEnum::CNB
+				CurrencySourceEnum::CNB,
 			));
 
 		return $mock;
@@ -93,7 +91,7 @@ class CurrencyConversionHelper
 		CurrencyEnum $fromCurrency,
 		CurrencyEnum $toCurrency,
 		float $currentPrice,
-		CurrencySourceEnum $source
+		CurrencySourceEnum $source,
 	): CurrencyConversion
 	{
 		return new CurrencyConversion(
@@ -102,7 +100,8 @@ class CurrencyConversionHelper
 			$currentPrice,
 			$source,
 			new ImmutableDateTime(),
-			new ImmutableDateTime()
+			new ImmutableDateTime(),
 		);
 	}
+
 }
