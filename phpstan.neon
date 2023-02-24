@@ -8,5 +8,9 @@ parameters:
 		repositoryClass: App\Doctrine\BaseRepository
 		objectManagerLoader: tools/DoctrineObjectManager.php
 
+	excludePaths:
+		analyse:
+			- src/UI/Extension/Svg/SvgNode.php
+
 	ignoreErrors:
 		- '#Call to an undefined method Nette\\ComponentModel\\IComponent\:\:addError\(\)#'
