@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Extension\Svg;
 
+use Generator;
 use Latte\Compiler\Nodes\Php\Expression\ArrayNode;
 use Latte\Compiler\Nodes\Php\ExpressionNode;
 use Latte\Compiler\Nodes\StatementNode;
@@ -57,10 +58,11 @@ class SvgNode extends StatementNode
 		);
 	}
 
-	public function &getIterator(): \Generator
+	public function &getIterator(): Generator
 	{
 		if (false) {
 			yield;
 		}
 	}
+
 }
