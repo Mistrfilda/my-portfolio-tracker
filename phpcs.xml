@@ -344,19 +344,8 @@ BASED ON https://github.com/orisai/coding-standard-php
     </rule>
     <rule ref="SlevomatCodingStandard.ControlStructures.JumpStatementsSpacing">
         <properties>
-            <property name="allowSingleLineYieldStacking" value="true"/>
-            <property name="linesCountBefore" value="1"/>
-            <property name="linesCountBeforeFirst" value="0"/>
-            <property name="linesCountBeforeWhenFirstInCaseOrDefault" value="null"/>
-            <property name="linesCountAfter" value="1"/>
-            <property name="linesCountAfterLast" value="0"/>
-            <property name="linesCountAfterWhenLastInCaseOrDefault" value="null"/>
-            <property name="linesCountAfterWhenLastInLastCaseOrDefault" value="null"/>
-            <property name="controlStructures" type="array">
+            <property name="jumpStatements" type="array">
                 <element value="goto"/>
-                <element value="break"/>
-                <element value="continue"/>
-                <element value="return"/>
                 <element value="throw"/>
                 <element value="yield"/>
                 <element value="yield_from"/>
