@@ -54,6 +54,7 @@ class CurrentAppAdminGetter
 	public function login(string $username, string $password): void
 	{
 		$this->user->login($username, $password);
+		$this->user->setExpiration('12 hours');
 	}
 
 	public function logout(): void
