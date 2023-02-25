@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Currency;
 
 use App\Currency\CurrencyConversion;
+use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
@@ -85,6 +86,11 @@ class CurrencyConversionHelper
 			));
 
 		return $mock;
+	}
+
+	public static function getCurrencyConversionFacade(): CurrencyConversionFacade
+	{
+		return new CurrencyConversionFacade(self::getConversionMockRepository());
 	}
 
 	private static function getCurrencyConversion(
