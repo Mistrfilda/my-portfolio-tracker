@@ -37,6 +37,7 @@ class MenuBuilder
 				'Akcie',
 				[
 					'StockAssetEdit',
+					'StockAssetDividend',
 				],
 			),
 			new MenuItem(

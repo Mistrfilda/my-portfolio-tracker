@@ -222,3 +222,11 @@ services:
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
 	- App\Statistic\UI\PortfolioStatisticRecordGridFactory
+
+	#Stock dividends
+	- App\Stock\Dividend\StockAssetDividendFacade
+	- App\Stock\Dividend\UI\StockAssetDividendFormFactory
+	- App\Stock\Dividend\UI\StockAssetDividendGridFactory
+	- App\Stock\Dividend\StockAssetDividendRepository(App\Stock\Dividend\StockAssetDividend)
+
+

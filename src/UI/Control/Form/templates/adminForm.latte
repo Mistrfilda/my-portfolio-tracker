@@ -51,7 +51,6 @@
         {/if}
         {varType Nette\Forms\Controls\TextBase $component}
         {if $component instanceof App\UI\Control\Form\Input\DatePickerInput}
-            {dump $component}
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:border-solid sm:border-t sm:border-gray-200 sm:pt-5">
                 <label for="{$component->getName()}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {$component->getLabel()}

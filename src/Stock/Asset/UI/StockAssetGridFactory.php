@@ -57,6 +57,18 @@ class StockAssetGridFactory
 			static fn (StockAsset $stockAsset): string => AssetPriceFilter::format($stockAsset->getAssetCurrentPrice()),
 		);
 
+		$grid->addColumnText(
+			'paysDividend',
+			'Vyplácí dividendy',
+			static function (StockAsset $stockAsset): string {
+				if ($stockAsset->doesPaysDividends()) {
+					return 'Ano';
+				}
+
+				return 'Ne';
+			},
+		);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',
@@ -66,6 +78,17 @@ class StockAssetGridFactory
 			],
 			SvgIcon::PENCIL,
 			TailwindColorConstant::BLUE,
+		);
+
+		$grid->addAction(
+			'dividends',
+			'Dividendy',
+			'StockAssetDividend:default',
+			[
+				new DatagridActionParameter('stockAssetId', 'id'),
+			],
+			SvgIcon::DOLLAR,
+			TailwindColorConstant::EMERALD,
 		);
 
 		return $grid;

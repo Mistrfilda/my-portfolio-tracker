@@ -2122,20 +2122,20 @@
         },
         {
             "name": "mistrfilda/datetime",
-            "version": "v0.4.1",
+            "version": "v0.4.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Mistrfilda/datetime-utils.git",
-                "reference": "ea744af111ceee984dfb034ef552793eb2dace8b"
+                "reference": "aff4d51b1af3d1d7490f8c557bdce38212bb3411"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Mistrfilda/datetime-utils/zipball/ea744af111ceee984dfb034ef552793eb2dace8b",
-                "reference": "ea744af111ceee984dfb034ef552793eb2dace8b",
+                "url": "https://api.github.com/repos/Mistrfilda/datetime-utils/zipball/aff4d51b1af3d1d7490f8c557bdce38212bb3411",
+                "reference": "aff4d51b1af3d1d7490f8c557bdce38212bb3411",
                 "shasum": ""
             },
             "require": {
-                "nette/utils": "^3.0",
+                "nette/utils": "^3.0|^4.0",
                 "php": ">=8.1"
             },
             "require-dev": {
@@ -2167,9 +2167,9 @@
             "description": "Simple datetime utils",
             "support": {
                 "issues": "https://github.com/Mistrfilda/datetime-utils/issues",
-                "source": "https://github.com/Mistrfilda/datetime-utils/tree/v0.4.1"
+                "source": "https://github.com/Mistrfilda/datetime-utils/tree/v0.4.2"
             },
-            "time": "2022-08-05T21:27:40+00:00"
+            "time": "2023-02-26T15:06:25+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -6344,16 +6344,16 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.10.2",
+            "version": "1.10.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "a2ffec7db373d8da4973d1d62add872db5cd22dd"
+                "reference": "5419375b5891add97dc74be71e6c1c34baaddf64"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a2ffec7db373d8da4973d1d62add872db5cd22dd",
-                "reference": "a2ffec7db373d8da4973d1d62add872db5cd22dd",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/5419375b5891add97dc74be71e6c1c34baaddf64",
+                "reference": "5419375b5891add97dc74be71e6c1c34baaddf64",
                 "shasum": ""
             },
             "require": {
@@ -6383,7 +6383,7 @@
             ],
             "support": {
                 "issues": "https://github.com/phpstan/phpstan/issues",
-                "source": "https://github.com/phpstan/phpstan/tree/1.10.2"
+                "source": "https://github.com/phpstan/phpstan/tree/1.10.3"
             },
             "funding": [
                 {
@@ -6399,7 +6399,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2023-02-23T14:36:46+00:00"
+            "time": "2023-02-25T14:47:13+00:00"
         },
         {
             "name": "phpstan/phpstan-deprecation-rules",
@@ -6632,16 +6632,16 @@
         },
         {
             "name": "phpstan/phpstan-phpunit",
-            "version": "1.3.7",
+            "version": "1.3.8",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan-phpunit.git",
-                "reference": "7e43c8f77c7e419730ead01c8dc787c6bcbe0e15"
+                "reference": "4a19a3cb5b2d28b143f350e45e9f6e17e2cb81b5"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/7e43c8f77c7e419730ead01c8dc787c6bcbe0e15",
-                "reference": "7e43c8f77c7e419730ead01c8dc787c6bcbe0e15",
+                "url": "https://api.github.com/repos/phpstan/phpstan-phpunit/zipball/4a19a3cb5b2d28b143f350e45e9f6e17e2cb81b5",
+                "reference": "4a19a3cb5b2d28b143f350e45e9f6e17e2cb81b5",
                 "shasum": ""
             },
             "require": {
@@ -6678,9 +6678,9 @@
             "description": "PHPUnit extensions and rules for PHPStan",
             "support": {
                 "issues": "https://github.com/phpstan/phpstan-phpunit/issues",
-                "source": "https://github.com/phpstan/phpstan-phpunit/tree/1.3.7"
+                "source": "https://github.com/phpstan/phpstan-phpunit/tree/1.3.8"
             },
-            "time": "2023-02-21T18:40:15+00:00"
+            "time": "2023-02-25T15:14:31+00:00"
         },
         {
             "name": "phpstan/phpstan-strict-rules",
@@ -6733,23 +6733,23 @@
         },
         {
             "name": "phpunit/php-code-coverage",
-            "version": "9.2.24",
+            "version": "9.2.25",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/php-code-coverage.git",
-                "reference": "2cf940ebc6355a9d430462811b5aaa308b174bed"
+                "reference": "0e2b40518197a8c0d4b08bc34dfff1c99c508954"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/2cf940ebc6355a9d430462811b5aaa308b174bed",
-                "reference": "2cf940ebc6355a9d430462811b5aaa308b174bed",
+                "url": "https://api.github.com/repos/sebastianbergmann/php-code-coverage/zipball/0e2b40518197a8c0d4b08bc34dfff1c99c508954",
+                "reference": "0e2b40518197a8c0d4b08bc34dfff1c99c508954",
                 "shasum": ""
             },
             "require": {
                 "ext-dom": "*",
                 "ext-libxml": "*",
                 "ext-xmlwriter": "*",
-                "nikic/php-parser": "^4.14",
+                "nikic/php-parser": "^4.15",
                 "php": ">=7.3",
                 "phpunit/php-file-iterator": "^3.0.3",
                 "phpunit/php-text-template": "^2.0.2",
@@ -6798,7 +6798,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/php-code-coverage/issues",
-                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.24"
+                "source": "https://github.com/sebastianbergmann/php-code-coverage/tree/9.2.25"
             },
             "funding": [
                 {
@@ -6806,7 +6806,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2023-01-26T08:26:55+00:00"
+            "time": "2023-02-25T05:32:00+00:00"
         },
         {
             "name": "phpunit/php-file-iterator",

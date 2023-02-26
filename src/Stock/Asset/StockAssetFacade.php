@@ -7,6 +7,7 @@ namespace App\Stock\Asset;
 use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\Exception\StockAssetTickerAlreadyExistsException;
+use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -33,6 +34,8 @@ class StockAssetFacade
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
 		string|null $isin,
+		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
+		float|null $dividendTax,
 	): StockAsset
 	{
 		if ($this->stockAssetRepository->findByTicker($ticker) !== null) {
@@ -47,6 +50,8 @@ class StockAssetFacade
 			$currency,
 			$this->datetimeFactory->createNow(),
 			isin: $isin,
+			stockAssetDividendSource: $stockAssetDividendSource,
+			dividendTax: $dividendTax,
 		);
 
 		$this->entityManager->persist($stockAsset);
@@ -72,6 +77,8 @@ class StockAssetFacade
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
 		string|null $isin,
+		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
+		float|null $dividendTax,
 	): StockAsset
 	{
 		$stockAsset = $this->stockAssetRepository->getById($id);
@@ -83,6 +90,8 @@ class StockAssetFacade
 			$currency,
 			isin: $isin,
 			now: $this->datetimeFactory->createNow(),
+			dividendTax: $dividendTax,
+			stockAssetDividendSource: $stockAssetDividendSource,
 		);
 
 		$this->entityManager->flush();
