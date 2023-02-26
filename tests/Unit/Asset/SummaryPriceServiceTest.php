@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Test\Unit\Asset\Price;
+namespace App\Test\Unit\Asset;
 
 use App\Asset\Asset;
 use App\Asset\Position\AssetPosition;

@@ -13,6 +13,8 @@ use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
+use App\Stock\Dividend\StockAssetDividend;
+use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
@@ -68,6 +70,16 @@ class StockAsset implements Entity, Asset
 	#[ORM\OneToMany(targetEntity: StockAssetPriceRecord::class, mappedBy: 'stockAsset')]
 	private Collection $priceRecords;
 
+	/** @var ArrayCollection<int, StockAssetDividend> */
+	#[ORM\OneToMany(targetEntity: StockAssetDividend::class, mappedBy: 'stockAsset')]
+	private Collection $dividends;
+
+	#[ORM\Column(type: Types::STRING, enumType: StockAssetDividendSourceEnum::class, nullable: true)]
+	private StockAssetDividendSourceEnum|null $stockAssetDividendSource;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $dividendTax;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -76,6 +88,8 @@ class StockAsset implements Entity, Asset
 		CurrencyEnum $currency,
 		ImmutableDateTime $now,
 		string|null $isin,
+		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
+		float|null $dividendTax,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -85,6 +99,8 @@ class StockAsset implements Entity, Asset
 		$this->exchange = $exchange;
 		$this->currency = $currency;
 		$this->isin = $isin;
+		$this->stockAssetDividendSource = $stockAssetDividendSource;
+		$this->dividendTax = $dividendTax;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -94,6 +110,7 @@ class StockAsset implements Entity, Asset
 
 		$this->positions = new ArrayCollection();
 		$this->priceRecords = new ArrayCollection();
+		$this->dividends = new ArrayCollection();
 	}
 
 	public function update(
@@ -103,6 +120,8 @@ class StockAsset implements Entity, Asset
 		StockAssetExchange $exchange,
 		CurrencyEnum $currency,
 		string|null $isin,
+		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
+		float|null $dividendTax,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -112,6 +131,8 @@ class StockAsset implements Entity, Asset
 		$this->exchange = $exchange;
 		$this->currency = $currency;
 		$this->isin = $isin;
+		$this->stockAssetDividendSource = $stockAssetDividendSource;
+		$this->dividendTax = $dividendTax;
 		$this->updatedAt = $now;
 	}
 
@@ -199,6 +220,29 @@ class StockAsset implements Entity, Asset
 	public function getIsin(): string|null
 	{
 		return $this->isin;
+	}
+
+	/**
+	 * @return array<int, StockAssetDividend>
+	 */
+	public function getDividends(): array
+	{
+		return $this->dividends->toArray();
+	}
+
+	public function doesPaysDividends(): bool
+	{
+		return $this->stockAssetDividendSource !== null;
+	}
+
+	public function getStockAssetDividendSource(): StockAssetDividendSourceEnum|null
+	{
+		return $this->stockAssetDividendSource;
+	}
+
+	public function getDividendTax(): float|null
+	{
+		return $this->dividendTax;
 	}
 
 }

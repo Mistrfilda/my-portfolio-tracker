@@ -9,6 +9,7 @@ use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
 use App\Stock\Asset\StockAssetFacade;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
@@ -59,6 +60,18 @@ class StockAssetFormFactory
 
 		$form->addText('isin', 'ISIN')->setNullable();
 
+		$form->addSelect(
+			'stockAssetDividendSource',
+			'Zdroj dat pro dividendy',
+			StockAssetDividendSourceEnum::getOptionsForAdminSelect(),
+		)
+			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
+			->setRequired();
+
+		$form->addText('dividendTax', 'Dividendová sazba daně')
+			->addRule(Form::FLOAT)
+			->setRequired();
+
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
@@ -72,6 +85,8 @@ class StockAssetFormFactory
 					StockAssetExchange::from($values->exchange),
 					CurrencyEnum::from($values->currency),
 					$values->isin,
+					StockAssetDividendSourceEnum::from($values->stockAssetDividendSource),
+					$values->dividendTax,
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -81,6 +96,8 @@ class StockAssetFormFactory
 					StockAssetExchange::from($values->exchange),
 					CurrencyEnum::from($values->currency),
 					$values->isin,
+					StockAssetDividendSourceEnum::from($values->stockAssetDividendSource),
+					$values->dividendTax,
 				);
 			}
 
@@ -105,6 +122,8 @@ class StockAssetFormFactory
 			'exchange' => $stockAsset->getExchange()->value,
 			'currency' => $stockAsset->getCurrency()->value,
 			'isin' => $stockAsset->getIsin(),
+			'stockAssetDividendSource' => $stockAsset->getStockAssetDividendSource()?->value,
+			'dividendTax' => $stockAsset->getDividendTax(),
 		]);
 	}
 
