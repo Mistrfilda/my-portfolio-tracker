@@ -55,6 +55,12 @@ class SummaryPrice
 		$this->counter += $summaryPrice->getCounter();
 	}
 
+	public function addFlat(float $price, int $counter): void
+	{
+		$this->price += $price;
+		$this->counter += $counter;
+	}
+
 	public function getCurrency(): CurrencyEnum
 	{
 		return $this->currency;
@@ -73,6 +79,11 @@ class SummaryPrice
 	public function getCounter(): int
 	{
 		return $this->counter;
+	}
+
+	public function isFilled(): bool
+	{
+		return $this->price !== 0.0;
 	}
 
 }

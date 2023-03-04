@@ -26,17 +26,33 @@ class StockAssetDividendGridFactory
 	{
 	}
 
-	public function create(UuidInterface $stockAssetId): Datagrid
+	public function create(UuidInterface|null $stockAssetId = null): Datagrid
 	{
 		$qb = $this->stockAssetDividendRepository->createQueryBuilder();
-		$qb->andWhere(
-			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
-		);
-		$qb->setParameter('stockAsset', $stockAssetId);
+
+		if ($stockAssetId !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+			);
+
+			$qb->setParameter('stockAsset', $stockAssetId);
+		}
 
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource($qb),
 		);
+
+		if ($stockAssetId === null) {
+			$grid->addColumnText(
+				'stockAsset',
+				'Akcie',
+				static fn (StockAssetDividend $stockAssetDividend): string => sprintf(
+					'%s (%s)',
+					$stockAssetDividend->getStockAsset()->getName(),
+					$stockAssetDividend->getStockAsset()->getTicker(),
+				),
+			);
+		}
 
 		$grid->addColumnDatetime('exDate', 'Ex date')->setSortable(SortDirectionEnum::DESC);
 		$grid->addColumnDatetime('paymentDate', 'Datum výplaty')->setSortable();
@@ -56,7 +72,7 @@ class StockAssetDividendGridFactory
 			'StockAssetDividend:edit',
 			[
 				new DatagridActionParameter('id', 'id'),
-				new DatagridActionParameter('stockAssetId', 'id', $stockAssetId->toString()),
+				new DatagridActionParameter('stockAssetId', 'stockAssetId'),
 			],
 			SvgIcon::PENCIL,
 			TailwindColorConstant::BLUE,

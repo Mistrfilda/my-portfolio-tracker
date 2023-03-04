@@ -7,6 +7,7 @@ namespace App\Stock\Dividend\Record;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Stock\Dividend\StockAssetDividend;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Ramsey\Uuid\UuidInterface;
@@ -62,6 +63,21 @@ class StockAssetDividendRecordRepository extends BaseRepository
 		assert(is_array($result));
 
 		return $result;
+	}
+
+	public function findOneByStockDividend(StockAssetDividend $stockAssetDividend): StockAssetDividendRecord|null
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
+		$qb->where($qb->expr()->eq('stockAssetDividendRecord.stockAssetDividend', ':stockAssetDividend'));
+		$qb->setParameter('stockAssetDividend', $stockAssetDividend);
+		try {
+			$result = $qb->getQuery()->getSingleResult();
+			assert($result instanceof StockAssetDividendRecord);
+
+			return $result;
+		} catch (NoResultException) {
+			return null;
+		}
 	}
 
 	public function createQueryBuilder(): QueryBuilder

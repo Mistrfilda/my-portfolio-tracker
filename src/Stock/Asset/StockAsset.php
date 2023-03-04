@@ -80,6 +80,9 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
 	private float|null $dividendTax;
 
+	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class, nullable: true)]
+	private CurrencyEnum|null $brokerDividendCurrency;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -90,6 +93,7 @@ class StockAsset implements Entity, Asset
 		string|null $isin,
 		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
 		float|null $dividendTax,
+		CurrencyEnum|null $brokerDividendCurrency,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -101,6 +105,7 @@ class StockAsset implements Entity, Asset
 		$this->isin = $isin;
 		$this->stockAssetDividendSource = $stockAssetDividendSource;
 		$this->dividendTax = $dividendTax;
+		$this->brokerDividendCurrency = $brokerDividendCurrency;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -122,6 +127,7 @@ class StockAsset implements Entity, Asset
 		string|null $isin,
 		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
 		float|null $dividendTax,
+		CurrencyEnum|null $brokerDividendCurrency,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -133,6 +139,7 @@ class StockAsset implements Entity, Asset
 		$this->isin = $isin;
 		$this->stockAssetDividendSource = $stockAssetDividendSource;
 		$this->dividendTax = $dividendTax;
+		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->updatedAt = $now;
 	}
 
@@ -243,6 +250,11 @@ class StockAsset implements Entity, Asset
 	public function getDividendTax(): float|null
 	{
 		return $this->dividendTax;
+	}
+
+	public function getBrokerDividendCurrency(): CurrencyEnum|null
+	{
+		return $this->brokerDividendCurrency;
 	}
 
 }

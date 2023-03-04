@@ -36,6 +36,7 @@ class StockAssetFacade
 		string|null $isin,
 		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
 		float|null $dividendTax,
+		CurrencyEnum|null $brokerDividendCurrency,
 	): StockAsset
 	{
 		if ($this->stockAssetRepository->findByTicker($ticker) !== null) {
@@ -52,6 +53,7 @@ class StockAssetFacade
 			isin: $isin,
 			stockAssetDividendSource: $stockAssetDividendSource,
 			dividendTax: $dividendTax,
+			brokerDividendCurrency: $brokerDividendCurrency,
 		);
 
 		$this->entityManager->persist($stockAsset);
@@ -79,6 +81,7 @@ class StockAssetFacade
 		string|null $isin,
 		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
 		float|null $dividendTax,
+		CurrencyEnum|null $brokerDividendCurrency,
 	): StockAsset
 	{
 		$stockAsset = $this->stockAssetRepository->getById($id);
@@ -92,6 +95,7 @@ class StockAssetFacade
 			now: $this->datetimeFactory->createNow(),
 			dividendTax: $dividendTax,
 			stockAssetDividendSource: $stockAssetDividendSource,
+			brokerDividendCurrency: $brokerDividendCurrency,
 		);
 
 		$this->entityManager->flush();

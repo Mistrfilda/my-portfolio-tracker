@@ -4,10 +4,19 @@ declare(strict_types = 1);
 
 namespace App\UI\Menu;
 
+use App\Stock\Dividend\StockAssetDividendRepository;
 use App\UI\Icon\SvgIcon;
+use Mistrfilda\Datetime\DatetimeFactory;
 
 class MenuBuilder
 {
+
+	public function __construct(
+		private StockAssetDividendRepository $stockAssetDividendRepository,
+		private DatetimeFactory $datetimeFactory,
+	)
+	{
+	}
 
 	/**
 	 * @return array<MenuItem>
@@ -56,6 +65,16 @@ class MenuBuilder
 				SvgIcon::ADJUSTMENTS,
 				'Detail akciových pozic',
 				[],
+			),
+			new MenuItem(
+				'StockAssetDividendDetail',
+				'default',
+				SvgIcon::ARROW_TRENDING_UP,
+				'Dividendy',
+				[],
+				badge: (string) $this->stockAssetDividendRepository->getCountSinceDate(
+					$this->datetimeFactory->createNow()->deductMonthsFromDatetime(1),
+				),
 			),
 			new MenuItem(
 				'PortuAsset',

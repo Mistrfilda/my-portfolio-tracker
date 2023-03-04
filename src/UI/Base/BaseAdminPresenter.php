@@ -17,9 +17,16 @@ abstract class BaseAdminPresenter extends BasePresenter
 
 	protected CurrentAppAdminGetter $currentAppAdminGetter;
 
+	protected MenuBuilder $menuBuilder;
+
 	public function injectCurrentAppAdminGetter(CurrentAppAdminGetter $currentAppAdminGetter): void
 	{
 		$this->currentAppAdminGetter = $currentAppAdminGetter;
+	}
+
+	public function injectMenuBuilder(MenuBuilder $menuBuilder): void
+	{
+		$this->menuBuilder = $menuBuilder;
 	}
 
 	public function startup(): void
@@ -38,7 +45,7 @@ abstract class BaseAdminPresenter extends BasePresenter
 
 		$this->template->pageTitle = $this->basePresenterParameters->getPageTitle();
 		$this->template->currentAppAdmin = $this->currentAppAdminGetter->getAppAdmin();
-		$this->template->menuItems = (new MenuBuilder())->buildMenu();
+		$this->template->menuItems = $this->menuBuilder->buildMenu();
 		$this->template->includeBody = true;
 	}
 

@@ -17,6 +17,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table('stock_asset_dividend')]
@@ -129,6 +130,11 @@ class StockAssetDividend implements Entity
 	public function getRecords(): array
 	{
 		return $this->records->toArray();
+	}
+
+	public function getStockAssetId(): UuidInterface
+	{
+		return $this->stockAsset->getId();
 	}
 
 }

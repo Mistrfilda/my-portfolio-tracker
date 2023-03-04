@@ -22,7 +22,7 @@ class StockAssetDividendDownloaderCommand extends Command
 	public function configure(): void
 	{
 		parent::configure();
-		$this->setName('stock:asset:dividendRecords');
+		$this->setName('stock:asset:downloadDividends');
 		$this->setDescription('Download stock asset dividend records');
 	}
 

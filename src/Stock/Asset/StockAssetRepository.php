@@ -128,6 +128,17 @@ class StockAssetRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<int, StockAsset>
+	 */
+	public function findDividendPayers(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere($qb->expr()->isNotNull('stockAsset.stockAssetDividendSource'));
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('stockAsset');

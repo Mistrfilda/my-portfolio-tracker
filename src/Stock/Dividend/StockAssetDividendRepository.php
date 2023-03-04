@@ -66,6 +66,20 @@ class StockAssetDividendRepository extends BaseRepository
 		return $result;
 	}
 
+	/**
+	 * @return array<int, StockAssetDividend>
+	 */
+	public function findByStockAsset(StockAsset $stockAsset): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+		return $qb->getQuery()->getResult();
+	}
+
 	public function findOneByStockAssetExDate(
 		StockAsset $stockAsset,
 		ImmutableDateTime $exDate,
@@ -88,6 +102,22 @@ class StockAssetDividendRepository extends BaseRepository
 		} catch (NoResultException) {
 			return null;
 		}
+	}
+
+	public function getCountSinceDate(ImmutableDateTime $date): int
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('stockAssetDividend.exDate', ':exDate'),
+		);
+
+		$qb->setParameter('exDate', $date);
+
+		$qb->select('count(stockAssetDividend.id)');
+
+		$result = $qb->getQuery()->getSingleScalarResult();
+		assert(is_scalar($result));
+		return (int) $result;
 	}
 
 	public function createQueryBuilder(): QueryBuilder

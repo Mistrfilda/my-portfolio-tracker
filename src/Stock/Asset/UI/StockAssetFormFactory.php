@@ -66,11 +66,19 @@ class StockAssetFormFactory
 			StockAssetDividendSourceEnum::getOptionsForAdminSelect(),
 		)
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
-			->setRequired();
+			->setRequired(false);
 
 		$form->addText('dividendTax', 'Dividendová sazba daně')
 			->addRule(Form::FLOAT)
-			->setRequired();
+			->setRequired(false);
+
+		$form->addSelect(
+			'brokerDividendCurrency',
+			'Měna dividendy v brokerovi',
+			CurrencyEnum::getOptionsForAdminSelect(),
+		)
+			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
+			->setRequired(false);
 
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
@@ -87,6 +95,7 @@ class StockAssetFormFactory
 					$values->isin,
 					StockAssetDividendSourceEnum::from($values->stockAssetDividendSource),
 					$values->dividendTax,
+					CurrencyEnum::from($values->brokerDividendCurrency),
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -98,6 +107,7 @@ class StockAssetFormFactory
 					$values->isin,
 					StockAssetDividendSourceEnum::from($values->stockAssetDividendSource),
 					$values->dividendTax,
+					CurrencyEnum::from($values->brokerDividendCurrency),
 				);
 			}
 
@@ -124,6 +134,7 @@ class StockAssetFormFactory
 			'isin' => $stockAsset->getIsin(),
 			'stockAssetDividendSource' => $stockAsset->getStockAssetDividendSource()?->value,
 			'dividendTax' => $stockAsset->getDividendTax(),
+			'brokerDividendCurrency' => $stockAsset->getBrokerDividendCurrency()?->value,
 		]);
 	}
 

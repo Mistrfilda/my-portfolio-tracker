@@ -65,4 +65,6 @@ enum SvgIcon: string
 
 	case TABLE_CELLS = 'table-cells.svg';
 
+	case ARROW_TRENDING_UP = 'arrow-trending-up.svg';
+
 }

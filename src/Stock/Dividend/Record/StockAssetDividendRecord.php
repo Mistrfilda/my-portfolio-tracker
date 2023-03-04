@@ -13,6 +13,7 @@ use App\Stock\Dividend\StockAssetDividend;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('stock_asset_dividend_record')]
@@ -52,6 +53,8 @@ class StockAssetDividendRecord implements Entity
 		ImmutableDateTime $now,
 	)
 	{
+		$this->id = Uuid::uuid4();
+
 		$this->stockAssetDividend = $stockAssetDividend;
 		$this->totalPiecesHeldAtExDate = $totalPiecesHeldAtExDate;
 		$this->totalAmount = $totalAmount;
@@ -64,7 +67,6 @@ class StockAssetDividendRecord implements Entity
 	}
 
 	public function update(
-		StockAssetDividend $stockAssetDividend,
 		int $totalPiecesHeldAtExDate,
 		float $totalAmount,
 		CurrencyEnum $currency,
@@ -73,7 +75,6 @@ class StockAssetDividendRecord implements Entity
 		ImmutableDateTime $now,
 	): void
 	{
-		$this->stockAssetDividend = $stockAssetDividend;
 		$this->totalPiecesHeldAtExDate = $totalPiecesHeldAtExDate;
 		$this->totalAmount = $totalAmount;
 		$this->currency = $currency;

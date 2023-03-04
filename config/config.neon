@@ -150,6 +150,8 @@ services:
 	#DATAGRID
 	- App\UI\Control\Datagrid\DatagridFactory
 
+	- App\UI\Menu\MenuBuilder
+
 	#AppAdmin
 	- App\Admin\AppAdminRepository(App\Admin\AppAdmin)
 	- App\Admin\AppAdminAuthenticator
@@ -238,4 +240,8 @@ services:
 			url: %stockDividend.webStockAssetDividendDownloaderUrl%
 
 	- App\Stock\Dividend\Downloader\StockAssetDividendDownloaderCommand(typed(App\Stock\Dividend\Downloader\StockAssetDividendDownloader))
+	- App\Stock\Dividend\Record\StockAssetDividendRecordRepository(App\Stock\Dividend\Record\StockAssetDividendRecord)
+	- App\Stock\Dividend\Record\StockAssetDividendRecordService
+	- App\Stock\Dividend\Record\StockAssetDividendRecordFacade
+	- App\Stock\Dividend\Record\StockAssetDividendRecordCommand
 
