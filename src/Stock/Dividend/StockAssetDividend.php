@@ -34,8 +34,8 @@ class StockAssetDividend implements Entity
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $exDate;
 
-	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-	private ImmutableDateTime $paymentDate;
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $paymentDate;
 
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $declarationDate;
@@ -53,7 +53,7 @@ class StockAssetDividend implements Entity
 	public function __construct(
 		StockAsset $stockAsset,
 		ImmutableDateTime $exDate,
-		ImmutableDateTime $paymentDate,
+		ImmutableDateTime|null $paymentDate,
 		ImmutableDateTime|null $declarationDate,
 		CurrencyEnum $currency,
 		float $amount,
@@ -103,7 +103,7 @@ class StockAssetDividend implements Entity
 		return $this->exDate;
 	}
 
-	public function getPaymentDate(): ImmutableDateTime
+	public function getPaymentDate(): ImmutableDateTime|null
 	{
 		return $this->paymentDate;
 	}

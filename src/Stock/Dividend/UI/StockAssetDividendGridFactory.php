@@ -4,12 +4,14 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\UI;
 
+use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
+use App\UI\Filter\CurrencyFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use Ramsey\Uuid\UuidInterface;
@@ -39,8 +41,14 @@ class StockAssetDividendGridFactory
 		$grid->addColumnDatetime('exDate', 'Ex date')->setSortable(SortDirectionEnum::DESC);
 		$grid->addColumnDatetime('paymentDate', 'Datum výplaty')->setSortable();
 		$grid->addColumnDatetime('declarationDate', 'Datum deklarace');
-		$grid->addColumnText('amount', 'Částka');
-		$grid->addColumnText('currency', 'Měna');
+		$grid->addColumnText(
+			'amount',
+			'Částka',
+			static fn (StockAssetDividend $stockAssetDividend): string => CurrencyFilter::format(
+				$stockAssetDividend->getAmount(),
+				$stockAssetDividend->getCurrency(),
+			),
+		);
 
 		$grid->addAction(
 			'edit',

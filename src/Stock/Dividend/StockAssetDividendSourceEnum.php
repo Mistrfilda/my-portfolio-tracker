@@ -9,14 +9,14 @@ use App\UI\Control\Datagrid\Column\DatagridRenderableEnum;
 enum StockAssetDividendSourceEnum: string implements DatagridRenderableEnum
 {
 
-	case NASDAQ_WEB = 'nasdaq_web';
+	case WEB = 'web';
 
 	case MANUAL = 'manual';
 
 	public function format(): string
 	{
 		return match ($this) {
-			StockAssetDividendSourceEnum::NASDAQ_WEB => 'Nasdaq web',
+			StockAssetDividendSourceEnum::WEB => 'Web',
 			StockAssetDividendSourceEnum::MANUAL => 'Manual'
 		};
 	}
@@ -27,7 +27,7 @@ enum StockAssetDividendSourceEnum: string implements DatagridRenderableEnum
 	public static function getOptionsForAdminSelect(): array
 	{
 		return [
-			self::NASDAQ_WEB->value => 'Nasdaq web',
+			self::WEB->value => 'Web',
 			self::MANUAL->value => 'Manual',
 		];
 	}

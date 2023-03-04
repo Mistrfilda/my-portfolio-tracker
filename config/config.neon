@@ -12,9 +12,12 @@ parameters:
 		verifySsl: true
 		requests:
 			-
-				url: https:/google.com
+				url: https://google.com
 				pricePositionTag: 1
 				tableTdsCount: 1
+
+	stockDividend:
+		webStockAssetDividendDownloaderUrl: https://google.com
 
 application:
 	errorPresenter: Error:Error
@@ -228,5 +231,10 @@ services:
 	- App\Stock\Dividend\UI\StockAssetDividendFormFactory
 	- App\Stock\Dividend\UI\StockAssetDividendGridFactory
 	- App\Stock\Dividend\StockAssetDividendRepository(App\Stock\Dividend\StockAssetDividend)
+
+	-
+		class: App\Stock\Dividend\Downloader\WebStockAssetDividendDownloaderFacade
+		arguments:
+			url: %stockDividend.webStockAssetDividendDownloaderUrl%
 
 
