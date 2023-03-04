@@ -237,4 +237,5 @@ services:
 		arguments:
 			url: %stockDividend.webStockAssetDividendDownloaderUrl%
 
+	- App\Stock\Dividend\Downloader\StockAssetDividendDownloaderCommand(typed(App\Stock\Dividend\Downloader\StockAssetDividendDownloader))
 
