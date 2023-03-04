@@ -7,8 +7,10 @@ namespace App\Stock\Dividend;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Stock\Asset\StockAsset;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -62,6 +64,30 @@ class StockAssetDividendRepository extends BaseRepository
 		assert(is_array($result));
 
 		return $result;
+	}
+
+	public function findOneByStockAssetExDate(
+		StockAsset $stockAsset,
+		ImmutableDateTime $exDate,
+	): StockAssetDividend|null
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.exDate', ':exDate'),
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+		);
+
+		$qb->setParameter('exDate', $exDate);
+		$qb->setParameter('stockAsset', $stockAsset);
+
+		try {
+			$result = $qb->getQuery()->getSingleResult();
+			assert($result instanceof StockAssetDividend);
+
+			return $result;
+		} catch (NoResultException) {
+			return null;
+		}
 	}
 
 	public function createQueryBuilder(): QueryBuilder

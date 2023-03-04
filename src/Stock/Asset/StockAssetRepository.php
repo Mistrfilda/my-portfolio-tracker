@@ -8,6 +8,7 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
 use App\Doctrine\OrderBy;
+use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -113,6 +114,18 @@ class StockAssetRepository extends BaseRepository
 		}
 
 		return $pairs;
+	}
+
+	/**
+	 * @return array<int, StockAsset>
+	 */
+	public function findByStockAssetDividendSource(StockAssetDividendSourceEnum $stockAssetDividendSourceEnum): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere($qb->expr()->eq('stockAsset.stockAssetDividendSource', ':stockAssetDividendSource'));
+		$qb->setParameter('stockAssetDividendSource', $stockAssetDividendSourceEnum->value);
+
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilder(): QueryBuilder
