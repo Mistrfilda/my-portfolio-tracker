@@ -9,6 +9,7 @@ use App\Stock\Dividend\StockAssetDividendRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Psr\Log\LoggerInterface;
 
 class StockAssetDividendRecordFacade
 {
@@ -20,6 +21,7 @@ class StockAssetDividendRecordFacade
 		private StockAssetDividendRecordService $stockAssetDividendRecordService,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
+		private LoggerInterface $logger,
 	)
 	{
 	}
@@ -29,6 +31,10 @@ class StockAssetDividendRecordFacade
 		$dividendPayers = $this->stockAssetRepository->findDividendPayers();
 
 		foreach ($dividendPayers as $dividendPayer) {
+			$this->logger->debug(
+				sprintf('Processing dividend payer %s', $dividendPayer->getName()),
+			);
+
 			$dividendRecords = $this->stockAssetDividendRecordService->processDividendRecords(
 				new ArrayCollection($this->stockAssetDividendRepository->findByStockAsset(
 					$dividendPayer,

@@ -154,9 +154,10 @@ class Datagrid extends Control
 		string $column,
 		string $label,
 		callable|null $getterMethod = null,
+		string|null $referencedColumn = null,
 	): ColumnDatetime
 	{
-		$column = new ColumnDatetime($this, $label, $column, $getterMethod);
+		$column = new ColumnDatetime($this, $label, $column, $getterMethod, $referencedColumn);
 		$this->columns->add($column);
 
 		return $column;

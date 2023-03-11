@@ -77,6 +77,16 @@ class MenuBuilder
 				),
 			),
 			new MenuItem(
+				'StockAssetDividendRecord',
+				'default',
+				SvgIcon::ARROW_TRENDING_UP,
+				'Vyplacené dividendy',
+				[],
+				badge: (string) $this->stockAssetDividendRepository->getCountSinceDate(
+					$this->datetimeFactory->createNow()->deductMonthsFromDatetime(1),
+				),
+			),
+			new MenuItem(
 				'PortuAsset',
 				'default',
 				SvgIcon::PORTU,

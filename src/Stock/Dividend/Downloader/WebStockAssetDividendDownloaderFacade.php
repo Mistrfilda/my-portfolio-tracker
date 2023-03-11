@@ -16,6 +16,7 @@ use DOMNode;
 use DOMNodeList;
 use DOMXPath;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Psr\Log\LoggerInterface;
 
 class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloader
 {
@@ -28,6 +29,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 		private StockAssetDividendRepository $stockAssetDividendRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private LoggerInterface $logger,
 	)
 	{
 	}
@@ -40,6 +42,10 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 
 		$now = $this->datetimeFactory->createNow();
 		foreach ($stockAssets as $stockAsset) {
+			$this->logger->debug(
+				sprintf('Processing dividend payer %s', $stockAsset->getName()),
+			);
+
 			$response = $this->psr18ClientFactory->getClient()->sendRequest(
 				$this->psr7RequestFactory->createGETRequest(
 					sprintf(
@@ -74,7 +80,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 				$date = DatetimeFactory::createFromFormat(
 					$nodeDateValue,
 					'M d, Y',
-				);
+				)->setTime(0, 0);
 
 				$values[] = new StockAssetDividendDownloaderDTO(
 					$date,
@@ -84,9 +90,6 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 					$nodePriceValue,
 				);
 			}
-
-			dump($values);
-			dump($stockAsset);
 
 			foreach ($values as $value) {
 				if ($this->stockAssetDividendRepository->findOneByStockAssetExDate(

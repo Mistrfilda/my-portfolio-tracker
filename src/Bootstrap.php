@@ -11,10 +11,14 @@ use function is_file;
 class Bootstrap
 {
 
-	public static function boot(): Configurator
+	public static function boot(bool $forceDebugMode = false): Configurator
 	{
 		$configurator = new Configurator();
 		$appDir = dirname(__DIR__);
+
+		if ($forceDebugMode) {
+			$configurator->setDebugMode($forceDebugMode);
+		}
 
 		//$configurator->setDebugMode('secret@23.75.345.200'); // enable for your remote IP
 		$configurator->enableTracy($appDir . '/log');

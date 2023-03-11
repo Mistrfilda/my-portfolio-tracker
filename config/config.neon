@@ -244,4 +244,5 @@ services:
 	- App\Stock\Dividend\Record\StockAssetDividendRecordService
 	- App\Stock\Dividend\Record\StockAssetDividendRecordFacade
 	- App\Stock\Dividend\Record\StockAssetDividendRecordCommand
+	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
 

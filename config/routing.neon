@@ -19,3 +19,4 @@ custompresenterfactory:
 		Admin:PortfolioStatistic: App\Statistic\UI\PortfolioStatisticPresenter
 		Admin:StockAssetDividend: App\Stock\Dividend\UI\StockAssetDividendPresenter
 		Admin:StockAssetDividendDetail: App\Stock\Dividend\UI\StockAssetDividendDetailPresenter
+		Admin:StockAssetDividendRecord: App\Stock\Dividend\Record\UI\StockAssetDividendRecordPresenter

@@ -23,9 +23,10 @@ class ColumnDatetime extends ColumnText
 		string $label,
 		string $column,
 		callable|null $getterMethod = null,
+		string|null $referencedColumn = null,
 	)
 	{
-		parent::__construct($datagrid, $label, $column, $getterMethod);
+		parent::__construct($datagrid, $label, $column, $getterMethod, $referencedColumn);
 	}
 
 	public function setFormat(string $datetimeFormat): self
