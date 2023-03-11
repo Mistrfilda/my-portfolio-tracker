@@ -19,6 +19,7 @@ use App\UI\Control\Datagrid\Filter\FilterValue;
 use App\UI\Control\Datagrid\Filter\IFilter;
 use App\UI\Control\Datagrid\Pagination\Pagination;
 use App\UI\Control\Datagrid\Pagination\PaginationService;
+use App\UI\Control\Datagrid\Row\RowRenderer;
 use App\UI\Control\Datagrid\Sort\Sort;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Control\Datagrid\Sort\SortException;
@@ -74,6 +75,8 @@ class Datagrid extends Control
 	private bool $filterApplied = false;
 
 	private bool $sortParametersApplied = false;
+
+	private RowRenderer|null $rowRenderer = null;
 
 	public function __construct(private IDataSource $datasource)
 	{
@@ -311,6 +314,7 @@ class Datagrid extends Control
 		$template->filters = $this->filters;
 		$template->columns = $this->columns;
 		$template->actions = $this->actions;
+		$template->rowRenderer = $this->rowRenderer;
 
 		$template->pagination = new Pagination(
 			$this->limit,
@@ -373,6 +377,11 @@ class Datagrid extends Control
 	public function resetPagination(): void
 	{
 		$this->offset = 0;
+	}
+
+	public function setRowRender(RowRenderer $rowRenderer): void
+	{
+		$this->rowRenderer = $rowRenderer;
 	}
 
 	private function setPagination(): void

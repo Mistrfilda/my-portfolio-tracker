@@ -116,7 +116,6 @@
                                 {/if}
                             </tr>
                             </thead>
-                            <tbody>
                             {if count($items) === 0}
                                 <tr>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
@@ -125,7 +124,11 @@
                                 </tr>
                             {else}
                                 {foreach $items as $item}
-                                    <tr n:class="$iterator->getCounter() % 2 === 0 ? 'bg-white' : 'bg-gray-100'">
+                                        {if $rowRenderer !== null}
+                                            <tr class="{$rowRenderer->getRowClasses($item, $iterator->getCounter())}">
+                                        {else}
+                                            <tr n:class="$iterator->getCounter() % 2 === 0 ? 'bg-white' : 'bg-gray-100'">
+                                        {/if}
                                         {foreach $columns->toArray() as $column}
                                             {include
                                                 $column->getTemplate(),
