@@ -9,8 +9,10 @@ use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Control\Datagrid\Row\BaseRowRenderer;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Filter\CurrencyFilter;
+use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class StockAssetDividendRecordGridFactory
@@ -19,6 +21,7 @@ class StockAssetDividendRecordGridFactory
 	public function __construct(
 		private DatagridFactory $gridFactory,
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
+		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -79,6 +82,19 @@ class StockAssetDividendRecordGridFactory
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => CurrencyFilter::format(
 				$stockAssetDividendRecord->getTotalAmount(),
 				$stockAssetDividendRecord->getStockAssetDividend()->getCurrency(),
+			),
+		);
+
+		$now = $this->datetimeFactory->createNow();
+		$grid->setRowRender(
+			new BaseRowRenderer(
+				static function (StockAssetDividendRecord $stockAssetDividendRecord) use ($now): string {
+					if ($stockAssetDividendRecord->getStockAssetDividend()->isPaid($now)) {
+						return 'bg-emerald-300';
+					}
+
+					return 'bg-orange-300';
+				},
 			),
 		);
 

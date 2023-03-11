@@ -137,4 +137,13 @@ class StockAssetDividend implements Entity
 		return $this->stockAsset->getId();
 	}
 
+	public function isPaid(ImmutableDateTime $now): bool
+	{
+		if ($this->getPaymentDate() !== null) {
+			return $this->getPaymentDate() > $now;
+		}
+
+		return $this->getExDate() > $now;
+	}
+
 }
