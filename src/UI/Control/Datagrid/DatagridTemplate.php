@@ -42,4 +42,7 @@ class DatagridTemplate extends Template
 
 	public RowRenderer|null $rowRenderer;
 
+	/** @var array<string, string|null>|null */
+	public array|null $defaultSortFilters;
+
 }

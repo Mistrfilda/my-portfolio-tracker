@@ -12,6 +12,7 @@ class Sort
 	public function __construct(
 		private IColumn $column,
 		private SortDirectionEnum|null $currentDirection = null,
+		private bool $hasDefaultParameter = false,
 	)
 	{
 	}
@@ -34,6 +35,11 @@ class Sort
 	public function getCurrentDirection(): SortDirectionEnum|null
 	{
 		return $this->currentDirection;
+	}
+
+	public function hasDefaultParameter(): bool
+	{
+		return $this->hasDefaultParameter;
 	}
 
 }

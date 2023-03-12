@@ -221,7 +221,7 @@ class Datagrid extends Control
 
 	public function setSortable(IColumn $column, SortDirectionEnum|null $defaultDirection = null): Sort
 	{
-		$sort = new Sort($column, $defaultDirection);
+		$sort = new Sort($column, $defaultDirection, $defaultDirection !== null);
 		$this->sorts->set($column->getColumn(), $sort);
 
 		return $sort;
@@ -259,11 +259,19 @@ class Datagrid extends Control
 		$this->redrawGridData();
 	}
 
-	public function handleSort(string $column): void
+	/**
+	 * @param array<string, string|null> $defaultSortFilters
+	 */
+	public function handleSort(string $column, array|null $defaultSortFilters = null): void
 	{
+		if ($defaultSortFilters !== null) {
+			$this->sortFilters = $defaultSortFilters;
+		}
+
 		$this->sortService->getFiltersFromParameters(
 			$this->sortFilters,
 			$this->sorts,
+			true,
 		);
 
 		$sort = $this->sorts->get($column);
@@ -273,6 +281,7 @@ class Datagrid extends Control
 
 		$this->sortService->setCurrentSortDirectionForColumn($sort);
 		$this->sortFilters[$column] = $sort->getCurrentDirection()?->value;
+		$this->sortParametersApplied = true;
 
 		$this->redrawGridData();
 	}
@@ -295,12 +304,22 @@ class Datagrid extends Control
 			$this->filter($values);
 		}
 
+		$defaultSortFilters = null;
 		if ($this->sortParametersApplied === false) {
 			$this->sortService->getFiltersFromParameters(
 				$this->sortFilters,
 				$this->sorts,
 			);
+
+			$defaultSortFilters = [];
+			foreach ($this->sorts as $sort) {
+				if ($sort->getCurrentDirection() !== null) {
+					$defaultSortFilters[$sort->getColumn()->getColumn()] = $sort->getCurrentDirection()->value;
+				}
+			}
 		}
+
+		$template->defaultSortFilters = $defaultSortFilters;
 
 		$dataCount = $this->datasource->getCount($this->filters);
 

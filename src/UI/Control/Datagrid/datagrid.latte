@@ -83,7 +83,7 @@
                                         class="px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase"
                                     >
                                         {if $column->getSort() !== null}
-                                            <a n:href="sort! column: $column->getColumn()"
+                                            <a n:href="sort! column: $column->getColumn(), defaultSortFilters: $defaultSortFilters"
                                                     class="ajax flex justify-start items-center">
                                                 <span class="text-blue-400">
                                                     {$column->getLabel()}

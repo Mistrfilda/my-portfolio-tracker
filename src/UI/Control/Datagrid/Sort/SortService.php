@@ -16,10 +16,24 @@ class SortService
 	public function getFiltersFromParameters(
 		array $parameters,
 		ArrayCollection $sorts,
+		bool $fromHandle = false,
 	): void
 	{
+		if ($fromHandle) {
+			foreach ($sorts as $sort) {
+				if (array_key_exists($sort->getColumn()->getColumn(), $parameters)) {
+					continue;
+				}
+
+				if ($sort->hasDefaultParameter()) {
+					$sort->resetSortDirection();
+				}
+			}
+		}
+
 		foreach ($parameters as $parameter => $direction) {
 			$sort = $sorts->get($parameter);
+
 			if ($sort === null) {
 				throw new SortException(sprintf('Unknown parameter %s', $parameter));
 			}
