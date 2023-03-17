@@ -97,6 +97,10 @@
 			"@stock-assets-downloaders",
 			"@save-current-portfolio-statistics"
 		],
+		"download-dividends": [
+			"bin/console stock:asset:downloadDividends",
+			"bin/console stock:asset:dividendRecords"
+		],
 		"download-all-local": "sh ./tools/localDownloadAll.sh",
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"yarn-prod": "yarn build-prod",
