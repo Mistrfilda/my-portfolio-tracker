@@ -23,7 +23,7 @@
 		"tracy/tracy": "^2.8",
 		"nettrine/annotations": "^0.7.0",
 		"nettrine/orm": "^0.8",
-		"nettrine/dbal": "dev-master as 0.8.1",
+		"nettrine/dbal": "^0.8",
 		"nettrine/cache": "^0.3",
 		"nettrine/migrations": "^0.8",
 		"contributte/monolog": "^0.5",
