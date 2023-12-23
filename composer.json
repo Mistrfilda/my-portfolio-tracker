@@ -5,7 +5,7 @@
 	"type": "project",
 	"license": ["MIT", "BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"require": {
-		"php": ">= 8.2",
+		"php": ">= 8.3",
 		"ext-simplexml": "*",
 		"ext-dom": "*",
 		"nette/application": "^3.1",
