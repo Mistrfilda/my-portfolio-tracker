@@ -22,6 +22,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 	private const RATES_TO_BE_DOWNLOADED = [
 		'USD' => CurrencyEnum::USD,
 		'EUR' => CurrencyEnum::EUR,
+		'GBP' => CurrencyEnum::GBP,
 	];
 
 	public function __construct(

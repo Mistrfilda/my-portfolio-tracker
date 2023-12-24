@@ -15,12 +15,15 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 
 	case CZK = 'CZK';
 
+	case GBP = 'GBP';
+
 	public function format(): string
 	{
 		return match ($this) {
 			CurrencyEnum::USD => 'USD',
 			CurrencyEnum::EUR => 'EUR',
 			CurrencyEnum::CZK => 'CZK',
+			CurrencyEnum::GBP => 'GBP',
 		};
 	}
 
@@ -33,6 +36,7 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 			self::USD->value => 'USD',
 			self::EUR->value => 'EUR',
 			self::CZK->value => 'CZK',
+			self::GBP->value => 'GBP',
 		];
 	}
 

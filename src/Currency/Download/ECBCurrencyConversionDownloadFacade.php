@@ -22,6 +22,7 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 
 	private const RATES_TO_BE_DOWNLOADED = [
 		'USD' => CurrencyEnum::USD,
+		'GBP' => CurrencyEnum::GBP,
 	];
 
 	public function __construct(

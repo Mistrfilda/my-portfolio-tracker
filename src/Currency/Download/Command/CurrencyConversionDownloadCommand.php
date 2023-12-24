@@ -37,8 +37,8 @@ class CurrencyConversionDownloadCommand extends Command
 				$output->writeln(
 					sprintf(
 						'<info>Downloaded new rate for pair %s - %s: %s</info>',
-						$newRate->getToCurrency()->name,
 						$newRate->getFromCurrency()->name,
+						$newRate->getToCurrency()->name,
 						$newRate->getCurrentPrice(),
 					),
 				);

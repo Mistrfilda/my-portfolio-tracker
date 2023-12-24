@@ -59,11 +59,11 @@ class StockAssetRepository extends BaseRepository
 		$qb->andWhere($qb->expr()->eq('stockAsset.assetPriceDownloader', ':assetPriceDownloader'));
 		$qb->setParameter('assetPriceDownloader', $stockAssetPriceDownloader);
 
-		$qb->andWhere(
-			$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
-		);
-
 		if ($priceDownloadedBefore !== null) {
+			$qb->andWhere(
+				$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
+			);
+
 			$qb->setParameter('priceDownloadedAt', $priceDownloadedBefore);
 		}
 

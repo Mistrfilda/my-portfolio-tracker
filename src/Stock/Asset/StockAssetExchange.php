@@ -15,12 +15,15 @@ enum StockAssetExchange: string implements DatagridRenderableEnum
 
 	case PRAGUE_STOCK_EXCHANGE = 'PSE';
 
+	case LSE = 'LSE';
+
 	public function format(): string
 	{
 		return match ($this) {
 			StockAssetExchange::NYSE => 'NYSE',
 			StockAssetExchange::NASDAQ => 'NASDAQ',
-			StockAssetExchange::PRAGUE_STOCK_EXCHANGE => 'PSE'
+			StockAssetExchange::PRAGUE_STOCK_EXCHANGE => 'PSE',
+			StockAssetExchange::LSE => 'LSE'
 		};
 	}
 
@@ -33,6 +36,7 @@ enum StockAssetExchange: string implements DatagridRenderableEnum
 			self::NYSE->value => 'NYSE',
 			self::NASDAQ->value => 'NASDAQ',
 			self::PRAGUE_STOCK_EXCHANGE->value => 'PSE',
+			self::LSE->value => 'LSE',
 		];
 	}
 

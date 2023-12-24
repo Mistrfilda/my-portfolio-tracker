@@ -19,6 +19,11 @@ parameters:
 	stockDividend:
 		webStockAssetDividendDownloaderUrl: https://google.com
 
+	webStockPriceDownloader:
+		url: https://google.com
+		updateStockAssetHoursThreshold: 1
+		verifySsl: true
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -245,4 +250,6 @@ services:
 	- App\Stock\Dividend\Record\StockAssetDividendRecordFacade
 	- App\Stock\Dividend\Record\StockAssetDividendRecordCommand
 	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
+
+	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%)
 

@@ -161,6 +161,7 @@ class StockPositionFacade implements AssetPriceFacade
 				new SummaryPrice($stockAsset->getCurrency()),
 				new SummaryPrice($stockAsset->getCurrency()),
 				new SummaryPrice($stockAsset->getCurrency()),
+				new SummaryPrice($stockAsset->getCurrency()),
 				new PriceDiff(0, 0, CurrencyEnum::CZK),
 				new PriceDiff(0, 0, CurrencyEnum::CZK),
 				new SummaryPrice(CurrencyEnum::CZK),
@@ -196,6 +197,11 @@ class StockPositionFacade implements AssetPriceFacade
 			$stockAsset->getPositions(),
 		);
 
+		$currentAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForPositions(
+			$brokerCurrency,
+			$stockAsset->getPositions(),
+		);
+
 		$totalInvestedAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$brokerCurrency,
 			$stockAsset->getPositions(),
@@ -214,6 +220,7 @@ class StockPositionFacade implements AssetPriceFacade
 			$positionDetailDTOs,
 			$totalInvestedAmount,
 			$currentAmount,
+			$currentAmountInBrokerCurrency,
 			$totalInvestedAmountInBrokerCurrency,
 			$this->summaryPriceService->getSummaryPriceDiff($currentAmount, $totalInvestedAmount),
 			$currentPriceDiffInBrokerCurrency,

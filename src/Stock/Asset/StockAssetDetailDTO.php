@@ -20,6 +20,7 @@ class StockAssetDetailDTO
 		private readonly array $positions,
 		private readonly SummaryPrice $totalInvestedAmount,
 		private readonly SummaryPrice $currentAmount,
+		private readonly SummaryPrice $currentAmountInBrokerCurrency,
 		private readonly SummaryPrice $totalInvestedAmountInBrokerCurrency,
 		private readonly PriceDiff $currentPriceDiff,
 		private readonly PriceDiff $currentPriceDiffInBrokerCurrency,
@@ -51,6 +52,11 @@ class StockAssetDetailDTO
 	public function getCurrentAmount(): SummaryPrice
 	{
 		return $this->currentAmount;
+	}
+
+	public function getCurrentAmountInBrokerCurrency(): SummaryPrice
+	{
+		return $this->currentAmountInBrokerCurrency;
 	}
 
 	public function getTotalInvestedAmountInBrokerCurrency(): SummaryPrice
