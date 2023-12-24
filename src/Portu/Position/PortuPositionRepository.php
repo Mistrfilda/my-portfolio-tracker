@@ -58,10 +58,7 @@ class PortuPositionRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('portuPosition');
 		$qb->andWhere($qb->expr()->in('portuPosition.id', $ids));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

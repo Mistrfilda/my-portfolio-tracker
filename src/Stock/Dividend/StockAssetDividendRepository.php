@@ -60,10 +60,7 @@ class StockAssetDividendRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
 		$qb->andWhere($qb->expr()->in('stockAssetDividend.id', $ids));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

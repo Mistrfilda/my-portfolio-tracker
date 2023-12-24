@@ -46,6 +46,9 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 	{
 		$stockAssets = $this->stockAssetRepository->findAllByAssetPriceDownloader(
 			StockAssetPriceDownloaderEnum::WEB_SCRAP,
+			priceDownloadedBefore: $this->datetimeFactory->createNow()->deductHoursFromDatetime(
+				$this->updateStockAssetHoursThreshold,
+			),
 		);
 
 		if (count($stockAssets) === 0) {

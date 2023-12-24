@@ -59,10 +59,7 @@ class StockAssetDividendRecordRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
 		$qb->andWhere($qb->expr()->in('stockAssetDividendRecord.id', $ids));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	public function findOneByStockDividend(StockAssetDividend $stockAssetDividend): StockAssetDividendRecord|null

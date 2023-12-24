@@ -87,10 +87,7 @@ class StockPositionRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('stockPosition');
 		$qb->andWhere($qb->expr()->in('stockPosition.id', $ids));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilderForDatagrid(): QueryBuilder

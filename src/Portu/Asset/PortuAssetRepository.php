@@ -58,10 +58,7 @@ class PortuAssetRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('portuAsset');
 		$qb->andWhere($qb->expr()->in('portuAsset.id', $ids));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilder(): QueryBuilder

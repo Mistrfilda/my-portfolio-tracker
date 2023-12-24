@@ -97,10 +97,7 @@ class StockAssetRepository extends BaseRepository
 
 		$qb->orderBy('stockAsset.name', OrderBy::ASC->value);
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	/**
