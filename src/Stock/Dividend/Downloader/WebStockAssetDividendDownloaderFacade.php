@@ -77,6 +77,8 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 				$nodeDateValue = (string) $tdNodes->item(0)->nodeValue;
 				$nodePriceValue = (float) preg_replace('/[^0-9.]/', '', (string) $tdNodes->item(1)->nodeValue);
 
+				$nodePriceValue = $stockAsset->getCurrency()->processFromWeb($nodePriceValue);
+
 				$date = DatetimeFactory::createFromFormat(
 					$nodeDateValue,
 					'M d, Y',

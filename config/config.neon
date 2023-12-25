@@ -252,4 +252,5 @@ services:
 	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
 
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%)
+	- App\Stock\Price\Downloader\Web\WebDataDownloaderCommand
 

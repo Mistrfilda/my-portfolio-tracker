@@ -91,9 +91,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 				assert($priceTags[0] instanceof DOMElement);
 				$nodePriceValue = (float) preg_replace('/[^0-9.]/', '', (string) $priceTags[0]->nodeValue);
 
-				if ($stockAsset->getCurrency() === CurrencyEnum::GBP) {
-					$nodePriceValue = round($nodePriceValue / 100, 3);
-				}
+				$nodePriceValue = $stockAsset->getCurrency()->processFromWeb($nodePriceValue);
 
 				$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
 					$stockAsset,

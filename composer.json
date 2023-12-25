@@ -88,7 +88,8 @@
 		],
 		"stock-assets-downloaders": [
 			"bin/console twelve-data:download",
-			"bin/console pse:download"
+			"bin/console pse:download",
+			"bin/console web:stock:download"
 		],
 		"currency-download": "bin/console currency:download",
 		"save-current-portfolio-statistics": "bin/console portfolio:statistics:save",

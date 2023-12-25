@@ -40,4 +40,14 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 		];
 	}
 
+	public function processFromWeb(float $value): float
+	{
+		return match ($this) {
+			CurrencyEnum::USD => $value,
+			CurrencyEnum::EUR => $value,
+			CurrencyEnum::CZK => $value,
+			CurrencyEnum::GBP => GBPCurrencyHelper::formatGBpToGBP($value),
+		};
+	}
+
 }
