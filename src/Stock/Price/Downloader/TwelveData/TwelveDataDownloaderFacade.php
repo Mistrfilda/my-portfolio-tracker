@@ -49,7 +49,7 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 			$this->psr7RequestFactory->createGETRequest($twelveDataRequest->getFormattedRequestUrl()),
 		);
 
-		$parsedContents = Json::decode($response->getBody()->getContents(), Json::FORCE_ARRAY);
+		$parsedContents = Json::decode($response->getBody()->getContents(), true);
 
 		$today = $this->datetimeFactory->createToday();
 		$now = $this->datetimeFactory->createNow();

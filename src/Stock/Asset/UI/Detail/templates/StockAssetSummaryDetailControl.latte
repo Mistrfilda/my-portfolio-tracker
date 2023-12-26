@@ -18,26 +18,28 @@
                             class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
                             Hodnota 1 akcie
                         </th>
-                        <th scope="col"
-                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Počet akcíí
-                        </th>
-                        <th scope="col"
-                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            Celková hodnota v CZK
-                        </th>
-                        <th scope="col"
-                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            % z portfolia
-                        </th>
-                        <th scope="col"
-                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            % Ziskovost po započtení měny brokera
-                        </th>
-                        <th scope="col"
-                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                            % Ziskovost v měně brokera
-                        </th>
+                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::OPEN_POSITIONS}
+                            <th scope="col"
+                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Počet akcíí
+                            </th>
+                            <th scope="col"
+                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                Celková hodnota v CZK
+                            </th>
+                            <th scope="col"
+                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                % z portfolia
+                            </th>
+                            <th scope="col"
+                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                % Ziskovost po započtení měny brokera
+                            </th>
+                            <th scope="col"
+                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                % Ziskovost v měně brokera
+                            </th>
+                        {/if}
                     </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white">
@@ -58,6 +60,7 @@
                                     </span>
                                 </div>
                             </td>
+                            {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::OPEN_POSITIONS}
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
                                 {$stockPositionDTO->getPiecesCount()}
                             </td>
@@ -67,7 +70,11 @@
                             <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
                                 <div class="flex justify-center">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
-                                        {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                            0%
+                                        {else}
+                                            {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
+                                        {/if}
                                     </span>
                                 </div>
                             </td>
@@ -84,20 +91,23 @@
                                     {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
                                 </div>
                             </td>
+                            {/if}
                         </tr>
                     {/foreach}
                     </tbody>
-                    <tfoot>
-                    <tr>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
-                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
-                            {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
-                        </td>
-                    </tr>
-                    </tfoot>
+                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::OPEN_POSITIONS}
+                        <tfoot>
+                        <tr>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
+                                {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
+                            </td>
+                        </tr>
+                        </tfoot>
+                    {/if}
                 </table>
             </div>
         </div>

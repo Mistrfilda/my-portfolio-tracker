@@ -60,10 +60,17 @@ class MenuBuilder
 				],
 			),
 			new MenuItem(
-				'StockAssetDetail',
+				'StockAssetPositionDetail',
 				'default',
 				SvgIcon::ADJUSTMENTS,
-				'Detail akciových pozic',
+				'Otevřené akciové pozice',
+				[],
+			),
+			new MenuItem(
+				'StockAssetClosedPositionDetail',
+				'default',
+				SvgIcon::ADJUSTMENTS,
+				'Zavřené akciové pozice',
 				[],
 			),
 			new MenuItem(

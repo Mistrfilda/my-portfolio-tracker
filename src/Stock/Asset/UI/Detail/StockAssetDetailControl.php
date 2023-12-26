@@ -21,6 +21,7 @@ class StockAssetDetailControl extends BaseControl
 	 */
 	public function __construct(
 		array $stockAssetsIds,
+		private StockAssetDetailControlEnum $assetDetailControlEnum,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockPositionFacade $stockPositionFacade,
 	)
@@ -37,7 +38,20 @@ class StockAssetDetailControl extends BaseControl
 		$stockAssetsPositionDTOs = [];
 		$totalInvestedAmountInCzk = 0;
 		foreach ($assets as $asset) {
-			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO($asset->getId());
+			if ($asset->hasOpenPositions()) {
+				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::CLOSED_POSITIONS) {
+					continue;
+				}
+			} else {
+				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::OPEN_POSITIONS) {
+					continue;
+				}
+			}
+
+			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO(
+				$asset->getId(),
+				$this->assetDetailControlEnum,
+			);
 
 			$stockAssetsPositionDTOs[] = $detailDTO;
 			$totalInvestedAmountInCzk += $detailDTO->getCurrentPriceInCzk()->getPrice();

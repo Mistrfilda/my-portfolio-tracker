@@ -16,6 +16,7 @@ use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Position\Closed\StockClosedPosition;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -52,6 +53,10 @@ class StockPosition implements AssetPosition, Entity
 
 	#[ORM\Embedded(class: AssetPriceEmbeddable::class)]
 	private AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency;
+
+	#[ORM\OneToOne(targetEntity: StockClosedPosition::class, inversedBy: 'stockPosition')]
+	#[ORM\JoinColumn(nullable: true)]
+	private StockClosedPosition|null $stockClosedPosition;
 
 	public function __construct(
 		AppAdmin $appAdmin,
@@ -97,6 +102,11 @@ class StockPosition implements AssetPosition, Entity
 		$this->updatedAt = $now;
 	}
 
+	public function closePosition(StockClosedPosition $stockClosedPosition): void
+	{
+		$this->stockClosedPosition = $stockClosedPosition;
+	}
+
 	public function getAsset(): Asset
 	{
 		return $this->stockAsset;
@@ -118,6 +128,14 @@ class StockPosition implements AssetPosition, Entity
 
 	public function getCurrentTotalAmount(): AssetPrice
 	{
+		if ($this->getStockClosedPosition() !== null) {
+			return AssetPriceFactory::createFromPieceCountPrice(
+				$this->stockAsset,
+				$this->orderPiecesCount,
+				$this->getStockClosedPosition()->getPricePerPiece()->getPrice(),
+			);
+		}
+
 		return AssetPriceFactory::createFromPieceCountPrice(
 			$this->stockAsset,
 			$this->orderPiecesCount,
@@ -157,6 +175,16 @@ class StockPosition implements AssetPosition, Entity
 	public function isDifferentBrokerAmount(): bool
 	{
 		return $this->differentBrokerAmount;
+	}
+
+	public function isPositionClosed(): bool
+	{
+		return $this->stockClosedPosition !== null;
+	}
+
+	public function getStockClosedPosition(): StockClosedPosition|null
+	{
+		return $this->stockClosedPosition;
 	}
 
 }

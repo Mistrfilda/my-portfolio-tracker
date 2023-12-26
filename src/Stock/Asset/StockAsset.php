@@ -196,6 +196,17 @@ class StockAsset implements Entity, Asset
 		return $this->positions->count() > 0;
 	}
 
+	public function hasOpenPositions(): bool
+	{
+		foreach ($this->positions->toArray() as $position) {
+			if ($position->isPositionClosed() === false) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * @return array<StockPosition>
 	 */

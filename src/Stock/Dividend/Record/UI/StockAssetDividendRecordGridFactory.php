@@ -90,10 +90,10 @@ class StockAssetDividendRecordGridFactory
 			new BaseRowRenderer(
 				static function (StockAssetDividendRecord $stockAssetDividendRecord) use ($now): string {
 					if ($stockAssetDividendRecord->getStockAssetDividend()->isPaid($now)) {
-						return 'bg-emerald-300';
+						return 'bg-blue-300';
 					}
 
-					return 'bg-orange-300';
+					return 'bg-emerald-300';
 				},
 			),
 		);

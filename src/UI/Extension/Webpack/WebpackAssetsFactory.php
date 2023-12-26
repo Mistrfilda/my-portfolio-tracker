@@ -100,7 +100,7 @@ class WebpackAssetsFactory
 
 		foreach ($this->assetsDirs as $assetDir) {
 			$entryPointContents = FileSystem::read($assetDir . '/' . self::ENTRYPOINT_NAME);
-			$decodedContents = Json::decode($entryPointContents, Json::FORCE_ARRAY);
+			$decodedContents = Json::decode($entryPointContents, true);
 
 			if (is_array($decodedContents) === false || !array_key_exists('entrypoints', $decodedContents)) {
 				throw new WebpackException('Missing entrypoints');

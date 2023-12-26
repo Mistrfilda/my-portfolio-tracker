@@ -21,6 +21,7 @@ class StockAssetSummaryDetailControl extends BaseControl
 	 */
 	public function __construct(
 		array $stockAssetsIds,
+		private StockAssetDetailControlEnum $assetDetailControlEnum,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockPositionFacade $stockPositionFacade,
 	)
@@ -37,7 +38,20 @@ class StockAssetSummaryDetailControl extends BaseControl
 		$stockAssetsPositionDTOs = [];
 		$totalInvestedAmountInCzk = 0;
 		foreach ($assets as $asset) {
-			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO($asset->getId());
+			if ($asset->hasOpenPositions()) {
+				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::CLOSED_POSITIONS) {
+					continue;
+				}
+			} else {
+				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::OPEN_POSITIONS) {
+					continue;
+				}
+			}
+
+			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO(
+				$asset->getId(),
+				$this->assetDetailControlEnum,
+			);
 
 			$stockAssetsPositionDTOs[] = $detailDTO;
 			$totalInvestedAmountInCzk += $detailDTO->getCurrentPriceInCzk()->getPrice();
@@ -56,6 +70,7 @@ class StockAssetSummaryDetailControl extends BaseControl
 
 		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
 		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
+		$template->assetDetailControlEnum = $this->assetDetailControlEnum;
 		$template->setFile(__DIR__ . '/templates/StockAssetSummaryDetailControl.latte');
 		$template->render();
 	}

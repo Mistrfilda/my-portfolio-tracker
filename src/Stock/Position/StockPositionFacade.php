@@ -15,6 +15,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -142,6 +143,16 @@ class StockPositionFacade implements AssetPriceFacade
 		);
 	}
 
+	public function getCurrentPortfolioValueInGbpStocks(
+		CurrencyEnum $inCurrency,
+	): SummaryPrice
+	{
+		return $this->summaryPriceService->getSummaryPriceForPositions(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::GBP),
+		);
+	}
+
 	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
@@ -150,11 +161,20 @@ class StockPositionFacade implements AssetPriceFacade
 		);
 	}
 
-	public function getStockAssetDetailDTO(UuidInterface $stockAssetId): StockAssetDetailDTO
+	public function getStockAssetDetailDTO(
+		UuidInterface $stockAssetId,
+		StockAssetDetailControlEnum $stockAssetDetailControlEnum = StockAssetDetailControlEnum::OPEN_POSITIONS,
+	): StockAssetDetailDTO
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
 
-		if ($stockAsset->hasPositions() === false) {
+		if (
+			$stockAsset->hasPositions() === false
+			|| (
+				$stockAssetDetailControlEnum === StockAssetDetailControlEnum::OPEN_POSITIONS
+				&& $stockAsset->hasOpenPositions() === false
+			)
+		) {
 			return new StockAssetDetailDTO(
 				$stockAsset,
 				[],
@@ -173,6 +193,7 @@ class StockPositionFacade implements AssetPriceFacade
 		$positionDetailDTOs = [];
 		$brokerCurrency = CurrencyEnum::CZK;
 		$piecesCount = 0;
+
 		foreach ($stockAsset->getPositions() as $position) {
 			$brokerCurrency = $position->getTotalInvestedAmountInBrokerCurrency()->getCurrency();
 

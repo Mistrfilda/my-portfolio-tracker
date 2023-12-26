@@ -6,7 +6,6 @@ namespace App\Stock\Price\Downloader\Web;
 
 use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
-use App\Currency\CurrencyEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
 use App\Stock\Asset\StockAssetRepository;

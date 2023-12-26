@@ -51,10 +51,14 @@ class StockPositionRepository extends BaseRepository
 	 */
 	public function findAllOpened(): array
 	{
-		/**
-		 * TODO: AFTER CLOSE POSITION IS DONE
-		 */
-		return $this->findAll();
+		$positions = $this->findAll();
+		foreach ($positions as $key => $position) {
+			if ($position->isPositionClosed()) {
+				unset($positions[$key]);
+			}
+		}
+
+		return $positions;
 	}
 
 	/**
@@ -67,6 +71,8 @@ class StockPositionRepository extends BaseRepository
 
 		$qb->andWhere($qb->expr()->eq('stockAsset.currency', ':currency'));
 		$qb->setParameter('currency', $currencyEnum);
+
+		$qb->andWhere($qb->expr()->isNull('stockPosition.stockClosedPosition'));
 
 		$result = $qb->getQuery()->getResult();
 		assert(is_array($result));

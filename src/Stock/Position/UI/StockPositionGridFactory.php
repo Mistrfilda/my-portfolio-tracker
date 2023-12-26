@@ -14,10 +14,12 @@ use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Control\Datagrid\Row\BaseRowRenderer;
 use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\PercentageFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class StockPositionGridFactory
 {
@@ -55,6 +57,39 @@ class StockPositionGridFactory
 		$grid->addColumnDate('orderDate', 'Datum nákupu')
 			->setSortable();
 
+		$grid->addColumnDate(
+			'closedDate',
+			'Uzavřena dne',
+			static fn (StockPosition $stockPosition): ImmutableDateTime|null => $stockPosition->getStockClosedPosition()?->getDate(),
+		);
+
+		$grid->addColumnBadge(
+			'isOpen',
+			'Stav pozice',
+			TailwindColorConstant::GREEN,
+			static function (StockPosition $stockPosition): string {
+				if ($stockPosition->isPositionClosed()) {
+					return 'Uzavřená';
+				}
+
+				return 'Otevřená';
+			},
+			static function (StockPosition $stockPosition): string {
+				if ($stockPosition->isPositionClosed()) {
+					return TailwindColorConstant::YELLOW;
+				}
+
+				return TailwindColorConstant::BLUE;
+			},
+			static function (StockPosition $stockPosition): SvgIcon {
+				if ($stockPosition->isPositionClosed()) {
+					return SvgIcon::CHECK_CIRCLE;
+				}
+
+				return SvgIcon::EYE;
+			},
+		);
+
 		$grid->addColumnBadge(
 			'orderPiecesCount',
 			'Počet kusů',
@@ -68,6 +103,13 @@ class StockPositionGridFactory
 				$stockPosition->getPricePerPiece(),
 			),
 		);
+
+		$grid->addColumnText(
+			'pricePerPieceFinal',
+			'Konečná cena za kus',
+			static fn (StockPosition $stockPosition): float|null => $stockPosition->getStockClosedPosition()?->getClosePricePerPiece()->getPrice(),
+		);
+
 		$pricePerPiece->setSortable();
 
 		$grid->addColumnText(
@@ -99,6 +141,20 @@ class StockPositionGridFactory
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getCurrentTotalAmount(),
 			),
+		);
+
+		$grid->addColumnText(
+			'totalFinalInvestedAmount',
+			'Konečná částka v měně brokera',
+			function (StockPosition $stockPosition): string {
+				if ($stockPosition->getStockClosedPosition() !== null) {
+					return $this->assetPriceRenderer->getGridAssetPriceValue(
+						$stockPosition->getStockClosedPosition()->getTotalCloseAmountInBrokerCurrency(),
+					);
+				}
+
+				return Datagrid::NULLABLE_PLACEHOLDER;
+			},
 		);
 
 		$summaryPriceCallback = fn (StockPosition $stockPosition): PriceDiff => $this->assetPriceService->getAssetPriceDiff(
@@ -144,6 +200,44 @@ class StockPositionGridFactory
 			],
 			SvgIcon::PENCIL,
 			TailwindColorConstant::BLUE,
+		);
+
+		$grid->addAction(
+			'closePosition',
+			'Uzavřít pozici',
+			'StockPositionEdit:closePosition',
+			[
+				new DatagridActionParameter('stockPositionId', 'id'),
+			],
+			SvgIcon::PENCIL,
+			TailwindColorConstant::EMERALD,
+		)->setConditionCallback(
+			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() === false
+		);
+
+		$grid->addAction(
+			'closePosition',
+			'Uzavřít pozici',
+			'StockPositionEdit:closePosition',
+			[
+				new DatagridActionParameter('stockPositionId', 'id'),
+			],
+			SvgIcon::PENCIL,
+			TailwindColorConstant::BLUE,
+		)->setConditionCallback(
+			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() !== false
+		);
+
+		$grid->setRowRender(
+			new BaseRowRenderer(
+				static function (StockPosition $stockPosition): string {
+					if ($stockPosition->isPositionClosed()) {
+						return 'bg-emerald-100';
+					}
+
+					return 'bg-gray-100';
+				},
+			),
 		);
 
 		return $grid;

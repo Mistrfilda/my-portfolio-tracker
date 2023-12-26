@@ -5,12 +5,13 @@ declare(strict_types = 1);
 namespace App\Stock\Asset\UI;
 
 use App\Stock\Asset\UI\Detail\StockAssetDetailControl;
+use App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum;
 use App\Stock\Asset\UI\Detail\StockAssetDetailControlFactory;
 use App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControl;
 use App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
-class StockAssetDetailPresenter extends BaseAdminPresenter
+class StockAssetPositionDetailPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(
@@ -31,12 +32,12 @@ class StockAssetDetailPresenter extends BaseAdminPresenter
 
 	protected function createComponentStockAssetSummaryDetailControl(): StockAssetSummaryDetailControl
 	{
-		return $this->stockAssetSummaryDetailControlFactory->create([]);
+		return $this->stockAssetSummaryDetailControlFactory->create([], StockAssetDetailControlEnum::OPEN_POSITIONS);
 	}
 
 	protected function createComponentStockPositionDetailControl(): StockAssetDetailControl
 	{
-		return $this->stockPositionDetailControlFactory->create([]);
+		return $this->stockPositionDetailControlFactory->create([], StockAssetDetailControlEnum::OPEN_POSITIONS);
 	}
 
 }

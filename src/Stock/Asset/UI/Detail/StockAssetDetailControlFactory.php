@@ -12,6 +12,9 @@ interface StockAssetDetailControlFactory
 	/**
 	 * @param array<UuidInterface> $stockAssetsIds
 	 */
-	public function create(array $stockAssetsIds): StockAssetDetailControl;
+	public function create(
+		array $stockAssetsIds,
+		StockAssetDetailControlEnum $assetDetailControlEnum,
+	): StockAssetDetailControl;
 
 }

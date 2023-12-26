@@ -254,3 +254,6 @@ services:
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%)
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderCommand
 
+	- App\Stock\Position\Closed\StockClosedPositionFacade
+	- App\Stock\Position\Closed\StockClosedPositionRepository(App\Stock\Position\Closed\StockClosedPosition)
+	- App\Stock\Position\Closed\StockClosedPositionFormFactory

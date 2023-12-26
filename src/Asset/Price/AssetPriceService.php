@@ -21,6 +21,12 @@ class AssetPriceService
 		$diffPrice = $assetPrice1->getPrice() - $assetPrice2->getPrice();
 		$percentageDiff = $assetPrice1->getPrice() * 100 / $assetPrice2->getPrice();
 
+		bdump(new PriceDiff(
+			$diffPrice,
+			$percentageDiff,
+			$assetPrice1->getCurrency(),
+		));
+
 		return new PriceDiff(
 			$diffPrice,
 			$percentageDiff,
