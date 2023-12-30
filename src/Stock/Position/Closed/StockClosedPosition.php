@@ -29,7 +29,7 @@ class StockClosedPosition implements AssetClosedPosition
 	use UpdatedAt;
 
 	#[ORM\OneToOne(targetEntity: StockPosition::class, mappedBy: 'stockClosedPosition')]
-	#[ORM\JoinColumn(nullable: false)]
+	//@phpstan-ignore-next-line
 	private StockPosition $stockPosition;
 
 	#[ORM\Column(type: Types::FLOAT)]
