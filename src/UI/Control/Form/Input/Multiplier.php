@@ -30,4 +30,5 @@ class Multiplier extends \Contributte\FormMultiplier\Multiplier
 	{
 		$this->divId = $divId;
 	}
+
 }

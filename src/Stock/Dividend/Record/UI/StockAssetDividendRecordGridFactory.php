@@ -32,14 +32,18 @@ class StockAssetDividendRecordGridFactory
 			new DoctrineDataSource($this->stockAssetDividendRecordRepository->createQueryBuilder()),
 		);
 
-		$grid->addColumnText(
+		$stockAsset = $grid->addColumnText(
 			'stockAsset',
 			'Akcie',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => $stockAssetDividendRecord
 				->getStockAssetDividend()
 				->getStockAsset()
 				->getName(),
+			'stockAsset.name',
 		);
+
+		$stockAsset->setFilterText();
+		$stockAsset->setSortable();
 
 		$grid->addColumnDatetime(
 			'exDate',

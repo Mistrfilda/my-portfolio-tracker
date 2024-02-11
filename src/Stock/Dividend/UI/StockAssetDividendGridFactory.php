@@ -43,7 +43,7 @@ class StockAssetDividendGridFactory
 		);
 
 		if ($stockAssetId === null) {
-			$grid->addColumnText(
+			$stockAsset = $grid->addColumnText(
 				'stockAsset',
 				'Akcie',
 				static fn (StockAssetDividend $stockAssetDividend): string => sprintf(
@@ -51,7 +51,11 @@ class StockAssetDividendGridFactory
 					$stockAssetDividend->getStockAsset()->getName(),
 					$stockAssetDividend->getStockAsset()->getTicker(),
 				),
+				'stockAsset.name',
 			);
+
+			$stockAsset->setFilterText();
+			$stockAsset->setSortable();
 		}
 
 		$grid->addColumnDatetime('exDate', 'Ex date')->setSortable(SortDirectionEnum::DESC);

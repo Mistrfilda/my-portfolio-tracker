@@ -81,6 +81,7 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
 		$qb->innerJoin('stockAssetDividendRecord.stockAssetDividend', 'stockAssetDividend');
+		$qb->innerJoin('stockAssetDividend.stockAsset', 'stockAsset');
 		return $qb;
 	}
 

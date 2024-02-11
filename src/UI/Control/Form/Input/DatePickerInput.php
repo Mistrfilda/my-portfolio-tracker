@@ -18,11 +18,6 @@ class DatePickerInput extends TextInput
 		parent::__construct($caption);
 	}
 
-	/**
-	 * @return mixed
-	 *
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
-	 */
 	public function getValue(): mixed
 	{
 		$value = parent::getValue();

@@ -24,8 +24,9 @@ class AdminForm extends Form
 	private string|null $headingText = null;
 
 	/**
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
 	 * @phpstan-ignore-next-line
+	 *
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
 	 */
 	public function addUpload(string $name, $label = null): CustomFileUpload
 	{

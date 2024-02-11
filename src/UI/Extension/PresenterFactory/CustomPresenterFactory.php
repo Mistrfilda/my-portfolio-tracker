@@ -6,7 +6,6 @@ namespace App\UI\Extension\PresenterFactory;
 
 use Nette\Application\PresenterFactory;
 use function array_key_exists;
-use function array_search;
 
 class CustomPresenterFactory extends PresenterFactory
 {
@@ -27,4 +26,5 @@ class CustomPresenterFactory extends PresenterFactory
 
 		return parent::formatPresenterClass($presenter);
 	}
+
 }
