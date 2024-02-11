@@ -23,7 +23,7 @@ class DatePickerInput extends TextInput
 	 *
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ReturnTypeHint.MissingNativeTypeHint
 	 */
-	public function getValue()
+	public function getValue(): mixed
 	{
 		$value = parent::getValue();
 		if (is_string($value) === false) {

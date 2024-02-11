@@ -5,10 +5,12 @@ declare(strict_types = 1);
 namespace App\Stock\Price\Downloader\Web;
 
 use App\Stock\Price\StockAssetPriceRecord;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand('web:stock:download')]
 class WebDataDownloaderCommand extends Command
 {
 
@@ -22,7 +24,6 @@ class WebDataDownloaderCommand extends Command
 	public function configure(): void
 	{
 		parent::configure();
-		$this->setName('web:stock:download');
 		$this->setDescription('Download new price data from web');
 	}
 

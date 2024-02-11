@@ -34,7 +34,7 @@ class StockClosedPositionFormFactory
 		$form = $this->adminFormFactory->create();
 
 		$form->addText('pricePerPiece', 'Cena za kus')
-			->addRule(Form::FLOAT)
+			->addRule(Form::Float)
 			->setRequired();
 
 		$form->addDatePicker('orderDate', 'Datum objednávky')
@@ -43,8 +43,8 @@ class StockClosedPositionFormFactory
 		$form->addCheckbox('samePriceForBroker', 'Měna objednávky je jiná než u brokera');
 
 		$form->addText('totalBrokerPrice', 'Celková cena objednávky u brokera')
-			->addCondition(Form::FILLED)
-			->addRule(Form::FLOAT)
+			->addCondition(Form::Filled)
+			->addRule(Form::Float)
 			->setRequired(false);
 
 		$form->addSelect(

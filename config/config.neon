@@ -106,7 +106,6 @@ monolog:
 console:
     url: %console.url%
     catchExceptions: false
-    lazy: false
 
 webpackassets:
 	assetsDirs:

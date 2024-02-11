@@ -72,7 +72,7 @@ class CurrencyConversionTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<AssetPrice>>
 	 */
-	protected function provideAssetPriceData(): array
+	public static function provideAssetPriceData(): array
 	{
 		$asset = Mockery::mock(Asset::class)->makePartial();
 
@@ -107,7 +107,7 @@ class CurrencyConversionTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<SummaryPrice>>
 	 */
-	protected function provideSummaryPrice(): array
+	public static function provideSummaryPrice(): array
 	{
 		return [
 			'usd_eur' => [
@@ -140,7 +140,7 @@ class CurrencyConversionTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<PriceDiff>>
 	 */
-	protected function providePriceDiff(): array
+	public static function providePriceDiff(): array
 	{
 		return [
 			'usd_eur' => [

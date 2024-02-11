@@ -34,20 +34,20 @@ class AppAdminFormFactory
 
 		$form->addText('email', 'Email')
 			->setRequired()
-			->addRule(Form::EMAIL);
+			->addRule(Form::Email);
 		$form->addText('name', 'Jméno')
 			->setRequired();
 
 		$password = $form->addPassword('password', 'Heslo');
 		$password
 			->setNullable()
-			->addCondition(Form::FILLED)
-			->addRule(Form::MIN_LENGTH, 'Minimální počet znaků je %d', 6);
+			->addCondition(Form::Filled)
+			->addRule(Form::MinLength, 'Minimální počet znaků je %d', 6);
 
 		$form->addPassword('passwordRepeat', 'Heslo znovu')
-			->addConditionOn($password, Form::FILLED)
+			->addConditionOn($password, Form::Filled)
 			->setRequired()
-			->addRule(Form::EQUAL, 'Hesla se neshodují', $password);
+			->addRule(Form::Equal, 'Hesla se neshodují', $password);
 
 		$form->addCheckbox('forceNewPassword', 'Vyžadovat změnu hesla');
 		$form->addCheckbox('sysAdmin', 'Systém administrátor');

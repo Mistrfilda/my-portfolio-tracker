@@ -39,7 +39,7 @@ class StockAssetDividendFormFactory
 			->setRequired();
 
 		$form->addText('amount', 'Částka')
-			->addRule(Form::FLOAT)
+			->addRule(Form::Float)
 			->setRequired();
 
 		$form->addSelect(

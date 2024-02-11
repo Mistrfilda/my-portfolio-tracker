@@ -39,12 +39,12 @@ class PortuPositionPriceFormFactory
 		$form->addText(
 			'currentValuePrice',
 			'Aktuální hodnota',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->addText(
 			'totalInvestedToThisDatePrice',
 			'Aktuálně zainvestovaná částka',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->addCheckbox('shouldUpdateWholePosition', 'Aktualizovat cenu celého portfolia');
 

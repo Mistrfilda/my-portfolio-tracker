@@ -26,10 +26,14 @@ class StockAssetDividendRecordFacade
 	{
 	}
 
-	public function processAllDividends(): void
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function processAllDividends(): array
 	{
 		$dividendPayers = $this->stockAssetRepository->findDividendPayers();
 
+		$processedDividendRecords = [];
 		foreach ($dividendPayers as $dividendPayer) {
 			$this->logger->debug(
 				sprintf('Processing dividend payer %s', $dividendPayer->getName()),
@@ -41,6 +45,8 @@ class StockAssetDividendRecordFacade
 				)),
 				new ArrayCollection($dividendPayer->getPositions()),
 			);
+
+			$processedDividendRecords = array_merge($processedDividendRecords, $dividendRecords->toArray());
 
 			foreach ($dividendRecords as $dividendRecord) {
 				$existingRow = $this->stockAssetDividendRecordRepository->findOneByStockDividend(
@@ -65,6 +71,8 @@ class StockAssetDividendRecordFacade
 
 			$this->entityManager->flush();
 		}
+
+		return $processedDividendRecords;
 	}
 
 }

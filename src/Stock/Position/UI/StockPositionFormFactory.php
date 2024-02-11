@@ -39,11 +39,11 @@ class StockPositionFormFactory
 			->setRequired();
 
 		$form->addText('orderPiecesCount', 'Počet kusů')
-			->addRule(Form::INTEGER)
+			->addRule(Form::Integer)
 			->setRequired();
 
 		$form->addText('pricePerPiece', 'Cena za kus')
-			->addRule(Form::FLOAT)
+			->addRule(Form::Float)
 			->setRequired();
 
 		$form->addDatePicker('orderDate', 'Datum objednávky')
@@ -52,8 +52,8 @@ class StockPositionFormFactory
 		$form->addCheckbox('samePriceForBroker', 'Měna objednávky je jiná než u brokera');
 
 		$form->addText('totalBrokerPrice', 'Celková cena objednávky u brokera')
-			->addCondition(Form::FILLED)
-			->addRule(Form::FLOAT)
+			->addCondition(Form::Filled)
+			->addRule(Form::Float)
 			->setRequired(false);
 
 		$form->addSelect(

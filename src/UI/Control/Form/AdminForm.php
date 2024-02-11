@@ -25,6 +25,7 @@ class AdminForm extends Form
 
 	/**
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
+	 * @phpstan-ignore-next-line
 	 */
 	public function addUpload(string $name, $label = null): CustomFileUpload
 	{

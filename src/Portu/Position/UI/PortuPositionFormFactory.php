@@ -33,22 +33,22 @@ class PortuPositionFormFactory
 		$form->addText(
 			'startInvestmentPrice',
 			'Úvodní investice',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->addText(
 			'monthlyIncreasePrice',
 			'Měsíční pravidelná investice',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->addText(
 			'currentValuePrice',
 			'Aktuální hodnota',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->addText(
 			'totalInvestedToThisDatePrice',
 			'Aktuálně zainvestovaná částka',
-		)->setRequired()->addRule(Form::FLOAT);
+		)->setRequired()->addRule(Form::Float);
 
 		$form->onSuccess[] = function (Form $form) use ($id, $portuAssetId, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);

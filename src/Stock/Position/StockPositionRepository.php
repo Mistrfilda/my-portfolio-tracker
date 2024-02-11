@@ -74,10 +74,7 @@ class StockPositionRepository extends BaseRepository
 
 		$qb->andWhere($qb->expr()->isNull('stockPosition.stockClosedPosition'));
 
-		$result = $qb->getQuery()->getResult();
-		assert(is_array($result));
-
-		return $result;
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

@@ -108,9 +108,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<mixed>>
 	 */
-	public function provideSummaryPricePositions(): array
+	public static function provideSummaryPricePositions(): array
 	{
-		$positions = $this->getPositions();
+		$positions = self::getPositions();
 
 		return [
 			'czk' => [
@@ -123,9 +123,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<mixed>>
 	 */
-	public function provideSummaryPriceForTotalInvestedAmmountPositions(): array
+	public static function provideSummaryPriceForTotalInvestedAmmountPositions(): array
 	{
-		$positions = $this->getPositions();
+		$positions = self::getPositions();
 
 		return [
 			'czk' => [
@@ -138,9 +138,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	/**
 	 * @return array<string, array<mixed>>
 	 */
-	public function provideSummaryPriceForTotalInvestedAmmountInBrokerCurrencyPositions(): array
+	public static function provideSummaryPriceForTotalInvestedAmmountInBrokerCurrencyPositions(): array
 	{
-		$positions = $this->getPositions();
+		$positions = self::getPositions();
 
 		return [
 			'czk' => [
@@ -153,7 +153,7 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	/**
 	 * @return array<int, array<int, Mockery\MockInterface>>
 	 */
-	private function getPositions(): array
+	private static function getPositions(): array
 	{
 		$asset = Mockery::mock(Asset::class)->makePartial();
 

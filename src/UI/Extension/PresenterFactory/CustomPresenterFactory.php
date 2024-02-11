@@ -27,14 +27,4 @@ class CustomPresenterFactory extends PresenterFactory
 
 		return parent::formatPresenterClass($presenter);
 	}
-
-	public function unformatPresenterClass(string $class): string|null
-	{
-		if (($search = array_search($class, $this->customMapping, true)) !== false) {
-			return $search;
-		}
-
-		return parent::unformatPresenterClass($class);
-	}
-
 }

@@ -69,7 +69,7 @@ class StockAssetFormFactory
 			->setRequired(false);
 
 		$form->addText('dividendTax', 'Dividendová sazba daně')
-			->addRule(Form::FLOAT)
+			->addRule(Form::Float)
 			->setNullable()
 			->setRequired(false);
 

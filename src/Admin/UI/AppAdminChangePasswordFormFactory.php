@@ -43,12 +43,12 @@ class AppAdminChangePasswordFormFactory
 		$password = $form->addPassword('password', 'Nové heslo');
 		$password
 			->setRequired()
-			->addRule(Form::MIN_LENGTH, 'Minimální počet znaků je %d', 6);
+			->addRule(Form::MinLength, 'Minimální počet znaků je %d', 6);
 
 		$form->addPassword('passwordRepeat', 'Heslo znovu')
-			->addConditionOn($password, Form::FILLED)
+			->addConditionOn($password, Form::Filled)
 			->setRequired()
-			->addRule(Form::EQUAL, 'Hesla se neshodují', $password);
+			->addRule(Form::Equal, 'Hesla se neshodují', $password);
 
 		$form->onValidate[] = function (Form $form): void {
 			$values = $form->getValues(ArrayHash::class);

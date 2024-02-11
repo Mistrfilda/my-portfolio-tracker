@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand('stock:asset:dividendRecords')]
 class StockAssetDividendRecordCommand extends Command
 {
 
@@ -19,7 +21,6 @@ class StockAssetDividendRecordCommand extends Command
 	public function configure(): void
 	{
 		parent::configure();
-		$this->setName('stock:asset:dividendRecords');
 		$this->setDescription('Process stock asset dividend records');
 	}
 

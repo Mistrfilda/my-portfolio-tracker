@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Downloader;
 
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand('stock:asset:downloadDividends')]
 class StockAssetDividendDownloaderCommand extends Command
 {
 
@@ -22,7 +24,6 @@ class StockAssetDividendDownloaderCommand extends Command
 	public function configure(): void
 	{
 		parent::configure();
-		$this->setName('stock:asset:downloadDividends');
 		$this->setDescription('Download stock asset dividend records');
 	}
 
