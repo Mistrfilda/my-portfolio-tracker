@@ -174,6 +174,10 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			CurrencyEnum::CZK,
 		);
 
+		$eurStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInGbpStocks(
+			CurrencyEnum::CZK,
+		);
+
 		$totalInvestedAmount = $this->stockPositionFacade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK);
 
 		$diff = $this->summaryPriceService->getSummaryPriceDiff(
@@ -225,6 +229,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					TailwindColorConstant::EMERALD,
 					SvgIcon::BRITISH_POUND,
 					sprintf('Celkový počet pozic %s', $gbpStockPositionsSummaryPrice->getCounter()),
+				),
+				new DashboardValue(
+					'Aktuální hodnota portfolia v EUR akciích',
+					CurrencyFilter::format(
+						$eurStockPositionsSummaryPrice->getRoundedPrice(),
+						CurrencyEnum::CZK,
+					),
+					TailwindColorConstant::EMERALD,
+					SvgIcon::BRITISH_POUND,
+					sprintf('Celkový počet pozic %s', $eurStockPositionsSummaryPrice->getCounter()),
 				),
 				new DashboardValue(
 					'Aktuálně zainvestováno v akciích',

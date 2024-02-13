@@ -153,6 +153,16 @@ class StockPositionFacade implements AssetPriceFacade
 		);
 	}
 
+	public function getCurrentPortfolioValueInEurStocks(
+		CurrencyEnum $inCurrency,
+	): SummaryPrice
+	{
+		return $this->summaryPriceService->getSummaryPriceForPositions(
+			$inCurrency,
+			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::EUR),
+		);
+	}
+
 	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
