@@ -174,7 +174,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			CurrencyEnum::CZK,
 		);
 
-		$eurStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInGbpStocks(
+		$eurStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInEurStocks(
 			CurrencyEnum::CZK,
 		);
 
