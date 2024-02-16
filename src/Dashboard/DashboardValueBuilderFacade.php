@@ -59,6 +59,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			CurrencyEnum::USD,
 		);
 
+		$gbpCzk = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::GBP,
+			CurrencyEnum::CZK,
+		);
+
+		$gbpEur = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::GBP,
+			CurrencyEnum::EUR,
+		);
+
 		return new DashboardValueGroup(
 			DashboardValueGroupEnum::CURRENCY,
 			'Kurzy měn',
@@ -92,6 +102,26 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					sprintf(
 						'Aktualizováno %s',
 						$eurUsd->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'GBP - CZK',
+					(string) $gbpCzk->getCurrentPrice(),
+					TailwindColorConstant::BLUE,
+					SvgIcon::BRITISH_POUND,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpCzk->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'GBP - EUR',
+					(string) $gbpEur->getCurrentPrice(),
+					TailwindColorConstant::BLUE,
+					SvgIcon::BRITISH_POUND,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
 					),
 				),
 			],
