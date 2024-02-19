@@ -7,6 +7,7 @@ namespace App\Currency;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class CurrencyConversionFacade
 {
@@ -20,16 +21,25 @@ class CurrencyConversionFacade
 	public function getConvertedAssetPrice(
 		AssetPrice $assetPriceForConvert,
 		CurrencyEnum $toCurrency,
+		ImmutableDateTime|null $forDate = null,
 	): AssetPrice
 	{
 		if ($assetPriceForConvert->getCurrency() === $toCurrency) {
 			return $assetPriceForConvert;
 		}
 
-		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-			$assetPriceForConvert->getCurrency(),
-			$toCurrency,
-		);
+		if ($forDate === null) {
+			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+				$assetPriceForConvert->getCurrency(),
+				$toCurrency,
+			);
+		} else {
+			$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
+				$assetPriceForConvert->getCurrency(),
+				$toCurrency,
+				$forDate,
+			);
+		}
 
 		return new AssetPrice(
 			$assetPriceForConvert->getAsset(),

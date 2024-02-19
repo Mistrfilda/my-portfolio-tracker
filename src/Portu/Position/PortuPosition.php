@@ -199,4 +199,9 @@ class PortuPosition implements AssetPosition, Entity
 		return $this->portuAsset->getId()->toString();
 	}
 
+	public function getOrderDate(): ImmutableDateTime
+	{
+		return $this->updatedAt;
+	}
+
 }

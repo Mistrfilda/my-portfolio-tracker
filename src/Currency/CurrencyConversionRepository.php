@@ -69,6 +69,32 @@ class CurrencyConversionRepository extends BaseRepository
 		}
 	}
 
+	public function findCurrencyPairConversionForClosestDate(
+		CurrencyEnum $fromCurrency,
+		CurrencyEnum $toCurrency,
+		ImmutableDateTime $date,
+	): CurrencyConversion
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->eq('currencyConversion.fromCurrency', ':fromCurrency'),
+			$qb->expr()->eq('currencyConversion.toCurrency', ':toCurrency'),
+		);
+
+		$qb->setParameter('fromCurrency', $fromCurrency);
+		$qb->setParameter('toCurrency', $toCurrency);
+
+		$qb->setMaxResults(1);
+		$qb->orderBy('abs(TIMESTAMPDIFF(second, currencyConversion.forDate, :date))');
+
+		$qb->setParameter('date', $date);
+
+		/**@phpstan-ignore-next-line */
+		$result = $qb->getQuery()->getSingleResult();
+		assert($result instanceof CurrencyConversion);
+		return $result;
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('currencyConversion');

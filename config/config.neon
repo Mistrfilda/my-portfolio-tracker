@@ -81,6 +81,7 @@ orm:
 	configuration:
 		customStringFunctions:
 			group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
+			timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
 
 orm.attributes:
 	mapping:
