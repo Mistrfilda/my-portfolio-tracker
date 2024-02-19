@@ -54,8 +54,7 @@ class SummaryPriceService
 				$summaryPrice->addAssetPrice(
 					$this->currencyConversionFacade->getConvertedAssetPrice(
 						$currentTotalAmount,
-						$summaryPrice->getCurrency(),
-						$position->getOrderDate(),
+						$summaryPrice->getCurrency()
 					),
 				);
 
