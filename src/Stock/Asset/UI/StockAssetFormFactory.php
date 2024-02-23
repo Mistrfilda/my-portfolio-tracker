@@ -110,9 +110,9 @@ class StockAssetFormFactory
 					StockAssetExchange::from($values->exchange),
 					CurrencyEnum::from($values->currency),
 					$values->isin,
-					StockAssetDividendSourceEnum::from($values->stockAssetDividendSource),
+					$values->stockAssetDividendSource !== null ? StockAssetDividendSourceEnum::from($values->stockAssetDividendSource) : null,
 					$values->dividendTax,
-					CurrencyEnum::from($values->brokerDividendCurrency),
+					$values->brokerDividendCurrency !== null ? CurrencyEnum::from($values->brokerDividendCurrency) : null,
 				);
 			}
 
