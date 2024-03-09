@@ -25,6 +25,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 
 	public function __construct(
 		private string $url,
+		private string $requestHost,
 		private readonly bool $verifySsl,
 		private readonly int $updateStockAssetHoursThreshold,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
@@ -33,7 +34,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 		private DatetimeFactory $datetimeFactory,
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private EntityManagerInterface $entityManager,
-		private LoggerInterface $logger,
+		private LoggerInterface $logger
 	)
 	{
 	}
@@ -62,13 +63,18 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 				sprintf('Processing price for stock asset %s', $stockAsset->getName()),
 			);
 
-			$response = $client->sendRequest(
-				$this->psr7RequestFactory->createGETRequest(
-					sprintf(
-						$this->url,
-						$stockAsset->getTicker(),
-					),
+			$request = $this->psr7RequestFactory->createGETRequest(
+				sprintf(
+					$this->url,
+					$stockAsset->getTicker(),
 				),
+			);
+
+			$request = $request->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+			$request = $request->withHeader('Host', $this->requestHost);
+
+			$response = $client->sendRequest(
+				$request
 			);
 
 			$contents = $response->getBody()->getContents();
@@ -83,6 +89,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 			$now = $this->datetimeFactory->createNow();
 
 			assert($nodes instanceof DOMNodeList);
+
 			foreach ($nodes as $node) {
 				$priceTags = $domXpath->query(".//fin-streamer[@data-field='regularMarketPrice']", $node);
 				assert($priceTags instanceof DOMNodeList);
