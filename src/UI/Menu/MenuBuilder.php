@@ -28,8 +28,14 @@ class MenuBuilder
 			new MenuItem(
 				'PortfolioStatistic',
 				'default',
+				SvgIcon::CHART_BAR_SQUARE,
+				'Statistiky a grafy',
+			),
+			new MenuItem(
+				'PortfolioStatisticRecord',
+				'default',
 				SvgIcon::TABLE_CELLS,
-				'Statistiky',
+				'Uložené dashboard statistiky',
 			),
 			new MenuItem(
 				'AppAdmin',

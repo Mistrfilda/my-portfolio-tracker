@@ -9,23 +9,22 @@ use Nette\Application\Responses\JsonResponse;
 use Nette\Utils\Random;
 use function str_replace;
 
-class FrontChartControl extends BaseControl
+class ChartControl extends BaseControl
 {
 
 	public function __construct(
-		private string $type,
-		private IChartDataProvider $chartDataProvider,
+		private ChartType $type,
+		private ChartDataProvider $chartDataProvider,
 	)
 	{
-		ChartType::typeExists($type);
 	}
 
 	public function render(): void
 	{
-		$template = $this->createTemplate(FrontChartControlTemplate::class);
+		$template = $this->createTemplate(ChartControlTemplate::class);
 
 		$template->chartId = $this->getChartId();
-		$template->chartType = $this->type;
+		$template->chartType = $this->type->value;
 		$template->setFile(str_replace('.php', '.latte', __FILE__));
 		$template->render();
 	}

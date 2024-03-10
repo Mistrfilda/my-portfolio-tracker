@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI;
+namespace App\Statistic\UI\Record;
 
 use App\Statistic\PortfolioStatisticRecord;
 use App\Statistic\PortfolioStatisticRecordRepository;

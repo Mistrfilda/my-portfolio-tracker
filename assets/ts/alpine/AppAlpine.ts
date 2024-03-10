@@ -2,6 +2,15 @@
 //@ts-ignore
 import Alpine from 'alpinejs';
 
+import {ChartRenderer} from "../chart/ChartRenderer";
+import {ChartType} from "../chart/ChartType";
+
+import naja from 'naja';
+import {registerExtensions} from "../naja/extension";
+
+naja.initialize();
+registerExtensions(naja);
+
 Alpine.data('frontMenu', () => ({
     show: false,
     click() {
@@ -137,6 +146,31 @@ Alpine.data('modal', () => ({
 
     closeModal() {
         this.modalOpen = false;
+    }
+}));
+
+Alpine.data('loadChart', () => ({
+    show: true,
+    loadGraph(chartId: any, chartDataUrl: string, type: ChartType): boolean {
+        let chartRenderer = new ChartRenderer(naja);
+        let chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
+
+        if (type.valueOf() === ChartType.LINE.valueOf()) {
+            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl)
+            return true;
+        }
+
+        if (type.valueOf() === ChartType.DOUGHNUT.valueOf()) {
+            chartRenderer.createDoughnutCharts(chartCanvasElement, chartDataUrl)
+            return true;
+        }
+
+        if (type.valueOf() === ChartType.BAR.valueOf()) {
+            chartRenderer.createBarCharts(chartCanvasElement, chartDataUrl)
+            return true;
+        }
+
+        throw new Error('Invalid chart type passed');
     }
 }));
 

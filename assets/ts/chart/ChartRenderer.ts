@@ -1,6 +1,6 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
-import {Chart} from "chart.js";
+import Chart from 'chart.js/auto';
 
 
 export class ChartRenderer {
@@ -14,14 +14,14 @@ export class ChartRenderer {
         this.naja = naja;
         this.setDefaults();
 
-        this.defaultBackgroundColor = '#007bff';
+        this.defaultBackgroundColor = '#111827';
         this.tooltipDefaults = this.getTooltipDefaults();
     }
 
     setDefaults() {
-        Chart.defaults.font.family = 'inter';
+        Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
         // Chart.defaults.font.defaultFontColor = '#858796';
-        Chart.defaults.color = '#007bff';
+        Chart.defaults.color = '#111827';
     }
 
     getTooltipDefaults() {
@@ -68,7 +68,7 @@ export class ChartRenderer {
                 options: {
                     maintainAspectRatio: false,
                     scales: {
-                        ticks: {
+                        y: {
                             beginAtZero: true
                         }
                     },
@@ -102,7 +102,7 @@ export class ChartRenderer {
                 },
                 options: {
                     scales: {
-                        ticks: {
+                        y: {
                             beginAtZero: true
                         }
                     },
