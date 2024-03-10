@@ -23,6 +23,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 
 	public function __construct(
 		private string $url,
+		private string $requestHost,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
 		private readonly Psr18ClientFactory $psr18ClientFactory,
 		private StockAssetRepository $stockAssetRepository,
@@ -46,15 +47,23 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 				sprintf('Processing dividend payer %s', $stockAsset->getName()),
 			);
 
-			$response = $this->psr18ClientFactory->getClient()->sendRequest(
-				$this->psr7RequestFactory->createGETRequest(
-					sprintf(
-						$this->url,
-						$stockAsset->getTicker(),
-						$this->datetimeFactory->createToday()->deductDaysFromDatetime(1)->getTimestamp(),
-						'capitalGain%7Cdiv%7Csplit',
-					),
+			$request = $this->psr7RequestFactory->createGETRequest(
+				sprintf(
+					$this->url,
+					$stockAsset->getTicker(),
+					$this->datetimeFactory->createToday()->deductDaysFromDatetime(1)->getTimestamp(),
+					'capitalGain%7Cdiv%7Csplit',
 				),
+			);
+
+			$request = $request->withHeader(
+				'User-Agent',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+			);
+			$request = $request->withHeader('Host', $this->requestHost);
+
+			$response = $this->psr18ClientFactory->getClient()->sendRequest(
+				$request,
 			);
 
 			$values = [];
@@ -66,6 +75,15 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 			$domXpath = new DOMXPath($domDocument);
 			$trNodes = $domXpath->query("//table[contains(@data-test, 'historical-prices')]/tbody/tr");
 			assert($trNodes instanceof DOMNodeList);
+
+			$this->logger->debug(
+				sprintf(
+					'Processing dividend payer %s - processing %s dividend records',
+					$stockAsset->getName(),
+					count($trNodes),
+				),
+			);
+
 			foreach ($trNodes as $node) {
 				$tdNodes = $domXpath->query('.//td', $node);
 

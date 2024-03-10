@@ -243,6 +243,7 @@ services:
 		class: App\Stock\Dividend\Downloader\WebStockAssetDividendDownloaderFacade
 		arguments:
 			url: %stockDividend.webStockAssetDividendDownloaderUrl%
+			requestHost: %webStockPriceDownloader.requestHost%
 
 	- App\Stock\Dividend\Downloader\StockAssetDividendDownloaderCommand(typed(App\Stock\Dividend\Downloader\StockAssetDividendDownloader))
 	- App\Stock\Dividend\Record\StockAssetDividendRecordRepository(App\Stock\Dividend\Record\StockAssetDividendRecord)

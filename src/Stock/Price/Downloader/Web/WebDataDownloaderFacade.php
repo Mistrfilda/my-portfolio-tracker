@@ -34,7 +34,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 		private DatetimeFactory $datetimeFactory,
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private EntityManagerInterface $entityManager,
-		private LoggerInterface $logger
+		private LoggerInterface $logger,
 	)
 	{
 	}
@@ -70,12 +70,13 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 				),
 			);
 
-			$request = $request->withHeader('User-Agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+			$request = $request->withHeader(
+				'User-Agent',
+				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+			);
 			$request = $request->withHeader('Host', $this->requestHost);
 
-			$response = $client->sendRequest(
-				$request
-			);
+			$response = $client->sendRequest($request);
 
 			$contents = $response->getBody()->getContents();
 
