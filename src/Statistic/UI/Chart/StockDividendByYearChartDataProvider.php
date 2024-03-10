@@ -13,6 +13,7 @@ use App\UI\Control\Chart\ChartDataProvider;
 
 class StockDividendByYearChartDataProvider implements ChartDataProvider
 {
+	private bool $shouldDeductTax = true;
 
 	public function __construct(
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
@@ -22,6 +23,11 @@ class StockDividendByYearChartDataProvider implements ChartDataProvider
 
 	}
 
+	public function notDeductTax(): void
+	{
+		$this->shouldDeductTax = false;
+	}
+
 	public function getChartData(): ChartData
 	{
 		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
@@ -29,7 +35,7 @@ class StockDividendByYearChartDataProvider implements ChartDataProvider
 		$preparedData = [];
 
 		foreach ($records as $record) {
-			$recordPrice = $record->getSummaryPrice();
+			$recordPrice = $record->getSummaryPrice($this->shouldDeductTax);
 			if ($recordPrice->getCurrency() !== CurrencyEnum::CZK) {
 				$recordPrice = $this->currencyConversionFacade->getConvertedSummaryPrice(
 					$recordPrice,

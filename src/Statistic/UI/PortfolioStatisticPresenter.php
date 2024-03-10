@@ -13,7 +13,6 @@ use App\UI\Control\Chart\ChartType;
 
 class PortfolioStatisticPresenter extends BaseAdminPresenter
 {
-
 	public function __construct(
 		private StockDividendByMonthChartDataProvider $stockDividendByMonthChartDataProvider,
 		private StockDividendByYearChartDataProvider $stockDividendByYearChartDataProvider,
@@ -36,6 +35,17 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		return $this->chartControlFactory->create(
 			ChartType::BAR,
 			$this->stockDividendByYearChartDataProvider,
+		);
+	}
+
+	protected function createComponentStockDividendsByYearWithTaxChart(): ChartControl
+	{
+		$provider = clone $this->stockDividendByYearChartDataProvider;
+		$provider->notDeductTax();
+
+		return $this->chartControlFactory->create(
+			ChartType::BAR,
+			$provider,
 		);
 	}
 

@@ -1,6 +1,6 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
-import Chart from 'chart.js/auto';
+import Chart, {TooltipItem} from 'chart.js/auto';
 
 
 export class ChartRenderer {
@@ -106,6 +106,23 @@ export class ChartRenderer {
                             beginAtZero: true
                         }
                     },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
+                                    let label = tooltipItem.dataset.label || '';
+                                    console.log(tooltipItem);
+                                    console.log(label);
+
+                                    if (label) {
+                                        label =  label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
+                                    }
+
+                                    return label;
+                                }
+                            }
+                        }
+                    }
                     // tooltips: tooltipDefaults
                 }
             });
