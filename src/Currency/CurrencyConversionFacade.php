@@ -51,16 +51,25 @@ class CurrencyConversionFacade
 	public function getConvertedSummaryPrice(
 		SummaryPrice $summaryPrice,
 		CurrencyEnum $toCurrency,
+		ImmutableDateTime|null $forDate = null,
 	): SummaryPrice
 	{
 		if ($summaryPrice->getCurrency() === $toCurrency) {
 			return $summaryPrice;
 		}
 
-		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-			$summaryPrice->getCurrency(),
-			$toCurrency,
-		);
+		if ($forDate === null) {
+			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+				$summaryPrice->getCurrency(),
+				$toCurrency,
+			);
+		} else {
+			$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
+				$summaryPrice->getCurrency(),
+				$toCurrency,
+				$forDate,
+			);
+		}
 
 		return new SummaryPrice(
 			$toCurrency,

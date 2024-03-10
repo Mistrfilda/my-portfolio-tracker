@@ -7,7 +7,7 @@ namespace App\UI\Control\Chart;
 use App\UI\Base\BaseControlTemplate;
 use Nette\SmartObject;
 
-class FrontChartControlTemplate extends BaseControlTemplate
+class ChartControlTemplate extends BaseControlTemplate
 {
 
 	use SmartObject;

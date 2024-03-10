@@ -231,7 +231,7 @@ services:
 	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
-	- App\Statistic\UI\PortfolioStatisticRecordGridFactory
+	- App\Statistic\UI\Record\PortfolioStatisticRecordGridFactory
 
 	#Stock dividends
 	- App\Stock\Dividend\StockAssetDividendFacade
@@ -258,3 +258,7 @@ services:
 	- App\Stock\Position\Closed\StockClosedPositionFacade
 	- App\Stock\Position\Closed\StockClosedPositionRepository(App\Stock\Position\Closed\StockClosedPosition)
 	- App\Stock\Position\Closed\StockClosedPositionFormFactory
+
+	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider
+	- App\Statistic\UI\Chart\StockDividendByYearChartDataProvider
+	- App\UI\Control\Chart\ChartControlFactory

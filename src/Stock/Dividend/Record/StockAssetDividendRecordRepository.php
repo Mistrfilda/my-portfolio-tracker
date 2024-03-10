@@ -7,6 +7,7 @@ namespace App\Stock\Dividend\Record;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Doctrine\OrderBy;
 use App\Stock\Dividend\StockAssetDividend;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -44,6 +45,16 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	public function findAll(): array
 	{
 		return $this->doctrineRepository->findAll();
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function findAllForMonthChart(): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->orderBy('stockAssetDividend.exDate', OrderBy::ASC->value);
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

@@ -28,6 +28,7 @@
   },
   "scripts": {
     "build-dev": "NODE_ENV=production yarn encore prod",
+    "watch-dev": "NODE_ENV=production yarn encore dev --watch",
     "build-prod": "NODE_ENV=production PROD_HOST=1 yarn encore prod"
   }
 }

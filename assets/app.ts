@@ -14,13 +14,6 @@ declare global {
 //styles
 import './scss/index.scss';
 
-//scripts
-import naja from 'naja';
-import {registerExtensions} from "./ts/naja/extension";
-
-naja.initialize();
-registerExtensions(naja);
-
 import './js/LiveFormValidation';
 
 import './ts/alpine/AppAlpine';
@@ -28,6 +21,3 @@ import './ts/alpine/AppAlpine';
 import './ts/select/select';
 
 import {ChartHandler} from "./ts/Chart/ChartHandler";
-
-let chartHandler = new ChartHandler(naja);
-chartHandler.initListener();

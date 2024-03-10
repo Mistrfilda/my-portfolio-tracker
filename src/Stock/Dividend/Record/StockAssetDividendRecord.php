@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -111,6 +112,30 @@ class StockAssetDividendRecord implements Entity
 	public function getBrokerCurrency(): CurrencyEnum|null
 	{
 		return $this->brokerCurrency;
+	}
+
+	public function getDividendTax(): float|null
+	{
+		return $this->stockAssetDividend->getStockAsset()->getDividendTax();
+	}
+
+	public function getSummaryPrice(): SummaryPrice
+	{
+		$dividendTax = $this->getDividendTax();
+		if ($dividendTax !== null) {
+			$totalAmountAfterTax = $this->totalAmount * (1 - ($dividendTax * 0.01));
+			return new SummaryPrice(
+				$this->brokerCurrency ?? $this->currency,
+				$totalAmountAfterTax,
+				1,
+			);
+		}
+
+		return new SummaryPrice(
+			$this->brokerCurrency ?? $this->currency,
+			$this->totalAmount,
+			1,
+		);
 	}
 
 }

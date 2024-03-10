@@ -17,6 +17,7 @@ custompresenterfactory:
 		Admin:PortuPosition: App\Portu\Position\UI\PortuPositionPresenter
 		Admin:PortuPositionEdit: App\Portu\Position\UI\PortuPositionEditPresenter
 		Admin:PortuPositionPrice: App\Portu\Position\UI\PortuPositionPricePresenter
+		Admin:PortfolioStatisticRecord: App\Statistic\UI\Record\PortfolioStatisticRecordPresenter
 		Admin:PortfolioStatistic: App\Statistic\UI\PortfolioStatisticPresenter
 		Admin:StockAssetDividend: App\Stock\Dividend\UI\StockAssetDividendPresenter
 		Admin:StockAssetDividendDetail: App\Stock\Dividend\UI\StockAssetDividendDetailPresenter
