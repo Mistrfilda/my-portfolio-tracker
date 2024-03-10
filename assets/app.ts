@@ -7,6 +7,7 @@ declare global {
         datagridFilter: any;
         photosModal: any;
         modal: any;
+        loadChart: any;
     }
 }
 
@@ -25,3 +26,8 @@ import './js/LiveFormValidation';
 import './ts/alpine/AppAlpine';
 
 import './ts/select/select';
+
+import {ChartHandler} from "./ts/Chart/ChartHandler";
+
+let chartHandler = new ChartHandler(naja);
+chartHandler.initListener();
