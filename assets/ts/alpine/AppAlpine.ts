@@ -2,6 +2,7 @@
 //@ts-ignore
 import Alpine from 'alpinejs';
 
+// @ts-ignore
 import {ChartRenderer} from "../chart/ChartRenderer";
 import {ChartType} from "../chart/ChartType";
 
@@ -156,17 +157,17 @@ Alpine.data('loadChart', () => ({
         let chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
 
         if (type.valueOf() === ChartType.LINE.valueOf()) {
-            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl)
+            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl, chartId)
             return true;
         }
 
         if (type.valueOf() === ChartType.DOUGHNUT.valueOf()) {
-            chartRenderer.createDoughnutCharts(chartCanvasElement, chartDataUrl)
+            chartRenderer.createDoughnutCharts(chartCanvasElement, chartDataUrl, chartId)
             return true;
         }
 
         if (type.valueOf() === ChartType.BAR.valueOf()) {
-            chartRenderer.createBarCharts(chartCanvasElement, chartDataUrl)
+            chartRenderer.createBarCharts(chartCanvasElement, chartDataUrl, chartId)
             return true;
         }
 

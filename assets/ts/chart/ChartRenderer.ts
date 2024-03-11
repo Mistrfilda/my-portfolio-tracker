@@ -40,7 +40,7 @@ export class ChartRenderer {
         }
     }
 
-    async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string): Promise<void> {
+    async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -75,10 +75,12 @@ export class ChartRenderer {
                     // tooltips: tooltipDefaults
                 }
             });
+
+            this.removeGraphSpinner(chartId);
         }.bind(this));
     }
 
-    async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string): Promise<void> {
+    async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -126,11 +128,13 @@ export class ChartRenderer {
                     // tooltips: tooltipDefaults
                 }
             });
+
+            this.removeGraphSpinner(chartId);
         }.bind(this));
     }
 
 
-    async createDoughnutCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string): Promise<void> {
+    async createDoughnutCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -151,7 +155,7 @@ export class ChartRenderer {
                 }
             });
 
-            this.removeGraphSpinner(graphCanvasElement);
+            this.removeGraphSpinner(chartId);
         }.bind(this));
     }
 
@@ -168,7 +172,8 @@ export class ChartRenderer {
         );
     }
 
-    removeGraphSpinner(element: HTMLElement) {
-        console.log(element);
+    removeGraphSpinner(graphId: string) {
+        const div = document.getElementById(graphId + '--spinner');
+        div.style.display = 'none';
     }
 }
