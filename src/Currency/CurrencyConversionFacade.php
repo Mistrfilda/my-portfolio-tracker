@@ -99,6 +99,20 @@ class CurrencyConversionFacade
 		);
 	}
 
+	public function convertSimpleValue(
+		float $price,
+		CurrencyEnum $fromCurrency,
+		CurrencyEnum $toCurrency,
+	): float
+	{
+		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			$fromCurrency,
+			$toCurrency,
+		);
+
+		return $this->convertPrice($price, $currencyConversion);
+	}
+
 	private function convertPrice(float $price, CurrencyConversion $currencyConversion): float
 	{
 		return $price * $currencyConversion->getCurrentPrice();

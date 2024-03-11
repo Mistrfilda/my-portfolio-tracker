@@ -71,4 +71,6 @@ enum SvgIcon: string
 
 	case CHART_BAR_SQUARE = 'chart-bar-square.svg';
 
+	case CIRCLE_STACK = 'circle-stack.svg';
+
 }

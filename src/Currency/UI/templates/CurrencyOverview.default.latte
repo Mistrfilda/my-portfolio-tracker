@@ -1,0 +1,147 @@
+{block #content}
+    <div class="pb-5 border-b border-gray-200 py-6">
+        <h2 class="text-2xl leading-6 font-medium text-gray-900">
+            Převody měn
+        </h2>
+        <p class="mt-2 max-w-4xl text-sm text-gray-500">
+            Převody měn dle aktuálního kurzu
+        </p>
+    </div>
+
+
+    <div class="mt-8 flow-root">
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                CZK
+            </h2>
+        </div>
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">CZK</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {foreach $czkValuesToConvert as $value}
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currency:App\Currency\CurrencyEnum::CZK}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::EUR|currency:App\Currency\CurrencyEnum::EUR}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::USD|currency:App\Currency\CurrencyEnum::USD}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::GBP}</td>
+                            </tr>
+                            {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 flow-root">
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                EUR
+            </h2>
+        </div>
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">CZK</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                        {foreach $eurValuesToConvert as $value}
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currency:App\Currency\CurrencyEnum::EUR}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::CZK|currency:App\Currency\CurrencyEnum::CZK}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::USD|currency:App\Currency\CurrencyEnum::USD}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::GBP}</td>
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 flow-root">
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                USD
+            </h2>
+        </div>
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">CZK</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                        {foreach $usdValuesToConvert as $value}
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currency:App\Currency\CurrencyEnum::USD}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::USD,App\Currency\CurrencyEnum::CZK|currency:App\Currency\CurrencyEnum::CZK}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::USD,App\Currency\CurrencyEnum::EUR|currency:App\Currency\CurrencyEnum::EUR}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">----</td>
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-8 flow-root">
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                GBP
+            </h2>
+        </div>
+        <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">CZK</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                        {foreach $usdValuesToConvert as $value}
+                            <tr>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currency:App\Currency\CurrencyEnum::GBP}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::GBP,App\Currency\CurrencyEnum::CZK|currency:App\Currency\CurrencyEnum::CZK}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::GBP,App\Currency\CurrencyEnum::EUR|currency:App\Currency\CurrencyEnum::EUR}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">----</td>
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+{/block}

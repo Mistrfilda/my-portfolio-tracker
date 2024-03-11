@@ -32,6 +32,12 @@ class MenuBuilder
 				'Statistiky a grafy',
 			),
 			new MenuItem(
+				'CurrencyOverview',
+				'default',
+				SvgIcon::CIRCLE_STACK,
+				'Měnový přehled',
+			),
+			new MenuItem(
 				'PortfolioStatisticRecord',
 				'default',
 				SvgIcon::TABLE_CELLS,

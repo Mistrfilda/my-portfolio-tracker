@@ -13,6 +13,7 @@ use App\UI\Control\Chart\ChartDataProvider;
 
 class StockDividendByYearChartDataProvider implements ChartDataProvider
 {
+
 	private bool $shouldDeductTax = true;
 
 	public function __construct(

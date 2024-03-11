@@ -22,3 +22,4 @@ custompresenterfactory:
 		Admin:StockAssetDividend: App\Stock\Dividend\UI\StockAssetDividendPresenter
 		Admin:StockAssetDividendDetail: App\Stock\Dividend\UI\StockAssetDividendDetailPresenter
 		Admin:StockAssetDividendRecord: App\Stock\Dividend\Record\UI\StockAssetDividendRecordPresenter
+		Admin:CurrencyOverview: App\Currency\UI\CurrencyOverviewPresenter
