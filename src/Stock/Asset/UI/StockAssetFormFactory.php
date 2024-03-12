@@ -81,6 +81,9 @@ class StockAssetFormFactory
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
 			->setRequired(false);
 
+		$form->addCheckbox('shouldDownloadPrice', 'Aktualizovat cenu')
+			->setDefaultValue(true);
+
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
@@ -101,6 +104,7 @@ class StockAssetFormFactory
 					$values->brokerDividendCurrency !== null ? CurrencyEnum::from(
 						$values->brokerDividendCurrency,
 					) : null,
+					$values->shouldDownloadPrice,
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -117,6 +121,7 @@ class StockAssetFormFactory
 					$values->brokerDividendCurrency !== null ? CurrencyEnum::from(
 						$values->brokerDividendCurrency,
 					) : null,
+					$values->shouldDownloadPrice,
 				);
 			}
 
@@ -144,6 +149,7 @@ class StockAssetFormFactory
 			'stockAssetDividendSource' => $stockAsset->getStockAssetDividendSource()?->value,
 			'dividendTax' => $stockAsset->getDividendTax(),
 			'brokerDividendCurrency' => $stockAsset->getBrokerDividendCurrency()?->value,
+			'shouldDownloadPrice' => $stockAsset->shouldBeUpdated(),
 		]);
 	}
 

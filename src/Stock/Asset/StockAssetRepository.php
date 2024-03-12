@@ -71,6 +71,9 @@ class StockAssetRepository extends BaseRepository
 			$qb->setMaxResults($limit);
 		}
 
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadPrice', ':shouldDownloadPrice'));
+		$qb->setParameter('shouldDownloadPrice', true);
+
 		return $qb->getQuery()->getResult();
 	}
 

@@ -83,6 +83,9 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class, nullable: true)]
 	private CurrencyEnum|null $brokerDividendCurrency;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $shouldDownloadPrice;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -94,6 +97,7 @@ class StockAsset implements Entity, Asset
 		StockAssetDividendSourceEnum|null $stockAssetDividendSource,
 		float|null $dividendTax,
 		CurrencyEnum|null $brokerDividendCurrency,
+		bool $shouldDownloadPrice,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -106,6 +110,7 @@ class StockAsset implements Entity, Asset
 		$this->stockAssetDividendSource = $stockAssetDividendSource;
 		$this->dividendTax = $dividendTax;
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
+		$this->shouldDownloadPrice = $shouldDownloadPrice;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -129,6 +134,7 @@ class StockAsset implements Entity, Asset
 		float|null $dividendTax,
 		CurrencyEnum|null $brokerDividendCurrency,
 		ImmutableDateTime $now,
+		bool $shouldDownloadPrice,
 	): void
 	{
 		$this->name = $name;
@@ -141,6 +147,7 @@ class StockAsset implements Entity, Asset
 		$this->dividendTax = $dividendTax;
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->updatedAt = $now;
+		$this->shouldDownloadPrice = $shouldDownloadPrice;
 	}
 
 	public function setCurrentPrice(
@@ -183,7 +190,7 @@ class StockAsset implements Entity, Asset
 
 	public function shouldBeUpdated(): bool
 	{
-		return true;
+		return $this->shouldDownloadPrice;
 	}
 
 	public function hasMultiplePositions(): bool
