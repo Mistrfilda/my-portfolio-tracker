@@ -9,6 +9,7 @@ use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Portu\Position\PortuPositionFacade;
+use App\Statistic\PortolioStatisticType;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\PercentageFilter;
@@ -156,6 +157,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					TailwindColorConstant::BLUE,
 					SvgIcon::CZECH_CROWN,
 					sprintf('Celkový počet pozic %s', $totalInvestedAmount->getCounter()),
+					PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
 				),
 				new DashboardValue(
 					'Aktuální hodnota ve všech assetech',
@@ -166,6 +168,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					TailwindColorConstant::BLUE,
 					SvgIcon::CZECH_CROWN,
 					sprintf('Celkový počet pozic %s', $currentValue->getCounter()),
+					PortolioStatisticType::TOTAL_VALUE_IN_CZK,
 				),
 				new DashboardValue(
 					'Celkový zisk/ztráta ve všech assetech',
@@ -175,12 +178,14 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					),
 					$diff->getTrend()->getTailwindColor(),
 					$diff->getTrend()->getSvgIcon(),
+					type: PortolioStatisticType::TOTAL_PROFIT,
 				),
 				new DashboardValue(
 					'Celkový zisk/ztráta ve všech assetech',
 					PercentageFilter::format($diff->getPercentageDifference()),
 					$diff->getTrend()->getTailwindColor(),
 					$diff->getTrend()->getSvgIcon(),
+					type: PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE,
 				),
 			],
 		);

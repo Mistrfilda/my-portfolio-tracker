@@ -60,7 +60,11 @@ export class ChartRenderer {
                         data: response.datasets.data,
                         borderWidth: 1,
                         fill: false,
-                        backgroundColor: this.defaultBackgroundColor,
+                        backgroundColor: function(context) {
+                            var index = context.dataIndex;
+                            var value = context.dataset.data[index];
+                            return value < 0 ? 'red' : 'green';
+                        },
                         borderColor: this.defaultBackgroundColor,
                         tension: 0.1
                     }]

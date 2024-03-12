@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\Statistic\PortolioStatisticType;
 use App\UI\Icon\SvgIcon;
 
 class DashboardValue
@@ -15,6 +16,7 @@ class DashboardValue
 		private readonly string $color,
 		private readonly SvgIcon|null $svgIcon = null,
 		private readonly string|null $description = null,
+		private readonly PortolioStatisticType|null $type = null,
 	)
 	{
 	}
@@ -47,6 +49,11 @@ class DashboardValue
 	public function getDescription(): string|null
 	{
 		return $this->description;
+	}
+
+	public function getType(): PortolioStatisticType|null
+	{
+		return $this->type;
 	}
 
 }

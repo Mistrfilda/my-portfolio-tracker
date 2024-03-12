@@ -82,6 +82,7 @@ orm:
 		customStringFunctions:
 			group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
 			timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
+			day: DoctrineExtensions\Query\Mysql\Day
 
 orm.attributes:
 	mapping:
@@ -261,6 +262,7 @@ services:
 	- App\Stock\Position\Closed\StockClosedPositionRepository(App\Stock\Position\Closed\StockClosedPosition)
 	- App\Stock\Position\Closed\StockClosedPositionFormFactory
 
+	- App\UI\Control\Chart\ChartControlFactory
 	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider
 	- App\Statistic\UI\Chart\StockDividendByYearChartDataProvider
-	- App\UI\Control\Chart\ChartControlFactory
+	- App\Statistic\UI\Chart\PortfolioTotalValueChartProvider

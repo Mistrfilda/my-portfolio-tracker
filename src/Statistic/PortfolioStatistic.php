@@ -43,6 +43,9 @@ class PortfolioStatistic implements Entity
 	#[ORM\Column(type: Types::STRING, nullable: true)]
 	private string|null $description;
 
+	#[ORM\Column(type: Types::STRING, enumType: PortolioStatisticType::class, nullable: true)]
+	private PortolioStatisticType|null $type;
+
 	public function __construct(
 		PortfolioStatisticRecord $portfolioStatisticRecord,
 		ImmutableDateTime $now,
@@ -52,6 +55,7 @@ class PortfolioStatistic implements Entity
 		string $color,
 		SvgIcon|null $svgIcon,
 		string|null $description,
+		PortolioStatisticType|null $type,
 	)
 	{
 		$this->portfolioStatisticRecord = $portfolioStatisticRecord;
@@ -62,6 +66,7 @@ class PortfolioStatistic implements Entity
 		$this->color = $color;
 		$this->svgIcon = $svgIcon;
 		$this->description = $description;
+		$this->type = $type;
 	}
 
 	public function getPortfolioStatisticRecord(): PortfolioStatisticRecord

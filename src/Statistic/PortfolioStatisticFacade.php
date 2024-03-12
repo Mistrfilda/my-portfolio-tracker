@@ -48,6 +48,7 @@ class PortfolioStatisticFacade
 							$dashboardValue->getColor(),
 							$dashboardValue->getSvgIconEnum(),
 							$dashboardValue->getDescription(),
+							$dashboardValue->getType(),
 						),
 					);
 				}
