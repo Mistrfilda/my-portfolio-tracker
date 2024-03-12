@@ -39,6 +39,11 @@ class TwelveDataRequest
 
 	public function getStockAssetForTicker(string $ticker): StockAsset|null
 	{
+		if ($this->count() === 1) {
+			$stockAsset = reset($this->tickers);
+			return $stockAsset === false ? null : $stockAsset;
+		}
+
 		if (array_key_exists($ticker, $this->tickers)) {
 			return $this->tickers[$ticker];
 		}

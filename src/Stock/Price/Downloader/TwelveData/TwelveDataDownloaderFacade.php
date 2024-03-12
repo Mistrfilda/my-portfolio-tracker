@@ -67,7 +67,11 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 				continue;
 			}
 
-			$price = (float) $priceBody['price'];
+			if (is_string($priceBody)) {
+				$price = (float) $priceBody;
+			} else {
+				$price = (float) $priceBody['price'];
+			}
 
 			$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
 				$stockAsset,
