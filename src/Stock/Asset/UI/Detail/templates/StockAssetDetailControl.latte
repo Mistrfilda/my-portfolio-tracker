@@ -38,6 +38,12 @@
                                         class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
                                         Nákupní cena
                                     </th>
+                                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                    <th scope="col"
+                                        class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                        Prodejní cena za kus
+                                    </th>
+                                    {/if}
                                     <th scope="col"
                                         class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
                                         Aktuální cena
@@ -64,6 +70,11 @@
                                         <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
                                             {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
                                         </td>
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                            <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                                {$position->getStockPosition()->getStockClosedPosition()?->getPricePerPiece()|assetPriceFormat}
+                                            </td>
+                                        {/if}
                                         <td class="py-4 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
                                             {$position->getStockPosition()->getCurrentTotalAmount()|assetPriceFormat}
                                         </td>

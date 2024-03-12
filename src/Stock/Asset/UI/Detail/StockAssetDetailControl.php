@@ -69,6 +69,7 @@ class StockAssetDetailControl extends BaseControl
 			return 1;
 		});
 
+		$template->assetDetailControlEnum = $this->assetDetailControlEnum;
 		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
 		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
 		$template->setFile(__DIR__ . '/templates/StockAssetDetailControl.latte');
