@@ -5,10 +5,14 @@ declare(strict_types = 1);
 namespace App\Stock\Price\Downloader\Pse;
 
 use App\Stock\Price\StockAssetPriceRecord;
+use App\Utils\MonologHelper;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
+use Throwable;
+
 
 #[AsCommand('pse:download')]
 class PseDataDownloaderCommand extends Command
@@ -16,6 +20,7 @@ class PseDataDownloaderCommand extends Command
 
 	public function __construct(
 		private readonly PseDataDownloaderFacade $pseDataDownloaderFacade,
+		private readonly LoggerInterface $logger
 	)
 	{
 		parent::__construct();
@@ -31,16 +36,20 @@ class PseDataDownloaderCommand extends Command
 	{
 		$output->writeln('Downloading new data from prague stock exchange');
 
-		foreach ($this->pseDataDownloaderFacade->getPriceForAssets() as $newPrice) {
-			assert($newPrice instanceof StockAssetPriceRecord);
-			$output->writeln(
-				sprintf(
-					'<info>Downloaded new price for stock %s - current price: %s %s</info>',
-					$newPrice->getStockAsset()->getTicker(),
-					$newPrice->getPrice(),
-					$newPrice->getCurrency()->format(),
-				),
-			);
+		try {
+			foreach ($this->pseDataDownloaderFacade->getPriceForAssets() as $newPrice) {
+				assert($newPrice instanceof StockAssetPriceRecord);
+				$output->writeln(
+					sprintf(
+						'<info>Downloaded new price for stock %s - current price: %s %s</info>',
+						$newPrice->getStockAsset()->getTicker(),
+						$newPrice->getPrice(),
+						$newPrice->getCurrency()->format(),
+					),
+				);
+			}
+		} catch (Throwable $e) {
+			$this->logger->critical(MonologHelper::formatMessageFromException($e));
 		}
 
 		$output->writeln('Rates successfully downloaded');
