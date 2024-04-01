@@ -29,7 +29,11 @@ class SummaryPriceService
 
 		$diffPrice = $summaryPrice1->getPrice() - $summaryPrice2->getPrice();
 
-		$percentageDiff = $summaryPrice1->getPrice() * 100 / $summaryPrice2->getPrice();
+		if ($summaryPrice2->getPrice() === 0.0) {
+			$percentageDiff = 200;
+		} else {
+			$percentageDiff = $summaryPrice1->getPrice() * 100 / $summaryPrice2->getPrice();
+		}
 
 		return new PriceDiff(
 			$diffPrice,
