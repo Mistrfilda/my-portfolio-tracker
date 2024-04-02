@@ -44,7 +44,7 @@ class PortfolioStatisticRecordGridFactory
 		$grid->addAction(
 			'detail',
 			'Detail',
-			'PortfolioStatistic:detail',
+			'PortfolioStatisticRecord:detail',
 			[
 				new DatagridActionParameter('id', 'id'),
 			],
