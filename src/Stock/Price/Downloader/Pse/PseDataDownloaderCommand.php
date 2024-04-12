@@ -13,14 +13,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-
 #[AsCommand('pse:download')]
 class PseDataDownloaderCommand extends Command
 {
 
 	public function __construct(
 		private readonly PseDataDownloaderFacade $pseDataDownloaderFacade,
-		private readonly LoggerInterface $logger
+		private readonly LoggerInterface $logger,
 	)
 	{
 		parent::__construct();

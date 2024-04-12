@@ -89,7 +89,6 @@ class CurrencyConversionRepository extends BaseRepository
 
 		$qb->setParameter('date', $date);
 
-		/**@phpstan-ignore-next-line */
 		$result = $qb->getQuery()->getSingleResult();
 		assert($result instanceof CurrencyConversion);
 		return $result;

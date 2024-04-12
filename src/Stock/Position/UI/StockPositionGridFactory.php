@@ -212,7 +212,7 @@ class StockPositionGridFactory
 			SvgIcon::PENCIL,
 			TailwindColorConstant::EMERALD,
 		)->setConditionCallback(
-			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() === false
+			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() === false,
 		);
 
 		$grid->addAction(
@@ -225,7 +225,7 @@ class StockPositionGridFactory
 			SvgIcon::PENCIL,
 			TailwindColorConstant::BLUE,
 		)->setConditionCallback(
-			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() !== false
+			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() !== false,
 		);
 
 		$grid->setRowRender(

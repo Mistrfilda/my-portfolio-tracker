@@ -12,14 +12,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-
 #[AsCommand('twelve-data:download')]
 class TwelveDataDownloaderCommand extends Command
 {
 
 	public function __construct(
 		private readonly TwelveDataDownloaderFacade $twelveDataDownloader,
-		private readonly LoggerInterface $logger
+		private readonly LoggerInterface $logger,
 	)
 	{
 		parent::__construct();

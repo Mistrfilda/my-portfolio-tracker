@@ -13,14 +13,13 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-
 #[AsCommand('web:stock:download')]
 class WebDataDownloaderCommand extends Command
 {
 
 	public function __construct(
 		private readonly WebDataDownloaderFacade $webDataDownloaderFacade,
-		private readonly LoggerInterface $logger
+		private readonly LoggerInterface $logger,
 	)
 	{
 		parent::__construct();
