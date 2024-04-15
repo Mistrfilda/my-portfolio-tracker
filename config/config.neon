@@ -268,6 +268,7 @@ services:
 	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider
 	- App\Statistic\UI\Chart\StockDividendByYearChartDataProvider
 	- App\Statistic\UI\Chart\PortfolioTotalValueChartProvider
+	- App\Statistic\UI\Chart\PortfolioTotalValueLastMonthChartProvider
 
 	- App\Cash\Expense\Bank\BankExpenseRepository(App\Cash\Expense\Bank\BankExpense)
 	- App\Cash\Expense\UI\BankExpenseFormFactory
