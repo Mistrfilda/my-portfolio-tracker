@@ -5,5 +5,10 @@
 {/block}
 
 {block #content}
+    {snippet modal}
+        {if $showModal}
+            {control modal}
+        {/if}
+    {/snippet}
     {control bankExpenseGrid}
 {/block}

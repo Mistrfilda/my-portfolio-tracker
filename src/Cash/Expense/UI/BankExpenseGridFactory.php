@@ -6,10 +6,13 @@ namespace App\Cash\Expense\UI;
 
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseRepository;
+use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
 use App\UI\Filter\ExpensePriceFilter;
+use App\UI\Icon\SvgIcon;
+use App\UI\Tailwind\TailwindColorConstant;
 
 class BankExpenseGridFactory
 {
@@ -38,6 +41,16 @@ class BankExpenseGridFactory
 			'Hodnota',
 			static fn (BankExpense $bankExpense): string => ExpensePriceFilter::format($bankExpense->getExpensePrice()),
 		)->setSortable();
+
+		$grid->addAction(
+			'detail',
+			'Detail',
+			'showModal!',
+			[new DatagridActionParameter('id', 'id')],
+			SvgIcon::EYE,
+			TailwindColorConstant::BLUE,
+			isAjax: true,
+		);
 
 		return $grid;
 	}

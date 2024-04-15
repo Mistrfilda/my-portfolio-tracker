@@ -172,6 +172,8 @@ services:
 	- App\Admin\UI\AppAdminFormFactory
 	- App\Admin\UI\AppAdminChangePasswordFormFactory
 
+	- App\UI\Control\Modal\FrontModalControlFactory
+
 	#Login
 	- App\Login\UI\Form\LoginFormFactory
 

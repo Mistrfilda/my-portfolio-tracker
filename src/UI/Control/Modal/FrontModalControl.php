@@ -17,6 +17,11 @@ class FrontModalControl extends BaseControl
 
 	protected string|null $templateFile = null;
 
+	protected string|null $includeTemplateFile = null;
+
+	/** @var array<string|int, mixed> */
+	protected array $includedTemplateFileParameters = [];
+
 	private string|null $heading = null;
 
 	private HtmlStringable|null $content = null;
@@ -50,6 +55,10 @@ class FrontModalControl extends BaseControl
 		$this->getTemplate()->content = $this->content;
 		$this->getTemplate()->additionalParameters = $this->additionalParameters;
 		$this->getTemplate()->originalTemplateFile = $this->getOriginalTemplateFile();
+		$this->getTemplate()->includeTemplateFile = $this->includeTemplateFile;
+		foreach ($this->includedTemplateFileParameters as $key => $value) {
+			$this->getTemplate()->{$key} = $value;
+		}
 
 		$this->getTemplate()->setFile($this->getTemplateFile());
 		$this->getTemplate()->render();
@@ -63,6 +72,29 @@ class FrontModalControl extends BaseControl
 	public function setTemplateFile(string $templateFile): void
 	{
 		$this->templateFile = $templateFile;
+	}
+
+	public function getIncludeTemplateFile(): string|null
+	{
+		return $this->includeTemplateFile;
+	}
+
+	public function setIncludeTemplateFile(string $includeTemplateFile): void
+	{
+		$this->includeTemplateFile = $includeTemplateFile;
+	}
+
+	public function getIncludedTemplateFileParameters(): mixed
+	{
+		return $this->includedTemplateFileParameters;
+	}
+
+	/**
+	 * @param array<string|int, mixed> $includedTemplateFileParameters
+	 */
+	public function setIncludedTemplateFileParameters(array $includedTemplateFileParameters): void
+	{
+		$this->includedTemplateFileParameters = $includedTemplateFileParameters;
 	}
 
 	protected function getOriginalTemplateFile(): string
