@@ -6,6 +6,7 @@ namespace App\Statistic\UI;
 
 use App\Statistic\PortolioStatisticType;
 use App\Statistic\UI\Chart\PortfolioTotalValueChartProvider;
+use App\Statistic\UI\Chart\PortfolioTotalValueLastMonthChartProvider;
 use App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByYearChartDataProvider;
 use App\UI\Base\BaseAdminPresenter;
@@ -20,6 +21,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		private StockDividendByMonthChartDataProvider $stockDividendByMonthChartDataProvider,
 		private StockDividendByYearChartDataProvider $stockDividendByYearChartDataProvider,
 		private PortfolioTotalValueChartProvider $portfolioTotalValueChartProvider,
+		private PortfolioTotalValueLastMonthChartProvider $portfolioTotalValueLastMonthChartProvider,
 		private ChartControlFactory $chartControlFactory,
 	)
 	{
@@ -84,6 +86,13 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		$provider = clone $this->portfolioTotalValueChartProvider;
 		$provider->setType(PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE);
 
+		return $this->chartControlFactory->create(ChartType::LINE, $provider);
+	}
+
+	protected function createComponentPortfolioTotalValueLastMonthChart(): ChartControl
+	{
+		$provider = clone $this->portfolioTotalValueLastMonthChartProvider;
+		$provider->setType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
 
