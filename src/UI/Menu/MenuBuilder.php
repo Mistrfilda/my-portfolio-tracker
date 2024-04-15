@@ -114,6 +114,13 @@ class MenuBuilder
 					'PortuPositionPrice',
 				],
 			),
+			new MenuItem(
+				'Expense',
+				'kb',
+				SvgIcon::BANKNOTES,
+				'Výdaje',
+				[],
+			),
 		];
 	}
 
