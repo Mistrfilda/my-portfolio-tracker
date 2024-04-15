@@ -73,4 +73,6 @@ enum SvgIcon: string
 
 	case CIRCLE_STACK = 'circle-stack.svg';
 
+	case BANKNOTES = 'banknotes.svg';
+
 }

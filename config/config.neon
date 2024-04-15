@@ -132,6 +132,7 @@ services:
 			- addFilter(percentage, [@percentageFilter, format])
 			- addFilter(ruleOfThree, [@ruleOfThreeFilter, getPercentage])
 			- addFilter(currencyConvert, [@currencyConversionFilter, convert])
+			- addFilter(expensePriceFormat, [@expensePriceFilter, format])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
@@ -144,6 +145,7 @@ services:
 	percentageFilter: App\UI\Filter\PercentageFilter
 	ruleOfThreeFilter: App\UI\Filter\RuleOfThreeFilter
 	currencyConversionFilter: App\UI\Filter\CurrencyConversionFilter
+	expensePriceFilter: App\UI\Filter\ExpensePriceFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
@@ -266,3 +268,13 @@ services:
 	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider
 	- App\Statistic\UI\Chart\StockDividendByYearChartDataProvider
 	- App\Statistic\UI\Chart\PortfolioTotalValueChartProvider
+
+	- App\Cash\Expense\Bank\BankExpenseRepository(App\Cash\Expense\Bank\BankExpense)
+	- App\Cash\Expense\UI\BankExpenseFormFactory
+	- App\Cash\Expense\UI\BankExpenseGridFactory
+
+
+	- App\Cash\Expense\Kb\KbPdfExpenseParser
+	- App\Cash\Expense\Kb\KbContentParser
+	- App\Cash\Expense\Kb\KbExpenseFacade
+
