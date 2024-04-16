@@ -24,3 +24,4 @@ custompresenterfactory:
 		Admin:StockAssetDividendRecord: App\Stock\Dividend\Record\UI\StockAssetDividendRecordPresenter
 		Admin:CurrencyOverview: App\Currency\UI\CurrencyOverviewPresenter
 		Admin:Expense: App\Cash\Expense\UI\ExpensePresenter
+		Admin:ExpenseTag: App\Cash\Expense\UI\ExpenseTagPresenter

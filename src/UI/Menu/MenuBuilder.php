@@ -121,6 +121,13 @@ class MenuBuilder
 				'Výdaje',
 				[],
 			),
+			new MenuItem(
+				'ExpenseTag',
+				'tags',
+				SvgIcon::BANKNOTES,
+				'Výdajové tagy',
+				[],
+			),
 		];
 	}
 

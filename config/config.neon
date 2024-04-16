@@ -281,3 +281,9 @@ services:
 	- App\Cash\Expense\Kb\KbContentParser
 	- App\Cash\Expense\Kb\KbExpenseFacade
 
+	- App\Cash\Expense\Tag\ExpenseTagRepository(App\Cash\Expense\Tag\ExpenseTag)
+	- App\Cash\Expense\Tag\ExpenseTagFacade
+	- App\Cash\Expense\Category\ExpenseCategoryRepository(App\Cash\Expense\Category\ExpenseCategory)
+	- App\Cash\Expense\Tag\UI\ExpenseTagFormFactory
+	- App\Cash\Expense\Tag\UI\ExpenseTagDatagridFactory
+
