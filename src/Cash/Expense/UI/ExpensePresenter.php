@@ -80,12 +80,4 @@ class ExpensePresenter extends BaseAdminPresenter
 		return $modal;
 	}
 
-	//  public function __construct(private KbPdfExpenseParser $kbPdfExpenseParser)
-	//  {
-	//      dump($this->kbPdfExpenseParser->parse( file_get_contents(__DIR__ . '/../511547780287_2_1132_20240208.pdf')));
-	//      dump($this->kbPdfExpenseParser->parse(file_get_contents(__DIR__ . '/../511547780287_3_1132_20240308.pdf')));
-	//      dump($this->kbPdfExpenseParser->parse(file_get_contents(__DIR__ . '/../511547780287_4_1132_20240408.pdf')));
-	//      die();
-	//  }
-
 }
