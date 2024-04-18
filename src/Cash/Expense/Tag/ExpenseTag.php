@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Tag;
 
+use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Category\ExpenseCategory;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -43,6 +44,14 @@ class ExpenseTag implements Entity
 	#[ORM\Column(type: Types::JSON)]
 	private array $regexes;
 
+	/** @var ArrayCollection<int, BankExpense> */
+	#[ORM\OneToMany(targetEntity: BankExpense::class, mappedBy: 'mainTag')]
+	private Collection $mainExpenses;
+
+	/** @var ArrayCollection<int, BankExpense> */
+	#[ORM\ManyToMany(targetEntity: BankExpense::class, mappedBy: 'otherTags')]
+	private Collection $otherExpenses;
+
 	/**
 	 * @param array<string> $regexes
 	 */
@@ -61,6 +70,9 @@ class ExpenseTag implements Entity
 		$this->regexes = $regexes;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+
+		$this->mainExpenses = new ArrayCollection();
+		$this->otherExpenses = new ArrayCollection();
 	}
 
 	/**
@@ -76,6 +88,16 @@ class ExpenseTag implements Entity
 		$this->regexes = $regexes;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function isMainTag(): bool
+	{
+		return $this->expenseCategory !== null;
+	}
+
+	public function addOtherBankExpense(BankExpense $bankExpense): void
+	{
+		$this->otherExpenses->add($bankExpense);
 	}
 
 	public function getName(): string
@@ -109,4 +131,19 @@ class ExpenseTag implements Entity
 		return $this->regexes;
 	}
 
+	/**
+	 * @return array<BankExpense>
+	 */
+	public function getMainExpenses(): array
+	{
+		return $this->mainExpenses->toArray();
+	}
+
+	/**
+	 * @return array<BankExpense>
+	 */
+	public function getOtherExpenses(): array
+	{
+		return $this->otherExpenses->toArray();
+	}
 }

@@ -6,6 +6,7 @@ namespace App\Cash\Expense\UI;
 
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Bank\BankSourceEnum;
+use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
@@ -24,9 +25,12 @@ class ExpensePresenter extends BaseAdminPresenter
 		private BankExpenseGridFactory $bankExpenseGridFactory,
 		private FrontModalControlFactory $frontModalControlFactory,
 		private BankExpenseRepository $bankExpenseRepository,
+		ExpenseTagFacade $expenseTagFacade,
 	)
 	{
 		parent::__construct();
+		//      dump($expenseTagFacade->processExpenses());
+		//      die();
 	}
 
 	public function renderKb(): void
@@ -61,6 +65,11 @@ class ExpensePresenter extends BaseAdminPresenter
 	public function createComponentBankExpenseGrid(): Datagrid
 	{
 		return $this->bankExpenseGridFactory->create();
+	}
+
+	public function createComponentBankExpenseWithoutMainTagGrid(): Datagrid
+	{
+		return $this->bankExpenseGridFactory->create(true);
 	}
 
 	public function handleShowModal(string $id): void

@@ -286,4 +286,4 @@ services:
 	- App\Cash\Expense\Category\ExpenseCategoryRepository(App\Cash\Expense\Category\ExpenseCategory)
 	- App\Cash\Expense\Tag\UI\ExpenseTagFormFactory
 	- App\Cash\Expense\Tag\UI\ExpenseTagDatagridFactory
-
+	- App\Cash\Expense\Tag\Command\ExpenseTagProcessCommand

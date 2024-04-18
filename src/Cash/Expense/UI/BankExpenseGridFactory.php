@@ -24,10 +24,17 @@ class BankExpenseGridFactory
 	{
 	}
 
-	public function create(): Datagrid
+	public function create(bool $onlyWithoutMainTag = false): Datagrid
 	{
+		$qb = $this->bankExpenseRepository->createQueryBuilder();
+		if ($onlyWithoutMainTag) {
+			$qb->andWhere(
+				$qb->expr()->isNull('bankExpense.mainTag'),
+			);
+		}
+
 		$grid = $this->datagridFactory->create(
-			new DoctrineDataSource($this->bankExpenseRepository->createQueryBuilder()),
+			new DoctrineDataSource($qb),
 		);
 
 		$grid->addColumnText('source', 'Zdroj');
@@ -41,6 +48,24 @@ class BankExpenseGridFactory
 			'Hodnota',
 			static fn (BankExpense $bankExpense): string => ExpensePriceFilter::format($bankExpense->getExpensePrice()),
 		)->setSortable();
+
+		$grid->addColumnText('mainTag', 'Hlavní tag', static function (BankExpense $bankExpense): string {
+			if ($bankExpense->getMainTag() !== null) {
+				return sprintf(
+					'%s (%s)',
+					$bankExpense->getMainTag()->getName(),
+					$bankExpense->getMainTag()->getExpenseCategory()?->getEnumName()->format(),
+				);
+			}
+
+			return Datagrid::NULLABLE_PLACEHOLDER;
+		}, 'mainTag.name')->setFilterText();
+
+		$grid->addColumnText(
+			'otherTags',
+			'Počet ostatních tagů',
+			static fn (BankExpense $bankExpense): string => (string) count($bankExpense->getOtherTags()),
+		);
 
 		$grid->addAction(
 			'detail',

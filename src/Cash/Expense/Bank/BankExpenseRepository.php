@@ -82,7 +82,9 @@ class BankExpenseRepository extends BaseRepository
 
 	public function createQueryBuilder(): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('bankExpense');
+		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
+		$qb->leftJoin('bankExpense.mainTag', 'mainTag');
+		return $qb;
 	}
 
 }

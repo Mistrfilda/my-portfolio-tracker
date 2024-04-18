@@ -30,7 +30,7 @@ class ExpenseTagDatagridFactory
 		);
 
 		$grid->addColumnText('id', 'ID');
-		$grid->addColumnText('name', 'Name');
+		$grid->addColumnText('name', 'Name')->setFilterText();
 
 		$grid->addColumnText(
 			'expenseCategory',
