@@ -88,6 +88,12 @@ class ExpenseTagFormFactory
 				return;
 			}
 
+			if ($id === null && $values->expenseCategory !== null && $values->parentTag !== null) {
+				$form['expenseCategory']->addError('Vyberte pouze kategorii nebo parent tag');
+				$form['parentTag']->addError('Vyberte pouze kategorii nebo parent tag');
+				return;
+			}
+
 			$regexes = [];
 			foreach ($values->regexes as $regex) {
 				$regexes[] = $regex->regex;

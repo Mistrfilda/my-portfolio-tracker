@@ -7,11 +7,15 @@ namespace App\Cash\Expense\Bank;
 use App\Cash\Expense\Expense;
 use App\Cash\Expense\ExpensePrice;
 use App\Cash\Expense\ExpenseTypeEnum;
+use App\Cash\Expense\Tag\ExpenseTag;
+use App\Cash\Expense\Tag\ExpenseTagException;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -50,6 +54,13 @@ class BankExpense implements Entity, Expense
 	#[ORM\Column(type: Types::STRING)]
 	private string $transactionRawContent;
 
+	#[ORM\ManyToOne(targetEntity: ExpenseTag::class, inversedBy: 'mainExpenses')]
+	private ExpenseTag|null $mainTag;
+
+	/** @var ArrayCollection<int, ExpenseTag> */
+	#[ORM\ManyToMany(targetEntity: ExpenseTag::class, inversedBy: 'otherExpenses')]
+	private Collection $otherTags;
+
 	public function __construct(
 		string $identifier,
 		BankSourceEnum $source,
@@ -73,6 +84,39 @@ class BankExpense implements Entity, Expense
 		$this->transactionRawContent = $transactionRawContent;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+
+		$this->otherTags = new ArrayCollection();
+		$this->mainTag = null;
+	}
+
+	public function setMainTag(ExpenseTag $expenseTag): void
+	{
+		if ($expenseTag->isMainTag() === false) {
+			throw new ExpenseTagException('Invalid main tag');
+		}
+
+		$this->mainTag = $expenseTag;
+	}
+
+	public function addOtherTag(ExpenseTag $expenseTag): void
+	{
+		if ($this->otherTags->contains($expenseTag) === false) {
+			$this->otherTags->add($expenseTag);
+			$expenseTag->addOtherBankExpense($this);
+		}
+	}
+
+	public function getMainTag(): ExpenseTag|null
+	{
+		return $this->mainTag;
+	}
+
+	/**
+	 * @return array<ExpenseTag>
+	 */
+	public function getOtherTags(): array
+	{
+		return $this->otherTags->toArray();
 	}
 
 	public function getSource(): BankSourceEnum
