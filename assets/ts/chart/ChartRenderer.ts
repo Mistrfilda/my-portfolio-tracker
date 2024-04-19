@@ -1,6 +1,6 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
-import Chart, {TooltipItem} from 'chart.js/auto';
+import Chart, {TooltipItem, Colors} from 'chart.js/auto';
 
 
 export class ChartRenderer {
@@ -22,6 +22,7 @@ export class ChartRenderer {
         Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
         // Chart.defaults.font.defaultFontColor = '#858796';
         Chart.defaults.color = '#111827';
+        Chart.register(Colors);
     }
 
     getTooltipDefaults() {
@@ -101,8 +102,8 @@ export class ChartRenderer {
                     datasets: [{
                         label: response.datasets.label,
                         data: response.datasets.data,
-                        backgroundColor: response.datasets.backgroundColors,
-                        borderColor: response.datasets.borderColors,
+                        // backgroundColor: response.datasets.backgroundColors,
+                        // borderColor: response.datasets.borderColors,
                         borderWidth: 1
                     }]
                 },
@@ -150,8 +151,8 @@ export class ChartRenderer {
                         label: response.datasets.label,
                         data: response.datasets.data,
                         borderWidth: 1,
-                        backgroundColor: response.datasets.backgroundColors,
-                        borderColor: response.datasets.borderColors,
+                        // backgroundColor: response.datasets.backgroundColors,
+                        // borderColor: response.datasets.borderColors,
                     }]
                 },
                 options: {

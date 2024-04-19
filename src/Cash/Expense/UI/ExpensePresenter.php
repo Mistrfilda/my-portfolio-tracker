@@ -7,6 +7,7 @@ namespace App\Cash\Expense\UI;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Bank\BankSourceEnum;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
+use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
@@ -25,7 +26,8 @@ class ExpensePresenter extends BaseAdminPresenter
 		private BankExpenseGridFactory $bankExpenseGridFactory,
 		private FrontModalControlFactory $frontModalControlFactory,
 		private BankExpenseRepository $bankExpenseRepository,
-		ExpenseTagFacade $expenseTagFacade,
+		private ExpenseTagRepository $expenseTagRepository,
+		private ExpenseTagFacade $expenseTagFacade,
 	)
 	{
 		parent::__construct();
@@ -74,12 +76,37 @@ class ExpensePresenter extends BaseAdminPresenter
 
 	public function handleShowModal(string $id): void
 	{
-		$this->showModal = true;
-		$modalComponent = $this->getComponent('modal');
-		$modalComponent->setIncludedTemplateFileParameters(
-			['expense' => $this->bankExpenseRepository->getById(Uuid::fromString($id))],
-		);
-		$this->redrawControl('modal');
+		$this->processModal($id);
+
+	}
+
+	public function handleChangeMainTag(string $expenseId, string $tagId): void
+	{
+		$this->expenseTagFacade->manuallySetMainTag(Uuid::fromString($expenseId), (int) $tagId);
+		$this->processModal($expenseId);
+
+		$this->redrawControl('bankExpenseGridSnippet');
+		$this->redrawControl('bankExpenseWithoutMainTagGridSnippet');
+	}
+
+	public function handleAddOtherTag(string $expenseId, string $tagId): void
+	{
+		$this->expenseTagFacade->manuallySetOtherTag(Uuid::fromString($expenseId), (int) $tagId);
+
+		$this->processModal($expenseId);
+
+		$this->redrawControl('bankExpenseGridSnippet');
+		$this->redrawControl('bankExpenseWithoutMainTagGridSnippet');
+	}
+
+	public function handleRemoveOtherTag(string $expenseId, string $tagId): void
+	{
+		$this->expenseTagFacade->manuallyRemoveOtherTag(Uuid::fromString($expenseId), (int) $tagId);
+
+		$this->processModal($expenseId);
+
+		$this->redrawControl('bankExpenseGridSnippet');
+		$this->redrawControl('bankExpenseWithoutMainTagGridSnippet');
 	}
 
 	public function createComponentModal(): FrontModalControl
@@ -87,6 +114,32 @@ class ExpensePresenter extends BaseAdminPresenter
 		$modal = $this->frontModalControlFactory->create();
 		$modal->setIncludeTemplateFile(__DIR__ . '/templates/Expense.modal.latte');
 		return $modal;
+	}
+
+	private function processModal(string $expenseId): void
+	{
+		$this->showModal = true;
+		$modalComponent = $this->getComponent('modal');
+		$modalComponent->setIncludedTemplateFileParameters(
+			[
+				'expense' => $this->bankExpenseRepository->getById(Uuid::fromString($expenseId)),
+				'mainTags' => $this->expenseTagRepository->findAllMain(),
+				'otherTags' => $this->expenseTagRepository->findAllOtherTags(),
+				'changeMainTagHandleLink' => $this->link(
+					'changeMainTag!',
+					['expenseId' => 'replaceExpenseId', 'tagId' => 'replaceTagId'],
+				),
+				'changeOtherTagHandleLink' => $this->link(
+					'addOtherTag!',
+					['expenseId' => 'replaceExpenseId', 'tagId' => 'replaceTagId'],
+				),
+				'removeOtherTagHandlerLink' => $this->link(
+					'removeOtherTag!',
+					['expenseId' => 'replaceExpenseId', 'tagId' => 'replaceTagId'],
+				),
+			],
+		);
+		$this->redrawControl('modal');
 	}
 
 }

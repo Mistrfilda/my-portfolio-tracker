@@ -8,6 +8,9 @@ declare global {
         photosModal: any;
         modal: any;
         loadChart: any;
+        expenseMainTag: any;
+        addExpenseOtherTag: any;
+        removeOtherTag: any;
     }
 }
 

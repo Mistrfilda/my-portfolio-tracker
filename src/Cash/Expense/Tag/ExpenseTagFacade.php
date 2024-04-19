@@ -8,6 +8,7 @@ use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Ramsey\Uuid\UuidInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ExpenseTagFacade
@@ -90,7 +91,7 @@ class ExpenseTagFacade
 				}
 
 				if ($matched) {
-					if ($expenseTag->isMainTag()) {
+					if ($expenseTag->isMainTag() && $bankExpense->isMainTagSetManually() === false) {
 						if (
 							$bankExpense->getMainTag() !== null
 							&& $bankExpense->getMainTag()->getId() !== $expenseTag->getId()
@@ -99,7 +100,7 @@ class ExpenseTagFacade
 						}
 
 						$bankExpense->setMainTag($expenseTag);
-					} else {
+					} elseif ($bankExpense->isOtherTagSetManually() === false) {
 						$bankExpense->addOtherTag($expenseTag);
 					}
 
@@ -107,6 +108,34 @@ class ExpenseTagFacade
 				}
 			}
 		}
+	}
+
+	public function manuallySetMainTag(UuidInterface $id, int $tagId): void
+	{
+		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$bankExpense->setManuallyMainTag(
+			$this->expenseTagRepository->getById($tagId),
+		);
+		bdump($bankExpense->getMainTag());
+		$this->entityManager->flush();
+	}
+
+	public function manuallySetOtherTag(UuidInterface $id, int $tagId): void
+	{
+		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$bankExpense->addManuallyOtherTag(
+			$this->expenseTagRepository->getById($tagId),
+		);
+		$this->entityManager->flush();
+	}
+
+	public function manuallyRemoveOtherTag(UuidInterface $id, int $tagId): void
+	{
+		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$bankExpense->manuallyRemoveOtherTag(
+			$this->expenseTagRepository->getById($tagId),
+		);
+		$this->entityManager->flush();
 	}
 
 }

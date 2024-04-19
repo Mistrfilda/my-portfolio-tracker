@@ -10,7 +10,10 @@
             {control modal}
         {/if}
     {/snippet}
-    {control bankExpenseGrid}
+
+    {snippet bankExpenseGridSnippet}
+        {control bankExpenseGrid}
+    {/snippet}
 
     <div class="pb-5 border-b border-gray-200 py-6">
         <h2 class="text-2xl leading-6 font-medium text-gray-900">
@@ -21,5 +24,7 @@
         </p>
     </div>
 
-    {control bankExpenseWithoutMainTagGrid}
+    {snippet bankExpenseWithoutMainTagGridSnippet}
+        {control bankExpenseWithoutMainTagGrid}
+    {/snippet}
 {/block}

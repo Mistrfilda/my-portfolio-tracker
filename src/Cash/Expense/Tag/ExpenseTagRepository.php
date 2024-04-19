@@ -45,6 +45,28 @@ class ExpenseTagRepository extends BaseRepository
 	}
 
 	/**
+	 * @return array<ExpenseTag>
+	 */
+	public function findAllMain(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('expenseTag');
+		$qb->andWhere($qb->expr()->isNull('expenseTag.parentTag'));
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<ExpenseTag>
+	 */
+	public function findAllOtherTags(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('expenseTag');
+		$qb->andWhere($qb->expr()->isNotNull('expenseTag.parentTag'));
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
 	 * @param array<int> $ids
 	 * @return array<ExpenseTag>
 	 */
