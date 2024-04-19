@@ -54,6 +54,12 @@ class BankExpense implements Entity, Expense
 	#[ORM\Column(type: Types::STRING)]
 	private string $transactionRawContent;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $mainTagSetManually;
+
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $otherTagSetManually;
+
 	#[ORM\ManyToOne(targetEntity: ExpenseTag::class, inversedBy: 'mainExpenses')]
 	private ExpenseTag|null $mainTag;
 
@@ -87,6 +93,8 @@ class BankExpense implements Entity, Expense
 
 		$this->otherTags = new ArrayCollection();
 		$this->mainTag = null;
+		$this->mainTagSetManually = false;
+		$this->otherTagSetManually = false;
 	}
 
 	public function setMainTag(ExpenseTag $expenseTag): void
@@ -98,12 +106,41 @@ class BankExpense implements Entity, Expense
 		$this->mainTag = $expenseTag;
 	}
 
+	public function setManuallyMainTag(ExpenseTag $expenseTag): void
+	{
+		if ($expenseTag->isMainTag() === false) {
+			throw new ExpenseTagException('Invalid main tag');
+		}
+
+		$this->mainTag = $expenseTag;
+		$this->mainTagSetManually = true;
+	}
+
 	public function addOtherTag(ExpenseTag $expenseTag): void
 	{
 		if ($this->otherTags->contains($expenseTag) === false) {
 			$this->otherTags->add($expenseTag);
 			$expenseTag->addOtherBankExpense($this);
 		}
+	}
+
+	public function addManuallyOtherTag(ExpenseTag $expenseTag): void
+	{
+		if ($this->otherTags->contains($expenseTag) === false) {
+			$this->otherTags->add($expenseTag);
+			$expenseTag->addOtherBankExpense($this);
+		}
+
+		$this->otherTagSetManually = true;
+	}
+
+	public function manuallyRemoveOtherTag(ExpenseTag $expenseTag): void
+	{
+		if ($this->otherTags->contains($expenseTag)) {
+			$this->otherTags->removeElement($expenseTag);
+		}
+
+		$this->otherTagSetManually = true;
 	}
 
 	public function getMainTag(): ExpenseTag|null
@@ -180,6 +217,16 @@ class BankExpense implements Entity, Expense
 	public function getExpenseType(): ExpenseTypeEnum
 	{
 		return $this->bankTransactionType;
+	}
+
+	public function isMainTagSetManually(): bool
+	{
+		return $this->mainTagSetManually;
+	}
+
+	public function isOtherTagSetManually(): bool
+	{
+		return $this->otherTagSetManually;
 	}
 
 }

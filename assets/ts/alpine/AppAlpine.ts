@@ -147,6 +147,9 @@ Alpine.data('modal', () => ({
 
     closeModal() {
         this.modalOpen = false;
+    },
+    openModal() {
+      this.modalOpen = true;
     }
 }));
 
@@ -172,6 +175,82 @@ Alpine.data('loadChart', () => ({
         }
 
         throw new Error('Invalid chart type passed');
+    }
+}));
+
+Alpine.data('expenseMainTag', (expenseId: string, handleLink: string) => ({
+    mainTagId: '',
+
+    init() {
+      console.log(expenseId);
+    },
+    click() {
+        if (this.mainTagId === '') {
+            return;
+        }
+
+        handleLink = handleLink.replace("replaceTagId", this.mainTagId);
+        handleLink = handleLink.replace("replaceExpenseId", expenseId);
+
+        naja.makeRequest(
+            'GET',
+            handleLink,
+            null,
+            {
+                history: false,
+                responseType: 'json',
+                unique: false
+            },
+        );
+    }
+}));
+
+Alpine.data('addExpenseOtherTag', (expenseId: string, handleLink: string) => ({
+    mainTagId: '',
+
+    init() {
+        console.log(expenseId);
+    },
+    click() {
+        if (this.mainTagId === '') {
+            return;
+        }
+
+        handleLink = handleLink.replace("replaceTagId", this.mainTagId);
+        handleLink = handleLink.replace("replaceExpenseId", expenseId);
+
+        naja.makeRequest(
+            'GET',
+            handleLink,
+            null,
+            {
+                history: false,
+                responseType: 'json',
+                unique: false
+            },
+        );
+    }
+}));
+
+Alpine.data('removeOtherTag', (expenseId: string, handleLink: string) => ({
+    click(tagId: string) {
+        if (tagId === '') {
+            return;
+        }
+
+        handleLink = handleLink.replace("replaceTagId", tagId);
+        handleLink = handleLink.replace("replaceExpenseId", expenseId);
+
+        naja.makeRequest(
+            'GET',
+            handleLink,
+            null,
+            {
+                history: false,
+                responseType: 'json',
+                unique: false
+            },
+        );
     }
 }));
 

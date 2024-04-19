@@ -146,4 +146,5 @@ class ExpenseTag implements Entity
 	{
 		return $this->otherExpenses->toArray();
 	}
+
 }
