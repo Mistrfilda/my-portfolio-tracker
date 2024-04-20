@@ -10,6 +10,7 @@ use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\UI\Control\Chart\ChartData;
 use App\UI\Control\Chart\ChartDataProvider;
+use App\UI\Control\Chart\ChartDataSet;
 
 class StockDividendByMonthChartDataProvider implements ChartDataProvider
 {
@@ -29,7 +30,7 @@ class StockDividendByMonthChartDataProvider implements ChartDataProvider
 		$this->shouldDeductTax = false;
 	}
 
-	public function getChartData(): ChartData
+	public function getChartData(): ChartDataSet
 	{
 		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
 		/** @var array<string, SummaryPrice> $preparedData */
@@ -54,13 +55,13 @@ class StockDividendByMonthChartDataProvider implements ChartDataProvider
 			$preparedData[$key] = $recordPrice;
 		}
 
-		$chartData = new ChartData('Dividendy během měsíců', tooltipSuffix: 'Kč');
+		$chartData = new ChartData('Dividendy během měsíců');
 
 		foreach ($preparedData as $key => $summaryPrice) {
 			$chartData->add($key, (int) $summaryPrice->getPrice());
 		}
 
-		return $chartData;
+		return new ChartDataSet([$chartData], tooltipSuffix: 'Kč');
 	}
 
 }

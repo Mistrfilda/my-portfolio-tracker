@@ -60,7 +60,8 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioTotalValueChart(): ChartControl
 	{
 		$provider = clone $this->portfolioTotalValueChartProvider;
-		$provider->setType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
+		$provider->addType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
+		$provider->addType(PortolioStatisticType::TOTAL_INVESTED_IN_CZK);
 
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
@@ -68,7 +69,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioTotalInvestedChart(): ChartControl
 	{
 		$provider = clone $this->portfolioTotalValueChartProvider;
-		$provider->setType(PortolioStatisticType::TOTAL_INVESTED_IN_CZK);
+		$provider->addType(PortolioStatisticType::TOTAL_INVESTED_IN_CZK);
 
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
@@ -76,7 +77,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioTotalProfitChart(): ChartControl
 	{
 		$provider = clone $this->portfolioTotalValueChartProvider;
-		$provider->setType(PortolioStatisticType::TOTAL_PROFIT);
+		$provider->addType(PortolioStatisticType::TOTAL_PROFIT);
 
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
@@ -84,7 +85,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioTotalProfitPercentageChart(): ChartControl
 	{
 		$provider = clone $this->portfolioTotalValueChartProvider;
-		$provider->setType(PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE);
+		$provider->addType(PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE);
 
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
@@ -92,7 +93,8 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioTotalValueLastMonthChart(): ChartControl
 	{
 		$provider = clone $this->portfolioTotalValueLastMonthChartProvider;
-		$provider->setType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
+		$provider->addType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
+		$provider->addType(PortolioStatisticType::TOTAL_INVESTED_IN_CZK);
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
 

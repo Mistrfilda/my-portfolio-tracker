@@ -8,12 +8,14 @@ use App\Statistic\PortfolioStatisticRepository;
 use App\Statistic\PortolioStatisticType;
 use App\UI\Control\Chart\ChartData;
 use App\UI\Control\Chart\ChartDataProvider;
+use App\UI\Control\Chart\ChartDataSet;
 use InvalidArgumentException;
 
 class PortfolioTotalValueChartProvider implements ChartDataProvider
 {
 
-	private PortolioStatisticType|null $type = null;
+	/** @var array<PortolioStatisticType>|null */
+	private array|null $types = null;
 
 	public function __construct(
 		private PortfolioStatisticRepository $portfolioStatisticRepository,
@@ -21,42 +23,47 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 	{
 	}
 
-	public function setType(PortolioStatisticType $type): void
+	public function addType(PortolioStatisticType $type): void
 	{
-		$this->type = $type;
+		$this->types[] = $type;
 	}
 
-	public function getChartData(): ChartData
+	public function getChartData(): ChartDataSet
 	{
-		if ($this->type === null) {
+		if ($this->types === null) {
 			throw new InvalidArgumentException();
 		}
 
-		$chartData = new ChartData($this->type->format(), tooltipSuffix: 'Kč');
+		$allChartData = [];
+		foreach ($this->types as $type) {
+			$chartData = new ChartData($type->format());
 
-		$addedDates = [];
-		foreach ($this->portfolioStatisticRepository->getPortfolioTotalValueForType(
-			$this->type,
-		) as $portfolioStatistic) {
-			$date = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
-			if (in_array($date, $addedDates, true)) {
-				continue;
+			$addedDates = [];
+			foreach ($this->portfolioStatisticRepository->getPortfolioTotalValueForType(
+				$type,
+			) as $portfolioStatistic) {
+				$date = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
+				if (in_array($date, $addedDates, true)) {
+					continue;
+				}
+
+				$addedDates[] = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
+
+				if ($type === PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE) {
+					$value = str_replace('%', '', $portfolioStatistic->getValue());
+					$value = str_replace(' ', '', $value);
+				} else {
+					$value = str_replace('CZK', '', $portfolioStatistic->getValue());
+					$value = str_replace(' ', '', $value);
+				}
+
+				$chartData->add($date, (int) $value);
 			}
 
-			$addedDates[] = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
-
-			if ($this->type === PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE) {
-				$value = str_replace('%', '', $portfolioStatistic->getValue());
-				$value = str_replace(' ', '', $value);
-			} else {
-				$value = str_replace('CZK', '', $portfolioStatistic->getValue());
-				$value = str_replace(' ', '', $value);
-			}
-
-			$chartData->add($date, (int) $value);
+			$allChartData[] = $chartData;
 		}
 
-		return $chartData;
+		return new ChartDataSet($allChartData, tooltipSuffix: 'Kč');
 	}
 
 }
