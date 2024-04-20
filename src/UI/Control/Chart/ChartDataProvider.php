@@ -7,6 +7,6 @@ namespace App\UI\Control\Chart;
 interface ChartDataProvider
 {
 
-	public function getChartData(): ChartData;
+	public function getChartData(): ChartDataSet;
 
 }

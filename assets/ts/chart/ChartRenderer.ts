@@ -45,39 +45,14 @@ export class ChartRenderer {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
-            let tooltipDefaults = this.getTooltipDefaults();
-            tooltipDefaults.callbacks = {
-                // label: function (tooltipItem: ChartTooltipItem, chart: Chart) {
-                //     return tooltipItem.yLabel + ' ' + response.tooltipSuffix;
-                // }
-            };
-
             let myChart = new Chart(graphCanvasElement, {
                 type: 'line',
                 data: {
                     labels: response.labels,
-                    datasets: [{
-                        label: response.datasets.label,
-                        data: response.datasets.data,
-                        borderWidth: 1,
-                        fill: false,
-                        backgroundColor: function(context) {
-                            var index = context.dataIndex;
-                            var value = context.dataset.data[index];
-                            return value < 0 ? 'red' : 'green';
-                        },
-                        borderColor: this.defaultBackgroundColor,
-                        tension: 0.1
-                    }]
+                    datasets: response.datasets
                 },
                 options: {
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
-                    // tooltips: tooltipDefaults
+                    responsive: true,
                 }
             });
 
@@ -89,23 +64,11 @@ export class ChartRenderer {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
-            let tooltipDefaults = this.getTooltipDefaults();
-            tooltipDefaults.callbacks = {
-                // label: function (tooltipItem: ChartTooltipItem, chart: Chart) {
-                //     return tooltipItem.yLabel + ' ' + response.tooltipSuffix;
-                // }
-            };
             let myChart = new Chart(graphCanvasElement, {
                 type: 'bar',
                 data: {
                     labels: response.labels,
-                    datasets: [{
-                        label: response.datasets.label,
-                        data: response.datasets.data,
-                        // backgroundColor: response.datasets.backgroundColors,
-                        // borderColor: response.datasets.borderColors,
-                        borderWidth: 1
-                    }]
+                    datasets: response.datasets
                 },
                 options: {
                     scales: {
@@ -118,9 +81,6 @@ export class ChartRenderer {
                             callbacks: {
                                 label(tooltipItem: TooltipItem<any>): string | string[] | void {
                                     let label = tooltipItem.dataset.label || '';
-                                    console.log(tooltipItem);
-                                    console.log(label);
-
                                     if (label) {
                                         label =  label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
                                     }
@@ -130,7 +90,6 @@ export class ChartRenderer {
                             }
                         }
                     }
-                    // tooltips: tooltipDefaults
                 }
             });
 
@@ -147,16 +106,7 @@ export class ChartRenderer {
                 type: 'doughnut',
                 data: {
                     labels: response.labels,
-                    datasets: [{
-                        label: response.datasets.label,
-                        data: response.datasets.data,
-                        borderWidth: 1,
-                        // backgroundColor: response.datasets.backgroundColors,
-                        // borderColor: response.datasets.borderColors,
-                    }]
-                },
-                options: {
-                    // tooltips: this.tooltipDefaults
+                    datasets: response.datasets
                 }
             });
 
