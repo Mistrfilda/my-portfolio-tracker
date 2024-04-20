@@ -46,7 +46,8 @@ class ExpenseTagFormFactory
 			'Regexy',
 			static function (Container $container, AdminForm $form): void {
 				$container->addText('regex', 'Regex')
-					->setRequired();
+					->setNullable()
+					->setRequired(false);
 			},
 			1,
 			20,
@@ -68,7 +69,9 @@ class ExpenseTagFormFactory
 
 			$regexes = [];
 			foreach ($expenseTag->getRegexes() as $regex) {
-				$regexes[]['regex'] = $regex;
+				if ($regex !== '') {
+					$regexes[]['regex'] = $regex;
+				}
 			}
 
 			$form->setDefaults([
@@ -96,7 +99,9 @@ class ExpenseTagFormFactory
 
 			$regexes = [];
 			foreach ($values->regexes as $regex) {
-				$regexes[] = $regex->regex;
+				if ($regex->regex !== null && $regex->regex !== '') {
+					$regexes[] = $regex->regex;
+				}
 			}
 
 			if ($id === null) {
