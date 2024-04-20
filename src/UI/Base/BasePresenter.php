@@ -10,6 +10,8 @@ use Nette\Application\UI\Presenter;
 use Nette\Bridges\SecurityHttp\SessionStorage;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
+use ReflectionClass;
+use ReflectionMethod;
 
 abstract class BasePresenter extends Presenter
 {
@@ -119,7 +121,10 @@ abstract class BasePresenter extends Presenter
 		return Uuid::fromString($id);
 	}
 
-	public function checkRequirements(mixed $element): void
+	/**
+	 * @phpstan-ignore-next-line
+	 */
+	public function checkRequirements(ReflectionClass|ReflectionMethod $element): void
 	{
 		$storage = $this->getUser()->getStorage();
 		assert($storage instanceof SessionStorage);
