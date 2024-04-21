@@ -30,6 +30,14 @@ class PortfolioTotalValueLastMonthChartProvider implements ChartDataProvider
 		$this->types[] = $type;
 	}
 
+	/**
+	 * @param array<mixed> $parameters
+	 */
+	public function processParametersFromRequest(array $parameters): void
+	{
+		//do nothing
+	}
+
 	public function getChartData(): ChartDataSet
 	{
 		if ($this->types === null) {
@@ -67,6 +75,16 @@ class PortfolioTotalValueLastMonthChartProvider implements ChartDataProvider
 		}
 
 		return new ChartDataSet($allChartData, tooltipSuffix: 'Kč');
+	}
+
+	public function getIdForChart(): string
+	{
+		$id = md5(self::class);
+		foreach ($this->types ?? [] as $type) {
+			$id .= md5($type::class);
+		}
+
+		return $id;
 	}
 
 }

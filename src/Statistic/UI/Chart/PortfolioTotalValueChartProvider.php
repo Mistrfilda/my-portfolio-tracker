@@ -23,6 +23,14 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 	{
 	}
 
+	/**
+	 * @param array<mixed> $parameters
+	 */
+	public function processParametersFromRequest(array $parameters): void
+	{
+		//do nothing
+	}
+
 	public function addType(PortolioStatisticType $type): void
 	{
 		$this->types[] = $type;
@@ -64,6 +72,16 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 		}
 
 		return new ChartDataSet($allChartData, tooltipSuffix: 'Kč');
+	}
+
+	public function getIdForChart(): string
+	{
+		$id = md5(self::class);
+		foreach ($this->types ?? [] as $type) {
+			$id .= md5($type->format());
+		}
+
+		return $id;
 	}
 
 }

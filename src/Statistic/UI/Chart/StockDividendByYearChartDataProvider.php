@@ -25,6 +25,14 @@ class StockDividendByYearChartDataProvider implements ChartDataProvider
 
 	}
 
+	/**
+	 * @param array<mixed> $parameters
+	 */
+	public function processParametersFromRequest(array $parameters): void
+	{
+		//do nothing
+	}
+
 	public function notDeductTax(): void
 	{
 		$this->shouldDeductTax = false;
@@ -62,6 +70,11 @@ class StockDividendByYearChartDataProvider implements ChartDataProvider
 		}
 
 		return new ChartDataSet([$chartData], tooltipSuffix: 'Kč');
+	}
+
+	public function getIdForChart(): string
+	{
+		return md5(self::class) . md5($this->shouldDeductTax ? '1' : '-1');
 	}
 
 }

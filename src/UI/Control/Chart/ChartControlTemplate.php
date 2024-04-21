@@ -16,4 +16,6 @@ class ChartControlTemplate extends BaseControlTemplate
 
 	public string $chartType;
 
+	public int $shouldUpdateOnAjaxRequest;
+
 }
