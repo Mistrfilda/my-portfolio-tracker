@@ -73,7 +73,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 			@$domDocument->loadHTML($contents);
 
 			$domXpath = new DOMXPath($domDocument);
-			$trNodes = $domXpath->query("//table[contains(@data-test, 'historical-prices')]/tbody/tr");
+			$trNodes = $domXpath->query('//div[contains(@class, table-container)]/table/tbody/tr');
 			assert($trNodes instanceof DOMNodeList);
 
 			$this->logger->debug(

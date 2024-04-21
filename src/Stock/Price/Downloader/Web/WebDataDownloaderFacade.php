@@ -84,7 +84,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 			@$domDocument->loadHTML($contents);
 
 			$domXpath = new DOMXPath($domDocument);
-			$nodes = $domXpath->query("//div[contains(@id, 'quote-header-info')]");
+			$nodes = $domXpath->query("//section[contains(@data-testid, 'quote-price')]");
 
 			$today = $this->datetimeFactory->createToday();
 			$now = $this->datetimeFactory->createNow();
