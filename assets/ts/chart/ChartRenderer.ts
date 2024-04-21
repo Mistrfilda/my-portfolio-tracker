@@ -1,6 +1,7 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
 import Chart, {TooltipItem, Colors} from 'chart.js/auto';
+import {ChartInstance} from "./ChartInstance";
 
 
 export class ChartRenderer {
@@ -10,12 +11,15 @@ export class ChartRenderer {
 
     tooltipDefaults: object;
 
-    constructor(naja: Naja) {
+    loadedCharts: Array<ChartInstance>;
+
+    constructor(naja: Naja, loadedCharts: Array<ChartInstance>) {
         this.naja = naja;
         this.setDefaults();
 
         this.defaultBackgroundColor = '#111827';
         this.tooltipDefaults = this.getTooltipDefaults();
+        this.loadedCharts = loadedCharts;
     }
 
     setDefaults() {
@@ -41,7 +45,7 @@ export class ChartRenderer {
         }
     }
 
-    async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
+    async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -56,11 +60,18 @@ export class ChartRenderer {
                 }
             });
 
+            if (shouldUpdateOnAjaxRequestValue) {
+                this.loadedCharts.push({
+                    chart: myChart,
+                    chartDataUrl: chartDataUrl
+                });
+            }
+
             this.removeGraphSpinner(chartId);
         }.bind(this));
     }
 
-    async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
+    async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -71,18 +82,13 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    },
                     plugins: {
                         tooltip: {
                             callbacks: {
                                 label(tooltipItem: TooltipItem<any>): string | string[] | void {
                                     let label = tooltipItem.dataset.label || '';
                                     if (label) {
-                                        label =  label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
+                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
                                     }
 
                                     return label;
@@ -93,12 +99,19 @@ export class ChartRenderer {
                 }
             });
 
+            if (shouldUpdateOnAjaxRequestValue) {
+                this.loadedCharts.push({
+                    chart: myChart,
+                    chartDataUrl: chartDataUrl
+                });
+            }
+
             this.removeGraphSpinner(chartId);
         }.bind(this));
     }
 
 
-    async createDoughnutCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string): Promise<void> {
+    async createDoughnutCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
         let graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
@@ -107,10 +120,53 @@ export class ChartRenderer {
                 data: {
                     labels: response.labels,
                     datasets: response.datasets
-                }
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
+                                    let label = tooltipItem.dataset.label || '';
+                                    if (label) {
+                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
+                                    }
+
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                },
             });
 
+            if (shouldUpdateOnAjaxRequestValue) {
+                this.loadedCharts.push({
+                    chart: myChart,
+                    chartDataUrl: chartDataUrl
+                });
+            }
+
             this.removeGraphSpinner(chartId);
+        }.bind(this));
+    }
+
+    async updateChart(chart: Chart, chartDataUrl: string): Promise<void> {
+        let graphData = this.naja.makeRequest(
+            'GET',
+            chartDataUrl,
+            null,
+            {
+                history: false,
+                responseType: 'json',
+                unique: false
+            },
+        );
+
+        graphData.then(function (response: ChartData) {
+            chart.data.labels = response.labels;
+            chart.data.datasets = response.datasets;
+            chart.update();
         }.bind(this));
     }
 

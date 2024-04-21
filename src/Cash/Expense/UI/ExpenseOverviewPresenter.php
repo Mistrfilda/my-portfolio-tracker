@@ -5,8 +5,12 @@ declare(strict_types = 1);
 namespace App\Cash\Expense\UI;
 
 use App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory;
+use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryChartDataProvider;
 use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryControl;
 use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Control\Chart\ChartControl;
+use App\UI\Control\Chart\ChartControlFactory;
+use App\UI\Control\Chart\ChartType;
 use Nette\Application\Attributes\Persistent;
 
 /**
@@ -15,7 +19,7 @@ use Nette\Application\Attributes\Persistent;
 class ExpenseOverviewPresenter extends BaseSysadminPresenter
 {
 
-	private const DEFAULT_YEAR = 2024;
+	public const DEFAULT_YEAR = 2024;
 
 	#[Persistent]
 	public int $selectedYear = self::DEFAULT_YEAR;
@@ -25,6 +29,8 @@ class ExpenseOverviewPresenter extends BaseSysadminPresenter
 
 	public function __construct(
 		private ExpanseOverviewCategoryControlFactory $expanseOverviewCategoryControlFactory,
+		private ChartControlFactory $chartControlFactory,
+		private ExpenseOverviewCategoryChartDataProvider $expenseOverviewCategoryChartDataProvider,
 	)
 	{
 		parent::__construct();
@@ -80,6 +86,14 @@ class ExpenseOverviewPresenter extends BaseSysadminPresenter
 			$this->selectedYear ?? self::DEFAULT_YEAR,
 			$this->selectedMonth,
 		);
+	}
+
+	protected function createComponentChartOverview(): ChartControl
+	{
+		$dataProvider = clone $this->expenseOverviewCategoryChartDataProvider;
+		$dataProvider->setYear($this->selectedYear ?? self::DEFAULT_YEAR,);
+		$dataProvider->setMonth($this->selectedMonth);
+		return $this->chartControlFactory->create(ChartType::DOUGHNUT, $dataProvider, true);
 	}
 
 }

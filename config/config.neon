@@ -290,3 +290,4 @@ services:
 	- App\Cash\Expense\Tag\UI\ExpenseTagDatagridFactory
 	- App\Cash\Expense\Tag\Command\ExpenseTagProcessCommand
 	- App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory
+	- App\Cash\Expense\UI\Control\ExpenseOverviewCategoryChartDataProvider

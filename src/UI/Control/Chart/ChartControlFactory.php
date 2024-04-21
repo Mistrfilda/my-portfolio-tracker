@@ -7,6 +7,10 @@ namespace App\UI\Control\Chart;
 interface ChartControlFactory
 {
 
-	public function create(ChartType $type, ChartDataProvider $chartDataProvider): ChartControl;
+	public function create(
+		ChartType $type,
+		ChartDataProvider $chartDataProvider,
+		bool $shouldUpdateOnAjaxRequest = false,
+	): ChartControl;
 
 }

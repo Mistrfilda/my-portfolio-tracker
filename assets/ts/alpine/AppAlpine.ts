@@ -5,12 +5,47 @@ import Alpine from 'alpinejs';
 // @ts-ignore
 import {ChartRenderer} from "../chart/ChartRenderer";
 import {ChartType} from "../chart/ChartType";
+import {ChartInstance} from "../chart/ChartInstance";
 
 import naja from 'naja';
 import {registerExtensions} from "../naja/extension";
+import {CompleteEvent} from "naja/dist/Naja";
 
 naja.initialize();
 registerExtensions(naja);
+
+let loadedCharts: Array<ChartInstance> = [];
+let chartRenderer = new ChartRenderer(naja, loadedCharts);
+
+naja.addEventListener(
+    'complete',
+    (event: CompleteEvent) => {
+        if (event.detail.request.url.includes('getChartData')) {
+            return;
+        }
+
+        let startUrl = new URL(event.detail.request.url);
+
+        // Získáme parametry z původní URL
+        let params = new URLSearchParams(startUrl.search);
+
+        for (let i = 0; i < loadedCharts.length; i++) {
+            // URL adresa, kam chcete odeslat GET požadavek
+            let targetUrl = new URL(loadedCharts[i].chartDataUrl, startUrl.origin);
+
+            // Přidáme další parametry dotazu
+            for(let pair of params.entries()) {
+                let name = 'originalRequest' + pair[0];
+                targetUrl.searchParams.append(name, pair[1]);
+            }
+
+            // console.log(targetUrl);
+            chartRenderer.updateChart(loadedCharts[i].chart, targetUrl.toString()).then(() => {
+                console.log('what?');
+            });
+        }
+    }
+);
 
 Alpine.data('frontMenu', () => ({
     show: false,
@@ -155,22 +190,22 @@ Alpine.data('modal', () => ({
 
 Alpine.data('loadChart', () => ({
     show: true,
-    loadGraph(chartId: any, chartDataUrl: string, type: ChartType): boolean {
-        let chartRenderer = new ChartRenderer(naja);
+    loadGraph(chartId: any, chartDataUrl: string, type: ChartType, shouldUpdateOnAjaxRequest: number): boolean {
         let chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
+        let shouldUpdateOnAjaxRequestValue = Boolean(Number(shouldUpdateOnAjaxRequest));
 
         if (type.valueOf() === ChartType.LINE.valueOf()) {
-            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl, chartId)
+            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl, chartId, shouldUpdateOnAjaxRequestValue)
             return true;
         }
 
         if (type.valueOf() === ChartType.DOUGHNUT.valueOf()) {
-            chartRenderer.createDoughnutCharts(chartCanvasElement, chartDataUrl, chartId)
+            chartRenderer.createDoughnutCharts(chartCanvasElement, chartDataUrl, chartId, shouldUpdateOnAjaxRequestValue)
             return true;
         }
 
         if (type.valueOf() === ChartType.BAR.valueOf()) {
-            chartRenderer.createBarCharts(chartCanvasElement, chartDataUrl, chartId)
+            chartRenderer.createBarCharts(chartCanvasElement, chartDataUrl, chartId, shouldUpdateOnAjaxRequestValue)
             return true;
         }
 

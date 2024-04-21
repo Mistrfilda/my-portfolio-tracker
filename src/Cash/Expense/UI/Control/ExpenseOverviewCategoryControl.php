@@ -20,7 +20,6 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		private ExpenseCategoryRepository $expenseCategoryRepository,
 	)
 	{
-
 	}
 
 	public function render(): void
