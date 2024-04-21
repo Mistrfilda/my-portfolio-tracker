@@ -1,0 +1,72 @@
+{templateType App\Cash\Expense\UI\ExpenseOverviewTemplate}
+{block #content}
+    {snippet pageSnippet}
+        <ul role="list" class="divide-y divide-gray-200">
+            <li class="px-4 py-4 sm:px-0">
+                <div>
+                    {*                <div class="sm:hidden">*}
+                    {*                    <label for="tabs" class="sr-only">Select a tab</label>*}
+                    {*                    <!-- Use an "onChange" listener to redirect the user to the selected tab URL. -->*}
+                    {*                    <select id="tabs" name="tabs" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">*}
+                    {*                        <option selected>My Account</option>*}
+                    {*                        <option>Company</option>*}
+                    {*                        <option>Team Members</option>*}
+                    {*                        <option>Billing</option>*}
+                    {*                    </select>*}
+                    {*                </div>*}
+                    {*                <div class="hidden sm:block">*}
+                    <div class="block">
+                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
+                            {foreach $yearOptions as $yearOption}
+                                <a
+                                        n:href="setYear! selectedYear: $yearOption"
+                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $selectedYear === $yearOption ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
+                                        aria-current="page"
+                                >
+                                    <span>{$yearOption}</span>
+                                    {if $selectedYear === $yearOption}
+                                        <span aria-hidden="true"
+                                              class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {else}
+                                        <span aria-hidden="true"
+                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {/if}
+                                </a>
+                            {/foreach}
+                        </nav>
+                    </div>
+                </div>
+            </li>
+
+            <li class="px-4 py-4 sm:px-0">
+                <div>
+                    <div class="block">
+                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
+                            {foreach $monthOptions as $key => $monthOption}
+                                <a
+                                        n:href="setMonth! month: ($selectedMonth === $key ? null : $key)"
+                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $selectedMonth === $key ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
+                                        aria-current="page"
+                                >
+                                    <span>{$monthOption}</span>
+                                    {if $selectedMonth === $key}
+                                        <span aria-hidden="true"
+                                              class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {else}
+                                        <span aria-hidden="true"
+                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {/if}
+                                </a>
+                            {/foreach}
+                        </nav>
+                    </div>
+                </div>
+            </li>
+
+            <!-- More items... -->
+        </ul>
+
+        {control expanseOverviewCategoryControl}
+
+    {/snippet}
+{/block}

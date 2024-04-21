@@ -83,6 +83,8 @@ orm:
 			group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
 			timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
 			day: DoctrineExtensions\Query\Mysql\Day
+			month: DoctrineExtensions\Query\Mysql\Month
+			year: DoctrineExtensions\Query\Mysql\Year
 
 orm.attributes:
 	mapping:
@@ -287,3 +289,4 @@ services:
 	- App\Cash\Expense\Tag\UI\ExpenseTagFormFactory
 	- App\Cash\Expense\Tag\UI\ExpenseTagDatagridFactory
 	- App\Cash\Expense\Tag\Command\ExpenseTagProcessCommand
+	- App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory
