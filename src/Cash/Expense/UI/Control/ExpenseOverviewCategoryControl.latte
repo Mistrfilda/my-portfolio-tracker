@@ -1,0 +1,75 @@
+{varType App\Cash\Expense\UI\Control\ExpanseOverviewData[] $data}
+{varType App\Asset\Price\SummaryPrice $totalSummaryPrice}
+<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Výdaje dle kategorií</h3>
+    </div>
+    <div class="px-6 py-4">
+        <div class="-mx-4 flow-root sm:mx-0">
+            <table class="min-w-full">
+                <colgroup>
+                    <col class="w-full sm:w-1/2">
+                    <col class="sm:w-1/6">
+                    <col class="sm:w-1/6">
+                    <col class="sm:w-1/6">
+                </colgroup>
+                <thead class="border-b border-gray-300 text-gray-900">
+                <tr>
+                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                        Název
+                    </th>
+                    <th scope="col"
+                        class="invisible">
+                        ---
+                    </th>
+                    <th scope="col"
+                        class="hidden px-3 py-3.5 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                        Počet položek
+                    </th>
+                    <th scope="col" class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">
+                        Hodnota
+                    </th>
+                </tr>
+                </thead>
+                <tbody>
+                {foreach $data as $expanseOverviewData}
+                <tr class="border-b border-gray-200">
+                    <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
+                        <div class="font-medium text-gray-900">{$expanseOverviewData->getExpenseCategory()->getEnumName()->format()}</div>
+{*                        <div class="mt-1 truncate text-gray-500">New logo and digital asset playbook.</div>*}
+                    </td>
+                    <td class="invisible"></td>
+                    <td class="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{$expanseOverviewData->getSummaryPrice()->getCounter()}</td>
+                    <td class="py-5 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-0">{$expanseOverviewData->getSummaryPrice()|summaryPriceFormat}</td>
+                </tr>
+                {/foreach}
+
+                <!-- More projects... -->
+                </tbody>
+                <tfoot>
+                <tr>
+                    <th scope="row" colspan="3"
+                        class="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell sm:pl-0">
+                        Celkový počet položek
+                    </th>
+                    <th scope="row" class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
+                        Celkový počet položek
+                    </th>
+                    <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-0">{$totalSummaryPrice->getCounter()}</td>
+                </tr>
+                <tr>
+                    <th scope="row" colspan="3"
+                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
+                        Celkem
+                    </th>
+                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                        Celkem
+                    </th>
+                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalSummaryPrice|summaryPriceFormat}
+                    </td>
+                </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Expense\Category\ExpenseCategory;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -77,6 +78,47 @@ class BankExpenseRepository extends BaseRepository
 		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
 		$qb->andWhere($qb->expr()->in('bankExpense.id', $ids));
 
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<BankExpense>
+	 */
+	public function findByTagCategory(
+		ExpenseCategory $expenseCategory,
+		int|null $year,
+		int|null $month,
+	): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('bankExpense.mainTag', 'tag');
+
+		$qb->andWhere(
+			$qb->expr()->eq('tag.expenseCategory', ':expenseCategory'),
+		);
+		$qb->setParameter('expenseCategory', $expenseCategory);
+
+		if ($month !== null) {
+			$qb->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->eq('MONTH(bankExpense.settlementDate)', ':month'),
+					$qb->expr()->eq('MONTH(bankExpense.transactionDate)', ':month'),
+				),
+			);
+			$qb->setParameter('month', $month);
+		}
+
+		if ($year !== null) {
+			$qb->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->eq('YEAR(bankExpense.settlementDate)', ':year'),
+					$qb->expr()->eq('YEAR(bankExpense.transactionDate)', ':year'),
+				),
+			);
+			$qb->setParameter('year', $year);
+		}
+
+		/** @phpstan-ignore-next-line  */
 		return $qb->getQuery()->getResult();
 	}
 

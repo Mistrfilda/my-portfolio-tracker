@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Asset\Price;
 
 use App\Asset\Price\Exception\SummaryPriceException;
+use App\Cash\Expense\Bank\BankExpense;
 use App\Currency\CurrencyEnum;
 
 class SummaryPrice
@@ -53,6 +54,22 @@ class SummaryPrice
 
 		$this->price += $summaryPrice->getPrice();
 		$this->counter += $summaryPrice->getCounter();
+	}
+
+	public function addBankExpense(BankExpense $bankExpense): void
+	{
+		if ($bankExpense->getCurrency() !== $this->currency) {
+			throw new SummaryPriceException(
+				sprintf(
+					'Different currency %s passed to summary - expected %s',
+					$bankExpense->getCurrency()->format(),
+					$this->currency->format(),
+				),
+			);
+		}
+
+		$this->price += $bankExpense->getAmount();
+		$this->counter += 1;
 	}
 
 	public function addFlat(float $price, int $counter): void

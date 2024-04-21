@@ -75,4 +75,8 @@ enum SvgIcon: string
 
 	case BANKNOTES = 'banknotes.svg';
 
+	case TAG = 'tag.svg';
+
+	case CREDIT_CARD = 'credit-card.svg';
+
 }
