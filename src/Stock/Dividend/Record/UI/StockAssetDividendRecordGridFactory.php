@@ -12,6 +12,7 @@ use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
 use App\UI\Control\Datagrid\Row\BaseRowRenderer;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Filter\CurrencyFilter;
+use App\UI\Filter\SummaryPriceFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
@@ -82,11 +83,17 @@ class StockAssetDividendRecordGridFactory
 
 		$grid->addColumnText(
 			'totalAmount',
-			'Celková hodnota',
+			'Celková hodnota před zdaněním',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => CurrencyFilter::format(
 				$stockAssetDividendRecord->getTotalAmount(),
 				$stockAssetDividendRecord->getStockAssetDividend()->getCurrency(),
 			),
+		);
+
+		$grid->addColumnText(
+			'totalAmount',
+			'Celková hodnota po zdanění',
+			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => SummaryPriceFilter::format($stockAssetDividendRecord->getSummaryPrice()),
 		);
 
 		$now = $this->datetimeFactory->createNow();
