@@ -89,6 +89,11 @@ class StockAssetDividendRecord implements Entity
 		return $this->stockAssetDividend;
 	}
 
+	public function getStockAssetChartLabel(): string
+	{
+		return sprintf('%s (%s)', $this->stockAssetDividend->getStockAsset()->getName(), $this->stockAssetDividend->getStockAsset()->getTicker());
+	}
+
 	public function getTotalPiecesHeldAtExDate(): int
 	{
 		return $this->totalPiecesHeldAtExDate;
