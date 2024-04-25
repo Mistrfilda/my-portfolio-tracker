@@ -125,17 +125,16 @@ class StockAssetDividendRecord implements Entity
 		if ($dividendTax !== null && $shouldDeductTax) {
 			$totalAmountAfterTax = $this->totalAmount * (1 - ($dividendTax * 0.01));
 			return new SummaryPrice(
-				$this->brokerCurrency ?? $this->currency,
+				$this->currency,
 				$totalAmountAfterTax,
 				1,
 			);
 		}
 
 		return new SummaryPrice(
-			$this->brokerCurrency ?? $this->currency,
+			$this->currency,
 			$this->totalAmount,
 			1,
 		);
 	}
-
 }
