@@ -2,20 +2,20 @@
 
 declare(strict_types = 1);
 
-
 namespace App\Statistic\UI\Chart;
 
-
+use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\UI\Control\Chart\ChartData;
 use App\UI\Control\Chart\ChartDataProvider;
 use App\UI\Control\Chart\ChartDataSet;
 
-
 class StockDividendByCompanyChartDataProvider implements ChartDataProvider
 {
+
 	private bool $shouldDeductTax = true;
 
 	public function __construct(
@@ -25,32 +25,20 @@ class StockDividendByCompanyChartDataProvider implements ChartDataProvider
 	{
 	}
 
-	/**
-	 * @param array<mixed> $parameters
-	 */
-	public function processParametersFromRequest(array $parameters): void
-	{
-		//do nothing
-	}
-
-	public function notDeductTax(): void
-	{
-		$this->shouldDeductTax = false;
-	}
-
 	public function getChartData(): ChartDataSet
 	{
-		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
-
-		$labels = [];
+		/** @var array<string, array{'stockAsset': StockAsset, 'summaryPrice': SummaryPrice}> $recordPrices */
+		$recordPrices = [];
+		$records = $this->stockAssetDividendRecordRepository->findAll();
 		foreach ($records as $record) {
-			$key = $record->getStockAssetDividend()->getExDate()->format('Y-m');
-			$labels[$key] = $key;
-		}
+			$key = $record->getStockAssetDividend()->getStockAsset()->getId()->toString();
+			if (array_key_exists($key, $recordPrices) === false) {
+				$recordPrices[$key] = [
+					'stockAsset' => $record->getStockAssetDividend()->getStockAsset(),
+					'summaryPrice' => new SummaryPrice(CurrencyEnum::CZK),
+				];
+			}
 
-		$values = [];
-		foreach ($records as $record) {
-			$key = $record->getStockAssetDividend()->getStockAssetId()->toString();
 			$recordPrice = $record->getSummaryPrice($this->shouldDeductTax);
 			if ($recordPrice->getCurrency() !== CurrencyEnum::CZK) {
 				$recordPrice = $this->currencyConversionFacade->getConvertedSummaryPrice(
@@ -60,39 +48,39 @@ class StockDividendByCompanyChartDataProvider implements ChartDataProvider
 				);
 			}
 
-			$values[$key]['name'] = $record->getStockAssetChartLabel();
-			$values[$key]['values'][$record->getStockAssetDividend()->getExDate()->format('Y-m')] = (int) $recordPrice->getPrice();
+			$recordPrices[$key]['summaryPrice']->addSummaryPrice($recordPrice);
 		}
 
-		foreach ($values as $key => $value) {
-			$sortedValues = [];
-			foreach ($labels as $label) {
-				if (array_key_exists($label, $values[$key]['values'])) {
-            		$sortedValues[$label] = $values[$key]['values'][$label];
-            	} else {
-					$sortedValues[$label] = 0;
-				}
-			}
+		usort(
+			$recordPrices,
+			static fn ($item1, $item2): int => $item2['summaryPrice']->getPrice() <=> $item1['summaryPrice']->getPrice(),
+		);
 
-			$values[$key]['values'] = $sortedValues;
-		}
-
-		/** @var array<ChartData> $chartData */
 		$chartData = [];
-		foreach ($values as $value) {
-			$stockData = new ChartData($value['name']);
-			foreach ($value['values'] as $key => $amount) {
-				$stockData->add($key, $amount);
-			}
-
-			$chartData[] = $stockData;
+		/** @var array{'stockAsset': StockAsset, 'summaryPrice': SummaryPrice} $recordPrice */
+		foreach ($recordPrices as $recordPrice) {
+			$recordChartData = new ChartData($recordPrice['stockAsset']->getName());
+			$recordChartData->add(
+				$recordPrice['stockAsset']->getName(),
+				(int) $recordPrice['summaryPrice']->getPrice(),
+			);
+			$chartData[] = $recordChartData;
 		}
 
-		return new ChartDataSet($chartData, 'Kč');
+		return new ChartDataSet($chartData, 'Kč', ['Dividenda v CZK']);
+	}
+
+	/**
+	 * @param array<string, string> $parameters
+	 */
+	public function processParametersFromRequest(array $parameters): void
+	{
+		// not used
 	}
 
 	public function getIdForChart(): string
 	{
 		return md5(self::class) . md5($this->shouldDeductTax ? '1' : '-1');
 	}
+
 }

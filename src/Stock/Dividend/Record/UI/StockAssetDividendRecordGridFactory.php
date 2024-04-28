@@ -93,7 +93,9 @@ class StockAssetDividendRecordGridFactory
 		$grid->addColumnText(
 			'totalAmount',
 			'Celková hodnota po zdanění',
-			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => SummaryPriceFilter::format($stockAssetDividendRecord->getSummaryPrice()),
+			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => SummaryPriceFilter::format(
+				$stockAssetDividendRecord->getSummaryPrice(),
+			),
 		);
 
 		$now = $this->datetimeFactory->createNow();

@@ -91,7 +91,11 @@ class StockAssetDividendRecord implements Entity
 
 	public function getStockAssetChartLabel(): string
 	{
-		return sprintf('%s (%s)', $this->stockAssetDividend->getStockAsset()->getName(), $this->stockAssetDividend->getStockAsset()->getTicker());
+		return sprintf(
+			'%s (%s)',
+			$this->stockAssetDividend->getStockAsset()->getName(),
+			$this->stockAssetDividend->getStockAsset()->getTicker(),
+		);
 	}
 
 	public function getTotalPiecesHeldAtExDate(): int
@@ -129,17 +133,10 @@ class StockAssetDividendRecord implements Entity
 		$dividendTax = $this->getDividendTax();
 		if ($dividendTax !== null && $shouldDeductTax) {
 			$totalAmountAfterTax = $this->totalAmount * (1 - ($dividendTax * 0.01));
-			return new SummaryPrice(
-				$this->currency,
-				$totalAmountAfterTax,
-				1,
-			);
+			return new SummaryPrice($this->currency, $totalAmountAfterTax, 1);
 		}
 
-		return new SummaryPrice(
-			$this->currency,
-			$this->totalAmount,
-			1,
-		);
+		return new SummaryPrice($this->currency, $this->totalAmount, 1);
 	}
+
 }

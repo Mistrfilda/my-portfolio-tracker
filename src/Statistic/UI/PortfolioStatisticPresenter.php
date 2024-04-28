@@ -7,6 +7,7 @@ namespace App\Statistic\UI;
 use App\Statistic\PortolioStatisticType;
 use App\Statistic\UI\Chart\PortfolioTotalValueChartProvider;
 use App\Statistic\UI\Chart\PortfolioTotalValueLastMonthChartProvider;
+use App\Statistic\UI\Chart\StockDividendByCompanyAndMonthChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByCompanyChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByYearChartDataProvider;
@@ -24,6 +25,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		private PortfolioTotalValueChartProvider $portfolioTotalValueChartProvider,
 		private PortfolioTotalValueLastMonthChartProvider $portfolioTotalValueLastMonthChartProvider,
 		private ChartControlFactory $chartControlFactory,
+		private StockDividendByCompanyAndMonthChartDataProvider $stockDividendByCompanyAndMonthChartDataProvider,
 		private StockDividendByCompanyChartDataProvider $stockDividendByCompanyChartDataProvider,
 	)
 	{
@@ -100,11 +102,20 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		return $this->chartControlFactory->create(ChartType::LINE, $provider);
 	}
 
-	protected function createComponentStockDividendsByCompanyAndMonth(): ChartControl
+	protected function createComponentStockDividendsByCompanyAndMonthChart(): ChartControl
+	{
+		return $this->chartControlFactory->create(
+			ChartType::BAR,
+			$this->stockDividendByCompanyAndMonthChartDataProvider,
+		);
+	}
+
+	protected function createComponentStockDividendsByCompanyChart(): ChartControl
 	{
 		return $this->chartControlFactory->create(
 			ChartType::BAR,
 			$this->stockDividendByCompanyChartDataProvider,
 		);
 	}
+
 }

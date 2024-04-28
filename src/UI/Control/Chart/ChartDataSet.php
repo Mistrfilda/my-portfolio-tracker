@@ -11,10 +11,12 @@ class ChartDataSet implements JsonSerializable
 
 	/**
 	 * @param array<int, ChartData> $chartData
+	 * @param array<string>|null $hardcodedLabels
 	 */
 	public function __construct(
 		private array $chartData,
 		private string $tooltipSuffix = '',
+		private array|null $hardcodedLabels = null,
 	)
 	{
 	}
@@ -29,6 +31,10 @@ class ChartDataSet implements JsonSerializable
 		foreach ($this->chartData as $chartData) {
 			$labels += $chartData->getLabels();
 			$datasets[] = $chartData->jsonSerialize();
+		}
+
+		if ($this->hardcodedLabels !== null) {
+			$labels = $this->hardcodedLabels;
 		}
 
 		return [
