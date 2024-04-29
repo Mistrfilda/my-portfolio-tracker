@@ -31,6 +31,8 @@ enum SvgIcon: string
 
 	case EYE = 'eye.svg';
 
+	case EYE_CLOSED = 'eye-closed.svg';
+
 	case HOME = 'home.svg';
 
 	case INFORMATION_CIRCLE = 'information-circle.svg';

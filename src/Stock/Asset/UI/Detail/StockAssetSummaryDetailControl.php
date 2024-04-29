@@ -68,6 +68,23 @@ class StockAssetSummaryDetailControl extends BaseControl
 			return 1;
 		});
 
+		$fields = [
+			'Společnost',
+			'Burza',
+			'Hodnota 1 akcie',
+		];
+
+		if (StockAssetDetailControlEnum::OPEN_POSITIONS) {
+			$fields = array_merge($fields, [
+				'Počet akcíí',
+				'Celková hodnota v CZK',
+				'% z portfolia',
+				'% Ziskovost po započtení měny brokera',
+				'% Ziskovost v měně brokera',
+			]);
+		}
+
+		$template->fields = $fields;
 		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
 		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
 		$template->assetDetailControlEnum = $this->assetDetailControlEnum;
