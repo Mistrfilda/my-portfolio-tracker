@@ -56,6 +56,10 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
                     responsive: true,
                 }
             });
@@ -82,6 +86,10 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
                     plugins: {
                         tooltip: {
                             callbacks: {
@@ -122,6 +130,10 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
+                    interaction: {
+                        intersect: false,
+                        mode: 'index',
+                    },
                     maintainAspectRatio: false,
                     plugins: {
                         tooltip: {
