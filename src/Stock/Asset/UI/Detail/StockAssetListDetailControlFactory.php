@@ -6,7 +6,7 @@ namespace App\Stock\Asset\UI\Detail;
 
 use Ramsey\Uuid\UuidInterface;
 
-interface StockAssetDetailControlFactory
+interface StockAssetListDetailControlFactory
 {
 
 	/**
@@ -14,7 +14,7 @@ interface StockAssetDetailControlFactory
 	 */
 	public function create(
 		array $stockAssetsIds,
-		StockAssetDetailControlEnum $assetDetailControlEnum,
-	): StockAssetDetailControl;
+		StockAssetListDetailControlEnum $assetDetailControlEnum,
+	): StockAssetListDetailControl;
 
 }

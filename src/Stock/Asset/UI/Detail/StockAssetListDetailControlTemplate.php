@@ -7,8 +7,11 @@ namespace App\Stock\Asset\UI\Detail;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\UI\Base\BaseControlTemplate;
 
-class StockAssetSummaryDetailControlTemplate extends BaseControlTemplate
+class StockAssetListDetailControlTemplate extends BaseControlTemplate
 {
+
+	/** @var array<StockAssetDetailDTO> */
+	public array $stockAssetsPositionDTOs;
 
 	/** @var array<StockAssetDetailDTO> */
 	public array $sortedStockAssetsPositionsDTOs;

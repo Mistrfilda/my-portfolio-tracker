@@ -10,7 +10,7 @@ use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
 use Ramsey\Uuid\UuidInterface;
 
-class StockAssetDetailControl extends BaseControl
+class StockAssetListSummaryDetailControl extends BaseControl
 {
 
 	/** @var array<UuidInterface> */
@@ -21,7 +21,7 @@ class StockAssetDetailControl extends BaseControl
 	 */
 	public function __construct(
 		array $stockAssetsIds,
-		private StockAssetDetailControlEnum $assetDetailControlEnum,
+		private StockAssetListDetailControlEnum $assetDetailControlEnum,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockPositionFacade $stockPositionFacade,
 	)
@@ -39,11 +39,11 @@ class StockAssetDetailControl extends BaseControl
 		$totalInvestedAmountInCzk = 0;
 		foreach ($assets as $asset) {
 			if ($asset->hasOpenPositions()) {
-				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::CLOSED_POSITIONS) {
+				if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::CLOSED_POSITIONS) {
 					continue;
 				}
 			} else {
-				if ($this->assetDetailControlEnum === StockAssetDetailControlEnum::OPEN_POSITIONS) {
+				if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS) {
 					continue;
 				}
 			}
@@ -58,7 +58,6 @@ class StockAssetDetailControl extends BaseControl
 		}
 
 		$template = $this->getTemplate();
-		$template->stockAssetsPositionDTOs = $stockAssetsPositionDTOs;
 
 		$sortedStockAssetsPositionsDTOs = $stockAssetsPositionDTOs;
 		usort($sortedStockAssetsPositionsDTOs, static function (StockAssetDetailDTO $a, StockAssetDetailDTO $b): int {
@@ -69,10 +68,27 @@ class StockAssetDetailControl extends BaseControl
 			return 1;
 		});
 
-		$template->assetDetailControlEnum = $this->assetDetailControlEnum;
+		$fields = [
+			'Společnost',
+			'Burza',
+			'Hodnota 1 akcie',
+		];
+
+		if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS) {
+			$fields = array_merge($fields, [
+				'Počet akcíí',
+				'Celková hodnota v CZK',
+				'% z portfolia',
+				'% Ziskovost po započtení měny brokera',
+				'% Ziskovost v měně brokera',
+			]);
+		}
+
+		$template->fields = $fields;
 		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
 		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
-		$template->setFile(__DIR__ . '/templates/StockAssetDetailControl.latte');
+		$template->assetDetailControlEnum = $this->assetDetailControlEnum;
+		$template->setFile(__DIR__ . '/templates/StockAssetListSummaryDetailControl.latte');
 		$template->render();
 	}
 

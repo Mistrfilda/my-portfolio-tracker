@@ -4,19 +4,19 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\UI;
 
-use App\Stock\Asset\UI\Detail\StockAssetDetailControl;
-use App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum;
-use App\Stock\Asset\UI\Detail\StockAssetDetailControlFactory;
-use App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControl;
-use App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControlFactory;
+use App\Stock\Asset\UI\Detail\StockAssetListDetailControl;
+use App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum;
+use App\Stock\Asset\UI\Detail\StockAssetListDetailControlFactory;
+use App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControl;
+use App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
 class StockAssetClosedPositionDetailPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(
-		private readonly StockAssetDetailControlFactory $stockPositionDetailControlFactory,
-		private readonly StockAssetSummaryDetailControlFactory $stockAssetSummaryDetailControlFactory,
+		private readonly StockAssetListDetailControlFactory $stockPositionDetailControlFactory,
+		private readonly StockAssetListSummaryDetailControlFactory $stockAssetSummaryDetailControlFactory,
 	)
 	{
 		parent::__construct();
@@ -30,14 +30,14 @@ class StockAssetClosedPositionDetailPresenter extends BaseAdminPresenter
 		$this->template->heading = 'Detaily akciových pozic';
 	}
 
-	protected function createComponentStockAssetSummaryDetailControl(): StockAssetSummaryDetailControl
+	protected function createComponentStockAssetSummaryDetailControl(): StockAssetListSummaryDetailControl
 	{
-		return $this->stockAssetSummaryDetailControlFactory->create([], StockAssetDetailControlEnum::CLOSED_POSITIONS);
+		return $this->stockAssetSummaryDetailControlFactory->create([], StockAssetListDetailControlEnum::CLOSED_POSITIONS);
 	}
 
-	protected function createComponentStockPositionDetailControl(): StockAssetDetailControl
+	protected function createComponentStockPositionDetailControl(): StockAssetListDetailControl
 	{
-		return $this->stockPositionDetailControlFactory->create([], StockAssetDetailControlEnum::CLOSED_POSITIONS);
+		return $this->stockPositionDetailControlFactory->create([], StockAssetListDetailControlEnum::CLOSED_POSITIONS);
 	}
 
 }

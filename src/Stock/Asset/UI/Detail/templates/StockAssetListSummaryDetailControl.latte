@@ -1,4 +1,4 @@
-{templateType App\Stock\Asset\UI\Detail\StockAssetSummaryDetailControlTemplate}
+{templateType App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControlTemplate}
 
 <div
         class="mt-8 flex flex-col"
@@ -144,7 +144,7 @@
                                     </span>
                                 </div>
                             </td>
-                            {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::OPEN_POSITIONS}
+                            {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::OPEN_POSITIONS}
                                 <td
                                         class="whitespace-nowrap px-2 py-2 text-sm text-gray-900"
                                         :class="hiddenButtons.includes(3) ? 'hidden' : ''"
@@ -163,7 +163,7 @@
                                 >
                                     <div class="flex justify-center">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
-                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                             0%
                                         {else}
                                             {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
@@ -194,7 +194,7 @@
                         </tr>
                     {/foreach}
                     </tbody>
-                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::OPEN_POSITIONS}
+                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::OPEN_POSITIONS}
                         <tfoot>
                         <tr>
                             <td></td>

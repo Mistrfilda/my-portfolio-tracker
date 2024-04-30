@@ -15,7 +15,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
-use App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum;
+use App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -173,7 +173,7 @@ class StockPositionFacade implements AssetPriceFacade
 
 	public function getStockAssetDetailDTO(
 		UuidInterface $stockAssetId,
-		StockAssetDetailControlEnum $stockAssetDetailControlEnum = StockAssetDetailControlEnum::OPEN_POSITIONS,
+		StockAssetListDetailControlEnum $stockAssetDetailControlEnum = StockAssetListDetailControlEnum::OPEN_POSITIONS,
 	): StockAssetDetailDTO
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
@@ -181,7 +181,7 @@ class StockPositionFacade implements AssetPriceFacade
 		if (
 			$stockAsset->hasPositions() === false
 			|| (
-				$stockAssetDetailControlEnum === StockAssetDetailControlEnum::OPEN_POSITIONS
+				$stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS
 				&& $stockAsset->hasOpenPositions() === false
 			)
 		) {

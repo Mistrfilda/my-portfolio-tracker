@@ -1,4 +1,4 @@
-{templateType App\Stock\Asset\UI\Detail\StockAssetDetailControlTemplate}
+{templateType App\Stock\Asset\UI\Detail\StockAssetListDetailControlTemplate}
 
 {foreach $stockAssetsPositionDTOs as $stockPositionDTO}
     <div class="flex flex-col mt-6" id="{$stockPositionDTO->getHtmlTarget()}">
@@ -38,7 +38,7 @@
                                         class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
                                         Nákupní cena
                                     </th>
-                                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                     <th scope="col"
                                         class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
                                         Prodejní cena za kus
@@ -70,7 +70,7 @@
                                         <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
                                             {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
                                         </td>
-                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetDetailControlEnum::CLOSED_POSITIONS}
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                             <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
                                                 {$position->getStockPosition()->getStockClosedPosition()?->getPricePerPiece()|assetPriceFormat}
                                             </td>
