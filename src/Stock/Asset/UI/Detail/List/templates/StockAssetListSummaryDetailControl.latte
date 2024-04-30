@@ -44,12 +44,13 @@
                             {var $alpineId = $key}
                             <th
                                     scope="col"
-                                    class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900"
+                                    class="whitespace-normal text-balance px-2 py-3.5 text-center text-sm font-semibold text-gray-900"
                                     :class="hiddenButtons.includes({$alpineId}) ? 'hidden' : ''"
                             >
                                 {$field}
                             </th>
                         {/foreach}
+                        <th scope="col"></th>
                     </tr>
                     <div class="flex justify-start p-3">
                         <div
@@ -119,9 +120,9 @@
                     </thead>
                     <tbody class="divide-y divide-gray-200 bg-white">
                     {foreach $sortedStockAssetsPositionsDTOs as $stockPositionDTO}
-                        <tr>
+                        <tr class="divide-x divide-gray-200">
                             <td
-                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900"
+                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 text-center"
                                     :class="hiddenButtons.includes(0) ? 'hidden' : ''"
                             >
                                 <a href="#{$stockPositionDTO->getHtmlTarget()}">
@@ -129,13 +130,13 @@
                                 </a>
                             </td>
                             <td
-                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900"
+                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 text-center"
                                     :class="hiddenButtons.includes(1) ? 'hidden' : ''"
                             >
                                 {$stockPositionDTO->getStockAsset()->getExchange()->format()}
                             </td>
                             <td
-                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-900"
+                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
                                     :class="hiddenButtons.includes(2) ? 'hidden' : ''"
                             >
                                 <div class="flex justify-center">
@@ -144,26 +145,26 @@
                                     </span>
                                 </div>
                             </td>
-                            {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::OPEN_POSITIONS}
+                            {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum::OPEN_POSITIONS}
                                 <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900"
+                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
                                         :class="hiddenButtons.includes(3) ? 'hidden' : ''"
                                 >
                                     {$stockPositionDTO->getPiecesCount()}
                                 </td>
                                 <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900"
+                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
                                         :class="hiddenButtons.includes(4) ? 'hidden' : ''"
                                 >
                                     {$stockPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
                                 </td>
                                 <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"
+                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
                                         :class="hiddenButtons.includes(5) ? 'hidden' : ''"
                                 >
                                     <div class="flex justify-center">
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
-                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                             0%
                                         {else}
                                             {$stockPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
@@ -172,7 +173,7 @@
                                     </div>
                                 </td>
                                 <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"
+                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
                                         :class="hiddenButtons.includes(6) ? 'hidden' : ''"
                                 >
                                     <div class="flex justify-center">
@@ -183,7 +184,7 @@
                                     </div>
                                 </td>
                                 <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500"
+                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
                                         :class="hiddenButtons.includes(7) ? 'hidden' : ''"
                                 >
                                     <div class="flex justify-center">
@@ -191,10 +192,15 @@
                                     </div>
                                 </td>
                             {/if}
+                            <td class="px-2">
+                                <a href="{plink StockAssetDetail:detail, 'id' => $stockPositionDTO->getStockAsset()->getId()->toString()}" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Detail
+                                </a>
+                            </td>
                         </tr>
                     {/foreach}
                     </tbody>
-                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::OPEN_POSITIONS}
+                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum::OPEN_POSITIONS}
                         <tfoot>
                         <tr>
                             <td></td>

@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Asset\UI\Detail;
+namespace App\Stock\Asset\UI\Detail\List;
 
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;

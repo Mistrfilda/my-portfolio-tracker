@@ -15,7 +15,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
-use App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum;
+use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;

@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\UI;
 
-use App\Stock\Asset\UI\Detail\StockAssetListDetailControl;
-use App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum;
-use App\Stock\Asset\UI\Detail\StockAssetListDetailControlFactory;
-use App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControl;
-use App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControlFactory;
+use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControl;
+use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
+use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlFactory;
+use App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControl;
+use App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
 class StockAssetPositionDetailPresenter extends BaseAdminPresenter
@@ -32,7 +32,10 @@ class StockAssetPositionDetailPresenter extends BaseAdminPresenter
 
 	protected function createComponentStockAssetSummaryDetailControl(): StockAssetListSummaryDetailControl
 	{
-		return $this->stockAssetSummaryDetailControlFactory->create([], StockAssetListDetailControlEnum::OPEN_POSITIONS);
+		return $this->stockAssetSummaryDetailControlFactory->create(
+			[],
+			StockAssetListDetailControlEnum::OPEN_POSITIONS,
+		);
 	}
 
 	protected function createComponentStockPositionDetailControl(): StockAssetListDetailControl

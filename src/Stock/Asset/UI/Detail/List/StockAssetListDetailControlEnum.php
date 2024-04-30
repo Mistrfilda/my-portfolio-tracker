@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Asset\UI\Detail;
+namespace App\Stock\Asset\UI\Detail\List;
 
 enum StockAssetListDetailControlEnum
 {

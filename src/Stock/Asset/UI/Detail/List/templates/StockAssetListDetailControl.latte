@@ -1,4 +1,4 @@
-{templateType App\Stock\Asset\UI\Detail\StockAssetListDetailControlTemplate}
+{templateType App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlTemplate}
 
 {foreach $stockAssetsPositionDTOs as $stockPositionDTO}
     <div class="flex flex-col mt-6" id="{$stockPositionDTO->getHtmlTarget()}">
@@ -8,18 +8,23 @@
                     <div class="px-4 sm:px-6 lg:px-8 my-4">
                         <div class="sm:flex sm:items-center">
                             <div class="sm:flex-auto">
-                                <h1 class="text-xl font-semibold text-gray-900">
-                                    {$stockPositionDTO->getStockAsset()->getName()}
-                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                        {$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
-                                    </span>
-                                </h1>
+                                <div class="flex justify-between">
+                                    <h1 class="text-xl font-semibold text-gray-900">
+                                        {$stockPositionDTO->getStockAsset()->getName()}
+                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                            {$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
+                                        </span>
+                                    </h1>
+                                </div>
                                 <p class="mt-2 text-sm text-gray-700">
                                     Cena aktualizována v
                                     <time datetime="{$stockPositionDTO->getStockAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}">{$stockPositionDTO->getStockAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}</time>
                                 </p>
                             </div>
                             <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
+                                <a href="{plink StockAssetDetail:detail, 'id' => $stockPositionDTO->getStockAsset()->getId()->toString()}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                    Detail
+                                </a>
                             </div>
                         </div>
                         <div class="-mx-4 mt-8 flex flex-col sm:-mx-6 md:mx-0">
@@ -38,7 +43,7 @@
                                         class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
                                         Nákupní cena
                                     </th>
-                                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
+                                    {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                     <th scope="col"
                                         class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
                                         Prodejní cena za kus
@@ -70,7 +75,7 @@
                                         <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
                                             {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
                                         </td>
-                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
+                                        {if $assetDetailControlEnum === App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum::CLOSED_POSITIONS}
                                             <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
                                                 {$position->getStockPosition()->getStockClosedPosition()?->getPricePerPiece()|assetPriceFormat}
                                             </td>
@@ -87,7 +92,7 @@
                                     </tr>
                                 {/foreach}
 
-                                <!-- More projects... -->
+
                                 </tbody>
                                 <tfoot>
                                 <tr>
