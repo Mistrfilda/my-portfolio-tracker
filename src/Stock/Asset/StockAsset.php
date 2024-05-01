@@ -18,6 +18,7 @@ use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
+use App\UI\Filter\RuleOfThreeFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -235,6 +236,31 @@ class StockAsset implements Entity, Asset
 	public function getAssetCurrentPrice(): AssetPrice
 	{
 		return $this->currentAssetPrice->getAssetPrice($this);
+	}
+
+	public function getTrend(ImmutableDateTime $date): float
+	{
+		$priceRecords = $this->priceRecords->filter(
+			static fn (StockAssetPriceRecord $stockAssetPriceRecord) => $stockAssetPriceRecord->getDate()->format(
+				'Y-m-d',
+			) === $date->format(
+				'Y-m-d',
+			),
+		);
+
+		if (count($priceRecords) === 0) {
+			return 0;
+		}
+
+		$lastDayPriceRecord = $priceRecords->first();
+		assert($lastDayPriceRecord instanceof StockAssetPriceRecord);
+
+		$percentage = RuleOfThreeFilter::getPercentage(
+			$this->currentAssetPrice->getPrice(),
+			$lastDayPriceRecord->getPrice(),
+		);
+
+		return round((float) ($percentage - 100), 2);
 	}
 
 	public function getPriceDownloadedAt(): ImmutableDateTime

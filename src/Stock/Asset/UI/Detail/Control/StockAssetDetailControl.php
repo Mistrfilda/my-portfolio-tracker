@@ -2,18 +2,18 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Asset\UI\Detail;
+namespace App\Stock\Asset\UI\Detail\Control;
 
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
+use App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
+use App\UI\Control\Datagrid\Datagrid;
+use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
 use function assert;
 
-/**
- * @property-read StockAssetDetailControlTemplate $template
- */
 class StockAssetDetailControl extends BaseControl
 {
 
@@ -21,6 +21,8 @@ class StockAssetDetailControl extends BaseControl
 		private UuidInterface $id,
 		private StockAssetRepository $stockAssetRepository,
 		private StockPositionFacade $stockPositionFacade,
+		private StockAssetDividendRecordGridFactory $stockAssetDividendRecordGridFactory,
+		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -36,8 +38,14 @@ class StockAssetDetailControl extends BaseControl
 			$this->id,
 			StockAssetListDetailControlEnum::CLOSED_POSITIONS,
 		);
-		$template->setFile(__DIR__ . '/templates/StockAssetDetailControl.latte');
+		$template->now = $this->datetimeFactory->createNow();
+		$template->setFile(__DIR__ . '/StockAssetDetailControl.latte');
 		$template->render();
+	}
+
+	protected function createComponentStockAssetDividendRecordGrid(): Datagrid
+	{
+		return $this->stockAssetDividendRecordGridFactory->create($this->id);
 	}
 
 }

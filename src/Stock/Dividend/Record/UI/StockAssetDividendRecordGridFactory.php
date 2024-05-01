@@ -15,6 +15,7 @@ use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\SummaryPriceFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\UuidInterface;
 
 class StockAssetDividendRecordGridFactory
 {
@@ -27,10 +28,19 @@ class StockAssetDividendRecordGridFactory
 	{
 	}
 
-	public function create(): Datagrid
+	public function create(UuidInterface|null $id = null): Datagrid
 	{
+		$qb = $this->stockAssetDividendRecordRepository->createQueryBuilder();
+
+		if ($id !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('stockAsset.id', ':id'),
+			);
+			$qb->setParameter('id', $id);
+		}
+
 		$grid = $this->gridFactory->create(
-			new DoctrineDataSource($this->stockAssetDividendRecordRepository->createQueryBuilder()),
+			new DoctrineDataSource($qb),
 		);
 
 		$stockAsset = $grid->addColumnText(

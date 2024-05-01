@@ -76,7 +76,9 @@ class MenuBuilder
 				'default',
 				SvgIcon::ADJUSTMENTS,
 				'Otevřené akciové pozice',
-				[],
+				[
+					'StockAssetDetail',
+				],
 			),
 			new MenuItem(
 				'StockAssetClosedPositionDetail',

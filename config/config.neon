@@ -211,6 +211,7 @@ services:
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderCommand
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%, requests: %pse.requests%)
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
+	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory
 
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
