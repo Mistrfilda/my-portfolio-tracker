@@ -69,6 +69,18 @@ class StockAssetGridFactory
 			},
 		);
 
+		$grid->addColumnText(
+			'downloadPrice',
+			'Aktualizace ceny',
+			static function (StockAsset $stockAsset): string {
+				if ($stockAsset->shouldBeUpdated()) {
+					return 'Ano';
+				}
+
+				return 'Ne';
+			},
+		);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',
