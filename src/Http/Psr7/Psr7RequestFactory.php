@@ -17,9 +17,17 @@ class Psr7RequestFactory
 		$this->psr17Factory = new Psr17Factory();
 	}
 
-	public function createGETRequest(string $url): RequestInterface
+	/**
+	 * @param array<string, string> $headers
+	 */
+	public function createGETRequest(string $url, array $headers = []): RequestInterface
 	{
-		return $this->psr17Factory->createRequest('GET', $url);
+		$request = $this->psr17Factory->createRequest('GET', $url);
+		foreach ($headers as $key => $value) {
+			$request = $request->withHeader($key, $value);
+		}
+
+		return $request;
 	}
 
 }

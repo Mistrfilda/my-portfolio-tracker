@@ -137,6 +137,13 @@ class MenuBuilder
 				'Výdajové tagy',
 				[],
 			),
+			new MenuItem(
+				'WorkMonthlyIncome',
+				'default',
+				SvgIcon::COLLECTION,
+				'Přehled příjmů',
+				[],
+			),
 		];
 	}
 

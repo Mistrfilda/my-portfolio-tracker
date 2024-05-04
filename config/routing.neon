@@ -27,3 +27,4 @@ custompresenterfactory:
 		Admin:ExpenseTag: App\Cash\Expense\UI\ExpenseTagPresenter
 		Admin:ExpenseOverview: App\Cash\Expense\UI\ExpenseOverviewPresenter
 		Admin:StockAssetDetail: App\Stock\Asset\UI\Detail\StockAssetDetailPresenter
+		Admin:WorkMonthlyIncome: App\Cash\WorkMonthlyIncome\UI\WorkMonthlyIncomePresenter

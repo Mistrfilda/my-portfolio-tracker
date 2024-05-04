@@ -121,6 +121,15 @@ abstract class BasePresenter extends Presenter
 		return Uuid::fromString($id);
 	}
 
+	public function invalidatePage(): void
+	{
+		if ($this->isAjax()) {
+			$this->redrawControl();
+		} else {
+			$this->redirect('this');
+		}
+	}
+
 	/**
 	 * @phpstan-ignore-next-line
 	 */

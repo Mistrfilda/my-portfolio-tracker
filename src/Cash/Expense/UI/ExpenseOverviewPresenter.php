@@ -71,15 +71,6 @@ class ExpenseOverviewPresenter extends BaseSysadminPresenter
 		$this->invalidatePage();
 	}
 
-	public function invalidatePage(): void
-	{
-		if ($this->isAjax()) {
-			$this->redrawControl();
-		} else {
-			$this->redirect('this');
-		}
-	}
-
 	protected function createComponentExpanseOverviewCategoryControl(): ExpenseOverviewCategoryControl
 	{
 		return $this->expanseOverviewCategoryControlFactory->create(

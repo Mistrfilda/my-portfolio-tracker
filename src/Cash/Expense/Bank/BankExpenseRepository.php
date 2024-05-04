@@ -118,7 +118,6 @@ class BankExpenseRepository extends BaseRepository
 			$qb->setParameter('year', $year);
 		}
 
-		/** @phpstan-ignore-next-line  */
 		return $qb->getQuery()->getResult();
 	}
 

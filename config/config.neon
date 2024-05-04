@@ -24,6 +24,12 @@ parameters:
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
 
+	workMonthlyIncome:
+		harvestAccountId: 50
+		harvestUserId: 50
+		harvestAccessToken: 50
+		currentHourlyRate: 50
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -158,6 +164,7 @@ services:
 
 	#DATETIME FACTORY
 	- Mistrfilda\Datetime\DatetimeFactory
+	- Mistrfilda\Datetime\Holiday\CzechHolidayService
 
 	#DATAGRID
 	- App\UI\Control\Datagrid\DatagridFactory
@@ -294,3 +301,15 @@ services:
 	- App\Cash\Expense\Tag\Command\ExpenseTagProcessCommand
 	- App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory
 	- App\Cash\Expense\UI\Control\ExpenseOverviewCategoryChartDataProvider
+
+	#WORK MONTHLY INCOME
+	-
+		class: App\Cash\WorkMonthlyIncome\HarvestTimeDownloader
+		arguments:
+			harvestAccountId: %workMonthlyIncome.harvestAccountId%
+			harvestUserId: %workMonthlyIncome.harvestUserId%
+			harvestAccessToken: %workMonthlyIncome.harvestAccessToken%
+
+	- App\Cash\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\WorkMonthlyIncome\WorkMonthlyIncome)
+	- App\Cash\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
+	- App\Cash\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
