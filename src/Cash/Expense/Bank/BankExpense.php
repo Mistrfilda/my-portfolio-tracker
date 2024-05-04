@@ -97,6 +97,32 @@ class BankExpense implements Entity, Expense
 		$this->otherTagSetManually = false;
 	}
 
+	public function update(
+		string|null $identifier,
+		BankSourceEnum $source,
+		BankTransactionType $bankTransactionType,
+		float $amount,
+		CurrencyEnum $currency,
+		ImmutableDateTime|null $settlementDate,
+		ImmutableDateTime|null $transactionDate,
+		string $transactionRawContent,
+		ImmutableDateTime $now,
+	): void
+	{
+		if ($identifier !== null) {
+			$this->identifier = $identifier;
+		}
+
+		$this->source = $source;
+		$this->bankTransactionType = $bankTransactionType;
+		$this->amount = $amount;
+		$this->currency = $currency;
+		$this->settlementDate = $settlementDate;
+		$this->transactionDate = $transactionDate;
+		$this->transactionRawContent = $transactionRawContent;
+		$this->updatedAt = $now;
+	}
+
 	public function setMainTag(ExpenseTag $expenseTag): void
 	{
 		if ($expenseTag->isMainTag() === false) {

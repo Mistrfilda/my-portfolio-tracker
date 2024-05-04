@@ -22,17 +22,16 @@ class ExpensePresenter extends BaseAdminPresenter
 	private bool $showModal = false;
 
 	public function __construct(
-		private BankExpenseFormFactory $expenseFormFactory,
+		private BankExpenseUploadFormFactory $expenseFormFactory,
 		private BankExpenseGridFactory $bankExpenseGridFactory,
 		private FrontModalControlFactory $frontModalControlFactory,
 		private BankExpenseRepository $bankExpenseRepository,
 		private ExpenseTagRepository $expenseTagRepository,
 		private ExpenseTagFacade $expenseTagFacade,
+		private BankExpenseFormFactory $bankExpenseFormFactory,
 	)
 	{
 		parent::__construct();
-		//      dump($expenseTagFacade->processExpenses());
-		//      die();
 	}
 
 	public function renderKb(): void
@@ -44,6 +43,15 @@ class ExpensePresenter extends BaseAdminPresenter
 	public function renderKbForm(): void
 	{
 		$this->template->heading = 'Nahrání přehledu';
+	}
+
+	public function renderForm(string|null $id): void
+	{
+		if ($id !== null) {
+			$this->template->heading = 'Editace výdaje';
+		} else {
+			$this->template->heading = 'Vytvoření výdaje';
+		}
 	}
 
 	public function createComponentKbExpenseForm(): AdminForm
@@ -62,6 +70,23 @@ class ExpensePresenter extends BaseAdminPresenter
 			BankSourceEnum::KOMERCNI_BANKA,
 			$onSuccess,
 		);
+	}
+
+	public function createComponentBankExpenseForm(): AdminForm
+	{
+		$id = $this->processParameterUuid('id');
+
+		$onSuccess = function () use ($id): void {
+			if ($id !== null) {
+				$this->flashMessage('Výdaj úspěšně upraven');
+			} else {
+				$this->flashMessage('Výdaj úspěšně nahrán');
+			}
+
+			$this->redirect('kb');
+		};
+
+		return $this->bankExpenseFormFactory->create($onSuccess, $id);
 	}
 
 	public function createComponentBankExpenseGrid(): Datagrid

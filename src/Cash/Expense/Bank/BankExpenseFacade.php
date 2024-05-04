@@ -7,6 +7,4 @@ namespace App\Cash\Expense\Bank;
 interface BankExpenseFacade
 {
 
-	public function processFileContents(string $fileContents): bool;
-
 }

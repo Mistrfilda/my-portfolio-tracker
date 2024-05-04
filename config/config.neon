@@ -285,8 +285,10 @@ services:
 	- App\Statistic\UI\Chart\StockDividendByCompanyChartDataProvider
 
 	- App\Cash\Expense\Bank\BankExpenseRepository(App\Cash\Expense\Bank\BankExpense)
+	- App\Cash\Expense\UI\BankExpenseUploadFormFactory
 	- App\Cash\Expense\UI\BankExpenseFormFactory
 	- App\Cash\Expense\UI\BankExpenseGridFactory
+	- App\Cash\Expense\Bank\BankExpenseFormFacade
 
 
 	- App\Cash\Expense\Kb\KbPdfExpenseParser

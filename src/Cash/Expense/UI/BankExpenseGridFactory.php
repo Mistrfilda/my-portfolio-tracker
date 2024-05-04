@@ -77,6 +77,15 @@ class BankExpenseGridFactory
 			isAjax: true,
 		);
 
+		$grid->addAction(
+			'edit',
+			'Editovat',
+			'Expense:form',
+			[new DatagridActionParameter('id', 'id')],
+			SvgIcon::PENCIL,
+			TailwindColorConstant::BLUE,
+		);
+
 		return $grid;
 	}
 

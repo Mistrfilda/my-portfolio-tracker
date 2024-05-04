@@ -1,7 +1,7 @@
 {templateType App\Cash\WorkMonthlyIncome\UI\WorkMonthlyIncomeTemplate}
 {block #content}
     {snippet pageSnippet}
-        <div class="grid grid-cols-2 auto-rows-fr gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 auto-rows-fr gap-2">
             <div>
                 <h2 class="sr-only">Summary</h2>
                 <div class="rounded-lg bg-white shadow ring-1 ring-gray-900/5 h-full">
@@ -183,11 +183,11 @@
                         <tr>
                             <th scope="row" colspan="3"
                                 class="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell sm:pl-0">
-                                Celkový počet položek
+                                Celkový počet hodin
                             </th>
                             <th scope="row"
                                 class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                Celkový počet položek
+                                Celkový počet hodin
                             </th>
                             <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-0">{$totalSummaryPrice->getCounter()}</td>
                         </tr>

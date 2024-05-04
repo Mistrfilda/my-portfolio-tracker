@@ -43,6 +43,8 @@ enum ExpenseCategoryEnum: string implements DatagridRenderableEnum
 
 	case TRAVEL = 'travel';
 
+	case TAX = 'tax';
+
 	public function format(): string
 	{
 		return match ($this) {
@@ -62,7 +64,8 @@ enum ExpenseCategoryEnum: string implements DatagridRenderableEnum
 			ExpenseCategoryEnum::CLOTHING => 'Oblečení',
 			ExpenseCategoryEnum::HEALTHCARE => 'Zdravotnictví',
 			ExpenseCategoryEnum::CARS => 'Auta + benzínové pumpy',
-			ExpenseCategoryEnum::TRAVEL => 'Cestování'
+			ExpenseCategoryEnum::TRAVEL => 'Cestování',
+			ExpenseCategoryEnum::TAX => 'Daň',
 		};
 	}
 
@@ -89,6 +92,7 @@ enum ExpenseCategoryEnum: string implements DatagridRenderableEnum
 			ExpenseCategoryEnum::HEALTHCARE->value => 15,
 			ExpenseCategoryEnum::CARS->value => 16,
 			ExpenseCategoryEnum::TRAVEL->value => 17,
+			ExpenseCategoryEnum::TAX->value => 18,
 		];
 	}
 

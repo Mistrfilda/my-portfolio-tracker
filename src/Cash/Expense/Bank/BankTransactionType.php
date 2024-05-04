@@ -18,6 +18,8 @@ enum BankTransactionType: string implements ExpenseTypeEnum, DatagridRenderableE
 
 	case BANK_FEE = 'BANK_FEE';
 
+	case TAX = 'TAX';
+
 	public function format(): string
 	{
 		return match ($this) {
@@ -25,7 +27,22 @@ enum BankTransactionType: string implements ExpenseTypeEnum, DatagridRenderableE
 			BankTransactionType::REPEATING_TRANSACTION => 'Trvalý příkaz',
 			BankTransactionType::TRANSACTION => 'Odchozí platba',
 			BankTransactionType::BANK_FEE => 'Bankovní poplatek',
+			BankTransactionType::TAX => 'Daň',
 		};
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	public static function getOptionsForAdminSelect(): array
+	{
+		return [
+			BankTransactionType::CARD_PAYMENT->value => 'Platba kartou',
+			BankTransactionType::REPEATING_TRANSACTION->value => 'Trvalý příkaz',
+			BankTransactionType::TRANSACTION->value => 'Odchozí platba',
+			BankTransactionType::BANK_FEE->value => 'Bankovní poplatek',
+			BankTransactionType::TAX->value => 'Daň',
+		];
 	}
 
 }
