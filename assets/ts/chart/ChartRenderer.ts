@@ -130,10 +130,6 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
-                    },
                     maintainAspectRatio: false,
                     plugins: {
                         tooltip: {
