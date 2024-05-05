@@ -33,120 +33,124 @@
                     </th>
                 </tr>
                 </thead>
-                {foreach $data as $expanseOverviewData}
-                    <tbody x-data="{
-                    open: false,
-                    toggle() {
-                        this.open = !this.open
-                    }
-                }">
-                    <tr class="border-b border-gray-200">
-                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
-                            <div class="font-medium text-gray-900">{$expanseOverviewData->getExpenseCategory()->getEnumName()->format()}</div>
-                            {*                        <div class="mt-1 truncate text-gray-500">New logo and digital asset playbook.</div>*}
-                        </td>
-                        <td class="invisible"></td>
-                        <td class="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{$expanseOverviewData->getSummaryPrice()->getCounter()}</td>
-                        <td class="py-5 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-0">{$expanseOverviewData->getSummaryPrice()|summaryPriceFormat}</td>
-                        <td>
-                            <button x-on:click="toggle()" type="button"
-                                    class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
-                                    aria-controls="sub-menu-1" aria-expanded="false">
-                                <!-- Expanded: "rotate-90 text-gray-500", Collapsed: "text-gray-400" -->
-                                <svg
-                                        :class="open ? 'rotate-90' : ''"
-                                        class="text-gray-400 h-5 w-5 shrink-0"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                        aria-hidden="true"
-                                >
-                                    <path fill-rule="evenodd"
-                                          d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-                        </td>
-                    </tr>
-                    <tr x-show="open" x-cloak="open">
-                        <td colspan="4">
-                            <div class="">
-                                <div class="flow-root">
-                                    <div class="-mx-4 -my-2 overflow-scroll sm:-mx-6 lg:-mx-8">
-                                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                            <table class="min-w-full divide-y divide-gray-300 border-b border-gray-200 mb-4">
-                                                <thead>
-                                                <tr>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                        Hlavní tag
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        Ostatní tagy
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        Datum zaúčtování
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        Datum transakce
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        Typ transakce
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                        Hodnota
-                                                    </th>
-                                                    <th scope="col"
-                                                        class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
-                                                        <span class="sr-only">Edit</span>
-                                                    </th>
-                                                </tr>
-                                                </thead>
-                                                <tbody class="divide-y divide-gray-200 bg-white">
-                                                {foreach $expanseOverviewData->getExpenses() as $bankExpense}
+                {snippetArea expenseOverviewArea}
+                    {foreach $data as $expanseOverviewData}
+                        <tbody x-data="{
+                            open: false,
+                            toggle() {
+                                this.open = !this.open
+                            }
+                        }">
+                        <tr class="border-b border-gray-200">
+                            <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
+                                <div class="font-medium text-gray-900">{$expanseOverviewData->getExpenseCategory()->getEnumName()->format()}</div>
+                                {*                        <div class="mt-1 truncate text-gray-500">New logo and digital asset playbook.</div>*}
+                            </td>
+                            <td class="invisible"></td>
+                            <td class="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{$expanseOverviewData->getSummaryPrice()->getCounter()}</td>
+                            <td class="py-5 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-0">{$expanseOverviewData->getSummaryPrice()|summaryPriceFormat}</td>
+                            <td>
+                                <button x-on:click="toggle()" type="button"
+                                        class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
+                                        aria-controls="sub-menu-1" aria-expanded="false">
+                                    <!-- Expanded: "rotate-90 text-gray-500", Collapsed: "text-gray-400" -->
+                                    <svg
+                                            :class="open ? 'rotate-90' : ''"
+                                            class="text-gray-400 h-5 w-5 shrink-0"
+                                            viewBox="0 0 20 20"
+                                            fill="currentColor"
+                                            aria-hidden="true"
+                                    >
+                                        <path fill-rule="evenodd"
+                                              d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                              clip-rule="evenodd"/>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr x-show="open">
+                            <td colspan="4">
+                                {snippet 'bankExpenses-' . $expanseOverviewData->getExpenseCategoryId()}
+                                <div class="">
+                                    <div class="flow-root">
+                                        <div class="-mx-4 -my-2 overflow-scroll sm:-mx-6 lg:-mx-8">
+                                            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                                <table class="min-w-full divide-y divide-gray-300 border-b border-gray-200 mb-4">
+                                                    <thead>
                                                     <tr>
-                                                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{$bankExpense->getMainTag()?->getName()}</td>
-                                                        <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">
-                                                            {foreach $bankExpense->getOtherTags() as $otherTag}
-                                                                <span class="inline-flex items-center gap-x-0.5 rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                            Hlavní tag
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                            Ostatní tagy
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                            Datum zaúčtování
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                            Datum transakce
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                            Typ transakce
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                            Hodnota
+                                                        </th>
+                                                        <th scope="col"
+                                                            class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                                                            <span class="sr-only">Edit</span>
+                                                        </th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-200 bg-white">
+                                                        {foreach $expanseOverviewData->getExpenses() as $bankExpense}
+                                                            <tr>
+                                                                <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{$bankExpense->getMainTag()?->getName()}</td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">
+                                                                    {foreach $bankExpense->getOtherTags() as $otherTag}
+                                                                        <span class="inline-flex items-center gap-x-0.5 rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
                                                             {$otherTag->getName()}
                                                         </span>
-                                                            {/foreach}
-                                                        </td>
-                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{$bankExpense->getSettlementDate()|datetimeFormat}</td>
-                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{$bankExpense->getTransactionDate()|datetimeFormat}</td>
-                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
-                                                            {$bankExpense->getExpenseType()->format()}
-                                                        </td>
-                                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
-                                                            {$bankExpense->getExpensePrice()|expensePriceFormat}
-                                                        </td>
-                                                        <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                                                            <a href="{plink Expense:form, id: $bankExpense->getId()->toString()}"
-                                                               class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                                Editovat
-                                                            </a>
-                                                            <a href="{plink showModal!, id: $bankExpense->getId()->toString()}"
-                                                               class="ajax inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                                                Detail
-                                                            </a>
-                                                        </td>
-                                                    </tr>
-                                                {/foreach}
-                                                </tbody>
-                                            </table>
+                                                                    {/foreach}
+                                                                </td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{$bankExpense->getSettlementDate()|datetimeFormat}</td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{$bankExpense->getTransactionDate()|datetimeFormat}</td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                                                                    {$bankExpense->getExpenseType()->format()}
+                                                                </td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
+                                                                    {$bankExpense->getExpensePrice()|expensePriceFormat}
+                                                                </td>
+                                                                <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
+                                                                    <a href="{plink Expense:form, id: $bankExpense->getId()->toString()}"
+                                                                       class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                                        Editovat
+                                                                    </a>
+                                                                    <a href="{plink showModal!, id: $bankExpense->getId()->toString()}"
+                                                                       class="ajax inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                                        Detail
+                                                                    </a>
+                                                                </td>
+                                                            </tr>
+                                                        {/foreach}
+                                                    </tbody>
+                                                </table>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                {/foreach}
+                                {/snippet}
+                            </td>
+                        </tr>
+                        </tbody>
+                    {/foreach}
+                {/snippetArea}
                 <tfoot>
                 <tr>
                     <th scope="row" colspan="3"

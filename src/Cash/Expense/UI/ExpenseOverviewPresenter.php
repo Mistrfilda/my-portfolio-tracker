@@ -15,6 +15,7 @@ use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
 use App\UI\Control\Modal\FrontModalControlFactory;
 use Nette\Application\Attributes\Persistent;
+use function assert;
 
 /**
  * @property-read ExpenseOverviewTemplate $template
@@ -52,6 +53,15 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 			$expenseTagFacade,
 			$bankExpenseFormFactory,
 		);
+	}
+
+	public function startup(): void
+	{
+		parent::startup();
+		if ($this->isAjax()) {
+			$component = $this->getComponent('expanseOverviewCategoryControl');
+			$component->redrawDetailTables();
+		}
 	}
 
 	public function renderDefault(int $selectedYear = self::DEFAULT_YEAR, int|null $selectedMonth = null): void

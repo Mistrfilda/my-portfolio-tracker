@@ -40,4 +40,9 @@ class ExpanseOverviewData
 		return $this->summaryPrice;
 	}
 
+	public function getExpenseCategoryId(): int
+	{
+		return $this->expenseCategory->getId();
+	}
+
 }
