@@ -19,7 +19,7 @@ use Ramsey\Uuid\Uuid;
 class ExpensePresenter extends BaseAdminPresenter
 {
 
-	private bool $showModal = false;
+	protected bool $showModal = false;
 
 	public function __construct(
 		private BankExpenseUploadFormFactory $expenseFormFactory,
@@ -141,7 +141,7 @@ class ExpensePresenter extends BaseAdminPresenter
 		return $modal;
 	}
 
-	private function processModal(string $expenseId): void
+	protected function processModal(string $expenseId): void
 	{
 		$this->showModal = true;
 		$modalComponent = $this->getComponent('modal');

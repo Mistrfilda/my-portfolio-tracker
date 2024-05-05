@@ -19,4 +19,6 @@ class ExpenseOverviewTemplate extends BaseAdminPresenterTemplate
 
 	public int|null $selectedMonth;
 
+	public bool $showModal;
+
 }

@@ -118,6 +118,8 @@ class BankExpenseRepository extends BaseRepository
 			$qb->setParameter('year', $year);
 		}
 
+		$qb->orderBy('bankExpense.amount', 'ASC');
+
 		return $qb->getQuery()->getResult();
 	}
 

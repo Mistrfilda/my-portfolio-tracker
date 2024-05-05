@@ -4,19 +4,22 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Expense\Bank\BankExpenseRepository;
+use App\Cash\Expense\Tag\ExpenseTagFacade;
+use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory;
 use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryChartDataProvider;
 use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryControl;
-use App\UI\Base\BaseSysadminPresenter;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
+use App\UI\Control\Modal\FrontModalControlFactory;
 use Nette\Application\Attributes\Persistent;
 
 /**
  * @property-read ExpenseOverviewTemplate $template
  */
-class ExpenseOverviewPresenter extends BaseSysadminPresenter
+class ExpenseOverviewPresenter extends ExpensePresenter
 {
 
 	public const DEFAULT_YEAR = 2024;
@@ -31,9 +34,24 @@ class ExpenseOverviewPresenter extends BaseSysadminPresenter
 		private ExpanseOverviewCategoryControlFactory $expanseOverviewCategoryControlFactory,
 		private ChartControlFactory $chartControlFactory,
 		private ExpenseOverviewCategoryChartDataProvider $expenseOverviewCategoryChartDataProvider,
+		BankExpenseUploadFormFactory $expenseFormFactory,
+		BankExpenseGridFactory $bankExpenseGridFactory,
+		FrontModalControlFactory $frontModalControlFactory,
+		BankExpenseRepository $bankExpenseRepository,
+		ExpenseTagRepository $expenseTagRepository,
+		ExpenseTagFacade $expenseTagFacade,
+		BankExpenseFormFactory $bankExpenseFormFactory,
 	)
 	{
-		parent::__construct();
+		parent::__construct(
+			$expenseFormFactory,
+			$bankExpenseGridFactory,
+			$frontModalControlFactory,
+			$bankExpenseRepository,
+			$expenseTagRepository,
+			$expenseTagFacade,
+			$bankExpenseFormFactory,
+		);
 	}
 
 	public function renderDefault(int $selectedYear = self::DEFAULT_YEAR, int|null $selectedMonth = null): void
@@ -57,6 +75,7 @@ class ExpenseOverviewPresenter extends BaseSysadminPresenter
 
 		$this->template->selectedYear = $this->selectedYear;
 		$this->template->selectedMonth = $this->selectedMonth;
+		$this->template->showModal = $this->showModal;
 	}
 
 	public function handleSetYear(int $selectedYear = self::DEFAULT_YEAR): void
