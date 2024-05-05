@@ -81,4 +81,6 @@ enum SvgIcon: string
 
 	case CREDIT_CARD = 'credit-card.svg';
 
+	case POLISH_ZLOTY = 'polish-zloty.svg';
+
 }

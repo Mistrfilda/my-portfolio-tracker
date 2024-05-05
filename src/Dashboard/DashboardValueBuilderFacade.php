@@ -70,6 +70,26 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			CurrencyEnum::EUR,
 		);
 
+		$eurGbp = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::EUR,
+			CurrencyEnum::GBP,
+		);
+
+		$plnCzk = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::PLN,
+			CurrencyEnum::CZK,
+		);
+
+		$plnEur = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::PLN,
+			CurrencyEnum::EUR,
+		);
+
+		$eurPln = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::EUR,
+			CurrencyEnum::PLN,
+		);
+
 		return new DashboardValueGroup(
 			DashboardValueGroupEnum::CURRENCY,
 			'Kurzy měn',
@@ -108,7 +128,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 				new DashboardValue(
 					'GBP - CZK',
 					(string) $gbpCzk->getCurrentPrice(),
-					TailwindColorConstant::BLUE,
+					TailwindColorConstant::CYAN,
 					SvgIcon::BRITISH_POUND,
 					sprintf(
 						'Aktualizováno %s',
@@ -118,8 +138,48 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 				new DashboardValue(
 					'GBP - EUR',
 					(string) $gbpEur->getCurrentPrice(),
-					TailwindColorConstant::BLUE,
+					TailwindColorConstant::CYAN,
 					SvgIcon::BRITISH_POUND,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'EUR - GBP',
+					(string) $eurGbp->getCurrentPrice(),
+					TailwindColorConstant::CYAN,
+					SvgIcon::BRITISH_POUND,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'PLN - CZK',
+					(string) $plnCzk->getCurrentPrice(),
+					TailwindColorConstant::RED,
+					SvgIcon::POLISH_ZLOTY,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpCzk->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'PLN - EUR',
+					(string) $plnEur->getCurrentPrice(),
+					TailwindColorConstant::RED,
+					SvgIcon::POLISH_ZLOTY,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'EUR - PLN',
+					(string) $eurPln->getCurrentPrice(),
+					TailwindColorConstant::RED,
+					SvgIcon::POLISH_ZLOTY,
 					sprintf(
 						'Aktualizováno %s',
 						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),

@@ -23,6 +23,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		'USD' => CurrencyEnum::USD,
 		'EUR' => CurrencyEnum::EUR,
 		'GBP' => CurrencyEnum::GBP,
+		'PLN' => CurrencyEnum::PLN,
 	];
 
 	public function __construct(

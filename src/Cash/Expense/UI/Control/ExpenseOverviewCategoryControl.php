@@ -7,7 +7,6 @@ namespace App\Cash\Expense\UI\Control;
 use App\Asset\Price\SummaryPrice;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
-use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseControl;
 
@@ -18,7 +17,7 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		private int $year,
 		private int|null $month,
 		private BankExpenseRepository $bankExpenseRepository,
-		private ExpenseCategoryRepository $expenseCategoryRepository
+		private ExpenseCategoryRepository $expenseCategoryRepository,
 	)
 	{
 	}

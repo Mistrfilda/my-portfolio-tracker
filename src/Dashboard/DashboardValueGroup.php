@@ -15,6 +15,7 @@ class DashboardValueGroup
 		private readonly string $heading,
 		private readonly string|null $description = null,
 		private readonly array $positions = [],
+		private readonly bool $isOpen = false,
 	)
 	{
 	}
@@ -40,6 +41,11 @@ class DashboardValueGroup
 	public function getPositions(): array
 	{
 		return $this->positions;
+	}
+
+	public function isOpen(): bool
+	{
+		return $this->isOpen;
 	}
 
 }

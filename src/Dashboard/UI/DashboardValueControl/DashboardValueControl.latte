@@ -1,42 +1,83 @@
 {templateType App\Dashboard\UI\DashboardValueControl\DashboardValueControlTemplate}
 
 {foreach $dashboardValueGroups as $dasboardValueGroup}
-    <div class="pb-5 border-b border-gray-200 py-6">
-        <h2 class="text-2xl leading-6 font-medium text-gray-900">
-            {$dasboardValueGroup->getHeading()}
-        </h2>
-        {if $dasboardValueGroup->getDescription() !== null}
-            <p class="mt-2 max-w-4xl text-sm text-gray-500">
-                {$dasboardValueGroup->getDescription()}
-            </p>
-        {/if}
-    </div>
-
-    <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-        {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
-            {varType App\Dashboard\DashboardValue $dashboardValue}
-            <div class="relative bg-white pt-5 px-4 pb-6 sm:pt-6 sm:px-6 shadow rounded-lg overflow-hidden">
-                <dt>
-                    <div class="absolute bg-{$dashboardValue->getColor()}-500 rounded-md p-3">
-                        {if $dashboardValue->getSvgIcon() !== null}
-                            {renderSvg $dashboardValue->getSvgIcon(), ['class' => 'h-6 w-6 text-white']}
-                        {/if}
-                    </div>
-                    <p class="ml-16 text-sm font-medium text-gray-500">
-                        {$dashboardValue->getLabel()}
-                    </p>
-                </dt>
-                <dd class="ml-16 flex items-baseline">
-                    <p class="text-2xl font-semibold text-gray-900">
-                        {$dashboardValue->getValue()}
-                    </p>
-                </dd>
-                {if $dashboardValue->getDescription() !== null}
-                    <dd class="mt-4 flex items-baseline">
-                        <p class="text-sm text-gray-500">{$dashboardValue->getDescription()}</p>
-                    </dd>
-                {/if}
+    <div x-data="{
+            open: true,
+            toggle() {
+                this.open = !this.open
+            }
+        }"
+    >
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <div class="flex justify-between">
+                <div>
+                    <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                        <button x-on:click="toggle()">
+                            {$dasboardValueGroup->getHeading()}
+                        </button>
+                    </h2>
+                </div>
+                <div>
+                    <button x-on:click="toggle()" type="button"
+                            class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
+                            aria-controls="sub-menu-1" aria-expanded="false">
+                        <svg
+                                :class="open ? 'rotate-90' : ''"
+                                class="text-gray-400 h-5 w-5 shrink-0"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                aria-hidden="true"
+                        >
+                            <path fill-rule="evenodd"
+                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
-        {/foreach}
-    </dl>
+            {if $dasboardValueGroup->getDescription() !== null}
+                <p class="mt-2 max-w-4xl text-sm text-gray-500">
+                    {$dasboardValueGroup->getDescription()}
+                </p>
+            {/if}
+        </div>
+
+        <dl
+                class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3"
+                x-show="open"
+                x-cloak="open"
+                x-transition:enter="transition-opacity ease-linear duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition-opacity ease-linear duration-300"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+        >
+            {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
+                {varType App\Dashboard\DashboardValue $dashboardValue}
+                <div class="relative bg-white pt-5 px-4 pb-6 sm:pt-6 sm:px-6 shadow rounded-lg overflow-hidden">
+                    <dt>
+                        <div class="absolute bg-{$dashboardValue->getColor()}-500 rounded-md p-3">
+                            {if $dashboardValue->getSvgIcon() !== null}
+                                {renderSvg $dashboardValue->getSvgIcon(), ['class' => 'h-6 w-6 text-white']}
+                            {/if}
+                        </div>
+                        <p class="ml-16 text-sm font-medium text-gray-500">
+                            {$dashboardValue->getLabel()}
+                        </p>
+                    </dt>
+                    <dd class="ml-16 flex items-baseline">
+                        <p class="text-2xl font-semibold text-gray-900">
+                            {$dashboardValue->getValue()}
+                        </p>
+                    </dd>
+                    {if $dashboardValue->getDescription() !== null}
+                        <dd class="mt-4 flex items-baseline">
+                            <p class="text-sm text-gray-500">{$dashboardValue->getDescription()}</p>
+                        </dd>
+                    {/if}
+                </div>
+            {/foreach}
+        </dl>
+    </div>
 {/foreach}

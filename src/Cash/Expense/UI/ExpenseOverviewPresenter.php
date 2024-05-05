@@ -15,7 +15,6 @@ use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
 use App\UI\Control\Modal\FrontModalControlFactory;
 use Nette\Application\Attributes\Persistent;
-use function assert;
 
 /**
  * @property-read ExpenseOverviewTemplate $template

@@ -25,6 +25,7 @@
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">PLN</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
@@ -34,6 +35,7 @@
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::EUR|currency:App\Currency\CurrencyEnum::EUR}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::USD|currency:App\Currency\CurrencyEnum::USD}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::GBP}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::CZK,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::PLN}</td>
                             </tr>
                             {/foreach}
                         </tbody>
@@ -59,6 +61,7 @@
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">CZK</th>
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">USD</th>
                             <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">GBP</th>
+                            <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">EUR</th>
                         </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200 bg-white">
@@ -68,6 +71,7 @@
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::CZK|currency:App\Currency\CurrencyEnum::CZK}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::USD|currency:App\Currency\CurrencyEnum::USD}</td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::GBP}</td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$value|currencyConvert:App\Currency\CurrencyEnum::EUR,App\Currency\CurrencyEnum::GBP|currency:App\Currency\CurrencyEnum::PLN}</td>
                             </tr>
                         {/foreach}
                         </tbody>
