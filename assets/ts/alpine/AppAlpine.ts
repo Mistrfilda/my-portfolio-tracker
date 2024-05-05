@@ -289,5 +289,26 @@ Alpine.data('removeOtherTag', (expenseId: string, handleLink: string) => ({
     }
 }));
 
+Alpine.data('currencyConvert', (handleLink: string) => ({
+    fromCurrency: 'CZK',
+    amount: 0,
+
+    click() {
+        handleLink = handleLink.replace("replaceFromCurrency", this.fromCurrency);
+        handleLink = handleLink.replace("replaceAmount", this.amount);
+
+        naja.makeRequest(
+            'GET',
+            handleLink,
+            null,
+            {
+                history: false,
+                responseType: 'json',
+                unique: false
+            },
+        );
+    }
+}));
+
 window.Alpine = Alpine;
 Alpine.start();

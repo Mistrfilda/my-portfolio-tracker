@@ -4,10 +4,15 @@ declare(strict_types = 1);
 
 namespace App\Currency\UI;
 
+use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseAdminPresenter;
 
 class CurrencyOverviewPresenter extends BaseAdminPresenter
 {
+
+	private CurrencyEnum|null $fromCurrency = null;
+
+	private int|null $amount = null;
 
 	public function renderDefault(): void
 	{
@@ -68,6 +73,25 @@ class CurrencyOverviewPresenter extends BaseAdminPresenter
 			4500,
 			5000,
 		];
+
+		$this->template->currencies = CurrencyEnum::getOptionsForAdminSelect();
+		$this->template->currencyConvertLink = $this->link(
+			'currencyConvert!',
+			['fromCurrency' => 'replaceFromCurrency', 'amount' => 'replaceAmount'],
+		);
+		$this->template->fromCurrency = $this->fromCurrency;
+		$this->template->amount = $this->amount;
+	}
+
+	public function handleCurrencyConvert(string $fromCurrency, string $amount): void
+	{
+		$this->fromCurrency = CurrencyEnum::from($fromCurrency);
+		$this->amount = (int) $amount;
+
+		bdump($this->fromCurrency);
+		bdump($this->amount);
+
+		$this->redrawControl('calculator');
 	}
 
 }

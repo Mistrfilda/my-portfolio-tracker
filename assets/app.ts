@@ -11,6 +11,7 @@ declare global {
         expenseMainTag: any;
         addExpenseOtherTag: any;
         removeOtherTag: any;
+        currencyConvert: any;
     }
 }
 

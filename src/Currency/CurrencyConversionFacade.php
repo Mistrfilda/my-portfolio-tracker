@@ -7,6 +7,7 @@ namespace App\Currency;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
+use Doctrine\ORM\NoResultException;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class CurrencyConversionFacade
@@ -105,10 +106,14 @@ class CurrencyConversionFacade
 		CurrencyEnum $toCurrency,
 	): float
 	{
-		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-			$fromCurrency,
-			$toCurrency,
-		);
+		try {
+			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+				$fromCurrency,
+				$toCurrency,
+			);
+		} catch (NoResultException $e) {
+			throw new MissingCurrencyPairException(previous: $e);
+		}
 
 		return $this->convertPrice($price, $currencyConversion);
 	}

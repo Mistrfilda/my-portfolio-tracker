@@ -141,6 +141,7 @@ services:
 			- addFilter(ruleOfThree, [@ruleOfThreeFilter, getPercentage])
 			- addFilter(currencyConvert, [@currencyConversionFilter, convert])
 			- addFilter(expensePriceFormat, [@expensePriceFilter, format])
+			- addFilter(nullableCurrencyConvert, [@currencyNullableConversionFilter, convert])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
@@ -154,6 +155,7 @@ services:
 	ruleOfThreeFilter: App\UI\Filter\RuleOfThreeFilter
 	currencyConversionFilter: App\UI\Filter\CurrencyConversionFilter
 	expensePriceFilter: App\UI\Filter\ExpensePriceFilter
+	currencyNullableConversionFilter: App\UI\Filter\CurrencyNullableConversionFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
