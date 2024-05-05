@@ -29,7 +29,7 @@ class StockAssetDetailControl extends BaseControl
 
 	public function render(): void
 	{
-		$template = $this->getTemplate();
+		$template = $this->createTemplate(StockAssetDetailControlTemplate::class);
 		assert($template instanceof StockAssetDetailControlTemplate);
 
 		$template->stockAsset = $this->stockAssetRepository->getById($this->id);
