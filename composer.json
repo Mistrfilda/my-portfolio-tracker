@@ -111,7 +111,8 @@
 			"@migm",
 			"@clear",
 			"@yarn-prod"
-		]
+		],
+		"harvest-download": "bin/console workMonthlyIncome:download"
 	},
 	"config": {
 		"allow-plugins": {
