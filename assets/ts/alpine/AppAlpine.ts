@@ -289,9 +289,9 @@ Alpine.data('removeOtherTag', (expenseId: string, handleLink: string) => ({
     }
 }));
 
-Alpine.data('currencyConvert', (handleLink: string) => ({
-    fromCurrency: 'CZK',
-    amount: 0,
+Alpine.data('currencyConvert', (handleLink: string, amount: string, fromCurrency: string) => ({
+    fromCurrency: fromCurrency,
+    amount: parseFloat(amount),
 
     click() {
         handleLink = handleLink.replace("replaceFromCurrency", this.fromCurrency);

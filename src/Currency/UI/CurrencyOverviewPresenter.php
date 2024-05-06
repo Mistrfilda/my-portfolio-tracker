@@ -12,7 +12,7 @@ class CurrencyOverviewPresenter extends BaseAdminPresenter
 
 	private CurrencyEnum|null $fromCurrency = null;
 
-	private int|null $amount = null;
+	private float|null $amount = null;
 
 	public function renderDefault(): void
 	{
@@ -86,11 +86,7 @@ class CurrencyOverviewPresenter extends BaseAdminPresenter
 	public function handleCurrencyConvert(string $fromCurrency, string $amount): void
 	{
 		$this->fromCurrency = CurrencyEnum::from($fromCurrency);
-		$this->amount = (int) $amount;
-
-		bdump($this->fromCurrency);
-		bdump($this->amount);
-
+		$this->amount = (float) $amount;
 		$this->redrawControl('calculator');
 	}
 
