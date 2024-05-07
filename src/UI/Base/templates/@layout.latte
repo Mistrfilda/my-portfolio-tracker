@@ -85,7 +85,7 @@
                     </a>
                 </div>
                 <nav class="mt-5 flex-shrink-0 h-full overflow-y-auto" aria-label="Sidebar">
-                    <div class="px-2 space-y-1">
+                    <div class="px-2">
                         {foreach $menuItems as $menuItem}
                             {if $presenter->isMenuLinkActive($menuItem->getActiveLinks())}
                                 <a n:href="$menuItem->getLink()"
@@ -107,6 +107,9 @@
                                 </a>
                             {/if}
                         {/foreach}
+                        <a n:href="Dashboard:default" class="text-blue-100 hover:text-white hover:bg-blue-600 group flex items-center px-2 py-2 text-base font-medium rounded-md mt-5 mb-5">
+                            {renderSvg App\UI\Icon\SvgIcon::DOLLAR->value, ['class' => 'h-6 w-6 text-white mr-4']} My portfolio
+                        </a>
                     </div>
                 </nav>
             </div>
