@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense\Kb;
+namespace App\Cash\Bank\Kb;
 
 use App\Cash\Expense\ExpenseParsingErrorException;
 

@@ -2,10 +2,10 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\WorkMonthlyIncome\UI;
+namespace App\Cash\Income\WorkMonthlyIncome\UI;
 
 use App\Asset\Price\SummaryPrice;
-use App\Cash\WorkMonthlyIncome\WorkMonthlyIncome;
+use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncome;
 use App\UI\Base\BaseAdminPresenterTemplate;
 
 class WorkMonthlyIncomeTemplate extends BaseAdminPresenterTemplate

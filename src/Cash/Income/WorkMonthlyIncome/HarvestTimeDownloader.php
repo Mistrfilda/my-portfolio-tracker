@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\WorkMonthlyIncome;
+namespace App\Cash\Income\WorkMonthlyIncome;
 
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;

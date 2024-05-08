@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c52b4acfcf54ffe2de4f4393579e5301",
+    "content-hash": "6787240d785b5116d29024b293389f67",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -326,29 +326,30 @@
         },
         {
             "name": "contributte/forms-multiplier",
-            "version": "v4.0.1",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/contributte/forms-multiplier.git",
-                "reference": "15527e5e0db2b890ed9107a98e855c164f211c10"
+                "reference": "1d9a35683bfdd287d0a7ed762806aa94e6ceb793"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/contributte/forms-multiplier/zipball/15527e5e0db2b890ed9107a98e855c164f211c10",
-                "reference": "15527e5e0db2b890ed9107a98e855c164f211c10",
+                "url": "https://api.github.com/repos/contributte/forms-multiplier/zipball/1d9a35683bfdd287d0a7ed762806aa94e6ceb793",
+                "reference": "1d9a35683bfdd287d0a7ed762806aa94e6ceb793",
                 "shasum": ""
             },
             "require": {
-                "nette/forms": "^3.1.0",
+                "nette/forms": "^3.1.12",
                 "php": ">=8.0"
             },
             "conflict": {
-                "latte/latte": "<3.0.0"
+                "latte/latte": "<3.0.0",
+                "nette/component-model": "<3.1.0"
             },
             "require-dev": {
-                "codeception/codeception": "^4.1.9",
-                "codeception/module-asserts": "^1.3.1",
-                "codeception/module-phpbrowser": "^1.0.2",
+                "codeception/codeception": "^5.0",
+                "codeception/module-asserts": "^3.0",
+                "codeception/module-phpbrowser": "^3.0",
                 "contributte/phpstan": "^0.1",
                 "contributte/qa": "^0.3",
                 "latte/latte": "^3.0.0",
@@ -356,6 +357,7 @@
                 "nette/di": "^3.1.0",
                 "webchemistry/testing-helpers": "^4.0.0"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -377,7 +379,7 @@
             ],
             "support": {
                 "issues": "https://github.com/contributte/forms-multiplier/issues",
-                "source": "https://github.com/contributte/forms-multiplier/tree/v4.0.1"
+                "source": "https://github.com/contributte/forms-multiplier/tree/forms323"
             },
             "funding": [
                 {
@@ -389,7 +391,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2024-03-20T22:12:31+00:00"
+            "time": "2024-05-07T23:46:52+00:00"
         },
         {
             "name": "contributte/monolog",
@@ -9139,6 +9141,7 @@
     "stability-flags": {
         "nettrine/orm": 20,
         "nettrine/dbal": 20,
+        "contributte/forms-multiplier": 20,
         "roave/security-advisories": 20
     },
     "prefer-stable": false,

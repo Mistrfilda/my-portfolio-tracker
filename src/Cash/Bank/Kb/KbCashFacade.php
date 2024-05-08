@@ -2,23 +2,26 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense\Kb;
+namespace App\Cash\Bank\Kb;
 
+use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseFacade;
 use App\Cash\Expense\Bank\BankExpenseRepository;
-use App\Cash\Expense\Bank\BankSourceEnum;
+use App\Cash\Income\Bank\BankIncome;
+use App\Cash\Income\Bank\BankIncomeRepository;
 use App\Currency\CurrencyEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
 
-class KbExpenseFacade implements BankExpenseFacade
+class KbCashFacade implements BankExpenseFacade
 {
 
 	public function __construct(
-		private KbPdfExpenseParser $kbPdfExpenseParser,
+		private KbPdfCashParser $kbPdfExpenseParser,
 		private BankExpenseRepository $bankExpenseRepository,
+		private BankIncomeRepository $bankIncomeRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
@@ -54,6 +57,28 @@ class KbExpenseFacade implements BankExpenseFacade
 			);
 
 			$this->entityManager->persist($expense);
+			$this->entityManager->flush();
+		}
+
+		foreach ($parsedContents->getIncomingTransactions() as $transaction) {
+			$id = $this->computeIdForTransaction($transaction);
+
+			if ($this->bankIncomeRepository->findByIdentifier($id) !== null) {
+				continue;
+			}
+
+			$income = new BankIncome(
+				$id,
+				BankSourceEnum::KOMERCNI_BANKA,
+				$transaction->getBankTransactionType(),
+				$transaction->getAmount(),
+				CurrencyEnum::CZK,
+				$transaction->getSettlementDate(),
+				$transaction->getTransactionRawContent() ?? '',
+				$this->datetimeFactory->createNow(),
+			);
+
+			$this->entityManager->persist($income);
 			$this->entityManager->flush();
 		}
 

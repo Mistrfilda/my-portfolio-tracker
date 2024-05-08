@@ -293,9 +293,9 @@ services:
 	- App\Cash\Expense\Bank\BankExpenseFormFacade
 
 
-	- App\Cash\Expense\Kb\KbPdfExpenseParser
-	- App\Cash\Expense\Kb\KbContentParser
-	- App\Cash\Expense\Kb\KbExpenseFacade
+	- App\Cash\Bank\Kb\KbPdfCashParser
+	- App\Cash\Bank\Kb\KbContentParser
+	- App\Cash\Bank\Kb\KbCashFacade
 
 	- App\Cash\Expense\Tag\ExpenseTagRepository(App\Cash\Expense\Tag\ExpenseTag)
 	- App\Cash\Expense\Tag\ExpenseTagFacade
@@ -308,12 +308,14 @@ services:
 
 	#WORK MONTHLY INCOME
 	-
-		class: App\Cash\WorkMonthlyIncome\HarvestTimeDownloader
+		class: App\Cash\Income\WorkMonthlyIncome\HarvestTimeDownloader
 		arguments:
 			harvestAccountId: %workMonthlyIncome.harvestAccountId%
 			harvestUserId: %workMonthlyIncome.harvestUserId%
 			harvestAccessToken: %workMonthlyIncome.harvestAccessToken%
 
-	- App\Cash\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\WorkMonthlyIncome\WorkMonthlyIncome)
-	- App\Cash\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
-	- App\Cash\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
+	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\WorkMonthlyIncome\WorkMonthlyIncome)
+	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
+	- App\Cash\Income\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
+
+	- App\Cash\Income\Bank\BankIncomeRepository(App\Cash\Income\Bank\BankIncome)

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Bank\BankSourceEnum;
+use App\Cash\Bank\BankTransactionType;
 use App\Currency\CurrencyEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;

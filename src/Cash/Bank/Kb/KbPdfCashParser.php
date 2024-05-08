@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense\Kb;
+namespace App\Cash\Bank\Kb;
 
 use App\Cash\Expense\Bank\BankExpenseParser;
 use Nette\Utils\Strings;
@@ -10,7 +10,7 @@ use Smalot\PdfParser\Parser;
 use const PREG_SPLIT_DELIM_CAPTURE;
 use const PREG_SPLIT_NO_EMPTY;
 
-class KbPdfExpenseParser implements BankExpenseParser
+class KbPdfCashParser implements BankExpenseParser
 {
 
 	public function __construct(private KbContentParser $kbContentParser)

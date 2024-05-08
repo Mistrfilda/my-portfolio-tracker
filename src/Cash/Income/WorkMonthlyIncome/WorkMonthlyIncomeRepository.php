@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\WorkMonthlyIncome;
+namespace App\Cash\Income\WorkMonthlyIncome;
 
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;

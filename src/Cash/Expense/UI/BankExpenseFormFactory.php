@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Bank\BankSourceEnum;
+use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Bank\BankExpenseFormFacade;
 use App\Cash\Expense\Bank\BankExpenseRepository;
-use App\Cash\Expense\Bank\BankSourceEnum;
-use App\Cash\Expense\Bank\BankTransactionType;
 use App\Currency\CurrencyEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;

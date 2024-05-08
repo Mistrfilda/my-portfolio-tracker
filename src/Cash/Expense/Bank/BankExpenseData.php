@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Bank\BankTransactionType;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 interface BankExpenseData

@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense;
+namespace App\Cash\Utils;
 
 use App\Currency\CurrencyEnum;
 
-class ExpensePrice
+class CashPrice
 {
 
 	public function __construct(

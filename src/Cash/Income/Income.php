@@ -2,19 +2,17 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense;
+namespace App\Cash\Income;
 
 use App\Cash\Utils\CashPrice;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
-interface Expense
+interface Income
 {
 
 	public function getDate(): ImmutableDateTime;
 
 	public function getExpensePrice(): CashPrice;
-
-	public function getExpenseType(): ExpenseTypeEnum;
 
 	public function getIdentifier(): string;
 

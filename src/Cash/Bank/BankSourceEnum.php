@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense\Bank;
+namespace App\Cash\Bank;
 
 use App\UI\Control\Datagrid\Column\DatagridRenderableEnum;
 

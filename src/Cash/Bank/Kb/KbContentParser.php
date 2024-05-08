@@ -2,9 +2,9 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\Expense\Kb;
+namespace App\Cash\Bank\Kb;
 
-use App\Cash\Expense\Bank\BankTransactionType;
+use App\Cash\Bank\BankTransactionType;
 
 class KbContentParser
 {
@@ -40,15 +40,16 @@ class KbContentParser
 
 			$transaction->setAmount($amount);
 
-			if ($amount > 0.0) {
-				$incomingTransactions[] = $transaction;
-				continue;
-			}
-
 			$type = $this->determineType(
 				$transactionParts,
 				$transaction->getTransactionRawContent() ?? '',
 			);
+
+			if ($amount > 0.0) {
+				$transaction->setBankTransactionType($type ?? BankTransactionType::TRANSACTION);
+				$incomingTransactions[] = $transaction;
+				continue;
+			}
 
 			if ($type === null) {
 				dump($transaction);

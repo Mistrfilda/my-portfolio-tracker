@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\WorkMonthlyIncome;
+namespace App\Cash\Income\WorkMonthlyIncome;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;

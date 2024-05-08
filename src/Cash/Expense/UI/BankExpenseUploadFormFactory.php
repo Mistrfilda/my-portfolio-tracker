@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
-use App\Cash\Expense\Bank\BankSourceEnum;
-use App\Cash\Expense\Kb\KbExpenseFacade;
+use App\Cash\Bank\BankSourceEnum;
+use App\Cash\Bank\Kb\KbCashFacade;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use InvalidArgumentException;
@@ -18,7 +18,7 @@ class BankExpenseUploadFormFactory
 {
 
 	public function __construct(
-		private KbExpenseFacade $kbExpenseFacade,
+		private KbCashFacade $kbExpenseFacade,
 		private AdminFormFactory $adminFormFactory,
 	)
 	{

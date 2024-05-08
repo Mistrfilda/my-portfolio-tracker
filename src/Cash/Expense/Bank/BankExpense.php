@@ -4,11 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Bank\BankSourceEnum;
+use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Expense;
-use App\Cash\Expense\ExpensePrice;
 use App\Cash\Expense\ExpenseTypeEnum;
 use App\Cash\Expense\Tag\ExpenseTag;
 use App\Cash\Expense\Tag\ExpenseTagException;
+use App\Cash\Utils\CashPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -230,9 +232,9 @@ class BankExpense implements Entity, Expense
 		return $this->createdAt;
 	}
 
-	public function getExpensePrice(): ExpensePrice
+	public function getExpensePrice(): CashPrice
 	{
-		return new ExpensePrice($this->amount, $this->currency);
+		return new CashPrice($this->amount, $this->currency);
 	}
 
 	public function getBankTransactionType(): BankTransactionType

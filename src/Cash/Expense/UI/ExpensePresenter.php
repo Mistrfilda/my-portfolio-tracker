@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Expense\Bank\BankExpenseRepository;
-use App\Cash\Expense\Bank\BankSourceEnum;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\UI\Base\BaseAdminPresenter;

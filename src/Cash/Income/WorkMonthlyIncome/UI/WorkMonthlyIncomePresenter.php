@@ -2,10 +2,10 @@
 
 declare(strict_types = 1);
 
-namespace App\Cash\WorkMonthlyIncome\UI;
+namespace App\Cash\Income\WorkMonthlyIncome\UI;
 
 use App\Asset\Price\SummaryPrice;
-use App\Cash\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
+use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseSysadminPresenter;
 use Mistrfilda\Datetime\DatetimeFactory;
