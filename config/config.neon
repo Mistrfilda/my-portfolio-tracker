@@ -314,7 +314,7 @@ services:
 			harvestUserId: %workMonthlyIncome.harvestUserId%
 			harvestAccessToken: %workMonthlyIncome.harvestAccessToken%
 
-	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\WorkMonthlyIncome\WorkMonthlyIncome)
+	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncome)
 	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
 	- App\Cash\Income\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
 
