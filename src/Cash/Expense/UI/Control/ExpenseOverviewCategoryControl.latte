@@ -44,7 +44,6 @@
                         <tr class="border-b border-gray-200">
                             <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
                                 <div class="font-medium text-gray-900">{$expanseOverviewData->getExpenseCategory()->getEnumName()->format()}</div>
-                                {*                        <div class="mt-1 truncate text-gray-500">New logo and digital asset playbook.</div>*}
                             </td>
                             <td class="invisible"></td>
                             <td class="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{$expanseOverviewData->getSummaryPrice()->getCounter()}</td>
@@ -78,44 +77,44 @@
                         >
                             <td colspan="4">
                                 {snippet 'bankExpenses-' . $expanseOverviewData->getExpenseCategoryId()}
-                                <div class="">
-                                    <div class="flow-root">
-                                        <div class="-mx-4 -my-2 overflow-scroll sm:-mx-6 lg:-mx-8">
-                                            <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                                                <table class="min-w-full divide-y divide-gray-300 border-b border-gray-200 mb-4">
-                                                    <thead>
-                                                    <tr>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                                            Hlavní tag
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                            Ostatní tagy
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                            Datum zaúčtování
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                            Datum transakce
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                            Typ transakce
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
-                                                            Hodnota
-                                                        </th>
-                                                        <th scope="col"
-                                                            class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
-                                                            <span class="sr-only">Edit</span>
-                                                        </th>
-                                                    </tr>
-                                                    </thead>
-                                                    <tbody class="divide-y divide-gray-200 bg-white">
+                                    <div class="">
+                                        <div class="flow-root">
+                                            <div class="-mx-4 -my-2 overflow-scroll sm:-mx-6 lg:-mx-8">
+                                                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                                                    <table class="min-w-full divide-y divide-gray-300 border-b border-gray-200 mb-4">
+                                                        <thead>
+                                                        <tr>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                                                Hlavní tag
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Ostatní tagy
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Datum zaúčtování
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Datum transakce
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Typ transakce
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="whitespace-nowrap px-2 py-3.5 text-left text-sm font-semibold text-gray-900">
+                                                                Hodnota
+                                                            </th>
+                                                            <th scope="col"
+                                                                class="relative whitespace-nowrap py-3.5 pl-3 pr-4 sm:pr-0">
+                                                                <span class="sr-only">Edit</span>
+                                                            </th>
+                                                        </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-gray-200 bg-white">
                                                         {foreach $expanseOverviewData->getExpenses() as $bankExpense}
                                                             <tr>
                                                                 <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">{$bankExpense->getMainTag()?->getName()}</td>
@@ -146,12 +145,12 @@
                                                                 </td>
                                                             </tr>
                                                         {/foreach}
-                                                    </tbody>
-                                                </table>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                                 {/snippet}
                             </td>
                         </tr>

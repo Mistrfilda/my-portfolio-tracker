@@ -93,9 +93,9 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 		$this->invalidatePage();
 	}
 
-	public function handleSetMonth(int|null $month = null): void
+	public function handleSetMonth(int|null $selectedMonth = null): void
 	{
-		$this->selectedMonth = $month;
+		$this->selectedMonth = $selectedMonth;
 		$this->invalidatePage();
 	}
 
@@ -110,7 +110,7 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 	protected function createComponentChartOverview(): ChartControl
 	{
 		$dataProvider = clone $this->expenseOverviewCategoryChartDataProvider;
-		$dataProvider->setYear($this->selectedYear ?? self::DEFAULT_YEAR,);
+		$dataProvider->setYear($this->selectedYear ?? self::DEFAULT_YEAR);
 		$dataProvider->setMonth($this->selectedMonth);
 		return $this->chartControlFactory->create(ChartType::DOUGHNUT, $dataProvider, true);
 	}

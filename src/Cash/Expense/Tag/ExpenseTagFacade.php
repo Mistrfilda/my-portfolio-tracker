@@ -97,7 +97,11 @@ class ExpenseTagFacade
 							&& $bankExpense->getMainTag()->getId() !== $expenseTag->getId()
 						) {
 							throw new ExpenseTagMatchException(
-								sprintf('Duplicate main bank expense tag for bank expense %s, new expense tag id %s', $bankExpense->getId()->toString(), $expenseTag->getId())
+								sprintf(
+									'Duplicate main bank expense tag for bank expense %s, new expense tag id %s',
+									$bankExpense->getId()->toString(),
+									$expenseTag->getId(),
+								),
 							);
 						}
 

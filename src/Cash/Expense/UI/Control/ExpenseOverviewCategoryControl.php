@@ -55,7 +55,6 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		$this->redrawControl('expenseOverviewArea');
 		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
 			$this->redrawControl('bankExpenses-' . $expenseCategory->getId());
-			bdump('bankExpenses-' . $expenseCategory->getId());
 		}
 	}
 
