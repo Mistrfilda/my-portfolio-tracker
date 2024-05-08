@@ -36,10 +36,12 @@ class ExpenseTagFormFactory
 			'Kategorie',
 			$this->expenseCategoryRepository->findPairs(),
 		)
-			->setPrompt('Vyberte');
+			->setPrompt('Vyberte')
+			->setOption('tomSelect', true);
 
 		$parentTag = $form->addSelect('parentTag', 'Parent Tag', $this->expenseTagRepository->findPairs())
-			->setPrompt('Vyberte');
+			->setPrompt('Vyberte')
+			->setOption('tomSelect', true);
 
 		$multiplier = $form->addDynamic(
 			'regexes',
