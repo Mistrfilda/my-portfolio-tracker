@@ -28,6 +28,7 @@ naja.addEventListener(
 
         // Získáme parametry z původní URL
         let params = new URLSearchParams(startUrl.search);
+        console.log(params);
 
         for (let i = 0; i < loadedCharts.length; i++) {
             // URL adresa, kam chcete odeslat GET požadavek

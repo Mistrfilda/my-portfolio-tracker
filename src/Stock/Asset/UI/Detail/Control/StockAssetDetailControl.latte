@@ -2,7 +2,7 @@
 
 <div
         x-data="{
-            currentTab: 'first',
+            currentTab: 'chart',
             changeTab(value) {
                 this.currentTab = value
             }
@@ -56,38 +56,47 @@
     </div>
 
     <div>
-        <div class="sm:hidden">
-            <label for="tabs" class="sr-only">Select a tab</label>
-            <!-- Use an "onChange" listener to redirect the user to the selected tab URL. -->
-            <select id="tabs" name="tabs"
-                    class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
-                <option selected>My Account</option>
-                <option>Company</option>
-                <option>Team Members</option>
-                <option>Billing</option>
-            </select>
-        </div>
+{*        <div class="sm:hidden">*}
+{*            <label for="tabs" class="sr-only">Select a tab</label>*}
+{*            <!-- Use an "onChange" listener to redirect the user to the selected tab URL. -->*}
+{*            <select id="tabs" name="tabs"*}
+{*                    class="block w-full rounded-md border-gray-300 focus:border-blue-500 focus:ring-blue-500">*}
+{*                <option selected>My Account</option>*}
+{*                <option>Company</option>*}
+{*                <option>Team Members</option>*}
+{*                <option>Billing</option>*}
+{*            </select>*}
+{*        </div>*}
         <div class="hidden sm:block">
             <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
                 <!-- Current: "text-gray-900", Default: "text-gray-500 hover:text-gray-700" -->
                 <a
-                        x-on:click="changeTab('first')"
-                        :class="currentTab === 'first' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'"
+                        x-on:click="changeTab('chart')"
+                        :class="currentTab === 'chart' ? '' : ''"
                         href="#"
-                        class="text-gray-900 rounded-l-lg group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
+                        class="text-gray-500 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
+                >
+                    <span>Graf</span>
+                    <span x-show="currentTab === 'chart'" aria-hidden="true" class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                </a>
+                <a
+                        x-on:click="changeTab('positions')"
+                        :class="currentTab === 'positions' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700'"
+                        href="#"
+                        class="text-gray-900 group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
                         aria-current="page"
                 >
                     <span>Pozice</span>
-                    <span x-show="currentTab === 'first'" aria-hidden="true" class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                    <span x-show="currentTab === 'positions'" aria-hidden="true" class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
                 </a>
                 <a
-                        x-on:click="changeTab('second')"
-                        :class="currentTab === 'second' ? '' : ''"
+                        x-on:click="changeTab('dividends')"
+                        :class="currentTab === 'dividends' ? '' : ''"
                         href="#"
                         class="text-gray-500 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10"
                 >
                     <span>Dividendy</span>
-                    <span x-show="currentTab === 'second'" aria-hidden="true" class="bg-indigo-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                    <span x-show="currentTab === 'dividends'" aria-hidden="true" class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
                 </a>
                 {*            <a href="#"*}
                 {*               class="text-gray-500 hover:text-gray-700 group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10">*}
@@ -104,7 +113,38 @@
     </div>
 
     <div
-            x-show="currentTab === 'first'"
+            x-show="currentTab === 'chart'"
+            x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-linear duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
+        <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                <div class="px-4 py-5 sm:px-6">
+                    <h3 class="text-lg leading-6 font-medium text-gray-900">
+                        Hodnota akcie za poslední měsíc
+                    </h3>
+                    <p class="mt-1 text-sm text-gray-500">
+                    </p>
+                </div>
+                <div class="px-1 py-1">
+                    {control stockAssetPriceChart}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div
+            x-show="currentTab === 'positions'"
+            x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-linear duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
             class="flex flex-col mt-6" id="{$openStockAssetDetailDTO->getHtmlTarget()}"
     >
         <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -327,8 +367,15 @@
         </div>
     </div>
 
-    <div x-show="currentTab === 'second'" class="mt-6">
+    <div
+            x-show="currentTab === 'dividends'"
+            x-transition:enter="transition-opacity ease-linear duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition-opacity ease-linear duration-300"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            class="mt-6">
         {control stockAssetDividendRecordGrid}
     </div>
-
 </div>

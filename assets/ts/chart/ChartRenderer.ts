@@ -61,7 +61,21 @@ export class ChartRenderer {
                         mode: 'index',
                     },
                     responsive: true,
-                }
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
+                                    let label = tooltipItem.dataset.label || '';
+                                    if (label) {
+                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
+                                    }
+
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                },
             });
 
             if (shouldUpdateOnAjaxRequestValue) {

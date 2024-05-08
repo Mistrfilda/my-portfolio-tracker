@@ -14,7 +14,7 @@ class ChartData implements JsonSerializable
 	/** @var array<int, string> */
 	private array $labels;
 
-	/** @var array<int, int> */
+	/** @var array<int, int|float> */
 	private array $data;
 
 	/** @var array<int, string> */
@@ -34,7 +34,7 @@ class ChartData implements JsonSerializable
 		$this->borderColors = [];
 	}
 
-	public function add(string $label, int $item): void
+	public function add(string $label, int|float $item): void
 	{
 		$this->labels[] = $label;
 		$this->data[] = $item;
@@ -66,7 +66,7 @@ class ChartData implements JsonSerializable
 	}
 
 	/**
-	 * @return array<int, int>
+	 * @return array<int, int|float>
 	 */
 	public function getData(): array
 	{

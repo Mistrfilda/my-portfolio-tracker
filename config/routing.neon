@@ -28,3 +28,4 @@ custompresenterfactory:
 		Admin:ExpenseOverview: App\Cash\Expense\UI\ExpenseOverviewPresenter
 		Admin:StockAssetDetail: App\Stock\Asset\UI\Detail\StockAssetDetailPresenter
 		Admin:WorkMonthlyIncome: App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomePresenter
+		Admin:BankIncome: App\Cash\Income\Bank\UI\BankIncomePresenter

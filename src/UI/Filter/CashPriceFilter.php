@@ -6,7 +6,7 @@ namespace App\UI\Filter;
 
 use App\Cash\Utils\CashPrice;
 
-class ExpensePriceFilter
+class CashPriceFilter
 {
 
 	public static function format(CashPrice $expensePrice): string

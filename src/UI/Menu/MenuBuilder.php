@@ -41,7 +41,7 @@ class MenuBuilder
 				'PortfolioStatisticRecord',
 				'default',
 				SvgIcon::TABLE_CELLS,
-				'Uložené dashboard statistiky',
+				'Uložené statistiky',
 			),
 			new MenuItem(
 				'AppAdmin',
@@ -141,7 +141,14 @@ class MenuBuilder
 				'WorkMonthlyIncome',
 				'default',
 				SvgIcon::COLLECTION,
-				'Přehled příjmů',
+				'Přehled příjmů z práce',
+				[],
+			),
+			new MenuItem(
+				'BankIncome',
+				'default',
+				SvgIcon::COLLECTION,
+				'Přehled příjmů z banky',
 				[],
 			),
 		];

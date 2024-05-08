@@ -9,6 +9,9 @@ use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
+use App\UI\Control\Chart\ChartControl;
+use App\UI\Control\Chart\ChartControlFactory;
+use App\UI\Control\Chart\ChartType;
 use App\UI\Control\Datagrid\Datagrid;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -22,7 +25,9 @@ class StockAssetDetailControl extends BaseControl
 		private StockAssetRepository $stockAssetRepository,
 		private StockPositionFacade $stockPositionFacade,
 		private StockAssetDividendRecordGridFactory $stockAssetDividendRecordGridFactory,
+		private StockAssetDetailPriceChartProvider $stockAssetDetailPriceChartProvider,
 		private DatetimeFactory $datetimeFactory,
+		private ChartControlFactory $chartControlFactory,
 	)
 	{
 	}
@@ -46,6 +51,17 @@ class StockAssetDetailControl extends BaseControl
 	protected function createComponentStockAssetDividendRecordGrid(): Datagrid
 	{
 		return $this->stockAssetDividendRecordGridFactory->create($this->id);
+	}
+
+	protected function createComponentStockAssetPriceChart(): ChartControl
+	{
+		$chartProvider = clone $this->stockAssetDetailPriceChartProvider;
+		$chartProvider->setId($this->id);
+
+		return $this->chartControlFactory->create(
+			ChartType::LINE,
+			$this->stockAssetDetailPriceChartProvider,
+		);
 	}
 
 }

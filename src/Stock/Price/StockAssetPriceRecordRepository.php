@@ -7,6 +7,7 @@ namespace App\Stock\Price;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Doctrine\OrderBy;
 use App\Stock\Asset\StockAsset;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -58,6 +59,26 @@ class StockAssetPriceRecordRepository extends BaseRepository
 		} catch (NoResultException) {
 			return null;
 		}
+	}
+
+	/**
+	 * @return array<StockAssetPriceRecord>
+	 */
+	public function findByStockAssetSinceDate(StockAsset $stockAsset, ImmutableDateTime $date): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetPriceRecord');
+
+		$qb->andWhere(
+			$qb->expr()->gte('stockAssetPriceRecord.date', ':date'),
+			$qb->expr()->eq('stockAssetPriceRecord.stockAsset', ':stockAsset'),
+		);
+
+		$qb->setParameter('date', $date);
+		$qb->setParameter('stockAsset', $stockAsset);
+
+		$qb->orderBy('stockAssetPriceRecord.date', OrderBy::ASC->value);
+
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

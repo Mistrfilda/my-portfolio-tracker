@@ -154,7 +154,7 @@ services:
 	percentageFilter: App\UI\Filter\PercentageFilter
 	ruleOfThreeFilter: App\UI\Filter\RuleOfThreeFilter
 	currencyConversionFilter: App\UI\Filter\CurrencyConversionFilter
-	expensePriceFilter: App\UI\Filter\ExpensePriceFilter
+	expensePriceFilter: App\UI\Filter\CashPriceFilter
 	currencyNullableConversionFilter: App\UI\Filter\CurrencyNullableConversionFilter
 
 	#BASE PRESENTER PARAMETERS
@@ -221,6 +221,7 @@ services:
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderFacade(updateStockAssetHoursThreshold: %pse.updateStockAssetHoursThreshold%, verifySsl: %pse.verifySsl%, requests: %pse.requests%)
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory
+	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailPriceChartProvider
 
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
@@ -319,3 +320,4 @@ services:
 	- App\Cash\Income\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
 
 	- App\Cash\Income\Bank\BankIncomeRepository(App\Cash\Income\Bank\BankIncome)
+	- App\Cash\Income\Bank\UI\BankIncomeGridFactory

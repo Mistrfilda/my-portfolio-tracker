@@ -10,7 +10,7 @@ use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
-use App\UI\Filter\ExpensePriceFilter;
+use App\UI\Filter\CashPriceFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 
@@ -46,7 +46,7 @@ class BankExpenseGridFactory
 		$grid->addColumnText(
 			'amount',
 			'Hodnota',
-			static fn (BankExpense $bankExpense): string => ExpensePriceFilter::format($bankExpense->getExpensePrice()),
+			static fn (BankExpense $bankExpense): string => CashPriceFilter::format($bankExpense->getExpensePrice()),
 		)->setSortable();
 
 		$grid->addColumnText('mainTag', 'Hlavní tag', static function (BankExpense $bankExpense): string {
