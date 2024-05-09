@@ -23,6 +23,7 @@ parameters:
 		url: https://google.com
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
+		requestHost: https://google.com
 
 	workMonthlyIncome:
 		harvestAccountId: 50
