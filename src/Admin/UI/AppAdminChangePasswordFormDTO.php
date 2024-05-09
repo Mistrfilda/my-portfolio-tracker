@@ -9,4 +9,8 @@ class AppAdminChangePasswordFormDTO
 
 	public string $password;
 
+	public string $oldPassword;
+
+	public string $passwordRepeat;
+
 }
