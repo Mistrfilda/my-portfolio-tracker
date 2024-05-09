@@ -6,6 +6,7 @@ namespace App\Cash\Expense\UI\Control;
 
 use App\Asset\Price\SummaryPrice;
 use App\Cash\Expense\Bank\BankExpenseRepository;
+use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseControl;
@@ -27,12 +28,21 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		$data = [];
 
 		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
+		$investmentSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
+		$excludedInvestmentSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
+
 		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
 			$expenses = $this->bankExpenseRepository->findByTagCategory($expenseCategory, $this->year, $this->month);
 
 			$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 			foreach ($expenses as $expense) {
 				$summaryPrice->addBankExpense($expense);
+				if ($expense->getMainTag()?->getExpenseCategory()?->getExpenseCategoryEnum() === ExpenseCategoryEnum::INVESTMENT) {
+					$investmentSummaryPrice->addBankExpense($expense);
+				} else {
+					$excludedInvestmentSummaryPrice->addBankExpense($expense);
+				}
+
 				$totalSummaryPrice->addBankExpense($expense);
 			}
 
@@ -45,6 +55,8 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		);
 
 		$this->getTemplate()->totalSummaryPrice = $totalSummaryPrice;
+		$this->getTemplate()->investmentSummaryPrice = $investmentSummaryPrice;
+		$this->getTemplate()->excludedInvestmentSummaryPrice = $excludedInvestmentSummaryPrice;
 		$this->getTemplate()->data = $data;
 		$this->getTemplate()->setFile(str_replace('.php', '.latte', __FILE__));
 		$this->getTemplate()->render();

@@ -51,6 +51,11 @@ class ExpenseCategory implements Entity
 		return $this->enumName;
 	}
 
+	public function getExpenseCategoryEnum(): ExpenseCategoryEnum
+	{
+		return $this->enumName;
+	}
+
 	/**
 	 * @return array<ExpenseTag>
 	 */
