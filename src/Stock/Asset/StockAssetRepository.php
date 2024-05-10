@@ -125,6 +125,9 @@ class StockAssetRepository extends BaseRepository
 		$qb->andWhere($qb->expr()->eq('stockAsset.stockAssetDividendSource', ':stockAssetDividendSource'));
 		$qb->setParameter('stockAssetDividendSource', $stockAssetDividendSourceEnum->value);
 
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadPrice', ':shouldDownloadPrice'));
+		$qb->setParameter('shouldDownloadPrice', true);
+
 		return $qb->getQuery()->getResult();
 	}
 
