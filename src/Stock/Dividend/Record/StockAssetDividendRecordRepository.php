@@ -8,9 +8,11 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
 use App\Doctrine\OrderBy;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\StockAssetDividend;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -86,6 +88,42 @@ class StockAssetDividendRecordRepository extends BaseRepository
 		} catch (NoResultException) {
 			return null;
 		}
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function findByStockAssetSinceDate(StockAsset $stockAsset, ImmutableDateTime $date): array
+	{
+		$qb = $this->createQueryBuilder();
+
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+			$qb->expr()->gte('stockAssetDividend.exDate', ':exDate'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('exDate', $date);
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function findByStockAssetForYear(StockAsset $stockAsset, int $year): array
+	{
+		$qb = $this->createQueryBuilder();
+
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+			$qb->expr()->eq('YEAR(stockAssetDividend.exDate)', ':year'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('year', $year);
+
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilder(): QueryBuilder

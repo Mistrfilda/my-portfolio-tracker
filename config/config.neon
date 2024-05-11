@@ -143,6 +143,7 @@ services:
 			- addFilter(currencyConvert, [@currencyConversionFilter, convert])
 			- addFilter(expensePriceFormat, [@expensePriceFilter, format])
 			- addFilter(nullableCurrencyConvert, [@currencyNullableConversionFilter, convert])
+			- addFilter(summaryPriceConvert, [@summaryPriceConvertFilter, convert])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
@@ -157,6 +158,7 @@ services:
 	currencyConversionFilter: App\UI\Filter\CurrencyConversionFilter
 	expensePriceFilter: App\UI\Filter\CashPriceFilter
 	currencyNullableConversionFilter: App\UI\Filter\CurrencyNullableConversionFilter
+	summaryPriceConvertFilter: App\UI\Filter\SummaryPriceConvertFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
@@ -224,6 +226,7 @@ services:
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailPriceChartProvider
 
+
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
 	- App\Stock\Position\UI\StockPositionGridFactory
@@ -272,6 +275,8 @@ services:
 	- App\Stock\Dividend\Record\StockAssetDividendRecordFacade
 	- App\Stock\Dividend\Record\StockAssetDividendRecordCommand
 	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
+	- App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory
+	- App\Stock\Dividend\UI\StockAssetDividendDetailService
 
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, requestHost: %webStockPriceDownloader.requestHost%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%, )
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderCommand

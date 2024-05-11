@@ -1,0 +1,179 @@
+{templateType App\Stock\Dividend\UI\Detail\StockDividendDetailControlTemplate}
+
+<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-3">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Dividendy za posledních 365 dnů
+            (počet {$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()->getCounter()})</h3>
+    </div>
+
+    <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-4 lg:grid-cols-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Dividenda včetně daně</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div>
+                <div class="flex justify-start w-full">
+                    <span class="mt-3 text-sm font-medium text-gray-500">
+                        {$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                    </span>
+                </div>
+                <div class="flex justify-start w-full">
+                    <span class="mt-3 text-sm font-medium text-gray-500">
+                        Aktuální výnos
+                        {$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastDays->getDividendsSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastDays->getDividendsSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    Aktuální výnos
+                    {$stockAssetDividendDetailLastDays->getDividendsSummaryPrice()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastDays->getDividendRecordSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastDays->getDividendRecordSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastDays->getDividendRecordSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastDays->getDividendRecordSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+    </dl>
+</div>
+
+<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-3">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Dividendy tento rok {$thisYear}
+            (počet {$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()->getCounter()})</h3>
+    </div>
+
+    <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-4 lg:grid-cols-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Dividenda včetně daně</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    Aktuální výnos
+                    {$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailThisYear->getDividendsSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailThisYear->getDividendsSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    Aktuální výnos
+                    {$stockAssetDividendDetailThisYear->getDividendsSummaryPrice()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailThisYear->getDividendRecordSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailThisYear->getDividendRecordSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailThisYear->getDividendRecordSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailThisYear->getDividendRecordSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+    </dl>
+</div>
+
+<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow mb-3">
+    <div class="px-4 py-5 sm:px-6">
+        <h3 class="text-base font-semibold leading-6 text-gray-900">Dividendy za poslední rok {$lastYear}
+            (počet {$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()->getCounter()})</h3>
+    </div>
+
+    <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-4 lg:grid-cols-4">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Dividenda včetně daně</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    Aktuální výnos
+                    {$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastYear->getDividendsSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastYear->getDividendsSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+            <div class="flex justify-start w-full">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    Aktuální výnos
+                    {$stockAssetDividendDetailLastYear->getDividendsSummaryPrice()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastYear->getDividendRecordSummaryPriceWithTax()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastYear->getDividendRecordSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+            <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená čistá dividenda</dt>
+            <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$stockAssetDividendDetailLastYear->getDividendRecordSummaryPrice()|summaryPriceFormat}</dd>
+            <div class="flex justify-start ">
+                <span class="mt-3 text-sm font-medium text-gray-500">
+                    {$stockAssetDividendDetailLastYear->getDividendRecordSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
+                </span>
+            </div>
+        </div>
+    </dl>
+</div>
+
+{control stockAssetDividendRecordGrid}

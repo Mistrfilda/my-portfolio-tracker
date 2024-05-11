@@ -6,13 +6,13 @@ namespace App\Stock\Asset\UI\Detail\Control;
 
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
-use App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory;
+use App\Stock\Dividend\UI\Detail\StockDividendDetailControl;
+use App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
-use App\UI\Control\Datagrid\Datagrid;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
 use function assert;
@@ -24,10 +24,10 @@ class StockAssetDetailControl extends BaseControl
 		private UuidInterface $id,
 		private StockAssetRepository $stockAssetRepository,
 		private StockPositionFacade $stockPositionFacade,
-		private StockAssetDividendRecordGridFactory $stockAssetDividendRecordGridFactory,
 		private StockAssetDetailPriceChartProvider $stockAssetDetailPriceChartProvider,
 		private DatetimeFactory $datetimeFactory,
 		private ChartControlFactory $chartControlFactory,
+		private StockDividendDetailControlFactory $stockDividendDetailControlFactory,
 	)
 	{
 	}
@@ -48,11 +48,6 @@ class StockAssetDetailControl extends BaseControl
 		$template->render();
 	}
 
-	protected function createComponentStockAssetDividendRecordGrid(): Datagrid
-	{
-		return $this->stockAssetDividendRecordGridFactory->create($this->id);
-	}
-
 	protected function createComponentStockAssetPriceChart(): ChartControl
 	{
 		$chartProvider = clone $this->stockAssetDetailPriceChartProvider;
@@ -62,6 +57,11 @@ class StockAssetDetailControl extends BaseControl
 			ChartType::LINE,
 			$this->stockAssetDetailPriceChartProvider,
 		);
+	}
+
+	protected function createComponentStockDividendDetailControl(): StockDividendDetailControl
+	{
+		return $this->stockDividendDetailControlFactory->create($this->id);
 	}
 
 }

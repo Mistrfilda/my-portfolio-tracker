@@ -77,6 +77,40 @@ class StockAssetDividendRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<int, StockAssetDividend>
+	 */
+	public function findByStockAssetSinceDate(StockAsset $stockAsset, ImmutableDateTime $date): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+			$qb->expr()->gte('stockAssetDividend.exDate', ':exDate'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('exDate', $date);
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<int, StockAssetDividend>
+	 */
+	public function findByStockAssetForYear(StockAsset $stockAsset, int $year): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+			$qb->expr()->eq('YEAR(stockAssetDividend.exDate)', ':year'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('year', $year);
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function findOneByStockAssetExDate(
 		StockAsset $stockAsset,
 		ImmutableDateTime $exDate,

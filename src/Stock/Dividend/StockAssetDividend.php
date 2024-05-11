@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend;
 
+use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -144,6 +145,22 @@ class StockAssetDividend implements Entity
 		}
 
 		return $this->getExDate() > $now;
+	}
+
+	public function getDividendTax(): float|null
+	{
+		return $this->getStockAsset()->getDividendTax();
+	}
+
+	public function getSummaryPrice(bool $shouldDeductTax = true): SummaryPrice
+	{
+		$dividendTax = $this->getDividendTax();
+		if ($dividendTax !== null && $shouldDeductTax) {
+			$totalAmountAfterTax = $this->amount * (1 - ($dividendTax * 0.01));
+			return new SummaryPrice($this->currency, $totalAmountAfterTax, 1);
+		}
+
+		return new SummaryPrice($this->currency, $this->amount, 1);
 	}
 
 }
