@@ -88,7 +88,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		$this->template->selectedYear = $this->selectedYear;
 
 		$lastDayOfMonth = $now->modify('last day of this month');
-		$daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay();
+		$daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay() + 1;
 
 		if (in_array($now->format('D'), ['Sun', 'Sat'], true) || $this->czechHolidayService->isDateTimeHoliday($now)) {
 			$workingDaysTillEndOfMonth = 0;
@@ -109,7 +109,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			$workingDaysTillEndOfMonth++;
 		}
 
-		$this->template->daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay() + 1;
+		$this->template->daysTillEndOfMonth = $daysTillEndOfMonth;
 		$this->template->workingDaysTillEndOfMonth = $workingDaysTillEndOfMonth;
 		$goals = [];
 		$hours = [];
