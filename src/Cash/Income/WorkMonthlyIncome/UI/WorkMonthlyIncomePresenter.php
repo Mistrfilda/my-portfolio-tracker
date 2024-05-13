@@ -109,7 +109,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			$workingDaysTillEndOfMonth++;
 		}
 
-		$this->template->daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay();
+		$this->template->daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay() + 1;
 		$this->template->workingDaysTillEndOfMonth = $workingDaysTillEndOfMonth;
 		$goals = [];
 		$hours = [];
