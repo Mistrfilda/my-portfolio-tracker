@@ -8,6 +8,7 @@ use App\Asset\Price\SummaryPrice;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Filter\CurrencyFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Holiday\CzechHolidayService;
 use Nette\Application\Attributes\Persistent;
@@ -30,6 +31,27 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		81000,
 		84000,
 		87000,
+		90000,
+		93000
+	];
+
+	public const HOURS = [
+		10,
+		20,
+		30,
+		40,
+		50,
+		60,
+		70,
+		80,
+		90,
+		100,
+		105,
+		110,
+		115,
+		120,
+		125,
+		130
 	];
 
 	#[Persistent]
@@ -90,6 +112,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		$this->template->daysTillEndOfMonth = $lastDayOfMonth->getDay() - $now->getDay();
 		$this->template->workingDaysTillEndOfMonth = $workingDaysTillEndOfMonth;
 		$goals = [];
+		$hours = [];
 		if ($currentMonthWorkIncome !== null) {
 			foreach (self::MONEY_GOALS as $moneyGoal) {
 				$remainingAmount = $moneyGoal - $currentMonthWorkIncome->getSummaryPrice()->getPrice();
@@ -98,15 +121,28 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 				$workDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $workingDaysTillEndOfMonth;
 				$allDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $daysTillEndOfMonth;
 
+				$requiredHours = $moneyGoal / $currentMonthWorkIncome->getHourlyRate();
+
 				$goals[] = [
-					'amount' => $moneyGoal . ' Kč',
+					'amount' => CurrencyFilter::format($moneyGoal, CurrencyEnum::CZK),
+					'requiredHours' => round($requiredHours, 1),
 					'remainingHours' => round($remainingHours, 1),
 					'workDaysAverage' => round($workDaysAverage, 1),
 					'allDaysAverage' => round($allDaysAverage, 1),
 				];
 			}
+
+			foreach (self::HOURS as $hour) {
+				$hours[] = [
+					'hour' => $hour,
+					'amount' => CurrencyFilter::format($hour * $currentMonthWorkIncome->getHourlyRate(), CurrencyEnum::CZK)
+				];
+			}
+
+
 		}
 
+		$this->template->hours = $hours;
 		$this->template->goals = $goals;
 	}
 

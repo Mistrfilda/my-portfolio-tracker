@@ -52,11 +52,7 @@
                             </dd>
                         </div>
                     </dl>
-                </div>
-            </div>
 
-            <div>
-                <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
                     <div class="px-6 py-4">
                         <div class="-mx-4 flow-root sm:mx-0">
                             <table class="min-w-full ">
@@ -69,6 +65,10 @@
                                     <th scope="col"
                                         class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
                                         Cílová částka
+                                    </th>
+                                    <th scope="col"
+                                        class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
+                                        Potřebných hodin celkem
                                     </th>
                                     <th scope="col"
                                         class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
@@ -92,9 +92,61 @@
                                                 {$goal['amount']}
                                             </div>
                                         </td>
+                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['requiredHours']}</td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['remainingHours']}</td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['workDaysAverage']}</td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['allDaysAverage']}</td>
+                                    </tr>
+                                {/foreach}
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="overflow-hidden rounded-lg bg-white shadow">
+                    <div class="sm:flex-auto pl-6 pt-6">
+                        <div class="flex justify-between">
+                            <h1 class="text-xl font-semibold text-gray-900">
+                                Výpočet příjmu
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="px-6 py-4">
+                        <div class="-mx-4 flow-root sm:mx-0">
+                            <table class="min-w-full ">
+{*                                <colgroup>*}
+{*                                    <col class="w-full sm:w-1/2">*}
+{*                                    <col class="sm:w-1/6">*}
+{*                                </colgroup>*}
+                                <thead class="border-b border-gray-300 text-gray-900">
+                                <tr>
+                                    <th scope="col"
+                                        class="py-3.5 pr-3 text-sm font-semibold text-gray-900 text-center">
+                                        Počet hodin
+                                    </th>
+                                    <th scope="col"
+                                        class="px-3 py-3.5 text-sm font-semibold text-gray-900 text-center">
+                                        Částka
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {foreach $hours as $hour}
+                                    <tr n:class="$iterator->isLast() === false ? 'border-b border-gray-200', 'divide-x divide-gray-200'">
+                                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
+                                            <div class="font-medium text-gray-900">
+                                                {$hour['hour']}
+                                            </div>
+                                        </td>
+                                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
+                                            <div class="font-medium text-gray-900">
+                                                {$hour['amount']}
+                                            </div>
+                                        </td>
                                     </tr>
                                 {/foreach}
 
