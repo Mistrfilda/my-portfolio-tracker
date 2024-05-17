@@ -32,7 +32,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		84000,
 		87000,
 		90000,
-		93000
+		93000,
 	];
 
 	public const HOURS = [
@@ -51,7 +51,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		115,
 		120,
 		125,
-		130
+		130,
 	];
 
 	#[Persistent]
@@ -135,11 +135,12 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			foreach (self::HOURS as $hour) {
 				$hours[] = [
 					'hour' => $hour,
-					'amount' => CurrencyFilter::format($hour * $currentMonthWorkIncome->getHourlyRate(), CurrencyEnum::CZK)
+					'amount' => CurrencyFilter::format(
+						$hour * $currentMonthWorkIncome->getHourlyRate(),
+						CurrencyEnum::CZK,
+					),
 				];
 			}
-
-
 		}
 
 		$this->template->hours = $hours;

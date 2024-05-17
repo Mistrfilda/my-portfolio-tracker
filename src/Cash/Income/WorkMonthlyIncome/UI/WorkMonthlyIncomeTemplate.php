@@ -30,6 +30,7 @@ class WorkMonthlyIncomeTemplate extends BaseAdminPresenterTemplate
 	/** @var array<int, array{amount: string, remainingHours: float|int, workDaysAverage: float|int, allDaysAverage: float|int}> $goals */
 	public array $goals;
 
-	/** @var array<int, array{amount: string, hours: int, workDaysAverage: float|int, allDaysAverage: float|int}> $goals */
+	/** @var array<int, array{amount: string, hour: int}> $hours */
 	public array $hours;
+
 }

@@ -358,6 +358,11 @@ class Datagrid extends Control
 		$this->limit = $limit;
 	}
 
+	public function setPerPage(int $perPage): void
+	{
+		$this->setLimit($perPage);
+	}
+
 	public function setMaxResultSet(int $limit): void
 	{
 		$this->setLimit($limit);

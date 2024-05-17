@@ -7,6 +7,7 @@ namespace App\Stock\Dividend\UI\Detail;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory;
 use App\Stock\Dividend\UI\StockAssetDividendDetailService;
+use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
 use App\UI\Control\Datagrid\Datagrid;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -23,6 +24,7 @@ class StockDividendDetailControl extends BaseControl
 		private StockAssetDividendRecordGridFactory $stockAssetDividendRecordGridFactory,
 		private StockAssetDividendDetailService $stockAssetDividendDetailService,
 		private DatetimeFactory $datetimeFactory,
+		private StockPositionFacade $stockPositionFacade,
 	)
 	{
 	}
@@ -34,19 +36,19 @@ class StockDividendDetailControl extends BaseControl
 
 		$stockAsset = $this->stockAssetRepository->getById($this->stockAssetId);
 		$now = $this->datetimeFactory->createNow();
-		$template->stockAssetDividendDetailLastDays = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
+		$stockAssetDividendDetailLastDays = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
 			$stockAsset,
 			$now->deductDaysFromDatetime(self::DAYS_SINCE),
 		);
 
 		$lastYear = $this->datetimeFactory->createNow()->deductYearsFromDatetime(1)->getYear();
 
-		$template->stockAssetDividendDetailLastYear = $this->stockAssetDividendDetailService->getDetailDTOForYear(
+		$stockAssetDividendDetailLastYear = $this->stockAssetDividendDetailService->getDetailDTOForYear(
 			$stockAsset,
 			$lastYear,
 		);
 
-		$template->stockAssetDividendDetailThisYear = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
+		$stockAssetDividendDetailThisYear = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
 			$stockAsset,
 			$now->setDate(
 				$now->getYear(),
@@ -55,8 +57,34 @@ class StockDividendDetailControl extends BaseControl
 			),
 		);
 
+		$template->dividendDetailDTOs = [
+			[
+				'label' => sprintf(
+					'Dividendy za posledních 365 dnů (počet %s)',
+					$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()->getCounter(),
+				),
+				'detailDTO' => $stockAssetDividendDetailLastDays,
+			],
+			[
+				'label' => sprintf(
+					'Dividendy tento rok %s (počet %s)',
+					$now->getYear(),
+					$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()->getCounter(),
+				),
+				'detailDTO' => $stockAssetDividendDetailThisYear,
+			],
+			[
+				'label' => sprintf(
+					'Dividendy za poslední rok %s (počet %s)',
+					$lastYear,
+					$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()->getCounter(),
+				),
+				'detailDTO' => $stockAssetDividendDetailLastYear,
+			],
+		];
+
+		$template->openStockAssetDetailDTO = $this->stockPositionFacade->getStockAssetDetailDTO($this->stockAssetId);
 		$template->currentPrice = $stockAsset->getAssetCurrentPrice()->getPrice();
-		$template->thisYear = $now->getYear();
 		$template->lastYear = $lastYear;
 		$template->setFile(__DIR__ . '/StockDividendDetailControl.latte');
 		$template->render();
