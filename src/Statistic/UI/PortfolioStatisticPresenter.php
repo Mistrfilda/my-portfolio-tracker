@@ -35,6 +35,58 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 	public function renderDefault(): void
 	{
 		$this->template->heading = 'Statistiky a grafy';
+		$this->template->charts = [
+			new PortfolioStatisticChart(
+				'Celková hodnota portfolia za posledních 100 dní',
+				'Hodnota v CZK',
+				'portfolioTotalValueLastMonthChart',
+			),
+			new PortfolioStatisticChart(
+				'Celková hodnota portfolia',
+				'Hodnota v CZK',
+				'portfolioTotalValueChart',
+			),
+			new PortfolioStatisticChart(
+				'Celkově zainvestováno',
+				'Hodnota v CZK',
+				'portfolioTotalInvestedChart',
+			),
+			new PortfolioStatisticChart(
+				'Celkově zisk',
+				'Hodnota v CZK',
+				'portfolioTotalProfitChart',
+			),
+			new PortfolioStatisticChart(
+				'Celkově zisk',
+				'Hodnota v procentech',
+				'portfolioTotalProfitPercentageChart',
+			),
+			new PortfolioStatisticChart(
+				'Obdržené dividendy',
+				'Dividendy podle měsícu v CZK',
+				'stockDividendsByMonthChart',
+			),
+			new PortfolioStatisticChart(
+				'Obdržené dividendy podle společností',
+				'Dividendy podle společností a měsíců v CZK',
+				'stockDividendsByCompanyAndMonthChart',
+			),
+			new PortfolioStatisticChart(
+				'Obdržené dividendy podle společností',
+				'Dividendy podle společností v CZK',
+				'stockDividendsByCompanyChart',
+			),
+			new PortfolioStatisticChart(
+				'Obdržené dividendy',
+				'Dividendy podle roků v CZK',
+				'stockDividendsByYearChart',
+			),
+			new PortfolioStatisticChart(
+				'Obdržené dividendy',
+				'Dividendy podle roků bez stržené daně v CZK',
+				'stockDividendsByYearWithTaxChart',
+			),
+		];
 	}
 
 	protected function createComponentStockDividendsByMonthChart(): ChartControl

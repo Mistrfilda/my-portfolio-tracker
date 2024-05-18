@@ -23,7 +23,7 @@ class PortfolioStatisticRepository extends BaseRepository
 	/**
 	 * @return array<PortfolioStatistic>
 	 */
-	public function getPortfolioTotalValueForType(PortolioStatisticType $type): array
+	public function getPortfolioTotalValueForType(PortolioStatisticType $type, int $currentDay): array
 	{
 		$qb = $this->createQueryBuilder();
 		$qb->innerJoin('portfolioStatistic.portfolioStatisticRecord', 'record');
@@ -34,7 +34,7 @@ class PortfolioStatisticRepository extends BaseRepository
 			$qb->expr()->eq('portfolioStatistic.type', ':type'),
 		);
 		$qb->setParameter('type', $type);
-		$qb->setParameter('days', [1, 15]);
+		$qb->setParameter('days', [1, 10, 20, 27, $currentDay]);
 		$qb->orderBy('record.createdAt', OrderBy::ASC->value);
 		return $qb->getQuery()->getResult();
 	}

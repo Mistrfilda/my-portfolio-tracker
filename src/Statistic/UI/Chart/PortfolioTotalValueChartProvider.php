@@ -10,6 +10,7 @@ use App\UI\Control\Chart\ChartData;
 use App\UI\Control\Chart\ChartDataProvider;
 use App\UI\Control\Chart\ChartDataSet;
 use InvalidArgumentException;
+use Mistrfilda\Datetime\DatetimeFactory;
 
 class PortfolioTotalValueChartProvider implements ChartDataProvider
 {
@@ -19,6 +20,7 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 
 	public function __construct(
 		private PortfolioStatisticRepository $portfolioStatisticRepository,
+		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -49,6 +51,7 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 			$addedDates = [];
 			foreach ($this->portfolioStatisticRepository->getPortfolioTotalValueForType(
 				$type,
+				$this->datetimeFactory->createNow()->getDay(),
 			) as $portfolioStatistic) {
 				$date = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
 				if (in_array($date, $addedDates, true)) {

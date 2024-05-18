@@ -1,181 +1,42 @@
+{templateType App\Statistic\UI\PortfolioStatisticTemplate}
 {block #content}
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
+
+    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3 w-1/2">
         <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Celková hodnota portfolia za posledních 100 dní
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Hodnota v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control portfolioTotalValueLastMonthChart}
-                </div>
+                <nav class="flex flex-1 flex-col m-4" aria-label="Sidebar">
+                    <ul role="list" class="-mx-2 space-y-1">
+                        {foreach $charts as $chart}
+                            <li>
+                                <a href="#{$chart->getControl()}"
+                                   class="text-gray-700 hover:text-blue-600 hover:bg-gray-50 group flex gap-x-3 rounded-md p-2 pl-3 text-sm leading-6 font-semibold">{$chart->getTitle()} - {$chart->getDescription()}</a>
+                            </li>
+                        {/foreach}
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Celková hodnota portfolia
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Hodnota v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control portfolioTotalValueChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Celkově zainvestováno
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Hodnota v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control portfolioTotalInvestedChart}
+    {foreach $charts as $chart}
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3" id="{$chart->getControl()}">
+            <div class="bg-white overflow-hidden shadow rounded-lg">
+                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                    <div class="px-4 py-5 sm:px-6">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">
+                            {$chart->getTitle()}
+                        </h3>
+                        {if $chart->getDescription() !== null}
+                            <p class="mt-1 text-sm text-gray-500">
+                                {$chart->getDescription()}
+                            </p>
+                        {/if}
+                    </div>
+                    <div class="px-1 py-1">
+                        {control $chart->getControl()}
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Celkově zisk
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Hodnota v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control portfolioTotalProfitChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Celkově zisk
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Hodnota v procentech
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control portfolioTotalProfitPercentageChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Obdržené dividendy
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Dividendy podle měsícu v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control stockDividendsByMonthChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Obdržené dividendy podle společností
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Dividendy podle společností a měsíců v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control stockDividendsByCompanyAndMonthChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Obdržené dividendy podle společností
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Dividendy podle společností v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control stockDividendsByCompanyChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Obdržené dividendy
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Dividendy podle roků v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control stockDividendsByYearChart}
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Obdržené dividendy
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Dividendy podle roků bez stržené daně v CZK
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control stockDividendsByYearWithTaxChart}
-                </div>
-            </div>
-        </div>
-    </div>
+    {/foreach}
 {/block}
