@@ -12,15 +12,14 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Test\UpdatedTestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class CurrencyConversionTest extends UpdatedTestCase
 {
 
 	private CurrencyConversionFacade $currencyConversionFacade;
 
-	/**
-	 * @dataProvider provideAssetPriceData
-	 */
+	#[DataProvider('provideAssetPriceData')]
 	public function testGetConvertedAssetPrice(
 		AssetPrice $assetPrice,
 		AssetPrice $expectedResult,
@@ -35,9 +34,7 @@ class CurrencyConversionTest extends UpdatedTestCase
 		);
 	}
 
-	/**
-	 * @dataProvider provideSummaryPrice
-	 */
+	#[DataProvider('provideSummaryPrice')]
 	public function testGetConvertedSummaryPrice(
 		SummaryPrice $summaryPrice,
 		SummaryPrice $expectedResult,
@@ -52,9 +49,7 @@ class CurrencyConversionTest extends UpdatedTestCase
 		);
 	}
 
-	/**
-	 * @dataProvider providePriceDiff
-	 */
+	#[DataProvider('providePriceDiff')]
 	public function testGetConvertedPriceDiff(
 		PriceDiff $priceDiff,
 		PriceDiff $expectedResult,

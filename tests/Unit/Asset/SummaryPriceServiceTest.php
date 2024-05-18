@@ -15,6 +15,7 @@ use App\Currency\CurrencyEnum;
 use App\Test\Unit\Currency\CurrencyConversionHelper;
 use App\Test\UpdatedTestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class SummaryPriceServiceTest extends UpdatedTestCase
 {
@@ -48,10 +49,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 		}, PriceDiffException::class, 'Currency must be same');
 	}
 
+	#[DataProvider('provideSummaryPricePositions')]
 	/**
 	 * @param array<AssetPosition> $positions
-	 *
-	 * @dataProvider provideSummaryPricePositions()
 	 */
 	public function testGetSummaryPriceForPositions(
 		SummaryPrice $expectedSummaryPrice,
@@ -67,10 +67,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 		);
 	}
 
+	#[DataProvider('provideSummaryPriceForTotalInvestedAmmountPositions')]
 	/**
 	 * @param array<AssetPosition> $positions
-	 *
-	 * @dataProvider provideSummaryPriceForTotalInvestedAmmountPositions()
 	 */
 	public function testGetSummaryPriceForTotalInvestedAmount(
 		SummaryPrice $expectedSummaryPrice,
@@ -86,10 +85,9 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 		);
 	}
 
+	#[DataProvider('provideSummaryPriceForTotalInvestedAmmountInBrokerCurrencyPositions')]
 	/**
 	 * @param array<AssetPosition> $positions
-	 *
-	 * @dataProvider provideSummaryPriceForTotalInvestedAmmountInBrokerCurrencyPositions()
 	 */
 	public function testGetSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 		SummaryPrice $expectedSummaryPrice,
