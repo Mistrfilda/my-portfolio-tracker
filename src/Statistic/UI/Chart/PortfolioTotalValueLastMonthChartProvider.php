@@ -48,17 +48,13 @@ class PortfolioTotalValueLastMonthChartProvider implements ChartDataProvider
 		foreach ($this->types as $type) {
 			$chartData = new ChartData($type->format());
 
-			$addedDates = [];
+			/** @var array<string, int> $values */
+			$values = [];
 			foreach ($this->portfolioStatisticRepository->getPortfolioTotalValueForTypeForGreaterDate(
 				$type,
 				$this->datetimeFactory->createNow()->deductDaysFromDatetime(100),
 			) as $portfolioStatistic) {
 				$date = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
-				if (in_array($date, $addedDates, true)) {
-					continue;
-				}
-
-				$addedDates[] = $portfolioStatistic->getCreatedAt()->format('Y-m-d');
 
 				if ($type === PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE) {
 					$value = str_replace('%', '', $portfolioStatistic->getValue());
@@ -68,7 +64,11 @@ class PortfolioTotalValueLastMonthChartProvider implements ChartDataProvider
 					$value = str_replace(' ', '', $value);
 				}
 
-				$chartData->add($date, (int) $value);
+				$values[$date] = (int) $value;
+			}
+
+			foreach ($values as $key => $value) {
+				$chartData->add($key, $value);
 			}
 
 			$allChartData[] = $chartData;
