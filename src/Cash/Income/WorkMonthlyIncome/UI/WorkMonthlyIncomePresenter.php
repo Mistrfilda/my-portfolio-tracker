@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Cash\Income\WorkMonthlyIncome\UI;
 
 use App\Asset\Price\SummaryPrice;
+use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Base\BaseSysadminPresenter;
@@ -61,6 +62,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		private WorkMonthlyIncomeRepository $workMonthlyIncomeRepository,
 		private DatetimeFactory $datetimeFactory,
 		private CzechHolidayService $czechHolidayService,
+		private WorkMonthlyIncomeFacade $workMonthlyIncomeFacade,
 	)
 	{
 		parent::__construct();
@@ -81,6 +83,14 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			$now->getYear(),
 			$now->getMonth(),
 		);
+
+		if ($currentMonthWorkIncome === null) {
+			$currentMonthWorkIncome = $this->workMonthlyIncomeFacade->createBlank(
+				$now->getYear(),
+				$now->getMonth()
+			);
+		}
+
 		$this->template->currentMonthWorkIncome = $currentMonthWorkIncome;
 
 		$this->template->totalSummaryPrice = $totalSummaryPrice;

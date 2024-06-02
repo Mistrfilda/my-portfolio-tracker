@@ -68,4 +68,20 @@ class WorkMonthlyIncomeFacade
 		}
 	}
 
+	public function createBlank(int $year, int $month): WorkMonthlyIncome
+	{
+		$workMonthlyIncome = new WorkMonthlyIncome(
+			$year,
+			$month,
+			0,
+			$this->currentHourlyRate,
+			$this->datetimeFactory->createNow(),
+		);
+
+		$this->entityManager->persist($workMonthlyIncome);
+		$this->entityManager->flush();
+		$this->entityManager->refresh($workMonthlyIncome);
+		return $workMonthlyIncome;
+	}
+
 }
