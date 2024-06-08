@@ -52,7 +52,6 @@ class KbContentParser
 			}
 
 			if ($type === null) {
-				dump($transaction);
 				continue;
 			}
 
@@ -86,6 +85,10 @@ class KbContentParser
 	 */
 	private function determineType(array $transactionParts, string $rawContent): BankTransactionType|null
 	{
+		if (count($transactionParts) === 0) {
+			return null;
+		}
+
 		$firstLine = reset($transactionParts);
 		if ($firstLine === false) {
 			throw new KbPdfTransactionParsingErrorException('Invalid transaction parts');

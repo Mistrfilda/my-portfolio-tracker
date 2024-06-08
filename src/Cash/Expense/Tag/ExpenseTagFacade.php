@@ -122,7 +122,6 @@ class ExpenseTagFacade
 		$bankExpense->setManuallyMainTag(
 			$this->expenseTagRepository->getById($tagId),
 		);
-		bdump($bankExpense->getMainTag());
 		$this->entityManager->flush();
 	}
 

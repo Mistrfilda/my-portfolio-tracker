@@ -12,4 +12,8 @@ interface BankExpenseParserResult
 	 */
 	public function getTransactions(): array;
 
+	/**
+	 * @return array<BankExpenseData>
+	 */
+	public function getUnprocessedTransactions(): array;
 }

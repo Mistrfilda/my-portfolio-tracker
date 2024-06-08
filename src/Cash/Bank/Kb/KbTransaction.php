@@ -101,7 +101,7 @@ class KbTransaction implements BankExpenseData, JsonSerializable
 		return [
 			'settlementDate' => $this->getSettlementDate(),
 			'transactionDate' => $this->getTransactionDate(),
-			'amount' => $this->getAmount(),
+			'rawContent' => $this->getTransactionRawContent(),
 		];
 	}
 

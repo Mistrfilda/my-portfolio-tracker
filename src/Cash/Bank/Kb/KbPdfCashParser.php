@@ -57,6 +57,7 @@ class KbPdfCashParser implements BankExpenseParser
 		$transactions = [];
 		$pattern = '/(\d{2}\.\d{2}\.\d{4})/';
 		$parts = preg_split($pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
 		if ($parts === false) {
 			throw new KbPdfTransactionParsingErrorException('Invalid file');
 		}
