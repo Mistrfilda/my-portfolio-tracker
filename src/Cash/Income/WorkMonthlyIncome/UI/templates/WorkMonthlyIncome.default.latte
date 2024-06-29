@@ -94,7 +94,7 @@
                                         </td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['requiredHours']}</td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['remainingHours']}</td>
-                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['workDaysAverage']}</td>
+                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['workDaysAverage'] === null ? 'již není' : $goal['workDaysAverage']}</td>
                                         <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['allDaysAverage']}</td>
                                     </tr>
                                 {/foreach}

@@ -128,8 +128,14 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 				$remainingAmount = $moneyGoal - $currentMonthWorkIncome->getSummaryPrice()->getPrice();
 				$remainingHours = $remainingAmount < 0 ? 0 : $remainingAmount / $currentMonthWorkIncome->getHourlyRate();
 
-				$workDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $workingDaysTillEndOfMonth;
-				$allDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $daysTillEndOfMonth;
+				$workDaysAverage = null;
+				if ($workingDaysTillEndOfMonth !== 0) {
+					$workDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $workingDaysTillEndOfMonth;
+				}
+				$allDaysAverage = null;
+				if ($daysTillEndOfMonth !== 0) {
+					$allDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $daysTillEndOfMonth;
+				}
 
 				$requiredHours = $moneyGoal / $currentMonthWorkIncome->getHourlyRate();
 
@@ -137,8 +143,8 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 					'amount' => CurrencyFilter::format($moneyGoal, CurrencyEnum::CZK),
 					'requiredHours' => round($requiredHours, 1),
 					'remainingHours' => round($remainingHours, 1),
-					'workDaysAverage' => round($workDaysAverage, 1),
-					'allDaysAverage' => round($allDaysAverage, 1),
+					'workDaysAverage' => $workDaysAverage === null ? null : round($workDaysAverage, 1),
+					'allDaysAverage' => $allDaysAverage === null ? null :round($allDaysAverage, 1),
 				];
 			}
 
