@@ -108,6 +108,7 @@
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"yarn-prod": "yarn build-prod",
 		"deploy-all": [
+			"@comload",
 			"@migm",
 			"@clear",
 			"@yarn-prod"
