@@ -201,6 +201,39 @@
                     <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalSummaryPrice|summaryPriceFormat}
                     </td>
                 </tr>
+                <tr>
+                    <th scope="row" colspan="3"
+                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
+                        Příjmy na osobní účet celkem
+                    </th>
+                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                        Příjmy na osobní účet celkem
+                    </th>
+                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalIncomeSummaryPrice|summaryPriceFormat}
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row" colspan="3"
+                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
+                       Celkový příjem z práce v daném období
+                    </th>
+                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                        Celkový příjem z práce v daném období
+                    </th>
+                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalWorkIncome|summaryPriceFormat}
+                    </td>
+                </tr>
+                <tr>
+                    <th scope="row" colspan="3"
+                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
+                        Celkový příjem z dividend v daném období
+                    </th>
+                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
+                        Celkový příjem z dividend v daném období
+                    </th>
+                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalDividendIncome|summaryPriceFormat}
+                    </td>
+                </tr>
                 </tfoot>
             </table>
         </div>

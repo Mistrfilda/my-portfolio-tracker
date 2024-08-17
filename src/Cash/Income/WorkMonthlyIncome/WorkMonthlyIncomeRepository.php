@@ -61,7 +61,7 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
-	public function findByYearAndMonth(int $year, int $month): WorkMonthlyIncome|null
+	public function getByYearAndMonth(int $year, int $month): WorkMonthlyIncome|null
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
 		$qb->andWhere(
@@ -80,6 +80,32 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 		} catch (NoResultException) {
 			return null;
 		}
+	}
+
+	/**
+	 * @return array<WorkMonthlyIncome>
+	 */
+	public function findByYearAndMonth(int|null $year, int|null $month): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
+
+		if ($year !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('workMonthlyIncome.year', ':year'),
+			);
+
+			$qb->setParameter('year', $year);
+		}
+
+		if ($month !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('workMonthlyIncome.month', ':month'),
+			);
+
+			$qb->setParameter('month', $month);
+		}
+
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilder(): QueryBuilder

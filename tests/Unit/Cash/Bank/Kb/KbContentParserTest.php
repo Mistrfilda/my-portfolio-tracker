@@ -1,12 +1,13 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Test\Unit\Cash\Bank\Kb;
 
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Bank\Kb\KbContentParser;
 use App\Cash\Bank\Kb\KbTransaction;
 use PHPUnit\Framework\TestCase;
-
 
 /**
  * KbContentParserTest class is used to test the KbContentParser class.
@@ -16,6 +17,7 @@ use PHPUnit\Framework\TestCase;
  */
 class KbContentParserTest extends TestCase
 {
+
 	/**
 	 * Test the processRawKbTransactions with valid transactions
 	 */
@@ -24,9 +26,9 @@ class KbContentParserTest extends TestCase
 		$kbContentParser = new KbContentParser();
 
 		$transaction = new KbTransaction();
-		$transaction->setTransactionRawContent("TRANSAKCE PLATEBNÍ KARTOU
+		$transaction->setTransactionRawContent('TRANSAKCE PLATEBNÍ KARTOU
 Mobilní platba
--93,20");
+-93,20');
 
 		$transactions = [$transaction];
 
@@ -35,7 +37,10 @@ Mobilní platba
 		$this->assertIsObject($result);
 		$this->assertNotEmpty($result->getProcessedTransactions());
 		$this->assertEquals(-93, $result->getProcessedTransactions()[0]->getAmount());
-		$this->assertEquals(BankTransactionType::CARD_PAYMENT, $result->getProcessedTransactions()[0]->getBankTransactionType());
+		$this->assertEquals(
+			BankTransactionType::CARD_PAYMENT,
+			$result->getProcessedTransactions()[0]->getBankTransactionType(),
+		);
 	}
 
 	/**
@@ -52,7 +57,10 @@ Mobilní platba
 		$result = $kbContentParser->processRawKbTransactions($transactions);
 
 		$this->assertNotEmpty($result->getUnprocessedTransactions());
-		$this->assertEquals('Invalid amount, cant parse amount', $result->getUnprocessedTransactions()[0]->getUnprocessedReason());
+		$this->assertEquals(
+			'Invalid amount, cant parse amount',
+			$result->getUnprocessedTransactions()[0]->getUnprocessedReason(),
+		);
 	}
 
 	/**
@@ -69,6 +77,10 @@ Mobilní platba
 		$result = $kbContentParser->processRawKbTransactions($transactions);
 
 		$this->assertNotEmpty($result->getUnprocessedTransactions());
-		$this->assertEquals('Invalid amount, cant parse amount', $result->getUnprocessedTransactions()[0]->getUnprocessedReason());
+		$this->assertEquals(
+			'Invalid amount, cant parse amount',
+			$result->getUnprocessedTransactions()[0]->getUnprocessedReason(),
+		);
 	}
+
 }

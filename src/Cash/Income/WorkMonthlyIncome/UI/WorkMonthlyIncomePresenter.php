@@ -79,7 +79,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			$totalSummaryPrice->addSummaryPrice($incomeRow->getSummaryPrice());
 		}
 
-		$currentMonthWorkIncome = $this->workMonthlyIncomeRepository->findByYearAndMonth(
+		$currentMonthWorkIncome = $this->workMonthlyIncomeRepository->getByYearAndMonth(
 			$now->getYear(),
 			$now->getMonth(),
 		);
@@ -87,7 +87,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		if ($currentMonthWorkIncome === null) {
 			$currentMonthWorkIncome = $this->workMonthlyIncomeFacade->createBlank(
 				$now->getYear(),
-				$now->getMonth()
+				$now->getMonth(),
 			);
 		}
 
@@ -123,40 +123,40 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		$this->template->workingDaysTillEndOfMonth = $workingDaysTillEndOfMonth;
 		$goals = [];
 		$hours = [];
-		if ($currentMonthWorkIncome !== null) {
-			foreach (self::MONEY_GOALS as $moneyGoal) {
-				$remainingAmount = $moneyGoal - $currentMonthWorkIncome->getSummaryPrice()->getPrice();
-				$remainingHours = $remainingAmount < 0 ? 0 : $remainingAmount / $currentMonthWorkIncome->getHourlyRate();
 
-				$workDaysAverage = null;
-				if ($workingDaysTillEndOfMonth !== 0) {
-					$workDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $workingDaysTillEndOfMonth;
-				}
-				$allDaysAverage = null;
-				if ($daysTillEndOfMonth !== 0) {
-					$allDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $daysTillEndOfMonth;
-				}
+		foreach (self::MONEY_GOALS as $moneyGoal) {
+			$remainingAmount = $moneyGoal - $currentMonthWorkIncome->getSummaryPrice()->getPrice();
+			$remainingHours = $remainingAmount < 0 ? 0 : $remainingAmount / $currentMonthWorkIncome->getHourlyRate();
 
-				$requiredHours = $moneyGoal / $currentMonthWorkIncome->getHourlyRate();
-
-				$goals[] = [
-					'amount' => CurrencyFilter::format($moneyGoal, CurrencyEnum::CZK),
-					'requiredHours' => round($requiredHours, 1),
-					'remainingHours' => round($remainingHours, 1),
-					'workDaysAverage' => $workDaysAverage === null ? null : round($workDaysAverage, 1),
-					'allDaysAverage' => $allDaysAverage === null ? null :round($allDaysAverage, 1),
-				];
+			$workDaysAverage = null;
+			if ($workingDaysTillEndOfMonth !== 0) {
+				$workDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $workingDaysTillEndOfMonth;
 			}
 
-			foreach (self::HOURS as $hour) {
-				$hours[] = [
-					'hour' => $hour,
-					'amount' => CurrencyFilter::format(
-						$hour * $currentMonthWorkIncome->getHourlyRate(),
-						CurrencyEnum::CZK,
-					),
-				];
+			$allDaysAverage = null;
+			if ($daysTillEndOfMonth !== 0) {
+				$allDaysAverage = $remainingHours === 0 ? 0 : $remainingHours / $daysTillEndOfMonth;
 			}
+
+			$requiredHours = $moneyGoal / $currentMonthWorkIncome->getHourlyRate();
+
+			$goals[] = [
+				'amount' => CurrencyFilter::format($moneyGoal, CurrencyEnum::CZK),
+				'requiredHours' => round($requiredHours, 1),
+				'remainingHours' => round($remainingHours, 1),
+				'workDaysAverage' => $workDaysAverage === null ? null : round($workDaysAverage, 1),
+				'allDaysAverage' => $allDaysAverage === null ? null : round($allDaysAverage, 1),
+			];
+		}
+
+		foreach (self::HOURS as $hour) {
+			$hours[] = [
+				'hour' => $hour,
+				'amount' => CurrencyFilter::format(
+					$hour * $currentMonthWorkIncome->getHourlyRate(),
+					CurrencyEnum::CZK,
+				),
+			];
 		}
 
 		$this->template->hours = $hours;

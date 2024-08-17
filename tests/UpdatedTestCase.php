@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Test;
 
-use Closure;
 use Mockery;
 use Mockery\LegacyMockInterface;
 use Mockery\MockInterface;
@@ -69,17 +68,18 @@ abstract class UpdatedTestCase extends TestCase
 		self::assertTrue($currentPrice >= $minimumPrice && $currentPrice <= $maximumPrice);
 	}
 
+	//phpcs:disable
 	/**
 	 * @template TMock of object
-	 *
 	 * @param array<class-string<TMock>|TMock|Closure(LegacyMockInterface&MockInterface&TMock):LegacyMockInterface&MockInterface&TMock|array<TMock>> $className
-	 *
 	 * @return LegacyMockInterface&MockInterface&TMock
- */
+	 */
 	public static function createMockWithIgnoreMethods(string $className)
 	{
 		$mock = Mockery::mock($className);
 		$mock->shouldIgnoreMissing();
 		return $mock;
 	}
+	//phpcs:enable
+
 }

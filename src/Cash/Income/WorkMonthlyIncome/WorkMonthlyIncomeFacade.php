@@ -42,7 +42,7 @@ class WorkMonthlyIncomeFacade
 
 		foreach ($serializedTimeEntries as $key => $timeEntry) {
 			$keyParts = explode('-', $key);
-			$existingRow = $this->workMonthlyIncomeRepository->findByYearAndMonth(
+			$existingRow = $this->workMonthlyIncomeRepository->getByYearAndMonth(
 				(int) $keyParts[0],
 				(int) $keyParts[1],
 			);

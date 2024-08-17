@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Test\Unit\Stock\Dividend\UI;
 
 use App\Currency\CurrencyEnum;
@@ -10,36 +12,35 @@ use App\Stock\Dividend\UI\StockAssetDividendDetailDTO;
 use App\Stock\Dividend\UI\StockAssetDividendDetailService;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
-use Mockery\Mock;
 use PHPUnit\Framework\TestCase;
-
 
 class StockAssetDividendDetailServiceTest extends TestCase
 {
-    private StockAssetDividendDetailService $stockAssetDividendDetailService;
 
-    protected function setUp(): void
-    {
-        $mockStockAssetDividendRepository = Mockery::mock(StockAssetDividendRepository::class);
-        $mockStockAssetDividendRecordRepository = Mockery::mock(StockAssetDividendRecordRepository::class);
-	    $mockStockAssetDividendRecordRepository->shouldIgnoreMissing();
-	    $mockStockAssetDividendRepository->shouldIgnoreMissing();
-        $this->stockAssetDividendDetailService = new StockAssetDividendDetailService(
-            $mockStockAssetDividendRepository,
-            $mockStockAssetDividendRecordRepository
-        );
-    }
+	private StockAssetDividendDetailService $stockAssetDividendDetailService;
 
-    public function testGetDetailDTOFromDate()
-    {
+	protected function setUp(): void
+	{
+		$mockStockAssetDividendRepository = Mockery::mock(StockAssetDividendRepository::class);
+		$mockStockAssetDividendRecordRepository = Mockery::mock(StockAssetDividendRecordRepository::class);
+		$mockStockAssetDividendRecordRepository->shouldIgnoreMissing();
+		$mockStockAssetDividendRepository->shouldIgnoreMissing();
+		$this->stockAssetDividendDetailService = new StockAssetDividendDetailService(
+			$mockStockAssetDividendRepository,
+			$mockStockAssetDividendRecordRepository,
+		);
+	}
 
-        $mockStockAsset = Mockery::mock(StockAsset::class);
+	public function testGetDetailDTOFromDate(): void
+	{
+		$mockStockAsset = Mockery::mock(StockAsset::class);
 		$mockStockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::CZK);
-        $mockImmutableDateTime = Mockery::mock(ImmutableDateTime::class);
+		$mockImmutableDateTime = Mockery::mock(ImmutableDateTime::class);
 
-        $this->assertInstanceOf(
-            StockAssetDividendDetailDTO::class,
-            $this->stockAssetDividendDetailService->getDetailDTOFromDate($mockStockAsset,$mockImmutableDateTime)
-        );
-    }
+		$this->assertInstanceOf(
+			StockAssetDividendDetailDTO::class,
+			$this->stockAssetDividendDetailService->getDetailDTOFromDate($mockStockAsset, $mockImmutableDateTime),
+		);
+	}
+
 }

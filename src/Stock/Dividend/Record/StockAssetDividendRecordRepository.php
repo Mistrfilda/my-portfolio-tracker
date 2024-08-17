@@ -126,6 +126,32 @@ class StockAssetDividendRecordRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function findByYearAndMonth(int|null $year, int|null $month): array
+	{
+		$qb = $this->createQueryBuilder();
+
+		if ($year !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('YEAR(stockAssetDividend.exDate)', ':year'),
+			);
+
+			$qb->setParameter('year', $year);
+		}
+
+		if ($month !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('MONTH(stockAssetDividend.exDate)', ':month'),
+			);
+
+			$qb->setParameter('month', $month);
+		}
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');

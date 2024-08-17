@@ -59,6 +59,31 @@ class BankIncomeRepository extends BaseRepository
 	/**
 	 * @return array<BankIncome>
 	 */
+	public function findByYearAndMonth(int|null $year, int|null $month,): array
+	{
+		$qb = $this->createQueryBuilder();
+
+		if ($month !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('MONTH(bankIncome.createdAt)', ':month'),
+			);
+			$qb->setParameter('month', $month);
+		}
+
+		if ($year !== null) {
+			$qb->andWhere(
+				$qb->expr()->eq('YEAR(bankIncome.createdAt)', ':year'),
+			);
+			$qb->setParameter('year', $year);
+		}
+
+		$qb->orderBy('bankIncome.amount', 'ASC');
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<BankIncome>
+	 */
 	public function findAll(): array
 	{
 		return $this->doctrineRepository->findAll();

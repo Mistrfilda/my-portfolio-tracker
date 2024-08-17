@@ -26,10 +26,6 @@ class Bootstrap
 		$configurator->setTimeZone('Europe/Prague');
 		$configurator->setTempDirectory($appDir . '/temp');
 
-		$configurator->createRobotLoader()
-			->addDirectory(__DIR__)
-			->register();
-
 		$configurator->addConfig($appDir . '/config/config.neon');
 		$configurator->addConfig($appDir . '/config/forms.neon');
 		$configurator->addConfig($appDir . '/config/routing.neon');

@@ -90,9 +90,6 @@ class KbContentParser
 		}
 
 		$firstLine = reset($transactionParts);
-		if ($firstLine === false) {
-			throw new KbPdfTransactionParsingErrorException('Invalid transaction parts');
-		}
 
 		/**
 		 * @var array<string, array{

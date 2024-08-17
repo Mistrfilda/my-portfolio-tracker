@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types = 1);
+
 namespace App\Test\Unit\Statistic;
 
-use App\Currency\CurrencyEnum;
 use App\Dashboard\DashboardValueGroup;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\Statistic\PortfolioStatistic;
@@ -16,56 +17,59 @@ use Mockery;
 use Mockery\MockInterface;
 use PHPUnit\Framework\TestCase;
 
-
 class PortfolioStatisticRecordBuilderTest extends TestCase
 {
-    private PortfolioStatisticRecordRepository|MockInterface $portfolioStatisticRecordRepository;
-    private PortfolioStatisticRecordBuilder $portfolioStatisticRecordBuilder;
-    private int $statisticRecordId = 1;
 
-    protected function setUp(): void
-    {
-        $this->portfolioStatisticRecordRepository = Mockery::mock(PortfolioStatisticRecordRepository::class);
-        $this->portfolioStatisticRecordBuilder = new PortfolioStatisticRecordBuilder(
-            $this->statisticRecordId,
-            $this->portfolioStatisticRecordRepository
-        );
-    }
+	private PortfolioStatisticRecordRepository|MockInterface $portfolioStatisticRecordRepository;
 
-    public function testBuildValues(): void
-    {
-        $dashboardValueGroupEnumTest = DashboardValueGroupEnum::TOTAL_VALUES;
-        $svgIconEnumTest = SvgIcon::PENCIL;
-        $portfolioStatisticRecord = Mockery::mock(PortfolioStatisticRecord::class);
+	private PortfolioStatisticRecordBuilder $portfolioStatisticRecordBuilder;
 
-        $portfolioStatistic = new PortfolioStatistic(
-            $portfolioStatisticRecord,
-            new ImmutableDateTime(),
-            $dashboardValueGroupEnumTest,
-            'label',
-            'value',
-            'color',
-            $svgIconEnumTest,
-            'description',
-            null
-        );
+	private int $statisticRecordId = 1;
 
-        $portfolioStatistics = new ArrayCollection([$portfolioStatistic]);
-        $portfolioStatisticRecord->shouldReceive('getPortfolioStatistics')->andReturn($portfolioStatistics);
+	protected function setUp(): void
+	{
+		$this->portfolioStatisticRecordRepository = Mockery::mock(PortfolioStatisticRecordRepository::class);
+		$this->portfolioStatisticRecordBuilder = new PortfolioStatisticRecordBuilder(
+			$this->statisticRecordId,
+			$this->portfolioStatisticRecordRepository,
+		);
+	}
 
-        $this->portfolioStatisticRecordRepository->shouldReceive('getById')
-            ->with($this->statisticRecordId)
-            ->once()
-            ->andReturn($portfolioStatisticRecord);
+	public function testBuildValues(): void
+	{
+		$dashboardValueGroupEnumTest = DashboardValueGroupEnum::TOTAL_VALUES;
+		$svgIconEnumTest = SvgIcon::PENCIL;
+		$portfolioStatisticRecord = Mockery::mock(PortfolioStatisticRecord::class);
 
-        $dashboardValues = $this->portfolioStatisticRecordBuilder->buildValues();
+		$portfolioStatistic = new PortfolioStatistic(
+			$portfolioStatisticRecord,
+			new ImmutableDateTime(),
+			$dashboardValueGroupEnumTest,
+			'label',
+			'value',
+			'color',
+			$svgIconEnumTest,
+			'description',
+			null,
+		);
 
-        $this->assertIsArray($dashboardValues);
-        $this->assertInstanceOf(DashboardValueGroup::class, $dashboardValues[0]);
-        $this->assertEquals('label', $dashboardValues[0]->getPositions()[0]->getLabel());
-        $this->assertEquals('value', $dashboardValues[0]->getPositions()[0]->getValue());
-        $this->assertEquals('color', $dashboardValues[0]->getPositions()[0]->getColor());
-        $this->assertEquals($svgIconEnumTest, $dashboardValues[0]->getPositions()[0]->getSvgIconEnum());
-        $this->assertEquals('description', $dashboardValues[0]->getPositions()[0]->getDescription());
-    }
+		$portfolioStatistics = new ArrayCollection([$portfolioStatistic]);
+		$portfolioStatisticRecord->shouldReceive('getPortfolioStatistics')->andReturn($portfolioStatistics);
+
+		$this->portfolioStatisticRecordRepository->shouldReceive('getById')
+			->with($this->statisticRecordId)
+			->once()
+			->andReturn($portfolioStatisticRecord);
+
+		$dashboardValues = $this->portfolioStatisticRecordBuilder->buildValues();
+
+		$this->assertIsArray($dashboardValues);
+		$this->assertInstanceOf(DashboardValueGroup::class, $dashboardValues[0]);
+		$this->assertEquals('label', $dashboardValues[0]->getPositions()[0]->getLabel());
+		$this->assertEquals('value', $dashboardValues[0]->getPositions()[0]->getValue());
+		$this->assertEquals('color', $dashboardValues[0]->getPositions()[0]->getColor());
+		$this->assertEquals($svgIconEnumTest, $dashboardValues[0]->getPositions()[0]->getSvgIconEnum());
+		$this->assertEquals('description', $dashboardValues[0]->getPositions()[0]->getDescription());
+	}
+
 }

@@ -50,6 +50,7 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	}
 
 	#[DataProvider('provideSummaryPricePositions')]
+
 	/**
 	 * @param array<AssetPosition> $positions
 	 */
@@ -68,6 +69,7 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	}
 
 	#[DataProvider('provideSummaryPriceForTotalInvestedAmmountPositions')]
+
 	/**
 	 * @param array<AssetPosition> $positions
 	 */
@@ -86,6 +88,7 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 	}
 
 	#[DataProvider('provideSummaryPriceForTotalInvestedAmmountInBrokerCurrencyPositions')]
+
 	/**
 	 * @param array<AssetPosition> $positions
 	 */
