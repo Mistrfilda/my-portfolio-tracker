@@ -44,6 +44,9 @@ class StockAssetDividendRecord implements Entity
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class, nullable: true)]
 	private CurrencyEnum|null $brokerCurrency;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $reinvested;
+
 	public function __construct(
 		StockAssetDividend $stockAssetDividend,
 		int $totalPiecesHeldAtExDate,
@@ -62,6 +65,7 @@ class StockAssetDividendRecord implements Entity
 		$this->currency = $currency;
 		$this->totalAmountInBrokerCurrency = $totalAmountInBrokerCurrency;
 		$this->brokerCurrency = $brokerCurrency;
+		$this->reinvested = true;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -137,6 +141,11 @@ class StockAssetDividendRecord implements Entity
 		}
 
 		return new SummaryPrice($this->currency, $this->totalAmount, 1);
+	}
+
+	public function isReinvested(): bool
+	{
+		return $this->reinvested;
 	}
 
 }

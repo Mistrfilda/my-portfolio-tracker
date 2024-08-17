@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Asset\Price\SummaryPrice;
+use App\Currency\CurrencyConversionFacade;
+use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -21,6 +24,7 @@ class StockAssetDividendRecordFacade
 		private StockAssetDividendRecordService $stockAssetDividendRecordService,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
+		private CurrencyConversionFacade $currencyConversionFacade,
 		private LoggerInterface $logger,
 	)
 	{
@@ -73,6 +77,30 @@ class StockAssetDividendRecordFacade
 		}
 
 		return $processedDividendRecords;
+	}
+
+	public function getTotalSummaryPrice(bool $reinvestedOnly = true): SummaryPrice
+	{
+		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
+
+		foreach ($this->stockAssetDividendRecordRepository->findAll() as $stockAssetDividendRecord) {
+			if ($reinvestedOnly && $stockAssetDividendRecord->isReinvested() === false) {
+				continue;
+			}
+
+			$recordPrice = $stockAssetDividendRecord->getSummaryPrice();
+			if ($recordPrice->getCurrency() !== $totalSummaryPrice->getCurrency()) {
+				$recordPrice = $this->currencyConversionFacade->getConvertedSummaryPrice(
+					$recordPrice,
+					CurrencyEnum::CZK,
+					$stockAssetDividendRecord->getStockAssetDividend()->getExDate(),
+				);
+			}
+
+			$totalSummaryPrice->addSummaryPrice($recordPrice);
+		}
+
+		return $totalSummaryPrice;
 	}
 
 }

@@ -11,6 +11,7 @@ use App\Statistic\UI\Chart\StockDividendByCompanyAndMonthChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByCompanyChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider;
 use App\Statistic\UI\Chart\StockDividendByYearChartDataProvider;
+use App\Statistic\UI\Chart\TotalInvestedAmountPieChartDataProvider;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
@@ -27,6 +28,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		private ChartControlFactory $chartControlFactory,
 		private StockDividendByCompanyAndMonthChartDataProvider $stockDividendByCompanyAndMonthChartDataProvider,
 		private StockDividendByCompanyChartDataProvider $stockDividendByCompanyChartDataProvider,
+		private TotalInvestedAmountPieChartDataProvider $totalInvestedAmountPieChartDataProvider,
 	)
 	{
 		parent::__construct();
@@ -50,6 +52,11 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 				'Celkově zainvestováno',
 				'Hodnota v CZK',
 				'portfolioTotalInvestedChart',
+			),
+			new PortfolioStatisticChart(
+				'Rozdělení investované částky',
+				'Hodnota v CZK',
+				'totalInvestedAmountPieChart',
 			),
 			new PortfolioStatisticChart(
 				'Celkově zisk',
@@ -167,6 +174,14 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 		return $this->chartControlFactory->create(
 			ChartType::BAR,
 			$this->stockDividendByCompanyChartDataProvider,
+		);
+	}
+
+	protected function createComponentTotalInvestedAmountPieChart(): ChartControl
+	{
+		return $this->chartControlFactory->create(
+			ChartType::DOUGHNUT,
+			$this->totalInvestedAmountPieChartDataProvider,
 		);
 	}
 

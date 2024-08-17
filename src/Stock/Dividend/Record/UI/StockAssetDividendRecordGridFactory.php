@@ -11,6 +11,7 @@ use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
 use App\UI\Control\Datagrid\Row\BaseRowRenderer;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
+use App\UI\Filter\BooleanFilter;
 use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\SummaryPriceFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -105,6 +106,14 @@ class StockAssetDividendRecordGridFactory
 			'Celková hodnota po zdanění',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => SummaryPriceFilter::format(
 				$stockAssetDividendRecord->getSummaryPrice(),
+			),
+		);
+
+		$grid->addColumnText(
+			'reinvested',
+			'Reinvestováno',
+			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => BooleanFilter::format(
+				$stockAssetDividendRecord->isReinvested(),
 			),
 		);
 
