@@ -13,6 +13,7 @@
       "*": [
         "node_modules/*"
       ]
-    }
-  }
+    },
+  },
+  "exclude": ["vendor", "node_modules"]
 }
