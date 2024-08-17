@@ -26,10 +26,16 @@ class MenuBuilder
 		return [
 			new MenuItem('Dashboard', 'default', SvgIcon::HOME, 'Dashboard'),
 			new MenuItem(
-				'PortfolioStatistic',
+				'PortfolioStatisticChart',
 				'default',
 				SvgIcon::CHART_BAR_SQUARE,
-				'Statistiky a grafy',
+				'Grafy',
+			),
+			new MenuItem(
+				'PortfolioStatisticTotal',
+				'default',
+				SvgIcon::ARCHIVE_BOX,
+				'Statistiky',
 			),
 			new MenuItem(
 				'CurrencyOverview',

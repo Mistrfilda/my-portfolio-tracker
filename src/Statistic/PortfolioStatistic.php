@@ -104,4 +104,9 @@ class PortfolioStatistic implements Entity
 		return $this->description;
 	}
 
+	public function getType(): PortolioStatisticType|null
+	{
+		return $this->type;
+	}
+
 }

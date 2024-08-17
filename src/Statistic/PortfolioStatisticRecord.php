@@ -38,4 +38,15 @@ class PortfolioStatisticRecord implements Entity
 		return $this->portfolioStatistics;
 	}
 
+	public function getPortfolioStatisticByType(PortolioStatisticType $portolioStatisticType): PortfolioStatistic|null
+	{
+		foreach ($this->getPortfolioStatistics()->toArray() as $portfolioStatistic) {
+			if ($portfolioStatistic->getType() === $portolioStatisticType) {
+				return $portfolioStatistic;
+			}
+		}
+
+		return null;
+	}
+
 }

@@ -83,4 +83,6 @@ enum SvgIcon: string
 
 	case POLISH_ZLOTY = 'polish-zloty.svg';
 
+	case ARCHIVE_BOX = 'archive-box.svg';
+
 }

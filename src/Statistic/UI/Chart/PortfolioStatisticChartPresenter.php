@@ -2,22 +2,15 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI;
+namespace App\Statistic\UI\Chart;
 
 use App\Statistic\PortolioStatisticType;
-use App\Statistic\UI\Chart\PortfolioTotalValueChartProvider;
-use App\Statistic\UI\Chart\PortfolioTotalValueLastMonthChartProvider;
-use App\Statistic\UI\Chart\StockDividendByCompanyAndMonthChartDataProvider;
-use App\Statistic\UI\Chart\StockDividendByCompanyChartDataProvider;
-use App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider;
-use App\Statistic\UI\Chart\StockDividendByYearChartDataProvider;
-use App\Statistic\UI\Chart\TotalInvestedAmountPieChartDataProvider;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
 
-class PortfolioStatisticPresenter extends BaseAdminPresenter
+class PortfolioStatisticChartPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(
@@ -36,7 +29,7 @@ class PortfolioStatisticPresenter extends BaseAdminPresenter
 
 	public function renderDefault(): void
 	{
-		$this->template->heading = 'Statistiky a grafy';
+		$this->template->heading = 'Grafy';
 		$this->template->charts = [
 			new PortfolioStatisticChart(
 				'Celková hodnota portfolia za posledních 100 dní',

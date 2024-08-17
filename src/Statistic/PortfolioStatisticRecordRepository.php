@@ -65,4 +65,34 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<PortfolioStatisticRecord>
+	 */
+	public function findMinMaxDateByMonth(int $year): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('p1');
+
+		$subQueryMin = $this->doctrineRepository->createQueryBuilder('p2')
+			->select('MIN(p2.createdAt)')
+			->where('YEAR(p2.createdAt) = :year')
+			->andWhere('MONTH(p2.createdAt) = MONTH(p1.createdAt)');
+
+		$subQueryMax = $this->doctrineRepository->createQueryBuilder('p3')
+			->select('MAX(p3.createdAt)')
+			->where('YEAR(p3.createdAt) = :year')
+			->andWhere('MONTH(p3.createdAt) = MONTH(p1.createdAt)');
+
+		$qb->where('YEAR(p1.createdAt) = :year')
+			->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->eq('p1.createdAt', '(' . $subQueryMin->getDQL() . ')'),
+					$qb->expr()->eq('p1.createdAt', '(' . $subQueryMax->getDQL() . ')'),
+				),
+			)
+			->setParameter('year', $year)
+			->orderBy('p1.createdAt', 'ASC');
+
+		return $qb->getQuery()->getResult();
+	}
+
 }

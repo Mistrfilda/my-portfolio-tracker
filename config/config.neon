@@ -31,6 +31,9 @@ parameters:
 		harvestAccessToken: 50
 		currentHourlyRate: 50
 
+	portfolioStatistic:
+		startYear: 2023
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -256,6 +259,10 @@ services:
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
 	- App\Statistic\UI\Record\PortfolioStatisticRecordGridFactory
+	-
+	 	implement: App\Statistic\UI\Total\UI\Control\PortfolioStatisticTotalControlFactory
+	 	arguments:
+	 		startYear: %portfolioStatistic.startYear%
 
 	#Stock dividends
 	- App\Stock\Dividend\StockAssetDividendFacade

@@ -2,11 +2,11 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI;
+namespace App\Statistic\UI\Chart;
 
 use App\UI\Base\BaseAdminPresenterTemplate;
 
-class PortfolioStatisticTemplate extends BaseAdminPresenterTemplate
+class PortfolioStatisticChartTemplate extends BaseAdminPresenterTemplate
 {
 
 	/** @var array<PortfolioStatisticChart> */
