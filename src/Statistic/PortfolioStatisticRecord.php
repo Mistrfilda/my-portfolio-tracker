@@ -14,6 +14,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 #[ORM\Entity]
 #[ORM\Table('portfolio_statistic_record')]
+#[ORM\Index(fields: ['createdAt'], name: 'created_at_idx')]
 class PortfolioStatisticRecord implements Entity
 {
 
