@@ -70,27 +70,27 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 	 */
 	public function findMinMaxDateByMonth(int $year): array
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('p1');
+		// Dotaz na minimální datum v měsíci
+		$minDatesQb = $this->doctrineRepository->createQueryBuilder('p')
+			->select('MIN(p.createdAt) as minDate, YEAR(p.createdAt) as eventYear, MONTH(p.createdAt) as eventMonth')
+			->where('YEAR(p.createdAt) = :year')
+			->groupBy('eventYear, eventMonth')
+			->setParameter('year', $year);
 
-		$subQueryMin = $this->doctrineRepository->createQueryBuilder('p2')
-			->select('MIN(p2.createdAt)')
-			->where('YEAR(p2.createdAt) = :year')
-			->andWhere('MONTH(p2.createdAt) = MONTH(p1.createdAt)');
+		$maxDatesQb = $this->doctrineRepository->createQueryBuilder('p')
+			->select('MAX(p.createdAt) as maxDate, YEAR(p.createdAt) as eventYear, MONTH(p.createdAt) as eventMonth')
+			->where('YEAR(p.createdAt) = :year')
+			->groupBy('eventYear, eventMonth')
+			->setParameter('year', $year);
 
-		$subQueryMax = $this->doctrineRepository->createQueryBuilder('p3')
-			->select('MAX(p3.createdAt)')
-			->where('YEAR(p3.createdAt) = :year')
-			->andWhere('MONTH(p3.createdAt) = MONTH(p1.createdAt)');
+		$minDates = array_map(static fn ($result) => $result['minDate'], $minDatesQb->getQuery()->getResult());
 
-		$qb->where('YEAR(p1.createdAt) = :year')
-			->andWhere(
-				$qb->expr()->orX(
-					$qb->expr()->eq('p1.createdAt', '(' . $subQueryMin->getDQL() . ')'),
-					$qb->expr()->eq('p1.createdAt', '(' . $subQueryMax->getDQL() . ')'),
-				),
-			)
-			->setParameter('year', $year)
-			->orderBy('p1.createdAt', 'ASC');
+		$maxDates = array_map(static fn ($result) => $result['maxDate'], $maxDatesQb->getQuery()->getResult());
+
+		$qb = $this->doctrineRepository->createQueryBuilder('p');
+		$qb->where($qb->expr()->in('p.createdAt', ':dates'))
+			->setParameter('dates', array_merge($minDates, $maxDates))
+			->orderBy('p.createdAt', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}
