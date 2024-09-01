@@ -9,6 +9,7 @@ class DashboardValueGroup
 
 	/**
 	 * @param array<DashboardValue> $positions
+	 * @param array<DashboardValueTable> $tables
 	 */
 	public function __construct(
 		private readonly DashboardValueGroupEnum $name,
@@ -16,6 +17,7 @@ class DashboardValueGroup
 		private readonly string|null $description = null,
 		private readonly array $positions = [],
 		private readonly bool $isOpen = false,
+		private readonly array $tables = [],
 	)
 	{
 	}
@@ -46,6 +48,14 @@ class DashboardValueGroup
 	public function isOpen(): bool
 	{
 		return $this->isOpen;
+	}
+
+	/**
+	 * @return array<DashboardValueTable>
+	 */
+	public function getTables(): array
+	{
+		return $this->tables;
 	}
 
 }

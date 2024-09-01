@@ -10,12 +10,16 @@ use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\PortolioStatisticType;
+use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
+use App\UI\Filter\DatetimeFormatFilter;
 use App\UI\Filter\PercentageFilter;
+use App\UI\Filter\SummaryPriceFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
+use Nette\Application\LinkGenerator;
 
 class DashboardValueBuilderFacade implements DashboardValueBuilder
 {
@@ -26,6 +30,8 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly PortuPositionFacade $portuPositionFacade,
 		private readonly AssetPriceSummaryFacade $assetPriceSummaryFacade,
+		private readonly StockAssetDividendFacade $stockAssetDividendFacade,
+		private readonly LinkGenerator $linkGenerator,
 	)
 	{
 	}
@@ -40,7 +46,51 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			$this->getTotalValues(),
 			$this->getStockValues(),
 			$this->getPortuValues(),
+			$this->buildDividendValues(),
 		];
+	}
+
+	public function buildDividendValues(): DashboardValueGroup
+	{
+		$lastYearRecords = $this->stockAssetDividendFacade->getLastYearDividendRecordsForDashboard();
+
+		$lastYearTable = new DashboardValueTable(
+			'Dividendy minulý rok k současnému datu',
+			'Přehled dividend vyplacených společnostmi minulý rok v aktuálním období',
+			TailwindColorConstant::GRAY,
+			[
+				'stockAssetName' => 'Společnost',
+				'exDate' => 'Ex-date',
+				'amount' => 'Částka',
+				'amountWithoutTax' => 'Částka po stržení daně',
+			],
+		);
+
+		foreach ($lastYearRecords as $lastYearRecord) {
+			$lastYearTable->addData([
+				'rowColor' => $lastYearRecord->getStockAsset()->hasOpenPositions() ? TailwindColorConstant::GREEN : TailwindColorConstant::GRAY,
+				'stockAssetName' => $lastYearRecord->getStockAsset()->getName(),
+				'exDate' => DatetimeFormatFilter::formatValue(
+					$lastYearRecord->getExDate(),
+					DatetimeConst::SYSTEM_DATE_FORMAT,
+				),
+				'amount' => SummaryPriceFilter::format($lastYearRecord->getSummaryPrice(false)),
+				'amountWithoutTax' => SummaryPriceFilter::format($lastYearRecord->getSummaryPrice()),
+				'link' => $this->linkGenerator->link(
+					'Admin:StockAssetDetail:detail',
+					['id' => $lastYearRecord->getStockAsset()->getId()->toString()],
+				),
+			]);
+		}
+
+		return new DashboardValueGroup(
+			DashboardValueGroupEnum::DIVIDENDS,
+			'Dividendy',
+			'Dividendový přehled',
+			[],
+			true,
+			[$lastYearTable],
+		);
 	}
 
 	public function getCurrencyConversionValues(): DashboardValueGroup

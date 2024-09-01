@@ -15,6 +15,8 @@ enum DashboardValueGroupEnum: string
 
 	case PORTU = 'portu';
 
+	case DIVIDENDS = 'dividends';
+
 	public function heading(): string
 	{
 		return match ($this) {
@@ -22,6 +24,7 @@ enum DashboardValueGroupEnum: string
 			DashboardValueGroupEnum::TOTAL_VALUES => 'Celkové hodnoty portfolia',
 			DashboardValueGroupEnum::STOCKS => 'Akcie',
 			DashboardValueGroupEnum::PORTU => 'Portu',
+			DashboardValueGroupEnum::DIVIDENDS => 'Dividendy',
 		};
 	}
 
@@ -32,6 +35,7 @@ enum DashboardValueGroupEnum: string
 			DashboardValueGroupEnum::TOTAL_VALUES => null,
 			DashboardValueGroupEnum::STOCKS => null,
 			DashboardValueGroupEnum::PORTU => null,
+			DashboardValueGroupEnum::DIVIDENDS => null,
 		};
 	}
 

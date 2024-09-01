@@ -79,6 +79,17 @@ class StockAssetDividendRecordFacade
 		return $processedDividendRecords;
 	}
 
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function getLastYearDividendRecordsForDashboard(): array
+	{
+		return $this->stockAssetDividendRecordRepository->findGreaterThan(
+			$this->datetimeFactory->createNow()->deductYearsFromDatetime(1),
+			15,
+		);
+	}
+
 	public function getTotalSummaryPrice(bool $reinvestedOnly = true): SummaryPrice
 	{
 		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);

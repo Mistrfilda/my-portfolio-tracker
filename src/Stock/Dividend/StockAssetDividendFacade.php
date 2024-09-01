@@ -68,4 +68,15 @@ class StockAssetDividendFacade
 		$this->entityManager->flush();
 	}
 
+	/**
+	 * @return array<StockAssetDividend>
+	 */
+	public function getLastYearDividendRecordsForDashboard(): array
+	{
+		return $this->stockAssetDividendRepository->findGreaterThan(
+			$this->datetimeFactory->createNow()->deductYearsFromDatetime(1),
+			15,
+		);
+	}
+
 }

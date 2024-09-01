@@ -49,6 +49,26 @@ class PortfolioStatisticFacade
 							$dashboardValue->getSvgIconEnum(),
 							$dashboardValue->getDescription(),
 							$dashboardValue->getType(),
+							PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
+							null,
+						),
+					);
+				}
+
+				foreach ($dashboardValueGroup->getTables() as $table) {
+					$this->entityManager->persist(
+						new PortfolioStatistic(
+							$portfolioStatisticRecord,
+							$this->datetimeFactory->createNow(),
+							$dashboardValueGroup->getName(),
+							$table->getLabel(),
+							$table->getValue(),
+							$table->getColor(),
+							null,
+							null,
+							null,
+							PortfolioStatisticControlTypeEnum::TABLE,
+							['data' => $table->getData(), 'heading' => $table->getHeading()],
 						),
 					);
 				}

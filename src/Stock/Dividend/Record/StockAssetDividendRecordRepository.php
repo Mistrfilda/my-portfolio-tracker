@@ -149,6 +149,22 @@ class StockAssetDividendRecordRepository extends BaseRepository
 			$qb->setParameter('month', $month);
 		}
 
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function findGreaterThan(ImmutableDateTime $greaterThanDate, int $limit = 10): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('stockAssetDividend.exDate', ':greaterThanDate'),
+		);
+		$qb->setParameter('greaterThanDate', $greaterThanDate);
+		$qb->setMaxResults($limit);
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
 		return $qb->getQuery()->getResult();
 	}
 

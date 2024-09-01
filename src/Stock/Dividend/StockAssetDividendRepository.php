@@ -151,6 +151,21 @@ class StockAssetDividendRepository extends BaseRepository
 		return (int) $result;
 	}
 
+	/**
+	 * @return array<StockAssetDividend>
+	 */
+	public function findGreaterThan(ImmutableDateTime $greaterThanDate, int $limit = 10): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('stockAssetDividend.exDate', ':greaterThanDate'),
+		);
+		$qb->setParameter('greaterThanDate', $greaterThanDate);
+		$qb->setMaxResults($limit);
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');
