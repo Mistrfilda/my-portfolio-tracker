@@ -1,4 +1,5 @@
 config/config.local.neon
+config/config-docker.local.neon
 
 vendor/*
 .idea/*
