@@ -27,6 +27,8 @@
     "webpack-notifier": "^1.14.1"
   },
   "scripts": {
+    "encore": "encore",
+    "build-docker": "NODE_ENV=production PROD_HOST=1 npm run encore prod",
     "build-dev": "NODE_ENV=production yarn encore prod",
     "watch-dev": "NODE_ENV=production yarn encore dev --watch",
     "build-prod": "NODE_ENV=production PROD_HOST=1 yarn encore prod"

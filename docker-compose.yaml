@@ -1,0 +1,29 @@
+services:
+    php:
+        build:
+            context: .
+            dockerfile: docker/php/Dockerfile
+        volumes:
+            - .:/var/www
+        expose:
+            - 9000
+        networks:
+            - app-network
+
+    nginx:
+        build:
+            context: .
+            dockerfile: docker/nginx/Dockerfile
+        volumes:
+            - .:/var/www
+            - ./www:/usr/share/nginx/html
+        ports:
+            - "8080:80"
+        depends_on:
+            - php
+        networks:
+            - app-network
+
+networks:
+    app-network:
+        driver: bridge
