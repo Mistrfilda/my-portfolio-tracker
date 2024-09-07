@@ -1,5 +1,5 @@
 # Použijeme oficiální PHP runtime s PHP-FPM
-FROM php:8.3-fpm
+FROM php:8.3-fpm AS php-build
 
 # Nainstalujeme závislosti včetně libxml2
 RUN apt-get update && apt-get install -y \
@@ -34,6 +34,8 @@ RUN npm run build-docker
 
 # Nastavíme oprávnění
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
+RUN chown -R www-data:www-data /var/log
+RUN chown -R www-data:www-data /var/temp
 
 # Nastavíme pracovní adresář pro PHP aplikaci
 WORKDIR /var/www

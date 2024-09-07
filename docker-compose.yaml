@@ -3,6 +3,7 @@ services:
         build:
             context: .
             dockerfile: docker/php/Dockerfile
+        container_name: php-service
         volumes:
             - .:/var/www
         expose:
@@ -17,6 +18,7 @@ services:
         volumes:
             - .:/var/www
             - ./www:/usr/share/nginx/html
+        container_name: nginx-service
         ports:
             - "8080:80"
         depends_on:
