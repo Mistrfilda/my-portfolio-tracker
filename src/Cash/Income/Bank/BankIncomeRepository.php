@@ -65,14 +65,14 @@ class BankIncomeRepository extends BaseRepository
 
 		if ($month !== null) {
 			$qb->andWhere(
-				$qb->expr()->eq('MONTH(bankIncome.createdAt)', ':month'),
+				$qb->expr()->eq('MONTH(bankIncome.settlementDate)', ':month'),
 			);
 			$qb->setParameter('month', $month);
 		}
 
 		if ($year !== null) {
 			$qb->andWhere(
-				$qb->expr()->eq('YEAR(bankIncome.createdAt)', ':year'),
+				$qb->expr()->eq('YEAR(bankIncome.settlementDate)', ':year'),
 			);
 			$qb->setParameter('year', $year);
 		}
