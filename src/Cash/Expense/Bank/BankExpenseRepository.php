@@ -99,22 +99,12 @@ class BankExpenseRepository extends BaseRepository
 		$qb->setParameter('expenseCategory', $expenseCategory);
 
 		if ($month !== null) {
-			$qb->andWhere(
-				$qb->expr()->orX(
-					$qb->expr()->eq('MONTH(bankExpense.settlementDate)', ':month'),
-					$qb->expr()->eq('MONTH(bankExpense.transactionDate)', ':month'),
-				),
-			);
+			$qb->andWhere($qb->expr()->eq('MONTH(bankExpense.settlementDate)', ':month'));
 			$qb->setParameter('month', $month);
 		}
 
 		if ($year !== null) {
-			$qb->andWhere(
-				$qb->expr()->orX(
-					$qb->expr()->eq('YEAR(bankExpense.settlementDate)', ':year'),
-					$qb->expr()->eq('YEAR(bankExpense.transactionDate)', ':year'),
-				),
-			);
+			$qb->andWhere($qb->expr()->eq('YEAR(bankExpense.settlementDate)', ':year'));
 			$qb->setParameter('year', $year);
 		}
 
