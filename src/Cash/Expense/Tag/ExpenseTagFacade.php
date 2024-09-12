@@ -79,7 +79,14 @@ class ExpenseTagFacade
 	{
 		$expenseTags = $this->expenseTagRepository->findAll();
 		foreach ($this->bankExpenseRepository->findAll() as $bankExpense) {
+			//remove new lines
 			$bankExpenseRawContent = str_replace("\n", ' ', $bankExpense->getTransactionRawContent());
+			//remove tabs
+			$bankExpenseRawContent = str_replace("\t", ' ', $bankExpenseRawContent);
+			//remove extensive spaces
+			$bankExpenseRawContent = preg_replace('/\s+/', ' ', $bankExpenseRawContent);
+			assert(is_string($bankExpenseRawContent));
+
 			foreach ($expenseTags as $expenseTag) {
 				$matched = false;
 				foreach ($expenseTag->getRegexes() as $regex) {

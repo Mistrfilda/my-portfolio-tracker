@@ -53,7 +53,7 @@ class BankExpense implements Entity, Expense
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $transactionDate;
 
-	#[ORM\Column(type: Types::STRING)]
+	#[ORM\Column(type: Types::TEXT)]
 	private string $transactionRawContent;
 
 	#[ORM\Column(type: Types::BOOLEAN)]

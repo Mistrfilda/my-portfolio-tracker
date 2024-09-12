@@ -62,7 +62,7 @@ class BankExpenseRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->doctrineRepository->findBy([]);
 	}
 
 	/**

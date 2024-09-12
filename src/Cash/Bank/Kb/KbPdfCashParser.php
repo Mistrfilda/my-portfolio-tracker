@@ -24,25 +24,32 @@ class KbPdfCashParser implements BankExpenseParser
 		$pdf = $parser->parseContent($fileContents);
 
 		$tablesData = [];
-		$break = false;
-		foreach ($pdf->getPages() as $page) {
-			if (str_contains($page->getText(), 'Pokračování na další straně')) {
-				$pattern = '/Připsáno\nOdepsáno(.*?)Pokračování na další straně/s';
-			} else {
-				$pattern = '/Připsáno\nOdepsáno(.*?)KONEČNÝ ZŮSTATEK/s';
-				$break = true;
-			}
-
-			preg_match($pattern, $page->getText(), $matches);
-			$tablesData[] = $matches[1];
-
-			if ($break) {
+		$pagesCount = count($pdf->getPages());
+		foreach ($pdf->getPages() as $pageIndex => $page) {
+			if ($pageIndex + 1 === $pagesCount) {
 				break;
 			}
+
+			$pattern = '/Výpis z účtu(.*)/s';
+			preg_match($pattern, $page->getText(), $matches);
+			$text = $matches[1];
+
+			if ($pageIndex === 0) {
+				preg_match('/Transakce(.*)/s', $text, $matches);
+				$text = $matches[1];
+			} else {
+				$text = preg_replace('/^.*\n/', '', $text);
+			}
+
+			$tablesData[] = $text;
 		}
 
 		$transactions = [];
 		foreach ($tablesData as $singlePageData) {
+			if ($singlePageData === null) {
+				continue;
+			}
+
 			$transactions = array_merge($transactions, $this->getTransactionsFromPageContent($singlePageData));
 		}
 
@@ -55,7 +62,10 @@ class KbPdfCashParser implements BankExpenseParser
 	private function getTransactionsFromPageContent(string $content): array
 	{
 		$transactions = [];
-		$pattern = '/(\d{2}\.\d{2}\.\d{4})/';
+
+		$datePattern = '/^\d{1,2}\.\s?\d{1,2}\.\s?\d{4}/';
+		$pattern = '/Datum provedení Kód transakce Typ transakce Variabilní symbol Specifický symbol Konstantní symbol/';
+
 		$parts = preg_split($pattern, $content, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
 
 		if ($parts === false) {
@@ -65,23 +75,55 @@ class KbPdfCashParser implements BankExpenseParser
 		$filteredParts = array_filter($parts, static fn (string $part) => Strings::trim($part) !== '');
 
 		$currentTransaction = null;
-		foreach ($filteredParts as $filteredPart) {
-			if ((bool) preg_match($pattern, $filteredPart)) {
-				if ($currentTransaction === null) {
+		foreach ($filteredParts as $index => $filteredPart) {
+			$filteredPart = Strings::trim($filteredPart);
+			if ($index === 0) {
+				$currentTransaction = new KbTransaction();
+				preg_match($datePattern, $filteredPart, $matches);
+				$currentTransaction->setSettlementDate($matches[0]);
+				$currentTransaction->setTransactionDate($matches[0]);
+				$currentTransaction->setTransactionRawContent($filteredPart);
+				continue;
+			}
+
+			$filteredPart = Strings::trim($filteredPart);
+			$lines = explode("\n", $filteredPart);
+			$firstLine = array_shift($lines);
+			$currentTransaction?->addTransactionRawContent($firstLine);
+
+			// Slučení zbývajícího textu zpět do jednoho řetězce
+			$remainingText = implode("\n", $lines);
+
+			$previousLine = null;
+			$transactionInfoOnNextLine = false;
+			foreach (explode("\n", $remainingText) as $line) {
+				if ((bool) preg_match($datePattern, $line) && $transactionInfoOnNextLine === false) {
+					if ($currentTransaction !== null) {
+						$transactions[] = $currentTransaction;
+					}
 					$currentTransaction = new KbTransaction();
-					$currentTransaction->setSettlementDate($filteredPart);
+					preg_match($datePattern, $line, $matches);
+					$currentTransaction->setSettlementDate($matches[0]);
+					$currentTransaction->setTransactionDate($matches[0]);
+					$currentTransaction->setTransactionRawContent($line);
 				} else {
-					$currentTransaction->setTransactionDate($filteredPart);
-				}
-			} else {
-				if ($currentTransaction === null) {
-					throw new KbPdfTransactionParsingErrorException();
+					$currentTransaction?->addTransactionRawContent($line);
 				}
 
-				$currentTransaction->setTransactionRawContent(Strings::trim($filteredPart));
-				$transactions[] = $currentTransaction;
-				$currentTransaction = null;
+				if (str_starts_with($line, 'Zpráva pro příjemce')) {
+					if ($previousLine !== null && str_starts_with($previousLine, 'Popis pro mě') === false) {
+						$transactionInfoOnNextLine = true;
+					}
+				} else {
+					$transactionInfoOnNextLine = false;
+				}
+
+				$previousLine = $line;
 			}
+		}
+
+		if ($currentTransaction !== null) {
+			$transactions[] = $currentTransaction;
 		}
 
 		return $transactions;

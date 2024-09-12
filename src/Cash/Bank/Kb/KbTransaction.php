@@ -9,6 +9,7 @@ use App\Cash\Expense\Bank\BankExpenseData;
 use JsonSerializable;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use const PHP_EOL;
 
 class KbTransaction implements BankExpenseData, JsonSerializable
 {
@@ -31,7 +32,7 @@ class KbTransaction implements BankExpenseData, JsonSerializable
 			return null;
 		}
 
-		return DatetimeFactory::createFromFormat($this->settlementDate, 'd.m.Y');
+		return DatetimeFactory::createFromFormat($this->settlementDate, 'd. m. Y');
 	}
 
 	public function setSettlementDate(string|null $settlementDate): void
@@ -45,7 +46,7 @@ class KbTransaction implements BankExpenseData, JsonSerializable
 			return null;
 		}
 
-		return DatetimeFactory::createFromFormat($this->transactionDate, 'd.m.Y');
+		return DatetimeFactory::createFromFormat($this->transactionDate, 'd. m. Y');
 	}
 
 	public function setTransactionDate(string|null $transactionDate): void
@@ -61,6 +62,11 @@ class KbTransaction implements BankExpenseData, JsonSerializable
 	public function setTransactionRawContent(string|null $transactionRawContent): void
 	{
 		$this->transactionRawContent = $transactionRawContent;
+	}
+
+	public function addTransactionRawContent(string $transactionRawContent): void
+	{
+		$this->transactionRawContent .= PHP_EOL . $transactionRawContent;
 	}
 
 	public function getBankTransactionType(): BankTransactionType

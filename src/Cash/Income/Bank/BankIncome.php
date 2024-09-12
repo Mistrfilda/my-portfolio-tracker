@@ -45,7 +45,7 @@ class BankIncome implements Entity, Income
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $settlementDate;
 
-	#[ORM\Column(type: Types::STRING)]
+	#[ORM\Column(type: Types::TEXT)]
 	private string $transactionRawContent;
 
 	public function __construct(

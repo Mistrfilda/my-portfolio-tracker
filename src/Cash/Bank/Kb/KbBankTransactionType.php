@@ -14,25 +14,25 @@ class KbBankTransactionType
 			'enum' => BankTransactionType::CARD_PAYMENT,
 			'firstLineEq' => ['TRANSAKCE PLATEBNÍ KARTOU', 'Platba/Výběr hotovosti platební kartou'],
 			'firstLineContains' => [],
-			'rawContentContains' => [],
+			'rawContentContains' => ['Mobilní platba'],
 		],
 		BankTransactionType::REPEATING_TRANSACTION->value => [
 			'enum' => BankTransactionType::REPEATING_TRANSACTION,
 			'firstLineEq' => ['TRVALÝ PŘÍKAZ - ČTRNÁCTIDENNÍ', 'PLATBA SCV'],
 			'firstLineContains' => [],
-			'rawContentContains' => [],
+			'rawContentContains' => ['Opakovaná platba', 'TRVALÝ PŘÍKAZ - ČTRNÁCTIDENNÍ'],
 		],
 		BankTransactionType::TRANSACTION->value => [
 			'enum' => BankTransactionType::TRANSACTION,
 			'firstLineEq' => ['OKAMŽITÁ ODCHOZÍ ÚHRADA', 'ODCHOZÍ ÚHRADA'],
 			'firstLineContains' => [],
-			'rawContentContains' => [],
+			'rawContentContains' => ['Odchozí úhrada'],
 		],
 		BankTransactionType::BANK_FEE->value => [
 			'enum' => BankTransactionType::BANK_FEE,
 			'firstLineEq' => ['Výběr z bankomatu - poplatek'],
 			'firstLineContains' => [],
-			'rawContentContains' => [],
+			'rawContentContains' => ['Poplatek za'],
 		],
 	];
 

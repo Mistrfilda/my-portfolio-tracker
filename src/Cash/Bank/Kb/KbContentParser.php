@@ -5,6 +5,8 @@ declare(strict_types = 1);
 namespace App\Cash\Bank\Kb;
 
 use App\Cash\Bank\BankTransactionType;
+use InvalidArgumentException;
+use Nette\Utils\Strings;
 
 class KbContentParser
 {
@@ -20,6 +22,7 @@ class KbContentParser
 
 		foreach ($transactions as $transaction) {
 			$transactionParts = preg_split('~\n~', $transaction->getTransactionRawContent() ?? '');
+
 			if ($transactionParts === false) {
 				throw new KbPdfTransactionParsingErrorException('Invalid transaction parts');
 			}
@@ -30,7 +33,7 @@ class KbContentParser
 				continue;
 			}
 
-			$amount = $this->parseAmount(array_pop($transactionParts));
+			$amount = $this->parseAmount($transactionParts);
 
 			if ($amount === 0.0) {
 				$transaction->setUnprocessedReason('Invalid amount, cant parse amount');
@@ -39,17 +42,16 @@ class KbContentParser
 			}
 
 			$transaction->setAmount($amount);
-
-			$type = $this->determineType(
-				$transactionParts,
-				$transaction->getTransactionRawContent() ?? '',
-			);
-
 			if ($amount > 0.0) {
 				$transaction->setBankTransactionType($type ?? BankTransactionType::TRANSACTION);
 				$incomingTransactions[] = $transaction;
 				continue;
 			}
+
+			$type = $this->determineType(
+				$transactionParts,
+				$transaction->getTransactionRawContent() ?? '',
+			);
 
 			if ($type === null) {
 				continue;
@@ -66,18 +68,23 @@ class KbContentParser
 		);
 	}
 
-	private function parseAmount(string $part): float
+	/**
+	 * @param array<string> $parts
+	 */
+	private function parseAmount(array $parts): float
 	{
-		$parts = explode(' ', $part);
-		if (count($parts) <= 2) {
-			return (float) str_replace(' ', '', $part);
+		$pattern = '/([+-]?\d{1,3}(?:[ .,]\d{3})*(?:[\.,]\d{1,2})?)\s*(Kč|CZK)/';
+
+		foreach ($parts as $part) {
+			if ((bool) preg_match($pattern, Strings::trim($part), $matches)) {
+				$price = $matches[1];
+				$price = Strings::trim(str_replace(',', '.', $price));
+				$price = str_replace(' ', '', $price);
+				return (float) $price;
+			}
 		}
 
-		$last = array_pop($parts);
-		$beforeLast = array_pop($parts);
-		$amount = $beforeLast . $last;
-
-		return (float) $amount;
+		throw new InvalidArgumentException();
 	}
 
 	/**
@@ -90,6 +97,7 @@ class KbContentParser
 		}
 
 		$firstLine = reset($transactionParts);
+		$rawContent = str_replace("\n", '', $rawContent);
 
 		/**
 		 * @var array<string, array{
@@ -113,7 +121,7 @@ class KbContentParser
 				}
 			}
 
-			foreach ($mapping['firstLineContains'] as $option) {
+			foreach ($mapping['rawContentContains'] as $option) {
 				if (str_contains($rawContent, $option)) {
 					return $mapping['enum'];
 				}
