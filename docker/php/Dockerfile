@@ -29,8 +29,7 @@ RUN curl -sS https://getcomposer.org/installer | php \
 # Zkopírujeme celý obsah aplikace do kontejneru
 COPY . .
 
-# Sestavíme frontend použijeme NPM
-RUN npm run build-docker
+COPY docker/config-docker.local.neon /var/config/config-docker.local.neon
 
 # Nastavíme oprávnění
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
