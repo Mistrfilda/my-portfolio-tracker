@@ -15,12 +15,9 @@ class DashboardPresenter extends BaseAdminPresenter
 	public function __construct(
 		private readonly DashboardValueBuilderFacade $dashboardValueBuilder,
 		private readonly DashboardValueControlFactory $dashboardValueControlFactory,
-		//      WebDataDownloaderFacade $webDataDownloaderFacade
 	)
 	{
 		parent::__construct();
-		//      dump($webDataDownloaderFacade->getPriceForAssets());
-		//      die();
 	}
 
 	public function renderDefault(): void
