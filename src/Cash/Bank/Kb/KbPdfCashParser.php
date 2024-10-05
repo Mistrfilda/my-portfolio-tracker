@@ -32,10 +32,18 @@ class KbPdfCashParser implements BankExpenseParser
 
 			$pattern = '/Výpis z účtu(.*)/s';
 			preg_match($pattern, $page->getText(), $matches);
+			if (array_key_exists(1, $matches) === false) {
+				throw new KbPdfTransactionParsingErrorException('Invalid file');
+			}
+
 			$text = $matches[1];
 
 			if ($pageIndex === 0) {
 				preg_match('/Transakce(.*)/s', $text, $matches);
+				if (array_key_exists(1, $matches) === false) {
+					throw new KbPdfTransactionParsingErrorException('Invalid file');
+				}
+
 				$text = $matches[1];
 			} else {
 				$text = preg_replace('/^.*\n/', '', $text);
@@ -80,6 +88,10 @@ class KbPdfCashParser implements BankExpenseParser
 			if ($index === 0) {
 				$currentTransaction = new KbTransaction();
 				preg_match($datePattern, $filteredPart, $matches);
+				if (array_key_exists(0, $matches) === false) {
+					throw new KbPdfTransactionParsingErrorException('Invalid file');
+				}
+
 				$currentTransaction->setSettlementDate($matches[0]);
 				$currentTransaction->setTransactionDate($matches[0]);
 				$currentTransaction->setTransactionRawContent($filteredPart);
@@ -101,8 +113,13 @@ class KbPdfCashParser implements BankExpenseParser
 					if ($currentTransaction !== null) {
 						$transactions[] = $currentTransaction;
 					}
+
 					$currentTransaction = new KbTransaction();
 					preg_match($datePattern, $line, $matches);
+					if (array_key_exists(0, $matches) === false) {
+						throw new KbPdfTransactionParsingErrorException('Invalid file');
+					}
+
 					$currentTransaction->setSettlementDate($matches[0]);
 					$currentTransaction->setTransactionDate($matches[0]);
 					$currentTransaction->setTransactionRawContent($line);

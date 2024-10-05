@@ -79,6 +79,9 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 			}
 
 			$htmlBody = Arrays::first($parsedResponse);
+			if ($htmlBody === null) {
+				throw new PseInvalidResponseException();
+			}
 
 			$domDocument = new DOMDocument();
 			@$domDocument->loadHTML($htmlBody);

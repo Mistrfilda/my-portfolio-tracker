@@ -24,6 +24,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 	public function __construct(
 		private string $url,
 		private string $requestHost,
+		private string $cookie,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
 		private readonly Psr18ClientFactory $psr18ClientFactory,
 		private StockAssetRepository $stockAssetRepository,
@@ -61,6 +62,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 				'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
 			);
 			$request = $request->withHeader('Host', $this->requestHost);
+			$request = $request->withHeader('Cookie', $this->cookie);
 
 			$response = $this->psr18ClientFactory->getClient()->sendRequest(
 				$request,

@@ -24,6 +24,7 @@ parameters:
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
 		requestHost: https://google.com
+		cookie: aaaa
 
 	workMonthlyIncome:
 		harvestAccountId: 50
@@ -275,6 +276,7 @@ services:
 		arguments:
 			url: %stockDividend.webStockAssetDividendDownloaderUrl%
 			requestHost: %webStockPriceDownloader.requestHost%
+			cookie: %webStockPriceDownloader.cookie%
 
 	- App\Stock\Dividend\Downloader\StockAssetDividendDownloaderCommand(typed(App\Stock\Dividend\Downloader\StockAssetDividendDownloader))
 	- App\Stock\Dividend\Record\StockAssetDividendRecordRepository(App\Stock\Dividend\Record\StockAssetDividendRecord)
@@ -285,7 +287,7 @@ services:
 	- App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory
 	- App\Stock\Dividend\UI\StockAssetDividendDetailService
 
-	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, requestHost: %webStockPriceDownloader.requestHost%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%, )
+	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, requestHost: %webStockPriceDownloader.requestHost%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%, cookie: %webStockPriceDownloader.cookie%)
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderCommand
 
 	- App\Stock\Position\Closed\StockClosedPositionFacade

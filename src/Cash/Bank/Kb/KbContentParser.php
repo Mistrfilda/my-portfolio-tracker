@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Cash\Bank\Kb;
 
 use App\Cash\Bank\BankTransactionType;
-use Exception;
 use InvalidArgumentException;
 use Nette\Utils\Strings;
 
