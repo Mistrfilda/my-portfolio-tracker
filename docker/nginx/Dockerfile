@@ -9,7 +9,7 @@ RUN npm run build-docker
 ########################################################################################################################
 
 # Použijeme oficiální Nginx runtime
-FROM nginx:latest as nginx
+FROM nginx:latest AS nginx
 
 # Zkopírujeme hlavní Nginx konfiguraci
 COPY docker/nginx/nginx.conf /etc/nginx/nginx.conf

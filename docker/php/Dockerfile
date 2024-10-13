@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libxml2-dev \
-    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    chromium \
+    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean
 
@@ -31,10 +32,18 @@ COPY . .
 
 COPY docker/config-docker.local.neon /var/config/config-docker.local.neon
 
+COPY docker/php/custom-php.ini /usr/local/etc/php/conf.d/
+
+RUN npm run build-docker
+
 # Nastavíme oprávnění
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 RUN chown -R www-data:www-data /var/log
 RUN chown -R www-data:www-data /var/temp
+
+WORKDIR /var/puppeter
+
+RUN npm install
 
 # Nastavíme pracovní adresář pro PHP aplikaci
 WORKDIR /var/www

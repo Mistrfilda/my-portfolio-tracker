@@ -35,6 +35,9 @@ parameters:
 	portfolioStatistic:
 		startYear: 2023
 
+	puppeter:
+		folder: %appDir%/../puppeter/files
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -278,7 +281,7 @@ services:
 			requestHost: %webStockPriceDownloader.requestHost%
 			cookie: %webStockPriceDownloader.cookie%
 
-	- App\Stock\Dividend\Downloader\StockAssetDividendDownloaderCommand(typed(App\Stock\Dividend\Downloader\StockAssetDividendDownloader))
+	- App\Stock\Dividend\Downloader\WebStockAssetDividendDownloaderCommand()
 	- App\Stock\Dividend\Record\StockAssetDividendRecordRepository(App\Stock\Dividend\Record\StockAssetDividendRecord)
 	- App\Stock\Dividend\Record\StockAssetDividendRecordService
 	- App\Stock\Dividend\Record\StockAssetDividendRecordFacade
@@ -337,3 +340,26 @@ services:
 
 	- App\Cash\Income\Bank\BankIncomeRepository(App\Cash\Income\Bank\BankIncome)
 	- App\Cash\Income\Bank\UI\BankIncomeGridFactory
+
+	-
+		class: App\Stock\Price\Downloader\Json\JsonWebDataService
+		arguments:
+			stockAssetPriceUrl: %webStockPriceDownloader.url%
+			stockAssetDividendPriceUrl: %stockDividend.webStockAssetDividendDownloaderUrl%
+
+	-
+		class: App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade
+		arguments:
+			updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%
+
+	- App\Stock\Price\Downloader\Json\Command\JsonDataSourceProviderCommand
+	- App\Stock\Price\Downloader\Json\Command\JsonDataDownloaderCommand
+
+	-
+		class: App\Stock\Price\Downloader\Json\JsonDataFolderService
+		arguments:
+			folder: %puppeter.folder%
+
+	- App\Stock\Price\Downloader\Json\JsonDataDownloaderFacade
+	- App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloader
+	- App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloaderCommand
