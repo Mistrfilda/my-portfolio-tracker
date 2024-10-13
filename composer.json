@@ -89,9 +89,11 @@
 			"@test-unit"
 		],
 		"stock-assets-downloaders": [
+			"bin/console puppeter:data",
+			"node ./puppeter/prices.js",
+			"bin/console puppeter:import:prices",
 			"bin/console twelve-data:download",
-			"bin/console pse:download",
-			"bin/console web:stock:download"
+			"bin/console pse:download"
 		],
 		"currency-download": "bin/console currency:download",
 		"save-current-portfolio-statistics": "bin/console portfolio:statistics:save",
@@ -101,10 +103,11 @@
 			"@save-current-portfolio-statistics"
 		],
 		"download-dividends": [
-			"bin/console stock:asset:downloadDividends",
+			"bin/console puppeter:data",
+			"node ./puppeter/dividends.js",
+			"bin/console stock:asset:downloadJsonDividends",
 			"bin/console stock:asset:dividendRecords"
 		],
-		"download-all-local": "sh ./tools/localDownloadAll.sh",
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"yarn-prod": "yarn build-prod",
 		"deploy-all": [

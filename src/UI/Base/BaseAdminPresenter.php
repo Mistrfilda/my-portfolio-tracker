@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\UI\Base;
 
-use App\Admin\CurrentAppAdminGetter;
 use App\UI\Menu\MenuBuilder;
 
 /**
@@ -15,14 +14,7 @@ use App\UI\Menu\MenuBuilder;
 abstract class BaseAdminPresenter extends BasePresenter
 {
 
-	protected CurrentAppAdminGetter $currentAppAdminGetter;
-
 	protected MenuBuilder $menuBuilder;
-
-	public function injectCurrentAppAdminGetter(CurrentAppAdminGetter $currentAppAdminGetter): void
-	{
-		$this->currentAppAdminGetter = $currentAppAdminGetter;
-	}
 
 	public function injectMenuBuilder(MenuBuilder $menuBuilder): void
 	{

@@ -23,6 +23,9 @@ class LoginPresenter extends BaseFrontPresenter
 	{
 		parent::startup();
 		$this->useFullHeight = true;
+		if ($this->currentAppAdminGetter->isLoggedIn()) {
+			$this->redirect('Dashboard:default');
+		}
 	}
 
 	protected function createComponentLoginForm(): AdminForm

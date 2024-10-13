@@ -50,7 +50,7 @@ class PortfolioStatisticRecordBuilderTest extends TestCase
 			'color',
 			$svgIconEnumTest,
 			'description',
-			null,
+			null,c
 		);
 
 		$portfolioStatistics = new ArrayCollection([$portfolioStatistic]);

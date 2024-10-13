@@ -1,0 +1,15 @@
+{
+  "name": "my-portfolio-tracker-puppeter",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "filip",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "puppeteer": "^23.5.3"
+  },
+  "type": "module"
+}

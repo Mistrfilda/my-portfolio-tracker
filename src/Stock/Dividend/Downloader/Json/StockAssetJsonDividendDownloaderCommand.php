@@ -2,21 +2,18 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Dividend\Downloader;
+namespace App\Stock\Dividend\Downloader\Json;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[AsCommand('stock:asset:downloadDividends')]
-class StockAssetDividendDownloaderCommand extends Command
+#[AsCommand('stock:asset:downloadJsonDividends')]
+class StockAssetJsonDividendDownloaderCommand extends Command
 {
 
-	/**
-	 * @param array<StockAssetDividendDownloader> $webStockAssetDividendDownloaders
-	 */
-	public function __construct(private array $webStockAssetDividendDownloaders)
+	public function __construct(private StockAssetJsonDividendDownloader $stockAssetJsonDividendDownloader)
 	{
 		parent::__construct();
 	}
@@ -29,12 +26,8 @@ class StockAssetDividendDownloaderCommand extends Command
 
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
-		$output->writeln('Downloading stock asset dividend records');
-
-		foreach ($this->webStockAssetDividendDownloaders as $webStockAssetDividendDownloader) {
-			$webStockAssetDividendDownloader->downloadDividendRecords();
-		}
-
+		$output->writeln('Downloading stock asset dividend records from JSON');
+		$this->stockAssetJsonDividendDownloader->downloadDividendRecords();
 		$output->writeln('Downloading stock asset dividend records finished');
 
 		return 0;

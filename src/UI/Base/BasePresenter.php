@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Base;
 
+use App\Admin\CurrentAppAdminGetter;
 use Nette\Application\BadRequestException;
 use Nette\Application\UI\InvalidLinkException;
 use Nette\Application\UI\Presenter;
@@ -18,9 +19,16 @@ abstract class BasePresenter extends Presenter
 
 	protected BasePresenterParameters $basePresenterParameters;
 
+	protected CurrentAppAdminGetter $currentAppAdminGetter;
+
 	public function injectBasePresenterParameters(BasePresenterParameters $basePresenterParameters): void
 	{
 		$this->basePresenterParameters = $basePresenterParameters;
+	}
+
+	public function injectCurrentAppAdminGetter(CurrentAppAdminGetter $currentAppAdminGetter): void
+	{
+		$this->currentAppAdminGetter = $currentAppAdminGetter;
 	}
 
 	public function startup(): void
