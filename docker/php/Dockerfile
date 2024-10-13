@@ -10,12 +10,13 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libxml2-dev \
     chromium \
+    nano \
     && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean
 
 # Nainstalujeme požadované PHP extenze
-RUN docker-php-ext-install simplexml dom pdo_mysql
+RUN docker-php-ext-install simplexml dom pdo_mysql intl
 
 # Nastavíme pracovní adresář
 WORKDIR /var
