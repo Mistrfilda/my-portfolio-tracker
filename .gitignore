@@ -1,5 +1,6 @@
 config/config.local.neon
 config/config-docker.local.neon
+docker/config-docker.local.neon
 
 vendor/*
 .idea/*
@@ -13,5 +14,6 @@ www/build/*
 .phpunit.result.cache
 
 node_modules/*
+puppeter/node_modules/*
 
 !www/build/admin/.gitkeep
