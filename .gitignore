@@ -2,6 +2,8 @@ config/config.local.neon
 config/config-docker.local.neon
 docker/config-docker.local.neon
 
+deploy-local.sh
+
 vendor/*
 .idea/*
 tmp/*
