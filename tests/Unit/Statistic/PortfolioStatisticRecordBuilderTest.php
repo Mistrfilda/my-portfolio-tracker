@@ -7,6 +7,7 @@ namespace App\Test\Unit\Statistic;
 use App\Dashboard\DashboardValueGroup;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\Statistic\PortfolioStatistic;
+use App\Statistic\PortfolioStatisticControlTypeEnum;
 use App\Statistic\PortfolioStatisticRecord;
 use App\Statistic\PortfolioStatisticRecordBuilder;
 use App\Statistic\PortfolioStatisticRecordRepository;
@@ -50,7 +51,9 @@ class PortfolioStatisticRecordBuilderTest extends TestCase
 			'color',
 			$svgIconEnumTest,
 			'description',
-			null,c
+			null,
+			PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
+			[],
 		);
 
 		$portfolioStatistics = new ArrayCollection([$portfolioStatistic]);

@@ -116,7 +116,8 @@
 			"@clear",
 			"@yarn-prod"
 		],
-		"harvest-download": "bin/console workMonthlyIncome:download"
+		"harvest-download": "bin/console workMonthlyIncome:download",
+		"kube-local-deploy": "./deploy-local.sh"
 	},
 	"config": {
 		"allow-plugins": {

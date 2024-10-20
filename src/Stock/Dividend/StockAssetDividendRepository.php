@@ -166,6 +166,17 @@ class StockAssetDividendRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<StockAssetDividend>
+	 */
+	public function findLastDividends(int $limit = 8): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->setMaxResults($limit);
+		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');

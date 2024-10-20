@@ -90,6 +90,60 @@ class StockAssetDividendRecordFacade
 		);
 	}
 
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
+	public function getLastDividends(int $limit): array
+	{
+		return $this->stockAssetDividendRecordRepository->findLastDividendRecords($limit);
+	}
+
+	/**
+	 * @return array<StockAssetDividendYearSummaryDTO>
+	 */
+	public function getDividendsByYears(): array
+	{
+		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
+		/** @var array<int, StockAssetDividendYearSummaryDTO> $preparedData */
+		$preparedData = [];
+
+		foreach ($records as $record) {
+			$recordPriceWithoutTax = $record->getSummaryPrice();
+			if ($recordPriceWithoutTax->getCurrency() !== CurrencyEnum::CZK) {
+				$recordPriceWithoutTax = $this->currencyConversionFacade->getConvertedSummaryPrice(
+					$recordPriceWithoutTax,
+					CurrencyEnum::CZK,
+					$record->getStockAssetDividend()->getExDate(),
+				);
+			}
+
+			$recordPriceWitTax = $record->getSummaryPrice(false);
+			if ($recordPriceWitTax->getCurrency() !== CurrencyEnum::CZK) {
+				$recordPriceWitTax = $this->currencyConversionFacade->getConvertedSummaryPrice(
+					$recordPriceWitTax,
+					CurrencyEnum::CZK,
+					$record->getStockAssetDividend()->getExDate(),
+				);
+			}
+
+			$key = (int) $record->getStockAssetDividend()->getExDate()->format('Y');
+			if (array_key_exists($key, $preparedData)) {
+				$preparedData[$key]->getSummaryPriceWithoutTax()->addSummaryPrice($recordPriceWithoutTax);
+				$preparedData[$key]->getSummaryPriceWithTax()->addSummaryPrice($recordPriceWitTax);
+			} else {
+				$preparedData[$key] = new StockAssetDividendYearSummaryDTO(
+					$key,
+					$recordPriceWithoutTax,
+					$recordPriceWitTax,
+				);
+			}
+		}
+
+		krsort($preparedData);
+
+		return $preparedData;
+	}
+
 	public function getTotalSummaryPrice(bool $reinvestedOnly = true): SummaryPrice
 	{
 		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);

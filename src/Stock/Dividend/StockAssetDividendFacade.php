@@ -79,4 +79,12 @@ class StockAssetDividendFacade
 		);
 	}
 
+	/**
+	 * @return array<StockAssetDividend>
+	 */
+	public function getLastDividends(int $limit): array
+	{
+		return $this->stockAssetDividendRepository->findLastDividends($limit);
+	}
+
 }
