@@ -1,0 +1,22 @@
+<div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
+    {foreach $values as $label => $value}
+        {if $iterator->counter0 % 4 === 0}
+            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+            <ul role="list" class="divide-y divide-gray-100 m-4">
+        {/if}
+        <li class="py-1">
+            <div class="mt-2 flex justify-between">
+                            <span class="text-sm font-medium text-gray-500">
+                                {$label}
+                            </span>
+                <span class="font-medium text-gray-900">
+                                {$value}
+                            </span>
+            </div>
+        </li>
+        {if $iterator->counter % 4 === 0 || $iterator->last}
+            </ul>
+            </div>
+        {/if}
+    {/foreach}
+</div>

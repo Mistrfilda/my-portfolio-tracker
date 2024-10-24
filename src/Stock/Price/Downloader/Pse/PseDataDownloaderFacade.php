@@ -14,6 +14,8 @@ use App\Stock\Price\Downloader\Pse\Exception\PseMissingStockAssetIsinException;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use DOMDocument;
 use DOMElement;
@@ -41,6 +43,7 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
+		private readonly SystemValueFacade $systemValueFacade,
 	)
 	{
 	}
@@ -163,6 +166,8 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 		}
 
 		$this->entityManager->flush();
+
+		$this->systemValueFacade->updateValue(SystemValueEnum::PSE_DATA_UPDATED_AT, datetimeValue: $now);
 
 		return $priceRecords;
 	}

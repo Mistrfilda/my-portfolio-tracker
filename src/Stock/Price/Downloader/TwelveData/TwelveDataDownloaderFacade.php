@@ -12,6 +12,8 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Json;
@@ -30,6 +32,7 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
+		private readonly SystemValueFacade $systemValueFacade,
 	)
 	{
 	}
@@ -99,6 +102,8 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 		}
 
 		$this->entityManager->flush();
+
+		$this->systemValueFacade->updateValue(SystemValueEnum::TWELVE_DATA_UPDATED_AT, datetimeValue: $now);
 
 		return $priceRecords;
 	}

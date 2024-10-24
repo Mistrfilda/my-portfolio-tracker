@@ -11,6 +11,8 @@ use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
@@ -32,6 +34,7 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
+		private SystemValueFacade $systemValueFacade,
 	)
 	{
 
@@ -113,6 +116,11 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::DIVIDENDS_UPDATED_AT,
+			datetimeValue: $now,
+		);
 	}
 
 	private function processPrice(string $price): float

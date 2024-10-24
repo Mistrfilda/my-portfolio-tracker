@@ -10,6 +10,8 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
@@ -28,6 +30,7 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
+		private SystemValueFacade $systemValueFacade,
 	)
 	{
 	}
@@ -94,6 +97,8 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);
+
+		$this->systemValueFacade->updateValue(SystemValueEnum::PUPPETER_UPDATED_AT, datetimeValue: $now);
 
 		return $priceRecords;
 	}

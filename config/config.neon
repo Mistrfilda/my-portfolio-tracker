@@ -38,6 +38,10 @@ parameters:
 	puppeter:
 		folder: %appDir%/../puppeter/files
 
+	systemValue:
+		databag:
+			versionFile: %appDir%/../deploy-versions.txt
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -99,6 +103,8 @@ orm:
 			day: DoctrineExtensions\Query\Mysql\Day
 			month: DoctrineExtensions\Query\Mysql\Month
 			year: DoctrineExtensions\Query\Mysql\Year
+			hour: DoctrineExtensions\Query\Mysql\Hour
+			date: DoctrineExtensions\Query\Mysql\Date
 
 orm.attributes:
 	mapping:
@@ -363,3 +369,16 @@ services:
 	- App\Stock\Price\Downloader\Json\JsonDataDownloaderFacade
 	- App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloader
 	- App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloaderCommand
+
+	#System values
+	- App\System\SystemValuesDataBag(%systemValue.databag%)
+	- App\System\SystemValueFacade
+	- App\System\SystemValueRepository(App\System\SystemValue)
+	- App\System\SystemValueResolveFacade
+	- App\System\UI\SystemValueControlFactory
+
+	#Resolvers
+	- App\System\Resolver\SystemValueCurrentVersionResolver
+	- App\System\Resolver\SystemValueDatabaseResolver
+	- App\System\Resolver\SystemValueEnabledStockAssetsResolver
+	- App\System\Resolver\SystemValueLastUpdatedPricesCountResolver
