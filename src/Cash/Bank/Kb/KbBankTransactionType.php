@@ -14,7 +14,7 @@ class KbBankTransactionType
 			'enum' => BankTransactionType::CARD_PAYMENT,
 			'firstLineEq' => ['TRANSAKCE PLATEBNÍ KARTOU', 'Platba/Výběr hotovosti platební kartou'],
 			'firstLineContains' => [],
-			'rawContentContains' => ['Mobilní platba', 'Nákup na internetu'],
+			'rawContentContains' => ['Mobilní platba', 'Nákup na internetu', 'Výběr hotovosti z'],
 		],
 		BankTransactionType::REPEATING_TRANSACTION->value => [
 			'enum' => BankTransactionType::REPEATING_TRANSACTION,
@@ -26,7 +26,7 @@ class KbBankTransactionType
 			'enum' => BankTransactionType::TRANSACTION,
 			'firstLineEq' => ['OKAMŽITÁ ODCHOZÍ ÚHRADA', 'ODCHOZÍ ÚHRADA'],
 			'firstLineContains' => [],
-			'rawContentContains' => ['Odchozí úhrada'],
+			'rawContentContains' => ['Odchozí úhrada', 'Trvalý příkaz'],
 		],
 		BankTransactionType::BANK_FEE->value => [
 			'enum' => BankTransactionType::BANK_FEE,
