@@ -58,6 +58,22 @@ class SummaryPrice
 		$this->counter += $summaryPrice->getCounter();
 	}
 
+	public function addPriceDiff(PriceDiff $priceDiff): void
+	{
+		if ($priceDiff->getCurrencyEnum() !== $this->currency) {
+			throw new SummaryPriceException(
+				sprintf(
+					'Different currency %s passed to summary - expected %s',
+					$priceDiff->getCurrencyEnum()->format(),
+					$this->currency->format(),
+				),
+			);
+		}
+
+		$this->price += $priceDiff->getPriceDifference();
+		$this->counter++;
+	}
+
 	public function addBankExpense(BankExpense $bankExpense): void
 	{
 		if ($bankExpense->getCurrency() !== $this->currency) {

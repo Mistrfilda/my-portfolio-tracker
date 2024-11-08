@@ -9,6 +9,8 @@ use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlFactory;
 use App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControl;
 use App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory;
+use App\Stock\Position\Closed\UI\StockAssetClosedPositionListControl;
+use App\Stock\Position\Closed\UI\StockAssetClosedPositionListControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
 class StockAssetClosedPositionDetailPresenter extends BaseAdminPresenter
@@ -17,6 +19,7 @@ class StockAssetClosedPositionDetailPresenter extends BaseAdminPresenter
 	public function __construct(
 		private readonly StockAssetListDetailControlFactory $stockPositionDetailControlFactory,
 		private readonly StockAssetListSummaryDetailControlFactory $stockAssetSummaryDetailControlFactory,
+		private readonly StockAssetClosedPositionListControlFactory $stockAssetClosedPositionListControlFactory,
 	)
 	{
 		parent::__construct();
@@ -41,6 +44,11 @@ class StockAssetClosedPositionDetailPresenter extends BaseAdminPresenter
 	protected function createComponentStockPositionDetailControl(): StockAssetListDetailControl
 	{
 		return $this->stockPositionDetailControlFactory->create([], StockAssetListDetailControlEnum::CLOSED_POSITIONS);
+	}
+
+	protected function createComponentStockAssetClosedPositionListControl(): StockAssetClosedPositionListControl
+	{
+		return $this->stockAssetClosedPositionListControlFactory->create();
 	}
 
 }

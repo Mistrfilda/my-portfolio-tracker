@@ -12,6 +12,7 @@ use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\PortolioStatisticType;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Dividend\StockAssetDividendFacade;
+use App\Stock\Position\Closed\StockClosedPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\DatetimeFormatFilter;
@@ -36,6 +37,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly LinkGenerator $linkGenerator,
 		private readonly StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private readonly DatetimeFactory $datetimeFactory,
+		private readonly StockClosedPositionFacade $stockClosedPositionFacade,
 	)
 	{
 	}
@@ -391,6 +393,8 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			$totalInvestedAmount,
 		);
 
+		$closedSummaryPrice = $this->stockClosedPositionFacade->getAllStockClosedPositionsSummaryPrice();
+
 		return new DashboardValueGroup(
 			DashboardValueGroupEnum::STOCKS,
 			'Akcie',
@@ -457,7 +461,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					sprintf('Celkový počet pozic %s', $totalInvestedAmount->getCounter()),
 				),
 				new DashboardValue(
-					'Celkový zisk/ztráta v akciích',
+					'Celkový zisk/ztráta v otevřených pozicích',
 					CurrencyFilter::format(
 						$diff->getPriceDifference(),
 						$diff->getCurrencyEnum(),
@@ -466,10 +470,25 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					$diff->getTrend()->getSvgIcon(),
 				),
 				new DashboardValue(
-					'Celkový zisk/ztráta v akciích v procentech',
+					'Celkový zisk/ztráta v otevřených pozicích',
 					PercentageFilter::format($diff->getPercentageDifference()),
 					$diff->getTrend()->getTailwindColor(),
 					$diff->getTrend()->getSvgIcon(),
+				),
+				new DashboardValue(
+					'Celkový zisk/ztráta v uzavřených pozicích',
+					CurrencyFilter::format(
+						$closedSummaryPrice->getPriceDifference(),
+						$closedSummaryPrice->getCurrencyEnum(),
+					),
+					$closedSummaryPrice->getTrend()->getTailwindColor(),
+					$closedSummaryPrice->getTrend()->getSvgIcon(),
+				),
+				new DashboardValue(
+					'Celkový zisk/ztráta v uzavřených pozicích',
+					PercentageFilter::format($closedSummaryPrice->getPercentageDifference()),
+					$closedSummaryPrice->getTrend()->getTailwindColor(),
+					$closedSummaryPrice->getTrend()->getSvgIcon(),
 				),
 			],
 		);

@@ -129,6 +129,22 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
+	public function findByStockAsset(StockAsset $stockAsset): array
+	{
+		$qb = $this->createQueryBuilder();
+
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
+		);
+
+		$qb->setParameter('stockAsset', $stockAsset);
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
 	public function findByYearAndMonth(int|null $year, int|null $month): array
 	{
 		$qb = $this->createQueryBuilder();

@@ -205,6 +205,12 @@ class StockPositionFacade implements AssetPriceFacade
 		$piecesCount = 0;
 
 		foreach ($stockAsset->getPositions() as $position) {
+			if ($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS) {
+				if ($position->isPositionClosed()) {
+					continue;
+				}
+			}
+
 			$brokerCurrency = $position->getTotalInvestedAmountInBrokerCurrency()->getCurrency();
 
 			$positionDetailDTOs[] = new StockAssetPositionDetailDTO(
@@ -220,22 +226,22 @@ class StockPositionFacade implements AssetPriceFacade
 
 		$totalInvestedAmount = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmount(
 			$stockAsset->getCurrency(),
-			$stockAsset->getPositions(),
+			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
 		);
 
 		$currentAmount = $this->summaryPriceService->getSummaryPriceForPositions(
 			$stockAsset->getCurrency(),
-			$stockAsset->getPositions(),
+			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
 		);
 
 		$currentAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForPositions(
 			$brokerCurrency,
-			$stockAsset->getPositions(),
+			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
 		);
 
 		$totalInvestedAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$brokerCurrency,
-			$stockAsset->getPositions(),
+			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
 		);
 
 		$currentPriceDiffInBrokerCurrency = $this->summaryPriceService->getSummaryPriceDiff(

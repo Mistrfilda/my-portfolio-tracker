@@ -7,6 +7,7 @@ namespace App\Stock\Dividend\Record;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -166,6 +167,27 @@ class StockAssetDividendRecordFacade
 		}
 
 		return $totalSummaryPrice;
+	}
+
+	public function getTotalSummaryPriceForStockAsset(StockAsset $stockAsset): SummaryPrice|null
+	{
+		$dividendRecords = $this->stockAssetDividendRecordRepository->findByStockAsset($stockAsset);
+		if (count($dividendRecords) === 0) {
+			return null;
+		}
+
+		$summaryPrice = new SummaryPrice($stockAsset->getBrokerDividendCurrency() ?? $stockAsset->getCurrency());
+		foreach ($dividendRecords as $dividendRecord) {
+			$summaryPrice->addSummaryPrice(
+				$this->currencyConversionFacade->getConvertedSummaryPrice(
+					$dividendRecord->getSummaryPrice(),
+					$summaryPrice->getCurrency(),
+					$dividendRecord->getCreatedAt(),
+				),
+			);
+		}
+
+		return $summaryPrice;
 	}
 
 }

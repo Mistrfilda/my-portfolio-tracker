@@ -215,12 +215,39 @@ class StockAsset implements Entity, Asset
 		return false;
 	}
 
+	public function hasClosedPositions(): bool
+	{
+		foreach ($this->positions->toArray() as $position) {
+			if ($position->isPositionClosed() === true) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	/**
 	 * @return array<StockPosition>
 	 */
-	public function getPositions(): array
+	public function getPositions(bool|null $onlyOpenPositions = null): array
 	{
+		if ($onlyOpenPositions === true) {
+			return $this->positions->filter(
+				static fn (StockPosition $position) => $position->isPositionClosed() === false,
+			)->toArray();
+		}
+
 		return $this->positions->toArray();
+	}
+
+	/**
+	 * @return array<StockPosition>
+	 */
+	public function getClosedPositions(): array
+	{
+		return $this->positions->filter(
+			static fn (StockPosition $position) => $position->isPositionClosed(),
+		)->toArray();
 	}
 
 	public function getFirstPosition(): StockPosition|null
