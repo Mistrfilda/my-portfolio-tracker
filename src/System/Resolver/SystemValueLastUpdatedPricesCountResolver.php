@@ -66,6 +66,11 @@ class SystemValueLastUpdatedPricesCountResolver implements SystemValueResolver
 			$lastUpdatedHour = self::CRON_FIRST_UPDATE_HOUR;
 		}
 
+		if ($lastUpdateDate->isWeekend()) {
+			$lastUpdateDate = $now->modify('last friday');
+			$lastUpdatedHour = self::CRON_THIRD_UPDATE_HOUR;
+		}
+
 		return $this->stockAssetRepository->getCountUpdatedPricesAt($lastUpdateDate, $lastUpdatedHour);
 	}
 

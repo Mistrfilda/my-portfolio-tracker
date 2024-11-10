@@ -2156,16 +2156,16 @@
         },
         {
             "name": "mistrfilda/datetime",
-            "version": "v0.4.2",
+            "version": "v0.4.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/Mistrfilda/datetime-utils.git",
-                "reference": "aff4d51b1af3d1d7490f8c557bdce38212bb3411"
+                "reference": "a309645a7f30ff89287e9bb76c6576b35f49941c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/Mistrfilda/datetime-utils/zipball/aff4d51b1af3d1d7490f8c557bdce38212bb3411",
-                "reference": "aff4d51b1af3d1d7490f8c557bdce38212bb3411",
+                "url": "https://api.github.com/repos/Mistrfilda/datetime-utils/zipball/a309645a7f30ff89287e9bb76c6576b35f49941c",
+                "reference": "a309645a7f30ff89287e9bb76c6576b35f49941c",
                 "shasum": ""
             },
             "require": {
@@ -2201,9 +2201,9 @@
             "description": "Simple datetime utils",
             "support": {
                 "issues": "https://github.com/Mistrfilda/datetime-utils/issues",
-                "source": "https://github.com/Mistrfilda/datetime-utils/tree/v0.4.2"
+                "source": "https://github.com/Mistrfilda/datetime-utils/tree/v0.4.3"
             },
-            "time": "2023-02-26T15:06:25+00:00"
+            "time": "2024-11-09T15:14:14+00:00"
         },
         {
             "name": "monolog/monolog",
