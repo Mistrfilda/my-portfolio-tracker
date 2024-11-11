@@ -99,14 +99,6 @@ class KbContentParser
 		$firstLine = reset($transactionParts);
 		$rawContent = str_replace("\n", '', $rawContent);
 
-		/**
-		 * @var array<string, array{
-		 *       enum: BankTransactionType,
-		 *       firstLineEq: array<string>,
-		 *       firstLineContains: array<string>,
-		 *       rawContentContains: array<string>
-		 *  }> $mappingConstant
-		 */
 		$mappingConstant = KbBankTransactionType::MAPPING;
 		foreach ($mappingConstant as $mapping) {
 			foreach ($mapping['firstLineEq'] as $option) {
@@ -115,6 +107,7 @@ class KbContentParser
 				}
 			}
 
+			//@phpstan-ignore-next-line
 			foreach ($mapping['firstLineContains'] as $option) {
 				if (str_contains($firstLine, $option)) {
 					return $mapping['enum'];

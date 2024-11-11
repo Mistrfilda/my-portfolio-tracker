@@ -55,7 +55,7 @@ class SystemValueFacade
 		string|null $stringValue,
 	): void
 	{
-		$values = array_filter([$datetimeValue, $intValue, $stringValue]);
+		$values = array_filter([$datetimeValue, $intValue, $stringValue], static fn ($value) => $value !== null);
 
 		if (count($values) !== 1) {
 			throw new SystemValueInvalidArgumentException('Exactly one value must be non-null');

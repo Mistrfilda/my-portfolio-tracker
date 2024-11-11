@@ -11,6 +11,7 @@ use App\UI\Control\Form\Input\Multiplier;
 use Nette\Application\UI\Form;
 use Nette\Forms\Controls\SelectBox;
 use Nette\Utils\Json;
+use Stringable;
 
 class AdminForm extends Form
 {
@@ -23,12 +24,7 @@ class AdminForm extends Form
 
 	private string|null $headingText = null;
 
-	/**
-	 * @phpstan-ignore-next-line
-	 *
-	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
-	 */
-	public function addUpload(string $name, $label = null): CustomFileUpload
+	public function addUpload(string $name, string|Stringable|null $label = null): CustomFileUpload
 	{
 		return $this[$name] = new CustomFileUpload($label, false);
 	}

@@ -9,6 +9,7 @@ use App\Asset\Price\AssetPriceRecord;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Price\Downloader\TwelveData\Exception\TwelveDataInvalidValueException;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
@@ -72,8 +73,14 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 
 			if (is_string($priceBody)) {
 				$price = (float) $priceBody;
-			} else {
+			} elseif (
+				is_array($priceBody)
+				&& array_key_exists('price', $priceBody)
+				&& is_numeric($priceBody['price'])
+			) {
 				$price = (float) $priceBody['price'];
+			} else {
+				throw new TwelveDataInvalidValueException();
 			}
 
 			$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(

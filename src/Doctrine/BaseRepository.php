@@ -13,7 +13,6 @@ use Doctrine\ORM\QueryBuilder;
  */
 abstract class BaseRepository
 {
-
 	/** @phpstan-var EntityRepository<TEntityClass> */
 	protected EntityRepository $doctrineRepository;
 

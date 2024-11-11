@@ -102,7 +102,11 @@ class WebpackAssetsFactory
 			$entryPointContents = FileSystem::read($assetDir . '/' . self::ENTRYPOINT_NAME);
 			$decodedContents = Json::decode($entryPointContents, true);
 
-			if (is_array($decodedContents) === false || !array_key_exists('entrypoints', $decodedContents)) {
+			if (
+				is_array($decodedContents) === false
+				|| array_key_exists('entrypoints', $decodedContents) === false
+				|| is_array($decodedContents['entrypoints']) === false
+			) {
 				throw new WebpackException('Missing entrypoints');
 			}
 
@@ -110,6 +114,12 @@ class WebpackAssetsFactory
 				if (array_key_exists($entryPointName, $this->loadedAssets)) {
 					throw new WebpackException(
 						sprintf('Duplicate entry name %s', $entryPointName),
+					);
+				}
+
+				if (is_string($contents) === false) {
+					throw new WebpackException(
+						sprintf('Invalid contents in entrypoint %s', $entryPointName),
 					);
 				}
 
