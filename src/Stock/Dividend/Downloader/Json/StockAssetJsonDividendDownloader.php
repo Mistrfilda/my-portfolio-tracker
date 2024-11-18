@@ -77,7 +77,7 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 					null,
 					$date,
 					$stockAsset->getCurrency(),
-					$this->processPrice($match[4]),
+					$stockAsset->getCurrency()->processFromWeb($this->processPrice($match[4])),
 				);
 			}
 
