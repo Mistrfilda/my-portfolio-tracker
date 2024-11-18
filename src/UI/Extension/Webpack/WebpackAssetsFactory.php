@@ -8,8 +8,10 @@ use Nette\Utils\FileSystem;
 use Nette\Utils\Html;
 use Nette\Utils\Json;
 use function array_key_exists;
+use function assert;
 use function count;
 use function implode;
+use function is_string;
 use function sprintf;
 
 class WebpackAssetsFactory
@@ -17,7 +19,7 @@ class WebpackAssetsFactory
 
 	private const ENTRYPOINT_NAME = 'entrypoints.json';
 
-	/** @var array<string> */
+	/** @var array<array<string, array<string, string>>> */
 	private array $loadedAssets = [];
 
 	/**
@@ -110,16 +112,15 @@ class WebpackAssetsFactory
 				throw new WebpackException('Missing entrypoints');
 			}
 
+			/**
+			 *
+			 * @var array<string, array<string, string>> $contents
+			 */
 			foreach ($decodedContents['entrypoints'] as $entryPointName => $contents) {
+				assert(is_string($entryPointName));
 				if (array_key_exists($entryPointName, $this->loadedAssets)) {
 					throw new WebpackException(
 						sprintf('Duplicate entry name %s', $entryPointName),
-					);
-				}
-
-				if (is_string($contents) === false) {
-					throw new WebpackException(
-						sprintf('Invalid contents in entrypoint %s', $entryPointName),
 					);
 				}
 
