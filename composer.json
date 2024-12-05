@@ -5,7 +5,7 @@
 	"type": "project",
 	"license": ["MIT", "BSD-3-Clause", "GPL-2.0", "GPL-3.0"],
 	"require": {
-		"php": ">= 8.3",
+		"php": ">= 8.4",
 		"ext-simplexml": "*",
 		"ext-dom": "*",
 		"nette/application": "^3.1",
@@ -22,8 +22,8 @@
 		"latte/latte": "^3.0",
 		"tracy/tracy": "^2.8",
 		"nettrine/annotations": "^0.8",
-		"nettrine/orm": "dev-master",
-		"nettrine/dbal": "dev-master",
+		"nettrine/orm": "^0.9",
+		"nettrine/dbal": "^0.9",
 		"nettrine/cache": "^0.4",
 		"nettrine/migrations": "^0.9",
 		"contributte/monolog": "^0.5",
@@ -67,7 +67,7 @@
 	"scripts": {
 		"clear": "rm -rf temp/*",
 		"comload": "composer dump-autoload -o",
-		"stan": "vendor/bin/phpstan analyse -l 9 -c phpstan.neon src --ansi  --memory-limit=-1",
+		"stan": "vendor/bin/phpstan analyse -c phpstan.neon src --ansi  --memory-limit=-1",
 		"stan-tests": "vendor/bin/phpstan analyse -l max -c phpstan.neon tests --ansi  --memory-limit=-1",
 		"phpstan": "@stan",
 		"lint": "vendor/bin/parallel-lint --colors src/ tests/",
