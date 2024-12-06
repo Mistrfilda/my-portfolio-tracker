@@ -28,9 +28,11 @@ async function processData(entries) {
 	const browser = await puppeteer.launch({
 		// headless: false,
 		// devtools: true,
+		headless: true,
 		slowMo: 100,
-		executablePath: "/usr/bin/chromium",
-		args: ['--no-sandbox'],
+		browser: "firefox",
+		executablePath: "/usr/bin/firefox",
+		args: ['--no-sandbox', '--in-process-gpu', '--disable-gpu', '--disable-dev-shm-usage', '--disable-setuid-sandbox'],
 	});
 
 	console.log(entries);
