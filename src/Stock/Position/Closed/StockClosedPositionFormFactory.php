@@ -7,6 +7,7 @@ namespace App\Stock\Position\Closed;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
@@ -67,7 +68,7 @@ class StockClosedPositionFormFactory
 					(float) $values->pricePerPiece,
 					$values->orderDate,
 					$this->getAssetPriceEmbeddable(
-						$stockAsset,
+						$stockPosition,
 						$values,
 					),
 					$values->samePriceForBroker,
@@ -78,7 +79,7 @@ class StockClosedPositionFormFactory
 					(float) $values->pricePerPiece,
 					$values->orderDate,
 					$this->getAssetPriceEmbeddable(
-						$stockAsset,
+						$stockPosition,
 						$values,
 					),
 					$values->samePriceForBroker,
@@ -97,12 +98,14 @@ class StockClosedPositionFormFactory
 		return $form;
 	}
 
-	private function getAssetPriceEmbeddable(StockAsset $stockAsset, ArrayHash $values): AssetPriceEmbeddable
-	{
+	private function getAssetPriceEmbeddable(
+		StockPosition $stockPosition,
+		ArrayHash $values,
+	): AssetPriceEmbeddable {
 		if ($values->samePriceForBroker === false) {
 			return new AssetPriceEmbeddable(
-				(int) $values->orderPiecesCount * (float) $values->pricePerPiece,
-				$stockAsset->getCurrency(),
+				$stockPosition->getOrderPiecesCount() * (float) $values->pricePerPiece,
+				$stockPosition->getAsset()->getCurrency(),
 			);
 		}
 
