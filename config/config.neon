@@ -111,10 +111,10 @@ orm.attributes:
 		App: %appDir%
 
 migrations:
-    table: doctrine_migrations
-    column: version
-    directory: %appDir%/../migrations
-    namespace: Migrations
+	table: doctrine_migrations
+	column: version
+	directories:
+		Migrations: %appDir%/../migrations
 
 monolog:
 	channel:

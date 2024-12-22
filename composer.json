@@ -67,7 +67,7 @@
 	"scripts": {
 		"clear": "rm -rf temp/*",
 		"comload": "composer dump-autoload -o",
-		"stan": "vendor/bin/phpstan analyse -c phpstan.neon src --ansi  --memory-limit=-1",
+		"stan": "vendor/bin/phpstan analyse -c phpstan.neon src --ansi  --memory-limit=-1 -v",
 		"stan-tests": "vendor/bin/phpstan analyse -l max -c phpstan.neon tests --ansi  --memory-limit=-1",
 		"phpstan": "@stan",
 		"lint": "vendor/bin/parallel-lint --colors src/ tests/",
