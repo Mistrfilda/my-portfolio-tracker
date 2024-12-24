@@ -35,7 +35,9 @@
 		"gedmo/doctrine-extensions": "^3.5",
 		"nyholm/psr7": "^1.5",
 		"guzzlehttp/guzzle": "^7.4",
-		"smalot/pdfparser": "^2.9"
+		"smalot/pdfparser": "^2.9",
+		"cuyz/valinor": "^1.14",
+		"contributte/rabbitmq": "dev-master"
 	},
 	"require-dev": {
 		"phpstan/phpstan": "^2.0",
@@ -63,7 +65,8 @@
 			"App\\Test\\": "tests"
 		}
 	},
-	"minimum-stability": "stable",
+	"minimum-stability": "dev",
+	"prefer-stable": true,
 	"scripts": {
 		"clear": "rm -rf temp/*",
 		"comload": "composer dump-autoload -o",
@@ -109,6 +112,8 @@
 			"bin/console stock:asset:dividendRecords"
 		],
 		"migm": "bin/console migrations:migrate --no-interaction",
+		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",
+		"consumer-queue": "bin/console-rabbit rabbitmq:staticConsumer --",
 		"yarn-prod": "yarn build-prod",
 		"deploy-all": [
 			"@comload",

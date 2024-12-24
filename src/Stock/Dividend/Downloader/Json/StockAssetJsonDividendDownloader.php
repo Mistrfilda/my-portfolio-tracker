@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Downloader\Json;
 
+use App\Notification\NotificationChannelEnum;
+use App\Notification\NotificationFacade;
+use App\Notification\NotificationTypeEnum;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\StockAssetDividendDownloader;
 use App\Stock\Dividend\Downloader\StockAssetDividendDownloaderDTO;
@@ -13,6 +16,7 @@ use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\UI\Filter\CurrencyFilter;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
@@ -35,6 +39,7 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
 		private SystemValueFacade $systemValueFacade,
+		private NotificationFacade $notificationFacade,
 	)
 	{
 
@@ -100,6 +105,19 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 						$stockAsset->getCurrency(),
 						$value->getAmount(),
 						$now,
+					),
+				);
+
+				$this->notificationFacade->create(
+					NotificationTypeEnum::NEW_DIVIDEND,
+					[NotificationChannelEnum::DISCORD],
+					sprintf(
+						'Nová dividenda společnosti %s, vyplaceno na akcii %s',
+						$stockAsset->getName(),
+						CurrencyFilter::format(
+							$value->getAmount(),
+							$stockAsset->getCurrency(),
+						),
 					),
 				);
 			}

@@ -101,7 +101,8 @@ class StockClosedPositionFormFactory
 	private function getAssetPriceEmbeddable(
 		StockPosition $stockPosition,
 		ArrayHash $values,
-	): AssetPriceEmbeddable {
+	): AssetPriceEmbeddable
+	{
 		if ($values->samePriceForBroker === false) {
 			return new AssetPriceEmbeddable(
 				$stockPosition->getOrderPiecesCount() * (float) $values->pricePerPiece,

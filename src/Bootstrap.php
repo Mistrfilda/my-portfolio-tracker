@@ -30,6 +30,7 @@ class Bootstrap
 		$configurator->addConfig($appDir . '/config/config.neon');
 		$configurator->addConfig($appDir . '/config/forms.neon');
 		$configurator->addConfig($appDir . '/config/routing.neon');
+		$configurator->addConfig($appDir . '/config/rabbitmq.neon');
 
 		if (is_file($appDir . '/config/config.local.neon')) {
 			$configurator->addConfig($appDir . '/config/config.local.neon');

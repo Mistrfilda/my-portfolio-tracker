@@ -42,6 +42,12 @@ parameters:
 		databag:
 			versionFile: %appDir%/../deploy-versions.txt
 
+	notifications:
+		discord:
+			webhooks:
+				new_dividend: "https://discord.com/api/webhooks/aaa"
+				default: "https://discord.com/api/webhooks/aaa"
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -57,6 +63,8 @@ tracy:
 	showLocation: true
 	dumpTheme: dark
 	editor: 'phpstorm://open?file=%file&line=%line'
+	bar:
+		- Contributte\RabbitMQ\Diagnostics\BarPanel
 
 extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
@@ -68,6 +76,7 @@ extensions:
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	orm.attributes: Nettrine\ORM\DI\OrmAttributesExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
+	rabbitmq: Contributte\RabbitMQ\DI\RabbitMQExtension
 
 	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
 	custompresenterfactory: App\UI\Extension\PresenterFactory\DI\CustomPresenterFactoryExtension
@@ -383,3 +392,9 @@ services:
 	- App\System\Resolver\SystemValueDatabaseResolver
 	- App\System\Resolver\SystemValueEnabledStockAssetsResolver
 	- App\System\Resolver\SystemValueLastUpdatedPricesCountResolver
+
+	#Notifications
+	- App\Notification\NotificationFacade
+	- App\Notification\NotificationSenderFacade(typed(App\Notification\NotificationChannelSenderFacade))
+	- App\Notification\NotificationRepository(App\Notification\Notification)
+	- App\Notification\Discord\NotificationDiscordSenderFacade(discordWebhooksMapping: %notifications.discord.webhooks%)

@@ -1,0 +1,30 @@
+services:
+	notificationConsumer: App\Notification\RabbitMQ\NotificationConsumer
+	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@Contributte\RabbitMQ\Client::getProducer(notificationProducer))
+
+rabbitmq:
+	connections:
+		default:
+			user: appuser
+			password: extremelysecretrabbit
+			host: 192.168.1.245
+			port: 31383
+			lazy: true
+
+	queues:
+		notificationQueue:
+			connection: default
+
+	producers:
+		notificationProducer:
+			queue: notificationQueue
+			contentType: application/json
+			deliveryMode: 2 # Producer::DELIVERY_MODE_PERSISTENT
+
+	consumers:
+		notificationConsumer:
+			queue: notificationQueue
+			callback: [@notificationConsumer, consume]
+			qos:
+				prefetchSize: 0
+				prefetchCount: 5
