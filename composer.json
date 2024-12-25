@@ -113,7 +113,7 @@
 		],
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",
-		"consumer-queue": "bin/console-rabbit rabbitmq:staticConsumer --",
+		"consumer-queue": "bin/console-rabbit rabbitmq:consumer --",
 		"yarn-prod": "yarn build-prod",
 		"deploy-all": [
 			"@comload",
