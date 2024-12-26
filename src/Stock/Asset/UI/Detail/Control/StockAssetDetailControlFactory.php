@@ -9,6 +9,6 @@ use Ramsey\Uuid\UuidInterface;
 interface StockAssetDetailControlFactory
 {
 
-	public function create(UuidInterface $id): StockAssetDetailControl;
+	public function create(UuidInterface $id, int $currentChartDays): StockAssetDetailControl;
 
 }

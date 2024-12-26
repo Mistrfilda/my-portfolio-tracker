@@ -23,4 +23,9 @@ class StockAssetDetailControlTemplate extends BaseControlTemplate
 
 	public ImmutableDateTime $now;
 
+	/** @var array<int, string> */
+	public array $chartOptions;
+
+	public int $currentChartDays;
+
 }

@@ -20,8 +20,17 @@ use function assert;
 class StockAssetDetailControl extends BaseControl
 {
 
+	private const CHART_OPTIONS = [
+		90 => '90 dní',
+		60 => '60 dní',
+		30 => '30 dní',
+		5 => '5 dní',
+		1 => '1 den',
+	];
+
 	public function __construct(
 		private UuidInterface $id,
+		private int $currentChartDays,
 		private StockAssetRepository $stockAssetRepository,
 		private StockPositionFacade $stockPositionFacade,
 		private StockAssetDetailPriceChartProvider $stockAssetDetailPriceChartProvider,
@@ -44,6 +53,8 @@ class StockAssetDetailControl extends BaseControl
 			StockAssetListDetailControlEnum::CLOSED_POSITIONS,
 		);
 		$template->now = $this->datetimeFactory->createNow();
+		$template->chartOptions = self::CHART_OPTIONS;
+		$template->currentChartDays = $this->currentChartDays;
 		$template->setFile(__DIR__ . '/StockAssetDetailControl.latte');
 		$template->render();
 	}
@@ -52,6 +63,7 @@ class StockAssetDetailControl extends BaseControl
 	{
 		$chartProvider = clone $this->stockAssetDetailPriceChartProvider;
 		$chartProvider->setId($this->id);
+		$chartProvider->setNumberOfDays($this->currentChartDays);
 
 		return $this->chartControlFactory->create(
 			ChartType::LINE,
