@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock;
 
+use App\Currency\CurrencyConversionFacade;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
@@ -56,6 +57,7 @@ class StockAssetDividendRecordFacadeTest extends TestCase
 			$this->stockAssetDividendRecordService,
 			$this->entityManager,
 			$this->datetimeFactory,
+			Mockery::mock(CurrencyConversionFacade::class),
 			$this->logger,
 		);
 	}

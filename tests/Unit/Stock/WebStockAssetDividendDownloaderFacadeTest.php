@@ -35,6 +35,7 @@ class WebStockAssetDividendDownloaderFacadeTest extends TestCase
 		$this->downloader = new WebStockAssetDividendDownloaderFacade(
 			$url,
 			'',
+			'',
 			$psr7RequestFactory,
 			$psr18ClientFactory,
 			$stockAssetRepository,

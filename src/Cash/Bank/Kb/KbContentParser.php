@@ -33,9 +33,9 @@ class KbContentParser
 				continue;
 			}
 
-			$amount = $this->parseAmount($transactionParts);
-
-			if ($amount === 0.0) {
+			try {
+				$amount = $this->parseAmount($transactionParts);
+			} catch (InvalidArgumentException) {
 				$transaction->setUnprocessedReason('Invalid amount, cant parse amount');
 				$unprocessedTransactions[] = $transaction;
 				continue;
