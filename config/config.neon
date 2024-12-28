@@ -45,8 +45,10 @@ parameters:
 	notifications:
 		discord:
 			webhooks:
-				new_dividend: "https://discord.com/api/webhooks/aaa"
-				default: "https://discord.com/api/webhooks/aaa"
+				new_dividend: null
+				price_alert_up: null
+				price_alert_down: null
+				default: null
 
 application:
 	errorPresenter: Error:Error
@@ -234,6 +236,8 @@ services:
 	- App\Asset\Price\SummaryPriceService
 	- App\Asset\Price\AssetPriceService
 	- App\Asset\Price\AssetPriceSummaryFacade(typed(App\Asset\Price\AssetPriceFacade))
+	- App\Asset\Trend\AssetTrendFacade(typed(App\Asset\AssetRepository))
+	- App\Asset\Trend\AssetTrendCommand
 
 	#Stock asset
 	- App\Stock\Asset\StockAssetRepository(App\Stock\Asset\StockAsset)
@@ -247,7 +251,6 @@ services:
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailPriceChartProvider
-
 
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
@@ -398,3 +401,4 @@ services:
 	- App\Notification\NotificationSenderFacade(typed(App\Notification\NotificationChannelSenderFacade))
 	- App\Notification\NotificationRepository(App\Notification\Notification)
 	- App\Notification\Discord\NotificationDiscordSenderFacade(discordWebhooksMapping: %notifications.discord.webhooks%)
+

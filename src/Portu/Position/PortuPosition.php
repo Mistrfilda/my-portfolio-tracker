@@ -194,6 +194,37 @@ class PortuPosition implements AssetPosition, Entity
 		return $this->priceRecords->toArray();
 	}
 
+	public function getClosestPriceRecordOnDate(ImmutableDateTime $date): PortuAssetPriceRecord|null
+	{
+		$exactRecord = $this->priceRecords->filter(
+			static fn (PortuAssetPriceRecord $priceRecord) => $priceRecord->getDate()->format(
+				'Y-m-d',
+			) === $date->format(
+				'Y-m-d',
+			),
+		)->first();
+
+		if ($exactRecord !== false) {
+			return $exactRecord;
+		}
+
+		$closestRecord = null;
+		$smallestDifference = null;
+
+		foreach ($this->priceRecords as $priceRecord) {
+			$recordDate = $priceRecord->getDate();
+
+			$difference = abs($date->getTimestamp() - $recordDate->getTimestamp());
+
+			if ($smallestDifference === null || $difference < $smallestDifference) {
+				$closestRecord = $priceRecord;
+				$smallestDifference = $difference;
+			}
+		}
+
+		return $closestRecord;
+	}
+
 	public function getPortuAssetId(): string
 	{
 		return $this->portuAsset->getId()->toString();

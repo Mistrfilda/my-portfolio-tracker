@@ -14,6 +14,7 @@ use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\Portu\Position\PortuPosition;
+use App\UI\Filter\RuleOfThreeFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -100,6 +101,27 @@ class PortuAsset implements Asset, Entity
 		}
 
 		return $assetPrice;
+	}
+
+	public function getTrend(ImmutableDateTime $date): float
+	{
+		$value100percent = 0;
+		foreach ($this->getPositions() as $position) {
+			assert($position instanceof PortuPosition);
+			$priceRecord = $position->getClosestPriceRecordOnDate($date);
+			if ($priceRecord === null) {
+				continue;
+			}
+
+			$value100percent += $priceRecord->getCurrentValueAssetPrice()->getPrice();
+		}
+
+		$percentage = RuleOfThreeFilter::getPercentage(
+			$value100percent,
+			$this->getAssetCurrentPrice()->getPrice(),
+		);
+
+		return round((float) ($percentage - 100), 2);
 	}
 
 }

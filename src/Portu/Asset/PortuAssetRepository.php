@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Portu\Asset;
 
+use App\Asset\Asset;
+use App\Asset\AssetRepository;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -14,7 +16,7 @@ use Ramsey\Uuid\UuidInterface;
 /**
  * @extends BaseRepository<PortuAsset>
  */
-class PortuAssetRepository extends BaseRepository
+class PortuAssetRepository extends BaseRepository implements AssetRepository
 {
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): PortuAsset
@@ -35,6 +37,14 @@ class PortuAssetRepository extends BaseRepository
 		} catch (NoResultException) {
 			throw new NoEntityFoundException();
 		}
+	}
+
+	/**
+	 * @return array<Asset>
+	 */
+	public function getAllActiveAssets(): array
+	{
+		return $this->findAll();
 	}
 
 	/**

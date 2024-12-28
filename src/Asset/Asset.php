@@ -7,6 +7,7 @@ namespace App\Asset;
 use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 interface Asset
@@ -30,5 +31,7 @@ interface Asset
 	public function getCurrency(): CurrencyEnum;
 
 	public function getAssetCurrentPrice(): AssetPrice;
+
+	public function getTrend(ImmutableDateTime $date): float;
 
 }

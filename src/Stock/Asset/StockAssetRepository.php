@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset;
 
+use App\Asset\Asset;
+use App\Asset\AssetRepository;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -18,7 +20,7 @@ use Ramsey\Uuid\UuidInterface;
 /**
  * @extends BaseRepository<StockAsset>
  */
-class StockAssetRepository extends BaseRepository
+class StockAssetRepository extends BaseRepository implements AssetRepository
 {
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): StockAsset
@@ -39,6 +41,17 @@ class StockAssetRepository extends BaseRepository
 		} catch (NoResultException) {
 			throw new NoEntityFoundException();
 		}
+	}
+
+	/**
+	 * @return array<Asset>
+	 */
+	public function getAllActiveAssets(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadPrice', ':shouldDownloadPrice'));
+		$qb->setParameter('shouldDownloadPrice', true);
+		return $qb->getQuery()->getResult();
 	}
 
 	public function findByTicker(string $ticker): StockAsset|null

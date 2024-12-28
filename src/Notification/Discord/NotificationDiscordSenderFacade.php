@@ -14,7 +14,7 @@ class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 {
 
 	/**
-	 * @param array<string, string> $discordWebhooksMapping
+	 * @param array<string, string|null> $discordWebhooksMapping
 	 */
 	public function __construct(
 		private array $discordWebhooksMapping,
@@ -30,6 +30,10 @@ class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 			$webhookUrl = $this->discordWebhooksMapping[$notification->getNotificationTypeEnum()->value];
 		} else {
 			$webhookUrl = $this->discordWebhooksMapping['default'];
+		}
+
+		if ($webhookUrl === null) {
+			return;
 		}
 
 		$this->psr18ClientFactory->getClient()->sendRequest(
