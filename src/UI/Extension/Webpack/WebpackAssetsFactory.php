@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Extension\Webpack;
 
+use App\Utils\TypeValidator;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Html;
 use Nette\Utils\Json;
@@ -46,7 +47,7 @@ class WebpackAssetsFactory
 		}
 
 		$cssAssets = [];
-		foreach ($assets[$entryName]['css'] as $cssAsset) {
+		foreach (TypeValidator::validateIterable($assets[$entryName]['css']) as $cssAsset) {
 			$link = Html::el('link')->addAttributes(
 				[
 					'rel' => 'stylesheet',
@@ -77,7 +78,7 @@ class WebpackAssetsFactory
 		}
 
 		$jsAssets = [];
-		foreach ($assets[$entryName]['js'] as $jsAsset) {
+		foreach (TypeValidator::validateIterable($assets[$entryName]['js']) as $jsAsset) {
 			$script = Html::el('script')->addAttributes(
 				[
 					'src' => $jsAsset,

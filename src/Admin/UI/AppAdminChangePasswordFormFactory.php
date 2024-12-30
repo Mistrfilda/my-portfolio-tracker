@@ -8,6 +8,7 @@ use App\Admin\AppAdminFacade;
 use App\Admin\CurrentAppAdminGetter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Security\Passwords;
 use Nette\Utils\ArrayHash;
@@ -55,7 +56,7 @@ class AppAdminChangePasswordFormFactory
 			assert($values instanceof ArrayHash);
 
 			if ($this->passwords->verify(
-				$values->oldPassword,
+				TypeValidator::validateString($values->oldPassword),
 				$this->currentAppAdminGetter->getAppAdmin()->getPassword(),
 			) === false) {
 				$form['oldPassword']->addError('Nesprávné staré heslo');

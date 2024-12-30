@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Control\Form\Input;
 
 use App\UI\Control\Form\AdminForm;
+use App\Utils\TypeValidator;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Forms\Container;
@@ -65,6 +66,7 @@ class TimeContainerFactory
 
 	public function processValuesFromArrayHash(ArrayHash $values, string $name): ImmutableDateTime|null
 	{
+		assert($values->{$name} instanceof ArrayHash);
 		if (
 			$values->{$name}->day === null
 			|| $values->{$name}->month === null
@@ -76,8 +78,15 @@ class TimeContainerFactory
 		}
 
 		return (new ImmutableDateTime())
-			->setDate($values->{$name}->year, $values->{$name}->month, $values->{$name}->day)
-			->setTime($values->{$name}->hour, $values->{$name}->minute);
+			->setDate(
+				TypeValidator::validateInt($values->{$name}->year),
+				TypeValidator::validateInt($values->{$name}->month),
+				TypeValidator::validateInt($values->{$name}->day),
+			)
+			->setTime(
+				TypeValidator::validateInt($values->{$name}->hour),
+				TypeValidator::validateInt($values->{$name}->minute),
+			);
 	}
 
 	/**

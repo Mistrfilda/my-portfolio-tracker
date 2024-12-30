@@ -7,6 +7,7 @@ namespace App\UI\Control\Datagrid\Column;
 use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Icon\SvgIcon;
+use App\Utils\TypeValidator;
 use Nette\Utils\Callback;
 use function sprintf;
 
@@ -63,10 +64,18 @@ class ColumnBadge extends ColumnText
 			$callback = Callback::check($this->getColorCallback());
 			$color = $callback($entity);
 
-			return sprintf($colorTemplate, $color, $color);
+			return sprintf(
+				$colorTemplate,
+				TypeValidator::validateString($color),
+				TypeValidator::validateString($color),
+			);
 		}
 
-		return sprintf($colorTemplate, $this->color, $this->color);
+		return sprintf(
+			$colorTemplate,
+			TypeValidator::validateString($this->color),
+			TypeValidator::validateString($this->color),
+		);
 	}
 
 	public function hasSvgIconCallback(): bool
@@ -78,7 +87,9 @@ class ColumnBadge extends ColumnText
 	{
 		$callback = Callback::check($this->svgIconCallback);
 
-		return $callback($entity);
+		$svgIcon = $callback($entity);
+		assert($svgIcon instanceof SvgIcon);
+		return $svgIcon;
 	}
 
 }

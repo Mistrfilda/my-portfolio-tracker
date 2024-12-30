@@ -13,6 +13,7 @@ use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -91,37 +92,37 @@ class StockAssetFormFactory
 			if ($id !== null) {
 				$this->stockAssetFacade->update(
 					$id,
-					$values->name,
-					StockAssetPriceDownloaderEnum::from($values->assetPriceDownloader),
-					$values->ticker,
-					StockAssetExchange::from($values->exchange),
-					CurrencyEnum::from($values->currency),
-					$values->isin,
+					TypeValidator::validateString($values->name),
+					StockAssetPriceDownloaderEnum::from(TypeValidator::validateString($values->assetPriceDownloader)),
+					TypeValidator::validateString($values->ticker),
+					StockAssetExchange::from(TypeValidator::validateString($values->exchange)),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateNullableString($values->isin),
 					$values->stockAssetDividendSource !== null ? StockAssetDividendSourceEnum::from(
-						$values->stockAssetDividendSource,
+						TypeValidator::validateString($values->stockAssetDividendSource),
 					) : null,
-					$values->dividendTax,
+					TypeValidator::validateNullableFloat($values->dividendTax),
 					$values->brokerDividendCurrency !== null ? CurrencyEnum::from(
-						$values->brokerDividendCurrency,
+						TypeValidator::validateString($values->brokerDividendCurrency),
 					) : null,
-					$values->shouldDownloadPrice,
+					TypeValidator::validateBool($values->shouldDownloadPrice),
 				);
 			} else {
 				$this->stockAssetFacade->create(
-					$values->name,
-					StockAssetPriceDownloaderEnum::from($values->assetPriceDownloader),
-					$values->ticker,
-					StockAssetExchange::from($values->exchange),
-					CurrencyEnum::from($values->currency),
-					$values->isin,
+					TypeValidator::validateString($values->name),
+					StockAssetPriceDownloaderEnum::from(TypeValidator::validateString($values->assetPriceDownloader)),
+					TypeValidator::validateString($values->ticker),
+					StockAssetExchange::from(TypeValidator::validateString($values->exchange)),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateNullableString($values->isin),
 					$values->stockAssetDividendSource !== null ? StockAssetDividendSourceEnum::from(
-						$values->stockAssetDividendSource,
+						TypeValidator::validateString($values->stockAssetDividendSource),
 					) : null,
-					$values->dividendTax,
+					TypeValidator::validateNullableFloat($values->dividendTax),
 					$values->brokerDividendCurrency !== null ? CurrencyEnum::from(
-						$values->brokerDividendCurrency,
+						TypeValidator::validateString($values->brokerDividendCurrency),
 					) : null,
-					$values->shouldDownloadPrice,
+					TypeValidator::validateBool($values->shouldDownloadPrice),
 				);
 			}
 

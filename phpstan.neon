@@ -1,8 +1,8 @@
 includes:
-		- vendor/cuyz/valinor/qa/PHPStan/valinor-phpstan-configuration.php
+	- vendor/cuyz/valinor/qa/PHPStan/valinor-phpstan-configuration.php
 
 parameters:
-	level: 9
+	level: max
 	paths:
 		- src
 		- tests

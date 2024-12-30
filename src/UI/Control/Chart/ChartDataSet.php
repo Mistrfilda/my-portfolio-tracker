@@ -10,7 +10,7 @@ class ChartDataSet implements JsonSerializable
 {
 
 	/**
-	 * @param array<int, ChartData> $chartData
+	 * @param array<int|string, ChartData> $chartData
 	 * @param array<string>|null $hardcodedLabels
 	 */
 	public function __construct(

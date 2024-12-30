@@ -6,6 +6,7 @@ namespace App\System\Resolver;
 
 use App\System\SystemValueEnum;
 use App\System\SystemValuesDataBag;
+use App\Utils\TypeValidator;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Strings;
@@ -31,10 +32,10 @@ class SystemValueCurrentVersionResolver implements SystemValueResolver
 		assert(array_key_exists(1, $versions));
 
 		if ($systemValueEnum === SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION) {
-			return $versions[0];
+			return TypeValidator::validateString($versions[0]);
 		}
 
-		return $versions[1];
+		return TypeValidator::validateString($versions[1]);
 	}
 
 }

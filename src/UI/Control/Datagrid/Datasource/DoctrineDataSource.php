@@ -66,6 +66,7 @@ class DoctrineDataSource implements IDataSource
 	public function getValueForColumn(IColumn $column, Entity $row): string
 	{
 		if ($column->getGetterMethod() !== null) {
+			//@phpstan-ignore-next-line
 			return $column->processValue($column->getGetterMethod()($row));
 		}
 

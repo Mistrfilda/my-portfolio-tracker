@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Control\Form\Input;
 
 use App\UI\Control\Form\DTO\Birthday;
+use App\Utils\TypeValidator;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Forms\Container;
@@ -47,6 +48,7 @@ class BirthdayContainerFactory
 
 	public function processValuesFromArrayHash(ArrayHash $values): Birthday|null
 	{
+		assert($values->birthday instanceof ArrayHash);
 		if (
 			$values->birthday->day === null
 			|| $values->birthday->month === null
@@ -56,9 +58,9 @@ class BirthdayContainerFactory
 		}
 
 		return new Birthday(
-			$values->birthday->day,
-			$values->birthday->month,
-			$values->birthday->year,
+			TypeValidator::validateInt($values->birthday->day),
+			TypeValidator::validateInt($values->birthday->month),
+			TypeValidator::validateInt($values->birthday->year),
 		);
 	}
 
