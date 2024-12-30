@@ -11,6 +11,7 @@ use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Currency\CurrencyEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Application\UI\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -75,26 +76,26 @@ class BankExpenseFormFactory
 
 			if ($id === null) {
 				$this->bankExpenseFormFacade->create(
-					$values->identifier,
-					BankSourceEnum::from($values->source),
-					BankTransactionType::from($values->type),
-					$values->amount,
-					CurrencyEnum::from($values->currency),
-					$values->settlementDate,
-					$values->transactionDate,
-					$values->transactionRawContent,
+					TypeValidator::validateNullableString($values->identifier),
+					BankSourceEnum::from(TypeValidator::validateString($values->source)),
+					BankTransactionType::from(TypeValidator::validateString($values->type)),
+					TypeValidator::validateFloat($values->amount),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateNullableImmutableDatetime($values->settlementDate),
+					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
+					TypeValidator::validateString($values->transactionRawContent),
 				);
 			} else {
 				$this->bankExpenseFormFacade->update(
 					$id,
-					$values->identifier,
-					BankSourceEnum::from($values->source),
-					BankTransactionType::from($values->type),
-					$values->amount,
-					CurrencyEnum::from($values->currency),
-					$values->settlementDate,
-					$values->transactionDate,
-					$values->transactionRawContent,
+					TypeValidator::validateNullableString($values->identifier),
+					BankSourceEnum::from(TypeValidator::validateString($values->source)),
+					BankTransactionType::from(TypeValidator::validateString($values->type)),
+					TypeValidator::validateFloat($values->amount),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateNullableImmutableDatetime($values->settlementDate),
+					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
+					TypeValidator::validateString($values->transactionRawContent),
 				);
 			}
 

@@ -9,6 +9,7 @@ use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Container;
 use Nette\Utils\ArrayHash;
 use function assert;
@@ -72,7 +73,7 @@ class ExpenseTagFormFactory
 			$regexes = [];
 			foreach ($expenseTag->getRegexes() as $regex) {
 				if ($regex !== '') {
-					$regexes[]['regex'] = $regex;
+					$regexes[] = ['regex' => $regex];
 				}
 			}
 
@@ -100,21 +101,22 @@ class ExpenseTagFormFactory
 			}
 
 			$regexes = [];
-			foreach ($values->regexes as $regex) {
+			foreach (TypeValidator::validateIterable($values->regexes) as $regex) {
+				assert($regex instanceof ArrayHash);
 				if ($regex->regex !== null && $regex->regex !== '') {
-					$regexes[] = $regex->regex;
+					$regexes[] = TypeValidator::validateString($regex->regex);
 				}
 			}
 
 			if ($id === null) {
 				$this->expenseTagFacade->create(
-					$values->name,
-					$values->expenseCategory,
-					$values->parentTag,
+					TypeValidator::validateString($values->name),
+					TypeValidator::validateNullableInt($values->expenseCategory),
+					TypeValidator::validateNullableInt($values->parentTag),
 					$regexes,
 				);
 			} else {
-				$this->expenseTagFacade->update($id, $values->name, $regexes);
+				$this->expenseTagFacade->update($id, TypeValidator::validateString($values->name), $regexes);
 			}
 
 			$onSuccess();

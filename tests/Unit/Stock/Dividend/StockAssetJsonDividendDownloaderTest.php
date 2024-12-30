@@ -1,10 +1,12 @@
 <?php
+
 declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend;
 
 use App\Currency\CurrencyEnum;
 use App\Notification\NotificationFacade;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloader;
 use App\Stock\Dividend\StockAssetDividend;
@@ -22,9 +24,9 @@ use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use const DIRECTORY_SEPARATOR;
 
-
 class StockAssetJsonDividendDownloaderTest extends TestCase
 {
+
 	private string $resultsFolder;
 
 	private string $parsedResultsFolder;
@@ -75,7 +77,7 @@ class StockAssetJsonDividendDownloaderTest extends TestCase
 			$this->entityManager,
 			$this->logger,
 			$this->systemValueFacade,
-			$this->notificationFacade
+			$this->notificationFacade,
 		);
 	}
 
@@ -91,16 +93,16 @@ class StockAssetJsonDividendDownloaderTest extends TestCase
 		$sampleUuid = Uuid::uuid4()->toString();
 		$sampleJson = [
 			(object) [
-				'id'          => $sampleUuid,
-				'currency'    => 'USD',
+				'id' => $sampleUuid,
+				'currency' => 'USD',
 				'textContent' => 'Dividend Jan 1, 2020 2.50',
-				'html'        => '<p>Some HTML content</p>',
+				'html' => '<p>Some HTML content</p>',
 			],
 		];
 
 		FileSystem::write($testFile, Json::encode($sampleJson));
 
-		$mockStockAsset = $this->createMock(\App\Stock\Asset\StockAsset::class);
+		$mockStockAsset = $this->createMock(StockAsset::class);
 		$mockStockAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
 		$mockStockAsset->method('getName')->willReturn('Test Stock');
 
@@ -139,10 +141,10 @@ class StockAssetJsonDividendDownloaderTest extends TestCase
 		$testFile = $this->resultsFolder . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;
 		$sampleJson = [
 			(object) [
-				'id'          => Uuid::uuid4()->toString(),
-				'currency'    => 'USD',
+				'id' => Uuid::uuid4()->toString(),
+				'currency' => 'USD',
 				'textContent' => '',
-				'html'        => '',
+				'html' => '',
 			],
 		];
 
@@ -158,4 +160,5 @@ class StockAssetJsonDividendDownloaderTest extends TestCase
 		$this->assertFileExists($processedFile);
 		$this->assertFileDoesNotExist($testFile);
 	}
+
 }

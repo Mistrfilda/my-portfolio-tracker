@@ -10,6 +10,7 @@ use App\Portu\Asset\PortuAssetFacade;
 use App\Portu\Asset\PortuAssetRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -47,13 +48,13 @@ class PortuAssetFormFactory
 			if ($id !== null) {
 				$this->portuAssetFacade->update(
 					$id,
-					$values->name,
-					CurrencyEnum::from($values->currency),
+					TypeValidator::validateString($values->name),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
 				);
 			} else {
 				$this->portuAssetFacade->create(
-					$values->name,
-					CurrencyEnum::from($values->currency),
+					TypeValidator::validateString($values->name),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
 				);
 			}
 

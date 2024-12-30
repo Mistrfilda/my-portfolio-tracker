@@ -6,6 +6,7 @@ namespace App\UI\Control\Datagrid\Column;
 
 use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Datagrid;
+use App\Utils\TypeValidator;
 use Nette\Utils\Callback;
 
 class ColumnBadgeArray extends ColumnText
@@ -58,7 +59,11 @@ class ColumnBadgeArray extends ColumnText
 			$callback = Callback::check($this->getColorCallback());
 			$color = $callback($entity);
 
-			return sprintf($colorTemplate, $color, $color);
+			return sprintf(
+				$colorTemplate,
+				TypeValidator::validateString($color),
+				TypeValidator::validateString($color),
+			);
 		}
 
 		return sprintf($colorTemplate, $this->color, $this->color);

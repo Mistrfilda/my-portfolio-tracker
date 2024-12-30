@@ -13,6 +13,7 @@ use App\Stock\Position\StockPositionFacade;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\Uuid;
@@ -69,33 +70,33 @@ class StockPositionFormFactory
 			assert($values instanceof ArrayHash);
 
 			$stockAsset = $this->stockAssetRepository->getById(
-				Uuid::fromString($values->stockAsset),
+				Uuid::fromString(TypeValidator::validateString($values->stockAsset)),
 			);
 
 			if ($id !== null) {
 				$this->stockPositionFacade->update(
 					$id,
 					$stockAsset->getId(),
-					(int) $values->orderPiecesCount,
-					(float) $values->pricePerPiece,
-					$values->orderDate,
+					TypeValidator::validateInt($values->orderPiecesCount),
+					TypeValidator::validateFloat($values->pricePerPiece),
+					TypeValidator::validateImmutableDatetime($values->orderDate),
 					$this->getAssetPriceEmbeddable(
 						$stockAsset,
 						$values,
 					),
-					$values->samePriceForBroker,
+					TypeValidator::validateBool($values->samePriceForBroker),
 				);
 			} else {
 				$this->stockPositionFacade->create(
 					$stockAsset->getId(),
-					(int) $values->orderPiecesCount,
-					(float) $values->pricePerPiece,
-					$values->orderDate,
+					TypeValidator::validateInt($values->orderPiecesCount),
+					TypeValidator::validateFloat($values->pricePerPiece),
+					TypeValidator::validateImmutableDatetime($values->orderDate),
 					$this->getAssetPriceEmbeddable(
 						$stockAsset,
 						$values,
 					),
-					$values->samePriceForBroker,
+					TypeValidator::validateBool($values->samePriceForBroker),
 				);
 			}
 
@@ -115,14 +116,16 @@ class StockPositionFormFactory
 	{
 		if ($values->samePriceForBroker === false) {
 			return new AssetPriceEmbeddable(
-				(int) $values->orderPiecesCount * (float) $values->pricePerPiece,
+				TypeValidator::validateInt($values->orderPiecesCount) * TypeValidator::validateFloat(
+					$values->pricePerPiece,
+				),
 				$stockAsset->getCurrency(),
 			);
 		}
 
 		return new AssetPriceEmbeddable(
-			$values->totalBrokerPrice,
-			CurrencyEnum::from($values->brokerCurrency),
+			TypeValidator::validateFloat($values->totalBrokerPrice),
+			CurrencyEnum::from(TypeValidator::validateString($values->brokerCurrency)),
 		);
 	}
 

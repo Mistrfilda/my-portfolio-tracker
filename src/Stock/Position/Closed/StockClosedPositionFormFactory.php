@@ -11,6 +11,7 @@ use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -65,24 +66,24 @@ class StockClosedPositionFormFactory
 			if ($id !== null) {
 				$this->stockPositionFacade->update(
 					$id,
-					(float) $values->pricePerPiece,
-					$values->orderDate,
+					TypeValidator::validateFloat($values->pricePerPiece),
+					TypeValidator::validateImmutableDatetime($values->orderDate),
 					$this->getAssetPriceEmbeddable(
 						$stockPosition,
 						$values,
 					),
-					$values->samePriceForBroker,
+					TypeValidator::validateBool($values->samePriceForBroker),
 				);
 			} else {
 				$this->stockPositionFacade->create(
 					$stockPositionId,
-					(float) $values->pricePerPiece,
-					$values->orderDate,
+					TypeValidator::validateFloat($values->pricePerPiece),
+					TypeValidator::validateImmutableDatetime($values->orderDate),
 					$this->getAssetPriceEmbeddable(
 						$stockPosition,
 						$values,
 					),
-					$values->samePriceForBroker,
+					TypeValidator::validateBool($values->samePriceForBroker),
 				);
 			}
 
@@ -105,14 +106,14 @@ class StockClosedPositionFormFactory
 	{
 		if ($values->samePriceForBroker === false) {
 			return new AssetPriceEmbeddable(
-				$stockPosition->getOrderPiecesCount() * (float) $values->pricePerPiece,
+				$stockPosition->getOrderPiecesCount() * TypeValidator::validateFloat($values->pricePerPiece),
 				$stockPosition->getAsset()->getCurrency(),
 			);
 		}
 
 		return new AssetPriceEmbeddable(
-			$values->totalBrokerPrice,
-			CurrencyEnum::from($values->brokerCurrency),
+			TypeValidator::validateFloat($values->totalBrokerPrice),
+			CurrencyEnum::from(TypeValidator::validateString($values->brokerCurrency)),
 		);
 	}
 

@@ -9,6 +9,7 @@ use App\Portu\Position\PortuPositionFacade;
 use App\Portu\Position\PortuPositionRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -58,20 +59,20 @@ class PortuPositionFormFactory
 				$this->portuPositionFacade->update(
 					$id,
 					$portuAssetId,
-					$values->startDate,
-					$values->startInvestmentPrice,
-					$values->monthlyIncreasePrice,
-					$values->currentValuePrice,
-					$values->totalInvestedToThisDatePrice,
+					TypeValidator::validateImmutableDatetime($values->startDate),
+					TypeValidator::validateFloat($values->startInvestmentPrice),
+					TypeValidator::validateFloat($values->monthlyIncreasePrice),
+					TypeValidator::validateFloat($values->currentValuePrice),
+					TypeValidator::validateFloat($values->totalInvestedToThisDatePrice),
 				);
 			} else {
 				$this->portuPositionFacade->create(
 					$portuAssetId,
-					$values->startDate,
-					$values->startInvestmentPrice,
-					$values->monthlyIncreasePrice,
-					$values->currentValuePrice,
-					$values->totalInvestedToThisDatePrice,
+					TypeValidator::validateImmutableDatetime($values->startDate),
+					TypeValidator::validateFloat($values->startInvestmentPrice),
+					TypeValidator::validateFloat($values->monthlyIncreasePrice),
+					TypeValidator::validateFloat($values->currentValuePrice),
+					TypeValidator::validateFloat($values->totalInvestedToThisDatePrice),
 				);
 			}
 

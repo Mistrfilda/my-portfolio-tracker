@@ -10,6 +10,7 @@ use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Strings;
@@ -53,11 +54,12 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 
 		$responseContents = Strings::split($cnbRateResponse->getBody()->getContents(), '~\n~');
 		foreach ($responseContents as $responseContent) {
-			$parsedLine = Strings::split($responseContent, '~\|~');
+			$parsedLine = Strings::split(TypeValidator::validateString($responseContent), '~\|~');
 			if (count($parsedLine) !== 5) {
 				continue;
 			}
 
+			assert(is_int($parsedLine[3]) || is_string($parsedLine[3]));
 			if (array_key_exists($parsedLine[3], self::RATES_TO_BE_DOWNLOADED) === false) {
 				continue;
 			}
@@ -68,7 +70,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 				$today,
 			);
 
-			$parsedRate = (float) Strings::replace($parsedLine[4], '~,~', '.');
+			$parsedRate = (float) Strings::replace(TypeValidator::validateString($parsedLine[4]), '~,~', '.');
 
 			if ($rate !== null) {
 				$rate->update($parsedRate, $now);

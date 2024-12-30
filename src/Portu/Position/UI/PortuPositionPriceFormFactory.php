@@ -9,6 +9,7 @@ use App\Portu\Price\PortuAssetPriceRecord;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
@@ -61,10 +62,10 @@ class PortuPositionPriceFormFactory
 
 			$this->portuPositionFacade->updatePriceForDate(
 				$portuPositionId,
-				$values->date,
-				$values->currentValuePrice,
-				$values->totalInvestedToThisDatePrice,
-				$values->shouldUpdateWholePosition,
+				TypeValidator::validateImmutableDatetime($values->date),
+				TypeValidator::validateFloat($values->currentValuePrice),
+				TypeValidator::validateFloat($values->totalInvestedToThisDatePrice),
+				TypeValidator::validateBool($values->shouldUpdateWholePosition),
 			);
 
 			$onSuccess();

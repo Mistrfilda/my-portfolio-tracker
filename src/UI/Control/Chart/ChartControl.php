@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Control\Chart;
 
 use App\UI\Base\BaseControl;
+use App\Utils\TypeValidator;
 use Nette\Application\BadRequestException;
 use Nette\Application\Responses\JsonResponse;
 use function str_replace;
@@ -42,7 +43,7 @@ class ChartControl extends BaseControl
 		$parameters = [];
 		foreach ($_GET as $key => $value) {
 			if (str_starts_with($key, 'originalRequest')) {
-				$parameters[$key] = $value;
+				$parameters[TypeValidator::validateString($key)] = TypeValidator::validateString($value);
 			}
 		}
 

@@ -10,6 +10,7 @@ use App\Admin\AppAdminRepository;
 use App\Doctrine\NoEntityFoundException;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -57,7 +58,7 @@ class AppAdminFormFactory
 			assert($values instanceof ArrayHash);
 			if ($id === null) {
 				try {
-					$this->appAdminRepository->findByUsername($values->username);
+					$this->appAdminRepository->findByUsername(TypeValidator::validateString($values->username));
 					$form['username']->addError('Zadané uživatelské jméno již existuje');
 
 					return;
@@ -67,7 +68,7 @@ class AppAdminFormFactory
 			}
 
 			try {
-				$user = $this->appAdminRepository->findByEmail($values->email);
+				$user = $this->appAdminRepository->findByEmail(TypeValidator::validateString($values->email));
 				if ($id === null || ($user->getId()->toString() !== $id->toString())) {
 					$form['email']->addError('Zadaný email již existuje');
 
@@ -85,20 +86,20 @@ class AppAdminFormFactory
 			if ($id !== null) {
 				$this->appAdminFacade->updateAppAdmin(
 					$id,
-					$values->name,
-					$values->email,
-					$values->password,
-					$values->forceNewPassword,
-					$values->sysAdmin,
+					TypeValidator::validateString($values->name),
+					TypeValidator::validateString($values->email),
+					TypeValidator::validateNullableString($values->password),
+					TypeValidator::validateBool($values->forceNewPassword),
+					TypeValidator::validateBool($values->sysAdmin),
 				);
 			} else {
 				$this->appAdminFacade->createAppAdmin(
-					$values->name,
-					$values->username,
-					$values->email,
-					$values->password,
-					$values->forceNewPassword,
-					$values->sysAdmin,
+					TypeValidator::validateString($values->name),
+					TypeValidator::validateString($values->username),
+					TypeValidator::validateString($values->email),
+					TypeValidator::validateString($values->password),
+					TypeValidator::validateBool($values->forceNewPassword),
+					TypeValidator::validateBool($values->sysAdmin),
 				);
 			}
 

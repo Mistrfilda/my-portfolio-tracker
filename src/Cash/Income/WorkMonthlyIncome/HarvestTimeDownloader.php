@@ -6,6 +6,7 @@ namespace App\Cash\Income\WorkMonthlyIncome;
 
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Utils\TypeValidator;
 use Nette\Utils\Json;
 
 /**
@@ -51,10 +52,11 @@ class HarvestTimeDownloader
 			return [];
 		}
 
+		/** @var array<HarvestTimeEntry> $items */
 		$items = $responseContents['time_entries'] ?? [];
 
 		if (array_key_exists('next_page', $responseContents) && $responseContents['next_page'] !== null) {
-			return array_merge($items, $this->getData((int) $responseContents['next_page']));
+			return array_merge($items, $this->getData(TypeValidator::validateInt($responseContents['next_page'])));
 		}
 
 		return $items;

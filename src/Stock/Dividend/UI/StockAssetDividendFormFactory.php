@@ -10,6 +10,7 @@ use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\UuidInterface;
@@ -66,20 +67,20 @@ class StockAssetDividendFormFactory
 			if ($id !== null) {
 				$this->stockAssetDividendFacade->update(
 					$id,
-					$values->exDate,
-					$values->paymentDate,
-					$values->declarationDate,
-					CurrencyEnum::from($values->currency),
-					$values->amount,
+					TypeValidator::validateImmutableDatetime($values->exDate),
+					TypeValidator::validateImmutableDatetime($values->paymentDate),
+					TypeValidator::validateNullableImmutableDatetime($values->declarationDate),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateFloat($values->amount),
 				);
 			} else {
 				$this->stockAssetDividendFacade->create(
 					$stockAssetId,
-					$values->exDate,
-					$values->paymentDate,
-					$values->declarationDate,
-					CurrencyEnum::from($values->currency),
-					$values->amount,
+					TypeValidator::validateImmutableDatetime($values->exDate),
+					TypeValidator::validateImmutableDatetime($values->paymentDate),
+					TypeValidator::validateNullableImmutableDatetime($values->declarationDate),
+					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
+					TypeValidator::validateFloat($values->amount),
 				);
 			}
 
