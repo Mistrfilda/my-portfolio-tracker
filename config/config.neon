@@ -402,3 +402,12 @@ services:
 	- App\Notification\NotificationRepository(App\Notification\Notification)
 	- App\Notification\Discord\NotificationDiscordSenderFacade(discordWebhooksMapping: %notifications.discord.webhooks%)
 
+	#Goals
+	- App\Goal\PortfolioGoalFacade
+	- App\Goal\UI\PortfolioGoalFormFactory
+	- App\Goal\UI\PortfolioGoalGridFactory
+	- App\Goal\PortfolioGoalRepository(App\Goal\PortfolioGoal)
+	- App\Goal\PortfolioGoalUpdateFacade(typed(App\Goal\Resolver\PortfolioGoalResolver))
+	- App\Goal\Resolver\PortfolioGoalTotalIncomeResolver
+	- App\Goal\Resolver\PortfolioGoalTotalInvestedAmountResolver
+	- App\Goal\PortfolioGoalUpdateCommand

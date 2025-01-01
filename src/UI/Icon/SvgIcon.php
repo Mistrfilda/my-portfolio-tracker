@@ -85,4 +85,6 @@ enum SvgIcon: string
 
 	case ARCHIVE_BOX = 'archive-box.svg';
 
+	case PRESENTATION_CHART_UP = 'presentation-chart-up.svg';
+
 }

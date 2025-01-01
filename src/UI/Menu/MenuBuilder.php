@@ -157,6 +157,13 @@ class MenuBuilder
 				'Přehled příjmů z banky',
 				[],
 			),
+			new MenuItem(
+				'PortfolioGoal',
+				'default',
+				SvgIcon::PRESENTATION_CHART_UP,
+				'Cíle',
+				[],
+			),
 		];
 	}
 

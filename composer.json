@@ -125,7 +125,8 @@
 		"download-all": [
 			"@currency-download",
 			"@stock-assets-downloaders",
-			"@save-current-portfolio-statistics"
+			"@save-current-portfolio-statistics",
+			"@goal-update"
 		],
 		"download-dividends": [
 			"bin/console puppeter:data",
@@ -144,7 +145,11 @@
 			"@clear",
 			"@yarn-prod"
 		],
-		"harvest-download": "bin/console workMonthlyIncome:download",
+		"harvest-download": [
+			"bin/console workMonthlyIncome:download",
+			"@goal-update"
+		],
+		"goal-update": "bin/console goal:portfolio:update",
 		"kube-local-deploy": "./deploy-local.sh",
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser"
 	},

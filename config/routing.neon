@@ -30,3 +30,4 @@ custompresenterfactory:
 		Admin:WorkMonthlyIncome: App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomePresenter
 		Admin:BankIncome: App\Cash\Income\Bank\UI\BankIncomePresenter
 		Admin:PortfolioStatisticTotal: App\Statistic\UI\Total\UI\PortfolioStatisticTotalPresenter
+		Admin:PortfolioGoal: App\Goal\UI\PortfolioGoalPresenter
