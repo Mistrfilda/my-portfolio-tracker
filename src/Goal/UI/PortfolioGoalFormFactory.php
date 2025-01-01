@@ -34,6 +34,8 @@ class PortfolioGoalFormFactory
 			PortfolioGoalTypeEnum::TOTAL_INCOME->value => PortfolioGoalTypeEnum::TOTAL_INCOME->format(),
 		])->setRequired()->setPrompt(AdminForm::SELECT_PLACEHOLDER);
 
+		$form->addFloat('goal', 'Cílová částka')->setRequired();
+
 		$form->addSubmit('submit', 'Odeslat');
 
 		if ($id !== null) {
@@ -42,6 +44,7 @@ class PortfolioGoalFormFactory
 				'startDate' => $portfolioGoal->getStartDate(),
 				'endDate' => $portfolioGoal->getEndDate(),
 				'type' => $portfolioGoal->getType()->value,
+				'goal' => $portfolioGoal->getGoal(),
 			]);
 
 			$type->setDisabled();
@@ -54,12 +57,14 @@ class PortfolioGoalFormFactory
 					$id,
 					TypeValidator::validateImmutableDatetime($values->startDate),
 					TypeValidator::validateImmutableDatetime($values->endDate),
+					TypeValidator::validateFloat($values->goal),
 				);
 			} else {
 				$this->portfolioGoalFacade->create(
 					TypeValidator::validateImmutableDatetime($values->startDate),
 					TypeValidator::validateImmutableDatetime($values->endDate),
 					PortfolioGoalTypeEnum::from(TypeValidator::validateString($values->type)),
+					TypeValidator::validateFloat($values->goal),
 				);
 			}
 

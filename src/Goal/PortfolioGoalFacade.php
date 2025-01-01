@@ -24,12 +24,14 @@ class PortfolioGoalFacade
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		PortfolioGoalTypeEnum $type,
+		float $goal,
 	): void
 	{
 		$portfolioGoal = new PortfolioGoal(
 			$startDate,
 			$endDate,
 			$type,
+			$goal,
 			$this->datetimefactory->createNow(),
 		);
 
@@ -41,10 +43,16 @@ class PortfolioGoalFacade
 		UuidInterface $id,
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
+		float $goal,
 	): void
 	{
 		$portfolioGoal = $this->portfolioGoalRepository->getById($id);
-		$portfolioGoal->update($startDate, $endDate, $this->datetimefactory->createNow());
+		$portfolioGoal->update(
+			$startDate,
+			$endDate,
+			$goal,
+			$this->datetimefactory->createNow(),
+		);
 		$this->entityManager->flush();
 	}
 

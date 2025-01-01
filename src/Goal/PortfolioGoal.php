@@ -40,6 +40,9 @@ class PortfolioGoal implements Entity
 	#[ORM\Column(type: Types::FLOAT)]
 	private float $valueAtEnd;
 
+	#[ORM\Column(type: Types::FLOAT)]
+	private float $goal;
+
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $active;
 
@@ -51,6 +54,7 @@ class PortfolioGoal implements Entity
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		PortfolioGoalTypeEnum $type,
+		float $goal,
 		ImmutableDateTime $now,
 	)
 	{
@@ -58,6 +62,7 @@ class PortfolioGoal implements Entity
 		$this->startDate = $startDate;
 		$this->endDate = $endDate;
 		$this->type = $type;
+		$this->goal = $goal;
 		$this->active = false;
 		$this->valueAtStart = 0;
 		$this->currentValue = 0;
@@ -70,11 +75,13 @@ class PortfolioGoal implements Entity
 	public function update(
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
+		float $goal,
 		ImmutableDateTime $now,
 	): void
 	{
 		$this->startDate = $startDate;
 		$this->endDate = $endDate;
+		$this->goal = $goal;
 		$this->updatedAt = $now;
 	}
 
@@ -149,6 +156,16 @@ class PortfolioGoal implements Entity
 	public function isActive(): bool
 	{
 		return $this->active;
+	}
+
+	public function getGoal(): float
+	{
+		return $this->goal;
+	}
+
+	public function setGoal(float $goal): void
+	{
+		$this->goal = $goal;
 	}
 
 }

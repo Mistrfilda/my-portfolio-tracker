@@ -42,6 +42,7 @@ class PortfolioGoalGridFactory
 			static fn (PortfolioGoal $portfolioGoal) => BooleanFilter::format($portfolioGoal->isActive()),
 		);
 
+		$grid->addColumnBadge('goal', 'Cílová částka', TailwindColorConstant::BLUE);
 		$grid->addColumnBadge('valueAtStart', 'Hodnota na začátku', TailwindColorConstant::YELLOW);
 		$grid->addColumnBadge('currentValue', 'Aktuální hodnota', TailwindColorConstant::BLUE);
 		$grid->addColumnBadge('valueAtEnd', 'Hodnota na konci', TailwindColorConstant::GREEN);
