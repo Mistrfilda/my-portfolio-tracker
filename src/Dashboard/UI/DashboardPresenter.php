@@ -7,6 +7,8 @@ namespace App\Dashboard\UI;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Dashboard\UI\DashboardValueControl\DashboardValueControl;
 use App\Dashboard\UI\DashboardValueControl\DashboardValueControlFactory;
+use App\Goal\UI\Control\PortfolioGoalControl;
+use App\Goal\UI\Control\PortfolioGoalControlFactory;
 use App\System\UI\SystemValueControl;
 use App\System\UI\SystemValueControlFactory;
 use App\UI\Base\BaseAdminPresenter;
@@ -18,6 +20,7 @@ class DashboardPresenter extends BaseAdminPresenter
 		private readonly DashboardValueBuilderFacade $dashboardValueBuilder,
 		private readonly DashboardValueControlFactory $dashboardValueControlFactory,
 		private readonly SystemValueControlFactory $systemValueControlFactory,
+		private readonly PortfolioGoalControlFactory $portfolioGoalControlFactory,
 	)
 	{
 		parent::__construct();
@@ -36,6 +39,11 @@ class DashboardPresenter extends BaseAdminPresenter
 	public function createComponentSystemValueControl(): SystemValueControl
 	{
 		return $this->systemValueControlFactory->create();
+	}
+
+	protected function createComponentPortfolioGoalControl(): PortfolioGoalControl
+	{
+		return $this->portfolioGoalControlFactory->create();
 	}
 
 }

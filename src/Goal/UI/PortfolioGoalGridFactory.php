@@ -34,6 +34,7 @@ class PortfolioGoalGridFactory
 
 		$grid->addColumnDate('startDate', 'Začátek cíle');
 		$grid->addColumnDate('endDate', 'Konec cíle');
+		$grid->addColumnDatetime('updatedAt', 'Aktualizováno');
 		$grid->addColumnText('type', 'Typ cíle');
 		$grid->addColumnBadge(
 			'active',

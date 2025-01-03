@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
+use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -111,8 +112,34 @@ class PortfolioGoal implements Entity
 	public function updateCurrentValue(float $currentValue, ImmutableDateTime $now): void
 	{
 		$this->currentValue = $currentValue;
+		$this->valueAtStart = $currentValue;
 		$this->statistics[$now->format('Y-m-d')] = $currentValue;
 		$this->updatedAt = $now;
+	}
+
+	public function getCompletionPercentage(): float
+	{
+		return ($this->currentValue - $this->valueAtStart) / ($this->goal - $this->valueAtStart) * 100;
+	}
+
+	public function getRemainingAmount(): float
+	{
+		return $this->goal - $this->currentValue;
+	}
+
+	public function getCurrency(): CurrencyEnum
+	{
+		return $this->type->getCurrency();
+	}
+
+	public function getRemainingDays(): int
+	{
+		$remainingDays = $this->endDate->diff($this->startDate)->days;
+		if ($remainingDays === false) {
+			return 0;
+		}
+
+		return $remainingDays;
 	}
 
 	/**

@@ -1,0 +1,108 @@
+{templateType App\Goal\UI\Control\PortfolioGoalControlTemplate}
+{if count($goals) > 0}
+    <div x-data="{
+            open: true,
+            toggle() {
+                this.open = !this.open
+            }
+        }"
+    >
+        <div class="pb-5 border-b border-gray-200 py-6">
+            <div class="flex justify-between">
+                <div>
+                    <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                        <button x-on:click="toggle()">
+                            Aktuální cíle portfolia
+                        </button>
+                    </h2>
+                </div>
+                <div>
+                    <button x-on:click="toggle()" type="button"
+                            class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
+                            aria-controls="sub-menu-1" aria-expanded="false">
+                        <svg
+                                :class="open ? 'rotate-90' : ''"
+                                class="text-gray-400 h-5 w-5 shrink-0"
+                                viewBox="0 0 20 20"
+                                fill="currentColor"
+                                aria-hidden="true"
+                        >
+                            <path fill-rule="evenodd"
+                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
+                                  clip-rule="evenodd"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div
+                x-show="open"
+                x-cloak="open"
+                x-transition:enter="transition-opacity ease-linear duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition-opacity ease-linear duration-300"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+        >
+            <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2 mb-4">
+                {foreach $goals as $goal}
+                    <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+                        <ul role="list" class="divide-y divide-gray-100 m-4">
+                            <li class="py-1">
+                                <div class="px-4">
+                                    <h4 class="sr-only">Status</h4>
+                                    <p class="text-sm font-medium text-gray-900 text-center">{$goal->getType()->format()}</p>
+                                    <p class="text-sm font-medium text-gray-900 text-center">
+                                        {$goal->getStartDate()|datetimeFormat:'d. m. Y'} - {$goal->getEndDate()|datetimeFormat:'d. m. Y'}
+                                    </p>
+                                    <div class="mt-6" aria-hidden="true">
+                                        <div class="overflow-hidden rounded-full bg-gray-200">
+                                            {var $style = "width:" . $goal->getCompletionPercentage() . "%"}
+                                            <div class="h-2 rounded-full bg-blue-600" style="{$style|noescape}"></div>
+                                        </div>
+                                        <div class="mt-6 grid grid-cols-3 text-sm font-medium text-gray-600">
+                                            <div class="text-left">
+                                                {$goal->getValueAtStart()|currency:$goal->getCurrency()}
+                                            </div>
+                                            <div class="text-center">
+                                                <div class="text-gray-900">{$goal->getCurrentValue()|currency:$goal->getCurrency()}</div>
+                                                <div class="text-gray-500">
+                                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
+                                                        {$goal->getCompletionPercentage()|percentage:2}
+                                                    </span>
+
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                {$goal->getGoal()|currency:$goal->getCurrency()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <dl class="divide-y divide-gray-100 border-t border-gray-100 mt-2">
+                                    <div class="px-4 py-6 grid grid-cols-3 text-sm font-medium text-gray-600">
+                                        <div class="text-gray-500">Hodnota do splnění cíle</div>
+                                        <div></div>
+                                        <div class="text-right text-gray-900">{$goal->getRemainingAmount()|currency:$goal->getCurrency()}</div>
+                                    </div>
+                                    <div class="px-4 py-6 grid grid-cols-3 text-sm font-medium text-gray-600">
+                                        <div class="text-gray-500">Počet dnů do konce</div>
+                                        <div></div>
+                                        <div class="text-right text-gray-900">{$goal->getRemainingDays()}</div>
+                                    </div>
+                                    <div class="px-4 py-6 grid grid-cols-3 text-sm font-medium text-gray-600">
+                                        <div class="text-gray-500">Aktualizováno</div>
+                                        <div></div>
+                                        <div class="text-right text-gray-900">{$goal->getUpdatedAt()|datetimeFormat}</div>
+                                    </div>
+                                </dl>
+                            </li>
+                        </ul>
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+{/if}
