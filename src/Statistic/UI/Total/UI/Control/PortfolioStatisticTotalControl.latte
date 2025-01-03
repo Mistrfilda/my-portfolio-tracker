@@ -99,53 +99,53 @@
 
             <ul role="list" class="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8">
                 {foreach $group->getValues() as $value}
-                <li class="overflow-hidden rounded-xl border border-gray-200">
-                    <div class="flex items-center gap-x-4 border-b border-gray-800 bg-gray-50 p-6">
-                        <div class="text-sm font-medium leading-6 text-gray-900">{$value->getLabel()}</div>
-                    </div>
-                    <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6 bg-gray-50 border-t border-t-gray-800">
-                        <div class="flex justify-between gap-x-4 py-3">
-                            <dt class="text-gray-500">Investováno na začátku</dt>
-                            <dd class="flex items-start gap-x-2">
-                                <div class="font-medium text-gray-900">{$value->getInvestedAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                            </dd>
+                    <li class="overflow-hidden rounded-xl border border-gray-200">
+                        <div class="flex items-center gap-x-4 border-b border-gray-800 bg-gray-50 p-6">
+                            <div class="text-sm font-medium leading-6 text-gray-900">{$value->getLabel()}</div>
                         </div>
-                        <div class="flex justify-between gap-x-4 py-3">
-                            <dt class="text-gray-500">Investováno na konci</dt>
-                            <dd class="flex items-start gap-x-2">
-                                <div class="font-medium text-gray-900">{$value->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-x-4 py-3">
-                            <dt class="text-gray-500">Hodnota na začátku</dt>
-                            <dd class="flex items-start gap-x-2">
-                                <div class="font-medium text-gray-900">{$value->getValueAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-x-4 py-3">
-                            <dt class="text-gray-500">Hodnota na konci</dt>
-                            <dd class="flex items-start gap-x-2">
-                                <div class="font-medium text-gray-900">{$value->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                            </dd>
-                        </div>
-                        <div class="flex justify-between gap-x-4 py-3">
-                            <dt class="text-gray-500">Rozdíl</dt>
-                            <dd class="flex items-start gap-x-2">
-                                <div class="font-medium text-gray-900">
-                                    {if $value->getDiffAmount() < 0}
-                                        <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                            {$value->getDiffAmount()|currency:App\Currency\CurrencyEnum::CZK}
-                                        </div>
-                                    {else}
-                                        <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                            {$value->getDiffAmount()|currency:App\Currency\CurrencyEnum::CZK}
-                                        </div>
-                                    {/if}
-                                </div>
-                            </dd>
-                        </div>
-                    </dl>
-                </li>
+                        <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6 bg-gray-50 border-t border-t-gray-800">
+                            <div class="flex justify-between gap-x-4 py-3">
+                                <dt class="text-gray-500">Investováno na začátku</dt>
+                                <dd class="flex items-start gap-x-2">
+                                    <div class="font-medium text-gray-900">{$value->getInvestedAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-x-4 py-3">
+                                <dt class="text-gray-500">Investováno na konci</dt>
+                                <dd class="flex items-start gap-x-2">
+                                    <div class="font-medium text-gray-900">{$value->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-x-4 py-3">
+                                <dt class="text-gray-500">Hodnota na začátku</dt>
+                                <dd class="flex items-start gap-x-2">
+                                    <div class="font-medium text-gray-900">{$value->getValueAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-x-4 py-3">
+                                <dt class="text-gray-500">Hodnota na konci</dt>
+                                <dd class="flex items-start gap-x-2">
+                                    <div class="font-medium text-gray-900">{$value->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
+                                </dd>
+                            </div>
+                            <div class="flex justify-between gap-x-4 py-3">
+                                <dt class="text-gray-500">Rozdíl</dt>
+                                <dd class="flex items-start gap-x-2">
+                                    <div class="font-medium text-gray-900">
+                                        {if $value->getDiffAmount() < 0}
+                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
+                                                {$value->getDiffAmount()|currency:App\Currency\CurrencyEnum::CZK}
+                                            </div>
+                                        {else}
+                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                                {$value->getDiffAmount()|currency:App\Currency\CurrencyEnum::CZK}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </dd>
+                            </div>
+                        </dl>
+                    </li>
                 {/foreach}
             </ul>
         </div>
