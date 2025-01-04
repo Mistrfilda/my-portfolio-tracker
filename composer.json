@@ -138,12 +138,12 @@
 		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",
 		"consumer-queue": "bin/console-rabbit rabbitmq:consumer --",
 		"asset-trend": "bin/console asset:trend:process --",
-		"yarn-prod": "yarn build-prod",
+		"npm-prod": "npm run build-prod",
 		"deploy-all": [
 			"@comload",
 			"@migm",
 			"@clear",
-			"@yarn-prod"
+			"@npm-prod"
 		],
 		"harvest-download": [
 			"bin/console workMonthlyIncome:download",
