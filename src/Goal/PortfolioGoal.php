@@ -112,7 +112,7 @@ class PortfolioGoal implements Entity
 	public function updateCurrentValue(float $currentValue, ImmutableDateTime $now): void
 	{
 		$this->currentValue = $currentValue;
-		$this->valueAtStart = $currentValue;
+		$this->valueAtEnd = $currentValue;
 		$this->statistics[$now->format('Y-m-d')] = $currentValue;
 		$this->updatedAt = $now;
 	}

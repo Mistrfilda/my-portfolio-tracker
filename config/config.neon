@@ -412,3 +412,4 @@ services:
 	- App\Goal\Resolver\PortfolioGoalTotalInvestedAmountResolver
 	- App\Goal\PortfolioGoalUpdateCommand
 	- App\Goal\UI\Control\PortfolioGoalControlFactory
+	- App\Goal\Resolver\PortfolioGoalTotalDividendAmountResolver

@@ -32,6 +32,7 @@ class PortfolioGoalFormFactory
 		$type = $form->addSelect('type', 'Typ', [
 			PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT->value => PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT->format(),
 			PortfolioGoalTypeEnum::TOTAL_INCOME->value => PortfolioGoalTypeEnum::TOTAL_INCOME->format(),
+			PortfolioGoalTypeEnum::TOTAL_DIVIDEND_AMOUNT->value => PortfolioGoalTypeEnum::TOTAL_DIVIDEND_AMOUNT->format(),
 		])->setRequired()->setPrompt(AdminForm::SELECT_PLACEHOLDER);
 
 		$form->addFloat('goal', 'Cílová částka')->setRequired();

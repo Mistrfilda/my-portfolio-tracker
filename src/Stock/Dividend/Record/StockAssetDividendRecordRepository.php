@@ -187,6 +187,22 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
+	public function findBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('stockAssetDividend.exDate', ':start'),
+			$qb->expr()->lte('stockAssetDividend.exDate', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
 	public function findLastDividendRecords(int $limit = 8): array
 	{
 		$qb = $this->createQueryBuilder();
