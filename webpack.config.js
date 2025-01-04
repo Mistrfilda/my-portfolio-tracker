@@ -17,7 +17,7 @@ Encore
     .addEntry('admin', './assets/app.ts')
     .splitEntryChunks()
     .enableSingleRuntimeChunk()
-    .cleanupOutputBeforeBuild(['**/*', '!.gitkeep'])
+    .cleanupOutputBeforeBuild()
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
     .enableVersioning(Encore.isProduction())
@@ -25,7 +25,11 @@ Encore
         config.useBuiltIns = 'usage';
         config.corejs = 3;
     })
-    .enableSassLoader()
+    .enableSassLoader((options) => {
+        options.sassOptions = {
+            quietDeps: true,
+        };
+    })
     .enablePostCssLoader()
     .enableTypeScriptLoader();
 
