@@ -275,8 +275,9 @@ class StockAsset implements Entity, Asset
 			),
 		);
 
+		$deductDays = 1;
 		while (count($priceRecords) === 0) {
-			$modifiedDate = $date->deductDaysFromDatetime(1);
+			$modifiedDate = $date->deductDaysFromDatetime($deductDays);
 			$priceRecords = $this->priceRecords->filter(
 				static fn (StockAssetPriceRecord $stockAssetPriceRecord) => $stockAssetPriceRecord->getDate()->format(
 					'Y-m-d',
@@ -286,6 +287,7 @@ class StockAsset implements Entity, Asset
 			if ($modifiedDate->diff($date)->days > 7) {
 				break;
 			}
+			$deductDays++;
 		}
 
 		if (count($priceRecords) === 0) {
