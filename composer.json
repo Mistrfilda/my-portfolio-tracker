@@ -158,6 +158,7 @@
 			"dealerdirect/phpcodesniffer-composer-installer": true,
 			"phpstan/extension-installer": true
 		},
-		"sort-packages": true
+		"sort-packages": true,
+		"process-timeout": 1200
 	}
 }
