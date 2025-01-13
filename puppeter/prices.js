@@ -32,7 +32,17 @@ async function processData(entries) {
 		slowMo: 100,
 		browser: "firefox",
 		executablePath: "/usr/bin/firefox",
-		args: ['--no-sandbox', '--in-process-gpu', '--disable-gpu', '--disable-dev-shm-usage', '--disable-setuid-sandbox'],
+		args: [
+			'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
+			'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
+			'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
+			'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
+			'--incognito', // Stránky se otevírají v režimu inkognito
+			'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
+			'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
+			'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření
+			'--disable-sync', // Zakáže synchronizaci (méně systémové zátěže)
+		],
 	});
 
 	console.log(entries);
@@ -41,25 +51,31 @@ async function processData(entries) {
 
 		const page = await browser.newPage();
 
-		await page.goto(url);
-		await page.setViewport({width: 1080, height: 1024});
+		try {
+			await page.goto(url);
+			await page.setViewport({width: 1080, height: 1024});
 
-		if (index === 0) {
-			var accept = ("#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button");
-			await page.click(accept)
+			if (index === 0) {
+				var accept = ("#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button");
+				await page.click(accept)
+			}
+
+			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span)")
+			var price = await page.evaluate(element => element.textContent, element);
+
+			console.log(entry);
+			console.log(price);
+			result.push({
+				id,
+				name,
+				currency,
+				price
+			});
+		} catch (pageError) {
+			console.error(`Error processing page for entry ${name} (ID: ${id}):`, pageError);
+		} finally {
+			await page.close();
 		}
-
-		var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span)")
-		var price = await page.evaluate(element => element.textContent, element);
-
-		console.log(entry);
-		console.log(price);
-		result.push({
-			id,
-			name,
-			currency,
-			price
-		});
 	}
 
 	await browser.close();

@@ -25,45 +25,79 @@ async function processData(entries) {
 		throw new TypeError('The provided input is not an array');
 	}
 
-	const browser = await puppeteer.launch({
-		// headless: false,
-		// devtools: true,
-		headless: true,
-		slowMo: 100,
-		browser: "firefox",
-		executablePath: "/usr/bin/firefox",
-		args: ['--no-sandbox', '--in-process-gpu', '--disable-gpu', '--disable-dev-shm-usage', '--disable-setuid-sandbox'],
-	});
-
-	console.log(entries);
-	for (const [index, entry] of entries.entries()) {
-		const { id, name, currency, url } = entry;
-
-		const page = await browser.newPage();
-
-		await page.goto(url);
-		await page.setViewport({width: 1080, height: 1024});
-
-		if (index === 0) {
-			var accept = ("#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button");
-			await page.click(accept)
-		}
-
-		var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/div[1]/div[3]/table)")
-		var textContent = await page.evaluate(element => element.textContent, element);
-		var html = await page.evaluate(element => element.innerHTML, element);
-		console.log(textContent);
-
-		result.push({
-			id,
-			name,
-			currency,
-			textContent,
-			html
+	let browser;
+	try {
+		// Spuštění prohlížeče
+		browser = await puppeteer.launch({
+			// headless: false,
+			// devtools: true,
+			headless: true,
+			slowMo: 100,
+			browser: "firefox",
+			executablePath: "/usr/bin/firefox",
+			args: [
+				'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
+				'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
+				'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
+				'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
+				'--incognito', // Stránky se otevírají v režimu inkognito
+				'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
+				'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
+				'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření
+				'--disable-sync', // Zakáže synchronizaci (méně systémové zátěže)
+			],
 		});
+
+		console.log(entries);
+
+		for (const [index, entry] of entries.entries()) {
+			try {
+				const { id, name, currency, url } = entry;
+				console.log('Processing: ' + name + ', ' + url + ', ' + currency + ', ' + id);
+
+				const page = await browser.newPage();
+
+				try {
+					await page.goto(url, { timeout: 30000, waitUntil: 'domcontentloaded' });
+					await page.setViewport({ width: 1080, height: 1024 });
+
+					if (index === 0) {
+						const acceptSelector = "#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button";
+						await page.click(acceptSelector).catch(() => {
+							console.warn(`Consent button not found for URL: ${url}`);
+						});
+					}
+
+					const element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/div[1]/div[3]/table)", { timeout: 5000 });
+					const textContent = await page.evaluate(el => el.textContent, element);
+					const html = await page.evaluate(el => el.innerHTML, element);
+
+					console.log(`Text content for ${name}:`, textContent);
+
+					result.push({
+						id,
+						name,
+						currency,
+						textContent,
+						html
+					});
+				} catch (pageError) {
+					console.error(`Error processing page for entry ${name} (ID: ${id}):`, pageError);
+				} finally {
+					await page.close();
+				}
+			} catch (entryError) {
+				console.error(`Error processing entry:`, entryError);
+			}
+		}
+	} catch (browserError) {
+		console.error('Error launching browser or during processing:', browserError);
+	} finally {
+		if (browser) {
+			await browser.close();
+		}
 	}
 
-	await browser.close();
 	return result;
 }
 
