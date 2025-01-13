@@ -47,7 +47,7 @@
 		"nettrine/annotations": "^0.8",
 		"nettrine/cache": "^0.4",
 		"nettrine/dbal": "^0.9",
-		"nettrine/migrations": "^0.9",
+		"nettrine/migrations": "^0.10",
 		"nettrine/orm": "^0.9",
 		"nyholm/psr7": "^1.5",
 		"psr/http-client": "^1.0",
