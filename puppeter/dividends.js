@@ -40,7 +40,6 @@ async function processData(entries) {
 				'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
 				'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
 				'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
-				'--incognito', // Stránky se otevírají v režimu inkognito
 				'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
 				'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
 				'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření

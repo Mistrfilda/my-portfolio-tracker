@@ -30,14 +30,13 @@ async function processData(entries) {
 		// devtools: true,
 		headless: true,
 		slowMo: 100,
-		browser: "firefox",
-		executablePath: "/usr/bin/firefox",
+		// browser: "firefox",
+		// executablePath: "/usr/bin/firefox",
 		args: [
 			'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
 			'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
 			'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
 			'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
-			'--incognito', // Stránky se otevírají v režimu inkognito
 			'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
 			'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
 			'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření
@@ -60,7 +59,7 @@ async function processData(entries) {
 				await page.click(accept)
 			}
 
-			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/fin-streamer[1]/span)")
+			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span)")
 			var price = await page.evaluate(element => element.textContent, element);
 
 			console.log(entry);
