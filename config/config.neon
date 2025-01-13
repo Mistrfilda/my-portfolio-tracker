@@ -1,3 +1,6 @@
+di:
+	lazy: false
+
 parameters:
 	basePresenterParameters:
 		pageTitle: 'My portfolio app'
