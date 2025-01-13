@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Nastavit, aby skript skončil při jakékoliv chybě
+set -e
+
 # Cesta k textovému souboru s verzemi
 VERSION_FILE="deploy-versions.txt"
 
@@ -22,6 +25,10 @@ NGINX_IMAGE="my-portfolio-tracker-nginx"
 
 # Sestavení Docker obrazů
 docker-compose build
+if [ $? -ne 0 ]; then
+    echo "Error: Docker Compose build failed. Deployment aborted."
+    exit 1
+fi
 
 # Označení obrazů s verzemi ze souboru
 docker tag $PHP_IMAGE $REPO_URL/$PHP_IMAGE:$NEW_PHP_VERSION
