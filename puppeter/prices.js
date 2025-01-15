@@ -30,8 +30,8 @@ async function processData(entries) {
 		// devtools: true,
 		headless: true,
 		slowMo: 100,
-		// browser: "firefox",
-		// executablePath: "/usr/bin/firefox",
+		browser: "firefox",
+		executablePath: "/usr/bin/firefox",
 		args: [
 			'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
 			'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
