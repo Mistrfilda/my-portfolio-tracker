@@ -287,6 +287,7 @@ class StockAsset implements Entity, Asset
 			if ($modifiedDate->diff($date)->days > 7) {
 				break;
 			}
+
 			$deductDays++;
 		}
 
