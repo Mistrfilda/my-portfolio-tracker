@@ -132,9 +132,9 @@ class PortfolioGoal implements Entity
 		return $this->type->getCurrency();
 	}
 
-	public function getRemainingDays(): int
+	public function getRemainingDays(ImmutableDateTime $now): int
 	{
-		$remainingDays = $this->endDate->diff($this->startDate)->days;
+		$remainingDays = $this->endDate->diff($now)->days;
 		if ($remainingDays === false) {
 			return 0;
 		}

@@ -27,6 +27,7 @@ class PortfolioGoalControl extends BaseControl
 		$template->goals = $this->portfolioGoalRepository->findActive(
 			$this->datetimeFactory->createNow(),
 		);
+		$template->now = $this->datetimeFactory->createNow();
 		$template->setFile(__DIR__ . '/PortfolioGoalControl.latte');
 		$template->render();
 	}
