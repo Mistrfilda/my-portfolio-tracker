@@ -74,7 +74,7 @@ class StockAssetDividendFacade
 	public function getLastYearDividendRecordsForDashboard(): array
 	{
 		return $this->stockAssetDividendRepository->findGreaterThan(
-			$this->datetimeFactory->createNow()->deductYearsFromDatetime(1),
+			$this->datetimeFactory->createNow()->deductDaysFromDatetime(380),
 			15,
 		);
 	}
