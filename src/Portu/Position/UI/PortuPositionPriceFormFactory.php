@@ -47,7 +47,9 @@ class PortuPositionPriceFormFactory
 			'Aktuálně zainvestovaná částka',
 		)->setRequired()->addRule(Form::Float);
 
-		$form->addCheckbox('shouldUpdateWholePosition', 'Aktualizovat cenu celého portfolia');
+		$form
+			->addCheckbox('shouldUpdateWholePosition', 'Aktualizovat cenu celého portfolia')
+			->setDefaultValue(true);
 
 		if ($previousPortuPositionPrice !== null) {
 			$this->setDefaults(
