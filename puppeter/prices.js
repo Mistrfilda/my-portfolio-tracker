@@ -55,8 +55,13 @@ async function processData(entries) {
 			await page.setViewport({width: 1080, height: 1024});
 
 			if (index === 0) {
-				var accept = ("#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button");
-				await page.click(accept)
+				try {
+					await page.waitForSelector('.consent-overlay');
+					// click the "accept all" button
+					await page.click('.consent-overlay .accept-all');
+				} catch (e) {
+					console.log('Cookie has been authorized');
+				}
 			}
 
 			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/div/section/div[1]/div[1]/span)")

@@ -61,13 +61,16 @@ async function processData(entries) {
 					await page.setViewport({ width: 1080, height: 1024 });
 
 					if (index === 0) {
-						const acceptSelector = "#consent-page > div > div > div > form > div.wizard-body > div.actions.couple > button";
-						await page.click(acceptSelector).catch(() => {
-							console.warn(`Consent button not found for URL: ${url}`);
-						});
+						try {
+							await page.waitForSelector('.consent-overlay');
+							// click the "accept all" button
+							await page.click('.consent-overlay .accept-all');
+						} catch (e) {
+							console.log('Cookie has been authorized');
+						}
 					}
 
-					const element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/div[1]/div[3]/table)", { timeout: 5000 });
+					const element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/div[2]/div[3]/table)", { timeout: 5000 });
 					const textContent = await page.evaluate(el => el.textContent, element);
 					const html = await page.evaluate(el => el.innerHTML, element);
 
