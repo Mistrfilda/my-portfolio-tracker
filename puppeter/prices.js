@@ -59,7 +59,7 @@ async function processData(entries) {
 				await page.click(accept)
 			}
 
-			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span)")
+			var element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/section[1]/div[2]/div[1]/section/div/div/section/div[1]/div[1]/span)")
 			var price = await page.evaluate(element => element.textContent, element);
 
 			console.log(entry);
