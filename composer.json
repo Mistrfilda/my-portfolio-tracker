@@ -17,6 +17,7 @@
 	"require": {
 		"php": ">= 8.4",
 		"ext-dom": "*",
+		"ext-iconv": "*",
 		"ext-simplexml": "*",
 		"beberlei/doctrineextensions": "^1.3",
 		"bunny/bunny": "*",

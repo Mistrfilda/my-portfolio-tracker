@@ -336,6 +336,7 @@ services:
 
 
 	- App\Cash\Bank\Kb\KbPdfCashParser
+	- App\Cash\Bank\Kb\KbCsvCashParser
 	- App\Cash\Bank\Kb\KbContentParser
 	- App\Cash\Bank\Kb\KbCashFacade
 

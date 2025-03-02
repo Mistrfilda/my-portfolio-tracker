@@ -6,8 +6,10 @@ namespace App\Cash\Expense\UI;
 
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\Kb\KbCashFacade;
+use App\Cash\Bank\Kb\KbSourceEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
+use App\Utils\TypeValidator;
 use InvalidArgumentException;
 use Nette\Application\UI\Form;
 use Nette\Http\FileUpload;
@@ -28,15 +30,16 @@ class BankExpenseUploadFormFactory
 	{
 		$form = $this->adminFormFactory->create();
 
-		$form->addUpload('pdfFile', 'Nahrajte PDF')
-			->setRequired()
-			->addRule(Form::MimeType, 'Soubor musí být PDF', 'application/pdf');
+		$form->addSelect('source', 'Typ souboru', KbSourceEnum::getSelectOptions());
+
+		$form->addUpload('file', 'Nahrajte soubor')
+			->setRequired();
 
 		$form->onSuccess[] = function (Form $form) use ($onSuccess, $bankSource): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
 
-			$file = $values->pdfFile;
+			$file = $values->file;
 			assert($file instanceof FileUpload);
 
 			$contents = $file->getContents();
@@ -46,7 +49,10 @@ class BankExpenseUploadFormFactory
 			}
 
 			match ($bankSource) {
-				BankSourceEnum::KOMERCNI_BANKA => $onSuccess($this->kbExpenseFacade->processFileContents($contents))
+				BankSourceEnum::KOMERCNI_BANKA => $onSuccess($this->kbExpenseFacade->processFileContents(
+					$contents,
+					KbSourceEnum::from(TypeValidator::validateString($values->source)),
+				))
 			};
 
 			throw new InvalidArgumentException();

@@ -20,6 +20,7 @@ class KbCashFacade implements BankExpenseFacade
 
 	public function __construct(
 		private KbPdfCashParser $kbPdfExpenseParser,
+		private KbCsvCashParser $kbCsvExpenseParser,
 		private BankExpenseRepository $bankExpenseRepository,
 		private BankIncomeRepository $bankIncomeRepository,
 		private DatetimeFactory $datetimeFactory,
@@ -33,9 +34,17 @@ class KbCashFacade implements BankExpenseFacade
 	/**
 	 * Returns TRUE if hasErrors, else FALSE
 	 */
-	public function processFileContents(string $fileContents): bool
+	public function processFileContents(string $fileContents, KbSourceEnum $kbSourceEnum): bool
 	{
-		$parsedContents = $this->kbPdfExpenseParser->parse($fileContents);
+		$parsedContents = null;
+		match ($kbSourceEnum) {
+			KbSourceEnum::CSV => $parsedContents = $this->kbCsvExpenseParser->parse($fileContents),
+			KbSourceEnum::PDF => $parsedContents = $this->kbPdfExpenseParser->parse($fileContents),
+		};
+
+		if ($parsedContents === null) {
+			return false;
+		}
 
 		foreach ($parsedContents->getProcessedTransactions() as $transaction) {
 			$id = $this->computeIdForTransaction($transaction);
