@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\Kb\KbCashFacade;
 use App\Cash\Bank\Kb\KbSourceEnum;
@@ -14,6 +15,7 @@ use InvalidArgumentException;
 use Nette\Application\UI\Form;
 use Nette\Http\FileUpload;
 use Nette\Utils\ArrayHash;
+use Ramsey\Uuid\Uuid;
 use function assert;
 
 class BankExpenseUploadFormFactory
@@ -22,6 +24,7 @@ class BankExpenseUploadFormFactory
 	public function __construct(
 		private KbCashFacade $kbExpenseFacade,
 		private AdminFormFactory $adminFormFactory,
+		private BankAccountRepository $bankAccountRepository,
 	)
 	{
 	}
@@ -30,7 +33,13 @@ class BankExpenseUploadFormFactory
 	{
 		$form = $this->adminFormFactory->create();
 
-		$form->addSelect('source', 'Typ souboru', KbSourceEnum::getSelectOptions());
+		$form->addSelect('source', 'Typ souboru', KbSourceEnum::getSelectOptions())->setRequired();
+
+		$form->addSelect(
+			'bankAccount',
+			'Z bankovního účtu',
+			$this->bankAccountRepository->findPairs(),
+		)->setRequired();
 
 		$form->addUpload('file', 'Nahrajte soubor')
 			->setRequired();
@@ -52,6 +61,9 @@ class BankExpenseUploadFormFactory
 				BankSourceEnum::KOMERCNI_BANKA => $onSuccess($this->kbExpenseFacade->processFileContents(
 					$contents,
 					KbSourceEnum::from(TypeValidator::validateString($values->source)),
+					$this->bankAccountRepository->getById(
+						Uuid::fromString(TypeValidator::validateString($values->bankAccount)),
+					),
 				))
 			};
 

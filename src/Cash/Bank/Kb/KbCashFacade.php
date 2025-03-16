@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Bank\Kb;
 
+use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseFacade;
@@ -34,7 +35,11 @@ class KbCashFacade implements BankExpenseFacade
 	/**
 	 * Returns TRUE if hasErrors, else FALSE
 	 */
-	public function processFileContents(string $fileContents, KbSourceEnum $kbSourceEnum): bool
+	public function processFileContents(
+		string $fileContents,
+		KbSourceEnum $kbSourceEnum,
+		BankAccount $bankAccount,
+	): bool
 	{
 		$parsedContents = null;
 		match ($kbSourceEnum) {
@@ -63,6 +68,7 @@ class KbCashFacade implements BankExpenseFacade
 				$transaction->getTransactionDate(),
 				$transaction->getTransactionRawContent() ?? '',
 				$this->datetimeFactory->createNow(),
+				$bankAccount,
 			);
 
 			$this->entityManager->persist($expense);
@@ -85,6 +91,7 @@ class KbCashFacade implements BankExpenseFacade
 				$transaction->getSettlementDate(),
 				$transaction->getTransactionRawContent() ?? '',
 				$this->datetimeFactory->createNow(),
+				$bankAccount,
 			);
 
 			$this->entityManager->persist($income);

@@ -33,6 +33,7 @@ class ExpenseTagFacade
 		int|null $expenseCategory,
 		int|null $parentTag,
 		array $regexes,
+		bool $isTax,
 	): ExpenseTag
 	{
 		if ($expenseCategory === null && $parentTag === null) {
@@ -51,7 +52,7 @@ class ExpenseTagFacade
 			$parentTagEntity = $this->expenseTagRepository->getById($parentTag);
 		}
 
-		$expenseTag = new ExpenseTag($name, $expenseCategoryEntity, $parentTagEntity, $regexes, $now);
+		$expenseTag = new ExpenseTag($name, $expenseCategoryEntity, $parentTagEntity, $regexes, $now, $isTax);
 		$this->entityManager->persist($expenseTag);
 		$this->entityManager->flush();
 		$this->entityManager->refresh($expenseTag);
@@ -62,13 +63,14 @@ class ExpenseTagFacade
 	/**
 	 * @param array<string> $regexes
 	 */
-	public function update(int $id, string $name, array $regexes): ExpenseTag
+	public function update(int $id, string $name, array $regexes, bool $isTax): ExpenseTag
 	{
 		$expenseTag = $this->expenseTagRepository->getById($id);
 		$expenseTag->update(
 			$name,
 			$regexes,
 			$this->datetimeFactory->createNow(),
+			$isTax,
 		);
 		$this->entityManager->flush();
 

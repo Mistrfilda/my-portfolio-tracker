@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Expense;
@@ -69,6 +70,10 @@ class BankExpense implements Entity, Expense
 	#[ORM\ManyToMany(targetEntity: ExpenseTag::class, inversedBy: 'otherExpenses')]
 	private Collection $otherTags;
 
+	#[ORM\ManyToOne(targetEntity: BankAccount::class, inversedBy: 'expenses')]
+	#[ORM\JoinColumn(nullable: false)]
+	private BankAccount $bankAccount;
+
 	public function __construct(
 		string $identifier,
 		BankSourceEnum $source,
@@ -79,6 +84,7 @@ class BankExpense implements Entity, Expense
 		ImmutableDateTime|null $transactionDate,
 		string $transactionRawContent,
 		ImmutableDateTime $now,
+		BankAccount $bankAccount,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -92,6 +98,7 @@ class BankExpense implements Entity, Expense
 		$this->transactionRawContent = $transactionRawContent;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+		$this->bankAccount = $bankAccount;
 
 		$this->otherTags = new ArrayCollection();
 		$this->mainTag = null;
@@ -109,6 +116,7 @@ class BankExpense implements Entity, Expense
 		ImmutableDateTime|null $transactionDate,
 		string $transactionRawContent,
 		ImmutableDateTime $now,
+		BankAccount $bankAccount,
 	): void
 	{
 		if ($identifier !== null) {
@@ -123,6 +131,7 @@ class BankExpense implements Entity, Expense
 		$this->transactionDate = $transactionDate;
 		$this->transactionRawContent = $transactionRawContent;
 		$this->updatedAt = $now;
+		$this->bankAccount = $bankAccount;
 	}
 
 	public function setMainTag(ExpenseTag $expenseTag): void
@@ -255,6 +264,11 @@ class BankExpense implements Entity, Expense
 	public function isOtherTagSetManually(): bool
 	{
 		return $this->otherTagSetManually;
+	}
+
+	public function getBankAccount(): BankAccount
+	{
+		return $this->bankAccount;
 	}
 
 }

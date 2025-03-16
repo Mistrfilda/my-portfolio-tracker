@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\BankTransactionType;
 use App\Currency\CurrencyEnum;
@@ -20,6 +21,7 @@ class BankExpenseFormFacade implements BankExpenseFacade
 		private BankExpenseRepository $bankExpenseRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private BankAccountRepository $bankAccountRepository,
 	)
 	{
 	}
@@ -33,6 +35,7 @@ class BankExpenseFormFacade implements BankExpenseFacade
 		ImmutableDateTime|null $settlementDate,
 		ImmutableDateTime|null $transactionDate,
 		string $transactionRawContent,
+		UuidInterface $bankAccountId,
 	): BankExpense
 	{
 		if ($identifier === null) {
@@ -49,6 +52,7 @@ class BankExpenseFormFacade implements BankExpenseFacade
 			$transactionDate,
 			$transactionRawContent,
 			$this->datetimeFactory->createNow(),
+			$this->bankAccountRepository->getById($bankAccountId),
 		);
 
 		$this->entityManager->persist($bankExpense);
@@ -66,6 +70,7 @@ class BankExpenseFormFacade implements BankExpenseFacade
 		ImmutableDateTime|null $settlementDate,
 		ImmutableDateTime|null $transactionDate,
 		string $transactionRawContent,
+		UuidInterface $bankAccountId,
 	): BankExpense
 	{
 		$bankExpense = $this->bankExpenseRepository->getById($id);
@@ -80,6 +85,7 @@ class BankExpenseFormFacade implements BankExpenseFacade
 			$transactionDate,
 			$transactionRawContent,
 			$this->datetimeFactory->createNow(),
+			$this->bankAccountRepository->getById($bankAccountId),
 		);
 
 		$this->entityManager->flush();

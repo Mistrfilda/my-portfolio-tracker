@@ -151,6 +151,13 @@ class MenuBuilder
 				[],
 			),
 			new MenuItem(
+				'BankAccount',
+				'default',
+				SvgIcon::BANKNOTES,
+				'Bankovní účty',
+				[],
+			),
+			new MenuItem(
 				'BankIncome',
 				'default',
 				SvgIcon::COLLECTION,

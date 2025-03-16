@@ -52,6 +52,9 @@ class ExpenseTag implements Entity
 	#[ORM\ManyToMany(targetEntity: BankExpense::class, mappedBy: 'otherTags')]
 	private Collection $otherExpenses;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $isTax;
+
 	/**
 	 * @param array<string> $regexes
 	 */
@@ -61,6 +64,7 @@ class ExpenseTag implements Entity
 		ExpenseTag|null $parentTag,
 		array $regexes,
 		ImmutableDateTime $now,
+		bool $isTax,
 	)
 	{
 		$this->name = $name;
@@ -70,6 +74,7 @@ class ExpenseTag implements Entity
 		$this->regexes = $regexes;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+		$this->isTax = $isTax;
 
 		$this->mainExpenses = new ArrayCollection();
 		$this->otherExpenses = new ArrayCollection();
@@ -82,12 +87,14 @@ class ExpenseTag implements Entity
 		string $name,
 		array $regexes,
 		ImmutableDateTime $now,
+		bool $isTax,
 	): void
 	{
 		$this->name = $name;
 		$this->regexes = $regexes;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+		$this->isTax = $isTax;
 	}
 
 	public function isMainTag(): bool
@@ -145,6 +152,11 @@ class ExpenseTag implements Entity
 	public function getOtherExpenses(): array
 	{
 		return $this->otherExpenses->toArray();
+	}
+
+	public function isTax(): bool
+	{
+		return $this->isTax;
 	}
 
 }

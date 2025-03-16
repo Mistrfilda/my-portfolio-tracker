@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Income\Bank;
 
+use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Income\Income;
@@ -48,6 +49,10 @@ class BankIncome implements Entity, Income
 	#[ORM\Column(type: Types::TEXT)]
 	private string $transactionRawContent;
 
+	#[ORM\ManyToOne(targetEntity: BankAccount::class, inversedBy: 'incomes')]
+	#[ORM\JoinColumn(nullable: false)]
+	private BankAccount $bankAccount;
+
 	public function __construct(
 		string $identifier,
 		BankSourceEnum $source,
@@ -57,6 +62,7 @@ class BankIncome implements Entity, Income
 		ImmutableDateTime|null $settlementDate,
 		string $transactionRawContent,
 		ImmutableDateTime $now,
+		BankAccount $bankAccount,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -69,6 +75,7 @@ class BankIncome implements Entity, Income
 		$this->transactionRawContent = $transactionRawContent;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+		$this->bankAccount = $bankAccount;
 	}
 
 	public function getDate(): ImmutableDateTime
@@ -118,6 +125,11 @@ class BankIncome implements Entity, Income
 	public function getTransactionRawContent(): string
 	{
 		return $this->transactionRawContent;
+	}
+
+	public function getBankAccount(): BankAccount
+	{
+		return $this->bankAccount;
 	}
 
 }

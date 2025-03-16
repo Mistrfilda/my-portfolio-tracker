@@ -10,6 +10,7 @@ use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Filter\BooleanFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 
@@ -56,6 +57,12 @@ class ExpenseTagDatagridFactory
 						$expenseTag->getParentTag()->getId(),
 					)
 					: Datagrid::NULLABLE_PLACEHOLDER,
+		);
+
+		$grid->addColumnText(
+			'isTax',
+			'Je tag daní?',
+			static fn (ExpenseTag $expenseTag): string => BooleanFilter::format($expenseTag->isTax()),
 		);
 
 		$grid->addAction(

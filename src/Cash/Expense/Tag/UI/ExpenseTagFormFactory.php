@@ -44,6 +44,8 @@ class ExpenseTagFormFactory
 			->setPrompt('Vyberte')
 			->setOption('tomSelect', true);
 
+		$form->addCheckbox('isTax', 'Je tag daň?');
+
 		$multiplier = $form->addDynamic(
 			'regexes',
 			'Regexy',
@@ -114,9 +116,15 @@ class ExpenseTagFormFactory
 					TypeValidator::validateNullableInt($values->expenseCategory),
 					TypeValidator::validateNullableInt($values->parentTag),
 					$regexes,
+					TypeValidator::validateBool($values->isTax),
 				);
 			} else {
-				$this->expenseTagFacade->update($id, TypeValidator::validateString($values->name), $regexes);
+				$this->expenseTagFacade->update(
+					$id,
+					TypeValidator::validateString($values->name),
+					$regexes,
+					TypeValidator::validateBool($values->isTax),
+				);
 			}
 
 			$onSuccess();

@@ -5,6 +5,8 @@ declare(strict_types = 1);
 namespace App\Cash\Expense\UI\Control;
 
 use App\Asset\Price\SummaryPrice;
+use App\Cash\Bank\Account\BankAccountRepository;
+use App\Cash\Bank\Account\BankAccountTypeEnum;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
@@ -27,6 +29,7 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		private WorkMonthlyIncomeRepository $workMonthlyIncomeRepository,
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
+		private BankAccountRepository $bankAccountRepository,
 	)
 	{
 	}
@@ -42,6 +45,14 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		$totalWorkIncome = new SummaryPrice(CurrencyEnum::CZK);
 		$totalDividendIncome = new SummaryPrice(CurrencyEnum::CZK);
 
+		$bankAccountSummaryPrices = [];
+		foreach ($this->bankAccountRepository->findAll() as $bankAccount) {
+			$bankAccountSummaryPrices[$bankAccount->getId()->toString()] = new ExpenseOverviewBankAccountSummary(
+				$bankAccount,
+				new SummaryPrice(CurrencyEnum::CZK),
+			);
+		}
+
 		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
 			$expenses = $this->bankExpenseRepository->findByTagCategory($expenseCategory, $this->year, $this->month);
 
@@ -55,12 +66,19 @@ class ExpenseOverviewCategoryControl extends BaseControl
 				}
 
 				$totalSummaryPrice->addBankExpense($expense);
+				$bankAccountSummaryPrices[$expense->getBankAccount()->getId()->toString()]->getSummaryPrice()->addBankExpense(
+					$expense,
+				);
 			}
 
 			$data[] = new ExpanseOverviewData($expenseCategory, $expenses, $summaryPrice);
 		}
 
-		foreach ($this->bankIncomeRepository->findByYearAndMonth($this->year, $this->month) as $bankIncome) {
+		foreach ($this->bankIncomeRepository->findByYearAndMonthAndBankAccountType(
+			$this->year,
+			$this->month,
+			BankAccountTypeEnum::PERSONAL,
+		) as $bankIncome) {
 			$totalIncomeSummaryPrice->addBankIncome($bankIncome);
 		}
 
@@ -100,6 +118,7 @@ class ExpenseOverviewCategoryControl extends BaseControl
 		$this->getTemplate()->totalWorkIncome = $totalWorkIncome;
 		$this->getTemplate()->totalDividendIncome = $totalDividendIncome;
 		$this->getTemplate()->data = $data;
+		$this->getTemplate()->bankAccountSummaryPrices = $bankAccountSummaryPrices;
 		$this->getTemplate()->setFile(str_replace('.php', '.latte', __FILE__));
 		$this->getTemplate()->render();
 	}

@@ -42,6 +42,11 @@ class BankExpenseGridFactory
 		$grid->addColumnDatetime('transactionDate', 'Datum transakce')->setSortable();
 
 		$grid->addColumnText('bankTransactionType', 'Typ transakce');
+		$grid->addColumnText(
+			'bankAccount',
+			'Z bankovního účtu',
+			static fn (BankExpense $bankExpense): string => $bankExpense->getBankAccount()->getFormattedName(),
+		);
 
 		$grid->addColumnText(
 			'amount',

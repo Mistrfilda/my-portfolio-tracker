@@ -29,9 +29,14 @@ class BankIncomeGridFactory
 		);
 
 		$grid->addColumnText('source', 'Zdroj');
-		$grid->addColumnDatetime('settlementDate', 'Datum zúčtování')->setSortable();
 
-		$grid->addColumnText('bankTransactionType', 'Typ transakce');
+		$grid->addColumnText(
+			'bankAccount',
+			'Bankovní účet',
+			static fn (BankIncome $bankIncome): string => $bankIncome->getBankAccount()->getFormattedName(),
+		);
+
+		$grid->addColumnDatetime('settlementDate', 'Datum zúčtování')->setSortable();
 
 		$grid->addColumnText(
 			'amount',

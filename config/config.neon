@@ -364,6 +364,12 @@ services:
 	- App\Cash\Income\Bank\BankIncomeRepository(App\Cash\Income\Bank\BankIncome)
 	- App\Cash\Income\Bank\UI\BankIncomeGridFactory
 
+	#Bank Accounts
+	- App\Cash\Bank\Account\BankAccountFacade
+	- App\Cash\Bank\Account\BankAccountRepository(App\Cash\Bank\Account\BankAccount)
+	- App\Cash\Bank\Account\UI\BankAccountFormFactory
+	- App\Cash\Bank\Account\UI\BankAccountGridFactory
+
 	-
 		class: App\Stock\Price\Downloader\Json\JsonWebDataService
 		arguments:

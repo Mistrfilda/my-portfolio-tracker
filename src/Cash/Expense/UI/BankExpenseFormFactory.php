@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Bank\BankExpenseFormFacade;
@@ -14,6 +15,7 @@ use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
 use Nette\Application\UI\Form;
 use Nette\Utils\ArrayHash;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 use function assert;
 
@@ -24,6 +26,7 @@ class BankExpenseFormFactory
 		private AdminFormFactory $adminFormFactory,
 		private BankExpenseFormFacade $bankExpenseFormFacade,
 		private BankExpenseRepository $bankExpenseRepository,
+		private BankAccountRepository $bankAccountRepository,
 	)
 	{
 	}
@@ -40,6 +43,9 @@ class BankExpenseFormFactory
 			'Zdroj transkace',
 			[BankSourceEnum::KOMERCNI_BANKA->value => BankSourceEnum::KOMERCNI_BANKA->format()],
 		)->setRequired();
+
+		$form->addSelect('bankAccount', 'Bankovní učet', $this->bankAccountRepository->findPairs())
+			->setRequired();
 
 		$form->addSelect('type', 'Typ transkace', BankTransactionType::getOptionsForAdminSelect())
 			->setRequired();
@@ -67,6 +73,7 @@ class BankExpenseFormFactory
 				'settlementDate' => $bankExpense->getSettlementDate(),
 				'transactionDate' => $bankExpense->getTransactionDate(),
 				'transactionRawContent' => $bankExpense->getTransactionRawContent(),
+				'bankAccount' => $bankExpense->getBankAccount()->getId()->toString(),
 			]);
 		}
 
@@ -84,6 +91,7 @@ class BankExpenseFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->settlementDate),
 					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
 					TypeValidator::validateString($values->transactionRawContent),
+					Uuid::fromString(TypeValidator::validateString($values->bankAccount)),
 				);
 			} else {
 				$this->bankExpenseFormFacade->update(
@@ -96,6 +104,7 @@ class BankExpenseFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->settlementDate),
 					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
 					TypeValidator::validateString($values->transactionRawContent),
+					Uuid::fromString(TypeValidator::validateString($values->bankAccount)),
 				);
 			}
 

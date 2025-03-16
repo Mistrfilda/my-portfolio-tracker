@@ -1,5 +1,6 @@
 {varType App\Cash\Expense\UI\Control\ExpanseOverviewData[] $data}
 {varType App\Asset\Price\SummaryPrice $totalSummaryPrice}
+{varType App\Cash\Expense\UI\Control\ExpenseOverviewBankAccountSummary[] $bankAccountSummaryPrices}
 <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
     <div class="px-4 py-5 sm:px-6">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Výdaje dle kategorií</h3>
@@ -168,74 +169,60 @@
                     </th>
                     <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-0">{$totalSummaryPrice->getCounter()}</td>
                 </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                        Celkem bez investic
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Celkem bez investic
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$excludedInvestmentSummaryPrice|summaryPriceFormat}
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                        Celkem investice
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Celkem investice
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$investmentSummaryPrice|summaryPriceFormat}
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                        Celkem
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Celkem
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalSummaryPrice|summaryPriceFormat}
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                        Příjmy na osobní účet celkem
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Příjmy na osobní účet celkem
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalIncomeSummaryPrice|summaryPriceFormat}
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                       Celkový příjem z práce v daném období
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Celkový příjem z práce v daném období
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalWorkIncome|summaryPriceFormat}
-                    </td>
-                </tr>
-                <tr>
-                    <th scope="row" colspan="3"
-                        class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                        Celkový příjem z dividend v daném období
-                    </th>
-                    <th scope="row" class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                        Celkový příjem z dividend v daném období
-                    </th>
-                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalDividendIncome|summaryPriceFormat}
-                    </td>
-                </tr>
                 </tfoot>
             </table>
+        </div>
+
+        <div class="border-y mt-3 border-gray-200 divide-y divide-gray-200 overflow-hidden bg-white">
+            <div class="px-4 py-5 sm:p-6">
+                <dl class="mx-auto grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Celkem bez investic</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$excludedInvestmentSummaryPrice|summaryPriceFormat}</dd>
+                    </div>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Celkem investice</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$investmentSummaryPrice|summaryPriceFormat}</dd>
+                    </div>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Celkem</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$totalSummaryPrice|summaryPriceFormat}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+        <div class="border-b mt-3 border-gray-200 divide-y divide-gray-200 overflow-hidden bg-white">
+            <div class="px-4 py-5 sm:p-6">
+                <dl class="mx-auto grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-3">
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Příjmy na osobní účet celkem</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$totalIncomeSummaryPrice|summaryPriceFormat}</dd>
+                    </div>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Celkový příjem z práce v daném období</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$totalWorkIncome|summaryPriceFormat}</dd>
+                    </div>
+                    <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                        <dt class="text-sm/6 font-medium text-gray-500">Celkový příjem z dividend v daném období</dt>
+                        <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$totalDividendIncome|summaryPriceFormat}</dd>
+                    </div>
+                </dl>
+            </div>
+        </div>
+
+
+        <div class="border-b mt-3 border-gray-200 divide-y divide-gray-200 overflow-hidden bg-white">
+            <div class="px-4 py-5 sm:p-6">
+                <dl class="mx-auto grid grid-cols-1 gap-px sm:grid-cols-2 lg:grid-cols-3">
+                    {foreach $bankAccountSummaryPrices as $bankAccountSummaryPrice}
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
+                            <dt class="text-sm/6 font-medium text-gray-500">Z bankovního účtu {$bankAccountSummaryPrice->getBankAccount()->getFormattedName()}</dt>
+                            <dd class="w-full flex-none text-3xl/10 font-medium tracking-tight text-gray-900">{$bankAccountSummaryPrice->getSummaryPrice()|summaryPriceFormat}</dd>
+                        </div>
+                    {/foreach}
+                </dl>
+            </div>
         </div>
     </div>
 </div>

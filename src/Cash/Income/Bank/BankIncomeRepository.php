@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Income\Bank;
 
+use App\Cash\Bank\Account\BankAccountTypeEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -59,9 +60,17 @@ class BankIncomeRepository extends BaseRepository
 	/**
 	 * @return array<BankIncome>
 	 */
-	public function findByYearAndMonth(int|null $year, int|null $month,): array
+	public function findByYearAndMonthAndBankAccountType(
+		int|null $year,
+		int|null $month,
+		BankAccountTypeEnum $bankAccountTypeEnum,
+	): array
 	{
 		$qb = $this->createQueryBuilder();
+
+		$qb->leftJoin('bankIncome.bankAccount', 'bankAccount');
+		$qb->andWhere($qb->expr()->eq('bankAccount.type', ':type'));
+		$qb->setParameter('type', $bankAccountTypeEnum);
 
 		if ($month !== null) {
 			$qb->andWhere(
