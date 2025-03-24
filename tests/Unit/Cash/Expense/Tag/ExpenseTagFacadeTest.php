@@ -41,7 +41,7 @@ class ExpenseTagFacadeTest extends TestCase
 		$this->expectException(ExpenseTagException::class);
 		$this->expectExceptionMessage('Expense category or parent tag must be filled');
 
-		$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes);
+		$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes, true);
 	}
 
 	public function testCreateWithTags(): void
@@ -51,11 +51,11 @@ class ExpenseTagFacadeTest extends TestCase
 		$parentTag = 2;
 		$regexes = ['Regex1'];
 
-		$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes);
+		$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes, true);
 
 		$this->assertInstanceOf(
 			ExpenseTag::class,
-			$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes),
+			$this->expenseTagFacade->create($name, $expenseCategory, $parentTag, $regexes, true),
 		);
 	}
 

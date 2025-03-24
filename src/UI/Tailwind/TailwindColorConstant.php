@@ -27,4 +27,6 @@ class TailwindColorConstant
 
 	public const CYAN = 'cyan';
 
+	public const ROSE = 'rose';
+
 }

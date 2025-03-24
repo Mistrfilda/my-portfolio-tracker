@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Cash\Expense\Bank;
 
+use App\Cash\Bank\Account\BankAccount;
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Bank\BankExpenseFormFacade;
@@ -14,6 +16,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 // Unit test for class BankExpenseFormFacade and specifically for method 'create'
 class BankExpenseFormFacadeTest extends TestCase
@@ -31,12 +34,14 @@ class BankExpenseFormFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$datetimeFactoryMock->shouldIgnoreMissing();
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
+		$bankAccountRepository = Mockery::mock(BankAccountRepository::class);
 
 		// initialize the class we are testing
 		$bankExpenseFormFacade = new BankExpenseFormFacade(
 			$bankExpenseRepositoryMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$bankAccountRepository,
 		);
 
 		// test data for method arguments
@@ -58,6 +63,8 @@ class BankExpenseFormFacadeTest extends TestCase
 			->shouldReceive('flush')
 			->once();
 
+		$bankAccountRepository->shouldReceive('getById')->andReturn(Mockery::mock(BankAccount::class));
+
 		// call the method we are testing
 		$bankExpense = $bankExpenseFormFacade->create(
 			$identifier,
@@ -68,6 +75,7 @@ class BankExpenseFormFacadeTest extends TestCase
 			$settlementDate,
 			$transactionDate,
 			$transactionRawContent,
+			Uuid::uuid4(),
 		);
 
 		// validate the result

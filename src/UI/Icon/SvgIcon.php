@@ -87,4 +87,5 @@ enum SvgIcon: string
 
 	case PRESENTATION_CHART_UP = 'presentation-chart-up.svg';
 
+	case NORWEGIAN_KRONE = 'norwegian-krone.svg';
 }

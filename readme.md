@@ -4,9 +4,11 @@ My portfolio tracker
 Technology:
 -----
 
-- PHP 8.3
+- PHP 8.4
 - Nette 3.1 and some Symfony components
 - Tailwind CSS
+- Kubernetes 
+- RabbitMQ
 
 Features:
 -----

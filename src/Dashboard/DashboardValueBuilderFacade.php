@@ -203,6 +203,21 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			CurrencyEnum::PLN,
 		);
 
+		$nokCzk = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::NOK,
+			CurrencyEnum::CZK,
+		);
+
+		$nokEur = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::NOK,
+			CurrencyEnum::EUR,
+		);
+
+		$eurNok = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+			CurrencyEnum::EUR,
+			CurrencyEnum::NOK,
+		);
+
 		return new DashboardValueGroup(
 			DashboardValueGroupEnum::CURRENCY,
 			'Kurzy měn',
@@ -293,6 +308,36 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					(string) $eurPln->getCurrentPrice(),
 					TailwindColorConstant::RED,
 					SvgIcon::POLISH_ZLOTY,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'NOK - CZK',
+					(string) $nokCzk->getCurrentPrice(),
+					TailwindColorConstant::ROSE,
+					SvgIcon::NORWEGIAN_KRONE,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpCzk->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'NOK - EUR',
+					(string) $nokEur->getCurrentPrice(),
+					TailwindColorConstant::ROSE,
+					SvgIcon::NORWEGIAN_KRONE,
+					sprintf(
+						'Aktualizováno %s',
+						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					),
+				),
+				new DashboardValue(
+					'EUR - NOK',
+					(string) $eurNok->getCurrentPrice(),
+					TailwindColorConstant::ROSE,
+					SvgIcon::NORWEGIAN_KRONE,
 					sprintf(
 						'Aktualizováno %s',
 						$gbpEur->getUpdatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),

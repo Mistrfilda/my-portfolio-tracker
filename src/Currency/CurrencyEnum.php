@@ -19,6 +19,8 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 
 	case PLN = 'PLN';
 
+	case NOK = 'NOK';
+
 	public function format(): string
 	{
 		return match ($this) {
@@ -27,6 +29,7 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 			CurrencyEnum::CZK => 'CZK',
 			CurrencyEnum::GBP => 'GBP',
 			CurrencyEnum::PLN => 'PLN',
+			CurrencyEnum::NOK => 'NOK',
 		};
 	}
 
@@ -41,6 +44,7 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 			self::USD->value => 'USD',
 			self::GBP->value => 'GBP',
 			self::PLN->value => 'PLN',
+			self::NOK->value => 'NOK',
 		];
 	}
 
@@ -55,13 +59,14 @@ enum CurrencyEnum : string implements DatagridRenderableEnum
 			CurrencyEnum::CZK,
 			CurrencyEnum::GBP,
 			CurrencyEnum::PLN,
+			CurrencyEnum::NOK,
 		];
 	}
 
 	public function processFromWeb(float $value): float
 	{
 		return match ($this) {
-			CurrencyEnum::USD, CurrencyEnum::CZK, CurrencyEnum::EUR, CurrencyEnum::PLN => $value,
+			CurrencyEnum::USD, CurrencyEnum::CZK, CurrencyEnum::EUR, CurrencyEnum::PLN, CurrencyEnum::NOK => $value,
 			CurrencyEnum::GBP => GBPCurrencyHelper::formatGBpToGBP($value),
 		};
 	}
