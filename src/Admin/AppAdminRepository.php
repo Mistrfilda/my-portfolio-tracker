@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Admin;
 
-use App\Doctrine\BaseRepository;
+use App\Doctrine\BaseAppAdminRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -12,9 +12,9 @@ use Ramsey\Uuid\UuidInterface;
 use function assert;
 
 /**
- * @extends BaseRepository<AppAdmin>
+ * @extends BaseAppAdminRepository<AppAdmin>
  */
-class AppAdminRepository extends BaseRepository
+class AppAdminRepository extends BaseAppAdminRepository
 {
 
 	public function findById(UuidInterface $appAdminId): AppAdmin
