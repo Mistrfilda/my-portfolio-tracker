@@ -8,6 +8,15 @@ jobs:
             fail-fast: false
             matrix:
                 php-versions: [ '8.4' ]
+        services:
+            mysql:
+                image: mysql:5.7
+                env:
+                    MYSQL_ALLOW_EMPTY_PASSWORD: true
+                    MYSQL_DATABASE: my-portfolio-app-tracker-tests
+                options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
+                ports:
+                    - 32574:3306
         steps:
             -   name: Checkout
                 uses: actions/checkout@v2
@@ -18,11 +27,21 @@ jobs:
                     extensions: mbstring, xml, ctype, iconv, intl, mysql, pdo_mysql
                     coverage: none
 
+            -   name: Start mysql service
+                run: sudo /etc/init.d/mysql start
+
             -   name: Install Composer dependencies
                 run: |
                     composer install --no-progress --prefer-dist --optimize-autoloader --ansi
+
             -   name: Create temp dir for tools
                 run: |
-                    mkdir tmp
+                    mkdir var
+
+            -   name: Prepare config and database
+                run: |
+                    cp .github/config.local.neon config/config.local.neon
+                    composer migm
+
             -   name: Run checks
                 run: composer build-all

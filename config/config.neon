@@ -2,6 +2,9 @@ di:
 	lazy: false
 
 parameters:
+	console:
+		url: https://localhost/my-portfolio-tracker/
+
 	basePresenterParameters:
 		pageTitle: 'My portfolio app'
 		storageName: 'my-portfolio-app'
