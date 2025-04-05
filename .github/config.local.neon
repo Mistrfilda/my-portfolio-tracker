@@ -1,0 +1,7 @@
+parameters:
+	database:
+		host: '127.0.0.1'
+		user: 'root'
+		password: ''
+		dbname: 'my-portfolio-app-tracker-tests'
+		port: 32574

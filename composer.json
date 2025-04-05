@@ -111,6 +111,7 @@
 			"@lint",
 			"@stan",
 			"@cs",
+			"@ormv",
 			"@latte-lint",
 			"@test-unit",
 			"@composer-dependecy-check"
@@ -137,6 +138,7 @@
 			"bin/console stock:asset:dividendRecords"
 		],
 		"migm": "bin/console migrations:migrate --no-interaction",
+		"ormv": "bin/console orm:validate-schema",
 		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",
 		"consumer-queue": "bin/console-rabbit rabbitmq:consumer --",
 		"asset-trend": "bin/console asset:trend:process --",
