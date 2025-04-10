@@ -105,7 +105,7 @@ class PortuAsset implements Asset, Entity
 
 	public function getTrend(ImmutableDateTime $date): float
 	{
-		$value100percent = 0;
+		$valueOnDate = 0;
 		foreach ($this->getPositions() as $position) {
 			assert($position instanceof PortuPosition);
 			$priceRecord = $position->getClosestPriceRecordOnDate($date);
@@ -113,12 +113,12 @@ class PortuAsset implements Asset, Entity
 				continue;
 			}
 
-			$value100percent += $priceRecord->getCurrentValueAssetPrice()->getPrice();
+			$valueOnDate += $priceRecord->getCurrentValueAssetPrice()->getPrice();
 		}
 
 		$percentage = RuleOfThreeFilter::getPercentage(
-			$value100percent,
 			$this->getAssetCurrentPrice()->getPrice(),
+			$valueOnDate,
 		);
 
 		return round((float) ($percentage - 100), 2);

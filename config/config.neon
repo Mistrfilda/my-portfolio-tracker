@@ -414,6 +414,7 @@ services:
 	- App\Notification\NotificationSenderFacade(typed(App\Notification\NotificationChannelSenderFacade))
 	- App\Notification\NotificationRepository(App\Notification\Notification)
 	- App\Notification\Discord\NotificationDiscordSenderFacade(discordWebhooksMapping: %notifications.discord.webhooks%)
+	- App\Notification\Discord\DiscordMessageService
 
 	#Goals
 	- App\Goal\PortfolioGoalFacade

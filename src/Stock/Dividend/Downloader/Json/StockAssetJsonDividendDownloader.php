@@ -112,7 +112,7 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 					NotificationTypeEnum::NEW_DIVIDEND,
 					[NotificationChannelEnum::DISCORD],
 					sprintf(
-						'Nová dividenda společnosti %s, vyplaceno na akcii %s',
+						"**Nová dividenda společnosti %s** \n\n vyplaceno na akcii **%s**",
 						$stockAsset->getName(),
 						CurrencyFilter::format(
 							$value->getAmount(),

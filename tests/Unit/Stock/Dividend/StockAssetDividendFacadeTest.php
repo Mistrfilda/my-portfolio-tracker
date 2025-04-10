@@ -14,6 +14,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 class StockAssetDividendFacadeTest extends TestCase
@@ -34,8 +35,7 @@ class StockAssetDividendFacadeTest extends TestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
-
-		$this->uuidInterface = Mockery::mock(UuidInterface::class);
+		$this->uuidInterface = Uuid::uuid4();
 		$this->entityManager = Mockery::mock(EntityManagerInterface::class);
 		$this->stockAssetRepository = Mockery::mock(StockAssetRepository::class);
 		$this->stockAssetDividendRepository = Mockery::mock(StockAssetDividendRepository::class);

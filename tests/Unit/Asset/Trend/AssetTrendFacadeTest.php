@@ -75,7 +75,7 @@ class AssetTrendFacadeTest extends TestCase
 			->with(
 				NotificationTypeEnum::PRICE_ALERT_UP,
 				[NotificationChannelEnum::DISCORD],
-				$this->stringContains('arrow_up'),
+				$this->stringContains('3.00 %'),
 			);
 
 		$this->assetTrendFacade->processTrends(7, 2);
@@ -116,7 +116,7 @@ class AssetTrendFacadeTest extends TestCase
 			->with(
 				NotificationTypeEnum::PRICE_ALERT_DOWN,
 				[NotificationChannelEnum::DISCORD],
-				$this->stringContains('arrow_down'),
+				$this->stringContains('-3.00 %'),
 			);
 
 		$this->assetTrendFacade->processTrends(7, 2);

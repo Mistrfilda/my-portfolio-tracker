@@ -13,4 +13,13 @@ enum NotificationTypeEnum: string
 
 	case PRICE_ALERT_DOWN = 'price_alert_down';
 
+	public function getTitle(): string
+	{
+		return match ($this) {
+			self::NEW_DIVIDEND => 'New dividend',
+			self::PRICE_ALERT_UP => 'Price alert up',
+			self::PRICE_ALERT_DOWN => 'Price alert down',
+		};
+	}
+
 }

@@ -6,6 +6,7 @@ namespace App\Asset\Trend;
 
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -22,8 +23,8 @@ class AssetTrendCommand extends Command
 	{
 		parent::configure();
 		$this->setDescription('Process trends for specified number of days and thresh hold');
-		$this->addArgument('days', null, 'Number of days to process');
-		$this->addArgument('threshold', null, 'Threshold to process');
+		$this->addArgument('days', InputArgument::REQUIRED, 'Number of days to process');
+		$this->addArgument('threshold', InputArgument::REQUIRED, 'Threshold to process');
 	}
 
 	public function execute(InputInterface $input, OutputInterface $output): int

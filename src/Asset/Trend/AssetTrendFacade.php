@@ -46,18 +46,15 @@ class AssetTrendFacade
 					continue;
 				}
 
-				$arrow = $notificationType === NotificationTypeEnum::PRICE_ALERT_DOWN ? 'arrow_down' : 'arrow_up';
 				$this->notificationFacade->create(
 					$notificationType,
 					[NotificationChannelEnum::DISCORD],
 					sprintf(
-						':%s: Price alert: %s: Aktuální hodnota %s | Změna o %s (časové okno v dnech: %s) :%s:',
-						$arrow,
+						"**%s** \n\n Aktuální hodnota %s \n Změna o **%s** *(časové okno v dnech: %s)*",
 						$activeAsset->getName(),
 						AssetPriceFilter::format($activeAsset->getAssetCurrentPrice()),
 						PercentageFilter::format($trend),
 						$numberOfDaysToCompare,
-						$arrow,
 					),
 				);
 			}

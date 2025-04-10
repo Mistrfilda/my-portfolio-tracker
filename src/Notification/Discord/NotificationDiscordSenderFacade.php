@@ -20,6 +20,7 @@ class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 		private array $discordWebhooksMapping,
 		private Psr18ClientFactory $psr18ClientFactory,
 		private Psr7RequestFactory $psr7RequestFactory,
+		private DiscordMessageService $discordMessageService,
 	)
 	{
 	}
@@ -39,9 +40,7 @@ class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 		$this->psr18ClientFactory->getClient()->sendRequest(
 			$this->psr7RequestFactory->createPOSTRequest(
 				$webhookUrl,
-				[
-					'content' => $notification->getMessage(),
-				],
+				$this->discordMessageService->getMessage($notification),
 				[
 					'Content-Type' => 'application/json',
 				],
