@@ -24,4 +24,5 @@ return $config
 	->ignoreErrorsOnPackage('nette/mail', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nette/robot-loader', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nette/caching', [ErrorType::UNUSED_DEPENDENCY])
-	->ignoreErrorsOnPackage('nettrine/annotations', [ErrorType::UNUSED_DEPENDENCY]);
+	->ignoreErrorsOnPackage('nettrine/annotations', [ErrorType::UNUSED_DEPENDENCY])
+	->ignoreErrorsOnPackage('cweagans/composer-patches', [ErrorType::UNUSED_DEPENDENCY]);
