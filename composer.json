@@ -27,6 +27,7 @@
 		"contributte/monolog": "^0.5",
 		"contributte/rabbitmq": "dev-master",
 		"cuyz/valinor": "^1.14",
+		"cweagans/composer-patches": "~2.0",
 		"doctrine/collections": "*",
 		"doctrine/dbal": "*",
 		"doctrine/orm": "*",
@@ -159,10 +160,18 @@
 	},
 	"config": {
 		"allow-plugins": {
+			"cweagans/composer-patches": true,
 			"dealerdirect/phpcodesniffer-composer-installer": true,
 			"phpstan/extension-installer": true
 		},
 		"sort-packages": true,
 		"process-timeout": 1200
+	},
+	"extra": {
+		"patches": {
+			"bunny/bunny": {
+				"Fix typehint deprecations for php 8.4": "patches/bunny/php8-4-update-typehints.patch"
+			}
+		}
 	}
 }
