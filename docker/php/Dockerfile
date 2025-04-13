@@ -32,6 +32,8 @@ COPY docker/php/custom-php.ini /usr/local/etc/php/conf.d/
 
 RUN npm run build-docker
 
+RUN php composer.phar doctrine-proxies
+
 RUN chown -R www-data:www-data /var/www && chmod -R 755 /var/www
 RUN chown -R www-data:www-data /var/log
 RUN chown -R www-data:www-data /var/temp
