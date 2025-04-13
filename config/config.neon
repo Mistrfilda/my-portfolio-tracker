@@ -203,9 +203,6 @@ services:
 
 	- App\UI\Menu\MenuBuilder
 
-	#DOCTRINE
-	- App\Doctrine\CustomValidateSchemaCommand
-
 	#AppAdmin
 	- App\Admin\AppAdminRepository(App\Admin\AppAdmin)
 	- App\Admin\AppAdminAuthenticator

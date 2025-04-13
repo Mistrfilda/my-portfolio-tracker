@@ -13,7 +13,6 @@ parameters:
 	excludePaths:
 		analyse:
 			- src/UI/Extension/Svg/SvgNode.php
-			- src/Doctrine/CustomValidateSchemaCommand.php
 
 	ignoreErrors:
 		- '#Call to an undefined method Nette\\ComponentModel\\IComponent\:\:addError\(\)#'
