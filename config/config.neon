@@ -77,12 +77,9 @@ tracy:
 extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
 	dbal: Nettrine\DBAL\DI\DbalExtension
-	dbal.console: Nettrine\DBAL\DI\DbalConsoleExtension
 	orm: Nettrine\ORM\DI\OrmExtension
-	orm.console: Nettrine\ORM\DI\OrmConsoleExtension
 	orm.cache: Nettrine\Cache\DI\CacheExtension
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
-	orm.attributes: Nettrine\ORM\DI\OrmAttributesExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
 	rabbitmq: Contributte\RabbitMQ\DI\RabbitMQExtension
 
@@ -93,39 +90,39 @@ extensions:
 dbal:
 	debug:
 		panel: %debugMode%
-	connection:
-		host: %database.host%
-		port: %database.port%
-		user: %database.user%
-		password: %database.password%
-		dbname: %database.dbname%
-		driver: 'pdo_mysql'
+	connections:
+		default:
+			host: %database.host%
+			port: %database.port%
+			user: %database.user%
+			password: %database.password%
+			dbname: %database.dbname%
+			driver: 'pdo_mysql'
 
-		types:
-			uuid:
-				class: Ramsey\Uuid\Doctrine\UuidType
-				commented: false
-			datetime_immutable:
-				class: Mistrfilda\Datetime\Doctrine\DatetimeImmutableType
-				commented: false
-			date_immutable:
-				class: Mistrfilda\Datetime\Doctrine\DateImmutableType
-				commented: false
+	types:
+		uuid: Ramsey\Uuid\Doctrine\UuidType
+		datetime_immutable: Mistrfilda\Datetime\Doctrine\DatetimeImmutableType
+		date_immutable: Mistrfilda\Datetime\Doctrine\DateImmutableType
 
 orm:
-	configuration:
-		customStringFunctions:
-			group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
-			timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
-			day: DoctrineExtensions\Query\Mysql\Day
-			month: DoctrineExtensions\Query\Mysql\Month
-			year: DoctrineExtensions\Query\Mysql\Year
-			hour: DoctrineExtensions\Query\Mysql\Hour
-			date: DoctrineExtensions\Query\Mysql\Date
-
-orm.attributes:
-	mapping:
-		App: %appDir%
+	managers:
+		default:
+			connection: default
+			mapping:
+				App:
+					directories: [%appDir%]
+					namespace: App
+			defaultCache: Contributte\Psr6\CachePool(
+				Nette\Caching\Cache(namespace: "doctrine/orm")
+			)
+			customStringFunctions:
+				group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
+				timestampdiff: DoctrineExtensions\Query\Mysql\TimestampDiff
+				day: DoctrineExtensions\Query\Mysql\Day
+				month: DoctrineExtensions\Query\Mysql\Month
+				year: DoctrineExtensions\Query\Mysql\Year
+				hour: DoctrineExtensions\Query\Mysql\Hour
+				date: DoctrineExtensions\Query\Mysql\Date
 
 migrations:
 	table: doctrine_migrations
@@ -205,6 +202,9 @@ services:
 	- App\UI\Control\Datagrid\DatagridFactory
 
 	- App\UI\Menu\MenuBuilder
+
+	#DOCTRINE
+	- App\Doctrine\CustomValidateSchemaCommand
 
 	#AppAdmin
 	- App\Admin\AppAdminRepository(App\Admin\AppAdmin)

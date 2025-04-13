@@ -41,10 +41,10 @@ class PortfolioGoalUpdateFacade
 					$value,
 					$this->datetimeFactory->createNow(),
 				);
+
+				$this->entityManager->flush();
 			}
 		}
-
-		$this->entityManager->flush();
 	}
 
 	public function startGoal(UuidInterface $id): void
