@@ -53,7 +53,7 @@ parameters:
 			webhooks:
 				dividends: null
 				trend_alert_default: null
-				trend_alert_1_day: null
+				trend_alert_1_days: null
 				trend_alert_7_days: null
 				trend_alert_30_days: null
 				default: null
