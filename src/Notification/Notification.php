@@ -36,6 +36,10 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 	#[ORM\Column(type: Types::STRING, enumType: NotificationStateEnum::class)]
 	private NotificationStateEnum $notificationStateEnum;
 
+	/** @var array<string, string|int> */
+	#[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+	private array $parameters;
+
 	/**
 	 * @param array<NotificationChannelEnum> $notificationChannels
 	 */
@@ -55,6 +59,12 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 		$this->message = $message;
 		$this->notificationStateEnum = NotificationStateEnum::CREATED;
 		$this->createdAt = $now;
+		$this->parameters = [];
+	}
+
+	public function addParameter(NotificationParameterEnum $key, string|int $value): void
+	{
+		$this->parameters[$key->value] = $value;
 	}
 
 	public function sendInProgress(): void
@@ -100,6 +110,19 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 	public function getNotificationStateEnum(): NotificationStateEnum
 	{
 		return $this->notificationStateEnum;
+	}
+
+	public function getParameter(NotificationParameterEnum $key): string|int|null
+	{
+		return $this->parameters[$key->value] ?? null;
+	}
+
+	/**
+	 * @return array<string, string|int>
+	 */
+	public function getParameters(): array
+	{
+		return $this->parameters;
 	}
 
 }

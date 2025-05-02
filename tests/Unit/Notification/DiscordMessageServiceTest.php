@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types = 1);
 
 namespace App\Test\Unit\Notification;
@@ -10,9 +11,9 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
 
-
 class DiscordMessageServiceTest extends TestCase
 {
+
 	private DiscordMessageService $discordMessageService;
 
 	private DatetimeFactory $datetimeFactory;
@@ -41,10 +42,10 @@ class DiscordMessageServiceTest extends TestCase
 		$expected = [
 			'embeds' => [
 				[
-					'title'       => 'Nová dividenda',
+					'title' => 'Nová dividenda',
 					'description' => 'New dividend message.',
-					'color'       => 3066993,
-					'timestamp'   => '2023-01-01T12:00:00.000000Z',
+					'color' => 3066993,
+					'timestamp' => '2023-01-01T12:00:00.000000Z',
 				],
 			],
 		];
@@ -70,10 +71,10 @@ class DiscordMessageServiceTest extends TestCase
 		$expected = [
 			'embeds' => [
 				[
-					'title'       => '📈 Price alert up',
+					'title' => '📈 Price alert up',
 					'description' => 'Price alert up message.',
-					'color'       => 3066993,
-					'timestamp'   => '2023-01-01T12:00:00.000000Z',
+					'color' => 3066993,
+					'timestamp' => '2023-01-01T12:00:00.000000Z',
 				],
 			],
 		];
@@ -99,14 +100,15 @@ class DiscordMessageServiceTest extends TestCase
 		$expected = [
 			'embeds' => [
 				[
-					'title'       => '📉 Price alert down',
+					'title' => '📉 Price alert down',
 					'description' => 'Price alert down message.',
-					'color'       => 15158332,
-					'timestamp'   => '2023-01-01T12:00:00.000000Z',
+					'color' => 15158332,
+					'timestamp' => '2023-01-01T12:00:00.000000Z',
 				],
 			],
 		];
 
 		$this->assertSame($expected, $this->discordMessageService->getMessage($notification));
 	}
+
 }

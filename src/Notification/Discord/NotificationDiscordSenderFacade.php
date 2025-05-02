@@ -13,25 +13,18 @@ use App\Notification\NotificationChannelSenderFacade;
 class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 {
 
-	/**
-	 * @param array<string, string|null> $discordWebhooksMapping
-	 */
 	public function __construct(
-		private array $discordWebhooksMapping,
 		private Psr18ClientFactory $psr18ClientFactory,
 		private Psr7RequestFactory $psr7RequestFactory,
 		private DiscordMessageService $discordMessageService,
+		private DiscordChannelService $discordChannelService,
 	)
 	{
 	}
 
 	public function send(Notification $notification): void
 	{
-		if (array_key_exists($notification->getNotificationTypeEnum()->value, $this->discordWebhooksMapping)) {
-			$webhookUrl = $this->discordWebhooksMapping[$notification->getNotificationTypeEnum()->value];
-		} else {
-			$webhookUrl = $this->discordWebhooksMapping['default'];
-		}
+		$webhookUrl = $this->discordChannelService->getWebhookUrl($notification);
 
 		if ($webhookUrl === null) {
 			return;

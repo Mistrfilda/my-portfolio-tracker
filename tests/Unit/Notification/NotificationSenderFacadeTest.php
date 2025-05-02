@@ -2,7 +2,6 @@
 
 declare(strict_types = 1);
 
-
 namespace App\Test\Unit\Notification;
 
 use App\Notification\Notification;
@@ -16,9 +15,13 @@ use Ramsey\Uuid\Uuid;
 
 class NotificationSenderFacadeTest extends TestCase
 {
+
 	private NotificationRepository $notificationRepository;
+
 	private EntityManagerInterface $entityManager;
+
 	private NotificationChannelSenderFacade $discordChannelFacade;
+
 	private NotificationSenderFacade $notificationSenderFacade;
 
 	protected function setUp(): void
@@ -34,7 +37,7 @@ class NotificationSenderFacadeTest extends TestCase
 		$this->notificationSenderFacade = new NotificationSenderFacade(
 			[$this->discordChannelFacade],
 			$this->notificationRepository,
-			$this->entityManager
+			$this->entityManager,
 		);
 	}
 
@@ -82,5 +85,5 @@ class NotificationSenderFacadeTest extends TestCase
 		$this->discordChannelFacade->expects(self::never())->method('send');
 		$this->notificationSenderFacade->process($notificationId);
 	}
-}
 
+}

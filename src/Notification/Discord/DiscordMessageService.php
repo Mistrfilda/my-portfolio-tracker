@@ -11,7 +11,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 class DiscordMessageService
 {
 
-	public function __construct(private DatetimeFactory $datetimeFactory,)
+	public function __construct(private DatetimeFactory $datetimeFactory)
 	{
 
 	}

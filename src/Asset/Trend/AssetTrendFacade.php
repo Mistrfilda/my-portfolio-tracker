@@ -7,6 +7,8 @@ namespace App\Asset\Trend;
 use App\Asset\AssetRepository;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
+use App\Notification\NotificationParameterEnum;
+use App\Notification\NotificationParameters;
 use App\Notification\NotificationTypeEnum;
 use App\UI\Filter\AssetPriceFilter;
 use App\UI\Filter\PercentageFilter;
@@ -46,6 +48,9 @@ class AssetTrendFacade
 					continue;
 				}
 
+				$parameters = new NotificationParameters();
+				$parameters->addParameter(NotificationParameterEnum::TREND_DAYS_THRESHOLD, $numberOfDaysToCompare);
+
 				$this->notificationFacade->create(
 					$notificationType,
 					[NotificationChannelEnum::DISCORD],
@@ -56,6 +61,7 @@ class AssetTrendFacade
 						PercentageFilter::format($trend),
 						$numberOfDaysToCompare,
 					),
+					$parameters,
 				);
 			}
 		}

@@ -27,6 +27,7 @@ class NotificationFacade
 		NotificationTypeEnum $notificationTypeEnum,
 		array $notificationChannels,
 		string $message,
+		NotificationParameters|null $notificationParameters = null,
 	): void
 	{
 		$notification = new Notification(
@@ -35,6 +36,12 @@ class NotificationFacade
 			$message,
 			$this->datetimeFactory->createNow(),
 		);
+
+		if ($notificationParameters !== null) {
+			foreach ($notificationParameters->getParameters() as $key => $value) {
+				$notification->addParameter(NotificationParameterEnum::from($key), $value);
+			}
+		}
 
 		$this->entityManager->persist($notification);
 		$this->entityManager->flush();
