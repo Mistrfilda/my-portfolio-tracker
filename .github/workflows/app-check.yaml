@@ -10,7 +10,7 @@ jobs:
                 php-versions: [ '8.4' ]
         services:
             mysql:
-                image: mysql:5.7
+                image: mysql:8
                 env:
                     MYSQL_ALLOW_EMPTY_PASSWORD: true
                     MYSQL_DATABASE: my-portfolio-app-tracker-tests
