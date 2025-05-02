@@ -10,7 +10,7 @@ jobs:
                 php-versions: [ '8.4' ]
         services:
             mysql:
-                image: mysql:8
+                image: mariadb:10.5
                 env:
                     MYSQL_ALLOW_EMPTY_PASSWORD: true
                     MYSQL_DATABASE: my-portfolio-app-tracker-tests
