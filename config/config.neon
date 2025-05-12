@@ -51,7 +51,7 @@ parameters:
 	notifications:
 		discord:
 			webhooks:
-				dividends: null
+				new_dividend: null
 				trend_alert_default: null
 				trend_alert_1_days: null
 				trend_alert_7_days: null
