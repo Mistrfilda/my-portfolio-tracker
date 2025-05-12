@@ -80,6 +80,8 @@ async function processData(entries) {
 		} finally {
 			await page.close();
 		}
+
+		await new Promise(resolve => setTimeout(resolve, 5000));
 	}
 
 	await browser.close();

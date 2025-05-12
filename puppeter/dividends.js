@@ -29,22 +29,22 @@ async function processData(entries) {
 	try {
 		// Spuštění prohlížeče
 		browser = await puppeteer.launch({
-			// headless: false,
-			// devtools: true,
-			headless: true,
+			headless: false,
+			devtools: true,
+			// headless: true,
 			slowMo: 100,
-			browser: "firefox",
-			executablePath: "/usr/bin/firefox",
-			args: [
-				'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
-				'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
-				'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
-				'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
-				'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
-				'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
-				'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření
-				'--disable-sync', // Zakáže synchronizaci (méně systémové zátěže)
-			],
+			// browser: "firefox",
+			// executablePath: "/usr/bin/firefox",
+			// args: [
+			// 	'--no-sandbox', // Používá se často na serverech (sandbox nebude aplikován)
+			// 	'--disable-setuid-sandbox', // Potřebné hlavně na serverech, náročné na RAM
+			// 	'--disable-gpu', // Nepoužívej GPU akceleraci (zbytečné na serveru)
+			// 	'--disable-dev-shm-usage', // Vyřeší problémy s /dev/shm na dockeru
+			// 	'--single-process', // Spouští prohlížeč jako jeden proces (nižší CPU)
+			// 	'--disable-background-timer-throttling', // Pomáhá částečně s výkonem
+			// 	'--disable-extensions', // Zakáže všechny Chrome/Firefox rozšíření
+			// 	'--disable-sync', // Zakáže synchronizaci (méně systémové zátěže)
+			// ],
 		});
 
 		console.log(entries);
@@ -91,6 +91,8 @@ async function processData(entries) {
 			} catch (entryError) {
 				console.error(`Error processing entry:`, entryError);
 			}
+
+			await new Promise(resolve => setTimeout(resolve, 5000));
 		}
 	} catch (browserError) {
 		console.error('Error launching browser or during processing:', browserError);
