@@ -223,6 +223,7 @@ services:
 	#Dashboard
 	- App\Dashboard\DashboardValueBuilderFacade
 	- App\Dashboard\UI\DashboardValueControl\DashboardValueControlFactory
+	- App\Dashboard\DashboardDividendvalueBuilderFacade
 
 	#HTTP
 	- App\Http\Psr7\Psr7RequestFactory
