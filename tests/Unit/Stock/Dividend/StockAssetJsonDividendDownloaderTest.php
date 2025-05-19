@@ -136,6 +136,58 @@ class StockAssetJsonDividendDownloaderTest extends TestCase
 		$this->assertFileExists($processedFile);
 	}
 
+	public function testDownloadDividendRecordsWithMixedDividendValues(): void
+	{
+		$testFile = $this->resultsFolder . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;
+		$sampleUuid = Uuid::uuid4()->toString();
+		$sampleJson = [
+			(object) [
+				'id' => $sampleUuid,
+				'currency' => 'USD',
+				'textContent' => 'Date Dividend May 15, 2025 16 Dividend Feb 20, 2025 16 Dividend Nov 14, 2024 15.000001',
+				'html' => '<p>Some HTML content</p>',
+			],
+		];
+
+		FileSystem::write($testFile, Json::encode($sampleJson));
+
+		$mockStockAsset = $this->createMock(StockAsset::class);
+		$mockStockAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$mockStockAsset->method('getName')->willReturn('Test Stock');
+
+		$this->stockAssetRepository
+			->method('getById')
+			->with($this->equalTo(Uuid::fromString($sampleUuid)))
+			->willReturn($mockStockAsset);
+
+		$this->stockAssetDividendRepository
+			->method('findOneByStockAssetExDate')
+			->willReturn(null);
+
+		$now = new ImmutableDateTime();
+		$this->datetimeFactory->method('createNow')->willReturn($now);
+
+		$this->entityManager
+			->expects($this->exactly(3))
+			->method('persist')
+			->with($this->isInstanceOf(StockAssetDividend::class));
+
+		$this->entityManager->expects($this->once())->method('flush');
+
+		$this->notificationFacade
+			->expects($this->exactly(3))
+			->method('create');
+
+		$this->downloader->downloadDividendRecords();
+
+		$processedFile = $this->parsedResultsFolder . $now->getTimestamp() . '-' . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;
+
+		$this->assertFileExists($processedFile);
+
+		FileSystem::delete($testFile);
+		FileSystem::delete($processedFile);
+	}
+
 	public function testDownloadDividendRecordsFileIsProcessed(): void
 	{
 		$testFile = $this->resultsFolder . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;

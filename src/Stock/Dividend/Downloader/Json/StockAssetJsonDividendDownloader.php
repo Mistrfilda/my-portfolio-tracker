@@ -29,7 +29,7 @@ use const PREG_SET_ORDER;
 class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 {
 
-	private const DIVIDEND_PATTERN = '/Dividend\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})\s+(\d+\.\d{2})/';
+	private const DIVIDEND_PATTERN = '/Dividend\s+([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})\s+(\d+(\.\d{1,6})?)/';
 
 	public function __construct(
 		private JsonDataFolderService $jsonDataFolderService,
