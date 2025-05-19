@@ -136,6 +136,11 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 		FileSystem::delete($file);
 
 		$this->systemValueFacade->updateValue(
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT,
+			intValue: count($parsedJson),
+		);
+
+		$this->systemValueFacade->updateValue(
 			SystemValueEnum::DIVIDENDS_UPDATED_AT,
 			datetimeValue: $now,
 		);

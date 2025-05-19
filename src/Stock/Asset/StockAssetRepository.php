@@ -172,6 +172,22 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		return (int) $result;
 	}
 
+	public function getDividendsEnabledCount(): int
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->select('count(stockAsset.id)');
+
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadPrice', ':shouldDownloadPrice'));
+		$qb->setParameter('shouldDownloadPrice', true);
+
+		$qb->andWhere($qb->expr()->eq('stockAsset.stockAssetDividendSource', ':stockAssetDividendSource'));
+		$qb->setParameter('stockAssetDividendSource', StockAssetDividendSourceEnum::WEB);
+
+		$result = $qb->getQuery()->getSingleScalarResult();
+		assert(is_scalar($result));
+		return (int) $result;
+	}
+
 	public function getCountUpdatedPricesAt(ImmutableDateTime $date, int $hour): int
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');

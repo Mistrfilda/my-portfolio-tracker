@@ -46,7 +46,7 @@
 
         <div class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-2">
             {foreach $values as $label => $value}
-                {if $iterator->counter0 % 4 === 0}
+                {if $iterator->counter0 % 5 === 0}
                     <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
                     <ul role="list" class="divide-y divide-gray-100 m-4">
                 {/if}
@@ -60,7 +60,7 @@
                             </span>
                     </div>
                 </li>
-                {if $iterator->counter % 4 === 0 || $iterator->last}
+                {if $iterator->counter % 5 === 0 || $iterator->last}
                     </ul>
                     </div>
                 {/if}

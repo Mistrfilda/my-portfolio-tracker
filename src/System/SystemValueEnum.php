@@ -6,6 +6,7 @@ namespace App\System;
 
 use App\System\Resolver\SystemValueCurrentVersionResolver;
 use App\System\Resolver\SystemValueDatabaseResolver;
+use App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver;
 use App\System\Resolver\SystemValueEnabledStockAssetsResolver;
 use App\System\Resolver\SystemValueLastUpdatedPricesCountResolver;
 
@@ -16,7 +17,11 @@ enum SystemValueEnum: string
 
 	case CURRENT_NGINX_DEPLOY_VERSION = 'current_nginx_deploy_version';
 
+	case DIVIDENDS_STOCK_ASSETS_WEB = 'dividends_stock_assets_web';
+
 	case DIVIDENDS_UPDATED_AT = 'dividends_updated_at';
+
+	case DIVIDENDS_UPDATED_COUNT = 'dividends_updated_count';
 
 	case ENABLED_STOCK_ASSETS = 'enabled_stock_assets';
 
@@ -33,7 +38,9 @@ enum SystemValueEnum: string
 		return match ($this) {
 			SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION => 'Aktuální verze PHP deploye',
 			SystemValueEnum::CURRENT_NGINX_DEPLOY_VERSION => 'Aktuální verze NGINX deploye',
+			SystemValueEnum::DIVIDENDS_STOCK_ASSETS_WEB => 'Počet akcií s automatickým stažením dividend',
 			SystemValueEnum::DIVIDENDS_UPDATED_AT => 'Poslední aktualizace dividend',
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => 'Počet stažených dividend při poslední aktualizaci',
 			SystemValueEnum::ENABLED_STOCK_ASSETS => 'Celkový počet akcíí s aktualizací ceny',
 			SystemValueEnum::LAST_UPDATED_STOCK_PRICES_COUNT => 'Celkový počet cen akcií aktualizovaných během poslední aktualizace',
 			SystemValueEnum::TWELVE_DATA_UPDATED_AT => 'Poslední aktualizace cen z Twelve data',
@@ -47,7 +54,9 @@ enum SystemValueEnum: string
 		return match ($this) {
 			SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION => SystemValueCurrentVersionResolver::class,
 			SystemValueEnum::CURRENT_NGINX_DEPLOY_VERSION => SystemValueCurrentVersionResolver::class,
+			SystemValueEnum::DIVIDENDS_STOCK_ASSETS_WEB => SystemValueEnabledDividendStockAssetsResolver::class,
 			SystemValueEnum::DIVIDENDS_UPDATED_AT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::TWELVE_DATA_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::PSE_DATA_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::PUPPETER_UPDATED_AT => SystemValueDatabaseResolver::class,

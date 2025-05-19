@@ -408,6 +408,7 @@ services:
 	- App\System\Resolver\SystemValueDatabaseResolver
 	- App\System\Resolver\SystemValueEnabledStockAssetsResolver
 	- App\System\Resolver\SystemValueLastUpdatedPricesCountResolver
+	- App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver
 
 	#Notifications
 	- App\Notification\NotificationFacade
