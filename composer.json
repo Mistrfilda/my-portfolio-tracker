@@ -168,12 +168,5 @@
 		},
 		"sort-packages": true,
 		"process-timeout": 1200
-	},
-	"extra": {
-		"patches": {
-			"bunny/bunny": {
-				"Fix typehint deprecations for php 8.4": "patches/bunny/php8-4-update-typehints.patch"
-			}
-		}
 	}
 }
