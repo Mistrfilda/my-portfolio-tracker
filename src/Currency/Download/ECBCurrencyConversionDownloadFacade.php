@@ -54,12 +54,11 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 
 		$xml = new SimpleXMLElement($ecbResponseXml->getBody()->getContents());
 		foreach (self::RATES_TO_BE_DOWNLOADED as $rateToBeDownloaded => $matchedEnum) {
-			$xpathResult = Arrays::first($xml->xpath(
-				sprintf(
-					'//*[@currency="%s"]',
-					$rateToBeDownloaded,
-				),
-			));
+			$xpathResult = $xml->xpath('//Cube[@currency="' . $rateToBeDownloaded . '"]');
+			if ($xpathResult === null) {
+				continue;
+			}
+			$xpathResult = Arrays::first($xpathResult);
 
 			if ($xpathResult === null || $xpathResult->attributes() instanceof SimpleXMLElement === false) {
 				continue;

@@ -70,7 +70,7 @@ async function processData(entries) {
 						}
 					}
 
-					const element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/article/div[1]/div[3]/table)", { timeout: 5000 });
+					const element = await page.waitForSelector("::-p-xpath(/html/body/div[2]/main/section/section/section/section/div[1]/div[3]/table)", { timeout: 5000 });
 					const textContent = await page.evaluate(el => el.textContent, element);
 					const html = await page.evaluate(el => el.innerHTML, element);
 
