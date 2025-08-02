@@ -15,6 +15,8 @@ class AdminFormRenderer implements FormRenderer
 
 	public const TEMPLATE_FILE = __DIR__ . '/templates/adminForm.latte';
 
+	public const TAILWIND_SELECTBOX_VALUE = 'tailwind-selectbox';
+
 	private TemplateFactory $templateFactory;
 
 	public function __construct(TemplateFactory $templateFactory)

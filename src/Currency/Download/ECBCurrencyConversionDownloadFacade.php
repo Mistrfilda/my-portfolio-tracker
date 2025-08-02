@@ -58,6 +58,7 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 			if ($xpathResult === null) {
 				continue;
 			}
+
 			$xpathResult = Arrays::first($xpathResult);
 
 			if ($xpathResult === null || $xpathResult->attributes() instanceof SimpleXMLElement === false) {

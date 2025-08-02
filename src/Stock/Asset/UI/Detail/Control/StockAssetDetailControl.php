@@ -21,6 +21,8 @@ class StockAssetDetailControl extends BaseControl
 {
 
 	private const CHART_OPTIONS = [
+		365 => '365 dní',
+		180 => '180 dní',
 		90 => '90 dní',
 		60 => '60 dní',
 		30 => '30 dní',
