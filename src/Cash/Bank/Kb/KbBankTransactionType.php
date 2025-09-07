@@ -26,7 +26,7 @@ class KbBankTransactionType
 			'enum' => BankTransactionType::TRANSACTION,
 			'firstLineEq' => ['OKAMŽITÁ ODCHOZÍ ÚHRADA', 'ODCHOZÍ ÚHRADA'],
 			'firstLineContains' => [],
-			'rawContentContains' => ['Odchozí úhrada', 'Trvalý příkaz', 'Příchozí úhrada'],
+			'rawContentContains' => ['Odchozí úhrada', 'Trvalý příkaz', 'Příchozí úhrada', 'Vrácení nákupu'],
 		],
 		BankTransactionType::BANK_FEE->value => [
 			'enum' => BankTransactionType::BANK_FEE,

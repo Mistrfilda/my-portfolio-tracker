@@ -44,7 +44,9 @@ class KbCsvCashParser implements BankExpenseParser
 			$type = $this->determineType($row);
 
 			if ($type === null) {
-				throw new KbPdfTransactionParsingErrorException('Unknown type, fix');
+				throw new KbPdfTransactionParsingErrorException(
+					sprintf('Unknown type %s, fix it', $row['Typ transakce'] ?? ''),
+				);
 			}
 
 			$amount = (int) $row['Castka'];
