@@ -54,6 +54,17 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<StockAsset>
+	 */
+	public function getAllActiveValuationAssets(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadValuation', ':shouldDownloadValuation'));
+		$qb->setParameter('shouldDownloadValuation', true);
+		return $qb->getQuery()->getResult();
+	}
+
 	public function findByTicker(string $ticker): StockAsset|null
 	{
 		return $this->doctrineRepository->findOneBy(['ticker' => $ticker]);

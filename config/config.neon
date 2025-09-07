@@ -18,19 +18,23 @@ parameters:
 		verifySsl: true
 		requests:
 			-
-				url: https://google.com
+				url: https://example.com
 				pricePositionTag: 1
 				tableTdsCount: 1
 
 	stockDividend:
-		webStockAssetDividendDownloaderUrl: https://google.com
+		webStockAssetDividendDownloaderUrl: https://example.com
 
 	webStockPriceDownloader:
-		url: https://google.com
+		url: https://example.com
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
-		requestHost: https://google.com
+		requestHost: https://example.com
 		cookie: aaaa
+
+	stockValuation:
+		financialsDataUrl: https://example.com
+		keyStatisticsDataUrl: https://example.com
 
 	workMonthlyIncome:
 		harvestAccountId: 50
@@ -378,6 +382,8 @@ services:
 		arguments:
 			stockAssetPriceUrl: %webStockPriceDownloader.url%
 			stockAssetDividendPriceUrl: %stockDividend.webStockAssetDividendDownloaderUrl%
+			financialsDataUrl: %stockValuation.financialsDataUrl%
+			keyStatisticsDataUrl: %stockValuation.keyStatisticsDataUrl%
 
 	-
 		class: App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade
@@ -429,3 +435,9 @@ services:
 	- App\Goal\PortfolioGoalUpdateCommand
 	- App\Goal\UI\Control\PortfolioGoalControlFactory
 	- App\Goal\Resolver\PortfolioGoalTotalDividendAmountResolver
+
+	#Stock valulation
+	- App\Stock\Valuation\Command\ValuationJsonDataSourceProviderCommand
+	- App\Stock\Valuation\Data\StockValuationDataFacade
+	- App\Stock\Valuation\StockValuationFacade
+	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)

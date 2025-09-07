@@ -38,6 +38,7 @@ class StockAssetFacade
 		float|null $dividendTax,
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
+		bool $shouldDownloadValuation,
 	): StockAsset
 	{
 		if ($this->stockAssetRepository->findByTicker($ticker) !== null) {
@@ -56,6 +57,7 @@ class StockAssetFacade
 			dividendTax: $dividendTax,
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
+			shouldDownloadValuation: $shouldDownloadValuation,
 		);
 
 		$this->entityManager->persist($stockAsset);
@@ -85,6 +87,7 @@ class StockAssetFacade
 		float|null $dividendTax,
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
+		bool $shouldDownloadValuation,
 	): StockAsset
 	{
 		$stockAsset = $this->stockAssetRepository->getById($id);
@@ -100,6 +103,7 @@ class StockAssetFacade
 			stockAssetDividendSource: $stockAssetDividendSource,
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
+			shouldDownloadValuation: $shouldDownloadValuation,
 		);
 
 		$this->entityManager->flush();

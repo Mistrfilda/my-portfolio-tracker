@@ -18,6 +18,7 @@ use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
+use App\Stock\Valuation\Data\StockValuationData;
 use App\UI\Filter\RuleOfThreeFilter;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -87,6 +88,13 @@ class StockAsset implements Entity, Asset
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $shouldDownloadPrice;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $shouldDownloadValuation;
+
+	/** @var ArrayCollection<int, StockValuationData> */
+	#[ORM\OneToMany(targetEntity: StockValuationData::class, mappedBy: 'stockAsset')]
+	private Collection $valuations;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -99,6 +107,7 @@ class StockAsset implements Entity, Asset
 		float|null $dividendTax,
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
+		bool $shouldDownloadValuation,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -112,6 +121,7 @@ class StockAsset implements Entity, Asset
 		$this->dividendTax = $dividendTax;
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
+		$this->shouldDownloadValuation = $shouldDownloadValuation;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -122,6 +132,7 @@ class StockAsset implements Entity, Asset
 		$this->positions = new ArrayCollection();
 		$this->priceRecords = new ArrayCollection();
 		$this->dividends = new ArrayCollection();
+		$this->valuations = new ArrayCollection();
 	}
 
 	public function update(
@@ -136,6 +147,7 @@ class StockAsset implements Entity, Asset
 		CurrencyEnum|null $brokerDividendCurrency,
 		ImmutableDateTime $now,
 		bool $shouldDownloadPrice,
+		bool $shouldDownloadValuation,
 	): void
 	{
 		$this->name = $name;
@@ -149,6 +161,7 @@ class StockAsset implements Entity, Asset
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->updatedAt = $now;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
+		$this->shouldDownloadValuation = $shouldDownloadValuation;
 	}
 
 	public function setCurrentPrice(
@@ -342,6 +355,20 @@ class StockAsset implements Entity, Asset
 	public function getBrokerDividendCurrency(): CurrencyEnum|null
 	{
 		return $this->brokerDividendCurrency;
+	}
+
+	public function isShouldDownloadValuation(): bool
+	{
+		return $this->shouldDownloadValuation;
+	}
+
+	/**
+	 * @return array<StockValuationData>
+	 */
+	public function getValuations(): array
+	{
+		return $this->valuations->toArray();
+
 	}
 
 }

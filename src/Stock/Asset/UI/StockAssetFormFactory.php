@@ -85,6 +85,9 @@ class StockAssetFormFactory
 		$form->addCheckbox('shouldDownloadPrice', 'Aktualizovat cenu')
 			->setDefaultValue(true);
 
+		$form->addCheckbox('shouldDownloadValuation', 'Aktualizovat valuaci')
+			->setDefaultValue(false);
+
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
@@ -106,6 +109,7 @@ class StockAssetFormFactory
 						TypeValidator::validateString($values->brokerDividendCurrency),
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
+					TypeValidator::validateBool($values->shouldDownloadValuation),
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -123,6 +127,7 @@ class StockAssetFormFactory
 						TypeValidator::validateString($values->brokerDividendCurrency),
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
+					TypeValidator::validateBool($values->shouldDownloadValuation),
 				);
 			}
 
@@ -151,6 +156,7 @@ class StockAssetFormFactory
 			'dividendTax' => $stockAsset->getDividendTax(),
 			'brokerDividendCurrency' => $stockAsset->getBrokerDividendCurrency()?->value,
 			'shouldDownloadPrice' => $stockAsset->shouldBeUpdated(),
+			'shouldDownloadValuation' => $stockAsset->isShouldDownloadValuation(),
 		]);
 	}
 
