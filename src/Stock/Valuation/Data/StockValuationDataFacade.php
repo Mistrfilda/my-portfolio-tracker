@@ -68,7 +68,7 @@ class StockValuationDataFacade
 						$stringValue = null;
 					} else {
 						if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
-							$floatValue = (float) str_replace('%', '', $value);
+							$floatValue = (float) str_replace('%', '', $value ?? '');
 						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
 							$floatValue = $parser->parseNumericValue($value);
 						}
