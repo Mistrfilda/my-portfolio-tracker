@@ -31,7 +31,7 @@ class BankExpenseFormFactory
 	{
 	}
 
-	public function create(callable $onSuccess, UuidInterface|null $id): AdminForm
+	public function create(callable $onSuccess, UuidInterface|null $id, UuidInterface|null $duplicateId): AdminForm
 	{
 		$form = $this->adminFormFactory->create();
 
@@ -66,6 +66,18 @@ class BankExpenseFormFactory
 			$bankExpense = $this->bankExpenseRepository->getById($id);
 			$form->setDefaults([
 				'identifier' => $bankExpense->getIdentifier(),
+				'source' => $bankExpense->getSource()->value,
+				'type' => $bankExpense->getBankTransactionType()->value,
+				'amount' => $bankExpense->getAmount(),
+				'currency' => $bankExpense->getCurrency()->value,
+				'settlementDate' => $bankExpense->getSettlementDate(),
+				'transactionDate' => $bankExpense->getTransactionDate(),
+				'transactionRawContent' => $bankExpense->getTransactionRawContent(),
+				'bankAccount' => $bankExpense->getBankAccount()->getId()->toString(),
+			]);
+		} elseif ($duplicateId !== null) {
+			$bankExpense = $this->bankExpenseRepository->getById($duplicateId);
+			$form->setDefaults([
 				'source' => $bankExpense->getSource()->value,
 				'type' => $bankExpense->getBankTransactionType()->value,
 				'amount' => $bankExpense->getAmount(),

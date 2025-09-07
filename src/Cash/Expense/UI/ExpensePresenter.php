@@ -45,7 +45,7 @@ class ExpensePresenter extends BaseAdminPresenter
 		$this->template->heading = 'Nahrání přehledu';
 	}
 
-	public function renderForm(string|null $id): void
+	public function renderForm(string|null $id, string|null $duplicateId): void
 	{
 		if ($id !== null) {
 			$this->template->heading = 'Editace výdaje';
@@ -75,6 +75,7 @@ class ExpensePresenter extends BaseAdminPresenter
 	public function createComponentBankExpenseForm(): AdminForm
 	{
 		$id = $this->processParameterUuid('id');
+		$duplicateId = $this->processParameterUuid('duplicateId');
 
 		$onSuccess = function () use ($id): void {
 			if ($id !== null) {
@@ -86,7 +87,7 @@ class ExpensePresenter extends BaseAdminPresenter
 			$this->redirect('kb');
 		};
 
-		return $this->bankExpenseFormFactory->create($onSuccess, $id);
+		return $this->bankExpenseFormFactory->create($onSuccess, $id, $duplicateId);
 	}
 
 	public function createComponentBankExpenseGrid(): Datagrid

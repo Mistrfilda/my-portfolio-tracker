@@ -41,7 +41,7 @@ class BankExpenseGridFactory
 		$grid->addColumnDatetime('settlementDate', 'Datum zúčtování')->setSortable();
 		$grid->addColumnDatetime('transactionDate', 'Datum transakce')->setSortable();
 
-		$grid->addColumnText('bankTransactionType', 'Typ transakce');
+		$grid->addColumnText('bankTransactionType', 'Typ transakce')->setSortable();
 		$grid->addColumnText(
 			'bankAccount',
 			'Z bankovního účtu',
@@ -89,6 +89,15 @@ class BankExpenseGridFactory
 			[new DatagridActionParameter('id', 'id')],
 			SvgIcon::PENCIL,
 			TailwindColorConstant::BLUE,
+		);
+
+		$grid->addAction(
+			'duplicate',
+			'Duplikovat',
+			'Expense:form',
+			[new DatagridActionParameter('duplicateId', 'id')],
+			SvgIcon::PENCIL,
+			TailwindColorConstant::TEAL,
 		);
 
 		return $grid;
