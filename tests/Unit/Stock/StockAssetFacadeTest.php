@@ -72,6 +72,7 @@ class StockAssetFacadeTest extends TestCase
 			$dividendTax,
 			$brokerDividendCurrency,
 			true,
+			true,
 		);
 
 		self::assertSame($name, $stockAsset->getName());
