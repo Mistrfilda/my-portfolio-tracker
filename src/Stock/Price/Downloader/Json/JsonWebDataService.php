@@ -13,6 +13,8 @@ class JsonWebDataService
 	public function __construct(
 		private string $stockAssetPriceUrl,
 		private string $stockAssetDividendPriceUrl,
+		private string $financialsDataUrl,
+		private string $keyStatisticsDataUrl,
 		private DatetimeFactory $datetimeFactory,
 	)
 	{
@@ -34,6 +36,22 @@ class JsonWebDataService
 			$stockAsset->getTicker(),
 			$this->datetimeFactory->createToday()->deductYearsFromDatetime(5)->getTimestamp(),
 			$this->datetimeFactory->createToday()->deductDaysFromDatetime(1)->getTimestamp(),
+		);
+	}
+
+	public function getFinancialsDataUrl(StockAsset $stockAsset): string
+	{
+		return sprintf(
+			$this->financialsDataUrl,
+			$stockAsset->getTicker(),
+		);
+	}
+
+	public function getKeyStatisticsDataUrl(StockAsset $stockAsset): string
+	{
+		return sprintf(
+			$this->keyStatisticsDataUrl,
+			$stockAsset->getTicker(),
 		);
 	}
 

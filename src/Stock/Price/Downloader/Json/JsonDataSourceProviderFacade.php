@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Price\Downloader\Json;
 
 use App\Asset\Price\AssetPriceSourceProvider;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\StockAssetDividendSourceProvider;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
@@ -19,6 +20,10 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 	public const STOCK_ASSET_PRICE_FILENAME = 'prices.json';
 
 	public const STOCK_ASSET_DIVIDENDS_FILENAME = 'dividends.json';
+
+	public const STOCK_ASSET_FINANCIALS_FILENAME = 'financials.json';
+
+	public const STOCK_ASSET_KEY_STATISTICS_FILENAME = 'keyStatistics.json';
 
 	public function __construct(
 		private readonly int $updateStockAssetHoursThreshold,
@@ -74,6 +79,46 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 		FileSystem::write(
 			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_DIVIDENDS_FILENAME,
 			Json::encode($stockAssetsToDownload),
+		);
+	}
+
+	public function generateStockValuationJsonFile(
+		string $fileLocation,
+		StockAsset|null $selectedStockAsset = null,
+	): void
+	{
+		if ($selectedStockAsset === null) {
+			$stockAssets = $this->stockAssetRepository->getAllActiveValuationAssets();
+		} else {
+			$stockAssets = [$selectedStockAsset];
+		}
+
+		$keyStatistics = [];
+		$financials = [];
+		foreach ($stockAssets as $stockAsset) {
+			$keyStatistics[] = [
+				'id' => $stockAsset->getId()->toString(),
+				'name' => $stockAsset->getName(),
+				'currency' => $stockAsset->getCurrency()->value,
+				'url' => $this->jsonWebDataService->getKeyStatisticsDataUrl($stockAsset),
+			];
+
+			$financials[] = [
+				'id' => $stockAsset->getId()->toString(),
+				'name' => $stockAsset->getName(),
+				'currency' => $stockAsset->getCurrency()->value,
+				'url' => $this->jsonWebDataService->getFinancialsDataUrl($stockAsset),
+			];
+		}
+
+		FileSystem::write(
+			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_KEY_STATISTICS_FILENAME,
+			Json::encode($keyStatistics),
+		);
+
+		FileSystem::write(
+			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_FINANCIALS_FILENAME,
+			Json::encode($financials),
 		);
 	}
 
