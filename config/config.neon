@@ -1,6 +1,10 @@
 di:
 	lazy: false
 
+latte:
+	strictTypes: true
+	strictParsing: true
+
 parameters:
 	console:
 		url: https://localhost/my-portfolio-tracker/

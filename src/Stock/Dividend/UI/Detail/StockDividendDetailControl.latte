@@ -126,12 +126,13 @@
                                             {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
                                         </td>
                                         <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[0]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}</td>
-                                        <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[2]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}</td>
+                                            {$dividendDetailDTOs[0]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
                                         </td>
                                         <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[1]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}</td>
+                                            {$dividendDetailDTOs[2]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
+                                        </td>
+                                        <td class="px-2 py-2 text-sm text-gray-500">
+                                            {$dividendDetailDTOs[1]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
                                         </td>
                                     </tr>
                                 {/foreach}
