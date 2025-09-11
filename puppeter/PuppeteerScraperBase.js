@@ -9,21 +9,21 @@ export class PuppeteerScraperBase {
 		this.__dirname = path.dirname(__filename);
 
 		this.browserConfig = {
-			headless: false,
-			devtools: true,
-			// headless: true,
+			// headless: false,
+			// devtools: true,
+			headless: true,
 			slowMo: 100,
-			// browser: "firefox",
-			// executablePath: "/usr/bin/firefox",
+			browser: "firefox",
+			executablePath: "/usr/bin/firefox",
 			args: [
-				// '--no-sandbox',
-				// '--disable-setuid-sandbox',
-				// '--disable-gpu',
-				// '--disable-dev-shm-usage',
-				// '--single-process',
-				// '--disable-background-timer-throttling',
-				// '--disable-extensions',
-				// '--disable-sync',
+				'--no-sandbox',
+				'--disable-setuid-sandbox',
+				'--disable-gpu',
+				'--disable-dev-shm-usage',
+				'--single-process',
+				'--disable-background-timer-throttling',
+				'--disable-extensions',
+				'--disable-sync',
 			],
 		};
 	}
