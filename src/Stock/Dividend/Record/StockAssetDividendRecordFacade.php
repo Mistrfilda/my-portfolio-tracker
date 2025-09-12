@@ -48,7 +48,7 @@ class StockAssetDividendRecordFacade
 				new ArrayCollection($this->stockAssetDividendRepository->findByStockAsset(
 					$dividendPayer,
 				)),
-				new ArrayCollection($dividendPayer->getPositions()),
+				new ArrayCollection($dividendPayer->getPositions(true)),
 			);
 
 			$processedDividendRecords = array_merge($processedDividendRecords, $dividendRecords->toArray());
