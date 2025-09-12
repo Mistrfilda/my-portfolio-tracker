@@ -3,7 +3,7 @@ di:
 
 latte:
 	strictTypes: true
-	strictParsing: true
+	#strictParsing: true
 
 parameters:
 	console:
