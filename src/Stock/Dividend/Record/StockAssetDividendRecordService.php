@@ -36,6 +36,13 @@ class StockAssetDividendRecordService
 		foreach ($stockAssetDividends as $stockAssetDividend) {
 			$dividendSummaryPrice = new SummaryPrice($stockAssetDividend->getCurrency());
 			foreach ($stockAssetPositions as $position) {
+				if (
+					$position->getStockClosedPosition() !== null
+					&& $position->getStockClosedPosition()->getDate()->getTimestamp() <= $stockAssetDividend->getExDate()->getTimestamp()
+				) {
+					continue;
+				}
+
 				if ($position->getOrderDate()->getTimestamp() < $stockAssetDividend->getExDate()->getTimestamp()) {
 					$dividendSummaryPrice->addFlat(
 						$stockAssetDividend->getAmount() * $position->getOrderPiecesCount(),
