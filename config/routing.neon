@@ -32,3 +32,4 @@ custompresenterfactory:
 		Admin:PortfolioStatisticTotal: App\Statistic\UI\Total\UI\PortfolioStatisticTotalPresenter
 		Admin:PortfolioGoal: App\Goal\UI\PortfolioGoalPresenter
 		Admin:BankAccount: App\Cash\Bank\Account\UI\BankAccountPresenter
+		Admin:StockValuation: App\Stock\Valuation\UI\StockValuationPresenter

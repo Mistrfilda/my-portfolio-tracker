@@ -68,6 +68,15 @@ class MenuBuilder
 				],
 			),
 			new MenuItem(
+				'StockValuation',
+				'default',
+				SvgIcon::ACADEMIC_CAP,
+				'Valuace akcií',
+				[
+					'StockValuation',
+				],
+			),
+			new MenuItem(
 				'StockPosition',
 				'default',
 				SvgIcon::DOCUMENT_DUPLICATE,

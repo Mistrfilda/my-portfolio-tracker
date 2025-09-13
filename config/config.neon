@@ -181,6 +181,7 @@ services:
 			- addFilter(expensePriceFormat, [@expensePriceFilter, format])
 			- addFilter(nullableCurrencyConvert, [@currencyNullableConversionFilter, convert])
 			- addFilter(summaryPriceConvert, [@summaryPriceConvertFilter, convert])
+			- addFilter(compactCurrency, [@compactCurrencyFilter, format])
 
 	#CUSTOM LATTE FILTERS
 	datetimeFormatFilter: App\UI\Filter\DatetimeFormatFilter
@@ -196,6 +197,7 @@ services:
 	expensePriceFilter: App\UI\Filter\CashPriceFilter
 	currencyNullableConversionFilter: App\UI\Filter\CurrencyNullableConversionFilter
 	summaryPriceConvertFilter: App\UI\Filter\SummaryPriceConvertFilter
+	compactCurrencyFilter: App\UI\Filter\CompactCurrencyFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
@@ -445,3 +447,4 @@ services:
 	- App\Stock\Valuation\Data\StockValuationDataFacade
 	- App\Stock\Valuation\StockValuationFacade
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
+	- App\Stock\Valuation\Data\StockValuationDataParseCommand

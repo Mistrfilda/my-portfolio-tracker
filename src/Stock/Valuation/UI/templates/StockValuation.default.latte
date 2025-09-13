@@ -1,0 +1,104 @@
+{templateType App\Stock\Valuation\UI\StockValuationTemplate}
+{block #content}
+    {snippet valuationPage}
+        <ul role="list" class="divide-y divide-gray-200">
+            <li class="px-4 py-4 sm:px-0">
+                <div>
+                    <div class="block">
+                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
+                            {foreach $renderableTypeGroups as $typeGroup}
+                                <a
+                                        n:href="default typeGroupEnum: $typeGroup->value"
+                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $typeGroup->value === $currentTypeGroup ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
+                                        aria-current="page"
+                                >
+                                    <span>{$typeGroup->format()}</span>
+                                    {if $typeGroup->value === $currentTypeGroup}
+                                        <span aria-hidden="true"
+                                              class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {else}
+                                        <span aria-hidden="true"
+                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
+                                    {/if}
+                                </a>
+                            {/foreach}
+                        </nav>
+                    </div>
+                </div>
+            </li>
+        </ul>
+
+        {var $currentTypeGroupEnum = App\Stock\Valuation\StockValuationTypeGroupEnum::from($currentTypeGroup)}
+        {var $typesForGroup = $currentTypeGroupEnum->getTypes()}
+
+        <div class="bg-white py-10">
+            <h2 class="px-4 text-base/7 font-semibold text-gray-900 sm:px-6 lg:px-8">
+                {$currentTypeGroupEnum->format()}
+            </h2>
+
+            <div class="mt-6 overflow-x-auto">
+                <div class="min-w-full inline-block align-middle">
+                    <table class="min-w-full whitespace-nowrap text-left">
+                        <thead class="border-b border-gray-200 text-sm/6 text-gray-900">
+                        <tr>
+                            <th scope="col"
+                                class="py-2 pl-4 pr-8 font-semibold sm:pl-6 lg:pl-8 sticky left-0 bg-white min-w-48">
+                                Akcie
+                            </th>
+                            {foreach $typesForGroup as $type}
+                                <th scope="col" class="py-2 px-4 text-center font-semibold min-w-32">
+                                    <div class="truncate">
+                                        {$type->format()}
+                                    </div>
+                                </th>
+                            {/foreach}
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                        {foreach $stockValuations as $stockValuation}
+                            <tr>
+                                <td class="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8 sticky left-0 bg-white">
+                                    <div class="flex items-center gap-x-4">
+                                        <div class="truncate text-sm/6 font-medium text-gray-900 min-w-0">
+                                            {$stockValuation->getStockAsset()->getName()}
+                                        </div>
+                                    </div>
+                                </td>
+                                {foreach $typesForGroup as $type}
+                                    <td class="py-4 px-4 text-sm/6 text-center">
+                                        {var $valuationData = $stockValuation->getCurrentStockValuationData()[$type->value] ?? null}
+                                        {if $valuationData}
+                                            {if $valuationData->getFloatValue() !== null}
+                                                <span class="text-gray-900">
+                                                {if $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::FLOAT}
+{*                                                    {$valuationData->getFloatValue()|currencyConvert:$stockValuation->getStockAsset()->getCurrency(),App\Currency\CurrencyEnum::USD|compactCurrency:$valuationData->getCurrency()}*}
+                                                    {if $type->isCurrencyValue()}
+                                                    {$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
+                                                    {else}
+                                                        {$valuationData->getFloatValue()}
+                                                    {/if}
+                                                {elseif $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
+                                                    {$valuationData->getFloatValue()|number:2}%
+                                                {else}
+                                                    {$valuationData->getFloatValue()|number:2}
+                                                {/if}
+                                            </span>
+                                            {elseif $valuationData->getStringValue()}
+                                                <span class="text-gray-900">{$valuationData->getStringValue()}</span>
+                                            {else}
+                                                <span class="text-gray-500">N/A</span>
+                                            {/if}
+                                        {else}
+                                            <span class="text-gray-500">N/A</span>
+                                        {/if}
+                                    </td>
+                                {/foreach}
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {/snippet}
+{/block}

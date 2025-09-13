@@ -14,6 +14,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use stdClass;
 
@@ -26,6 +27,7 @@ class StockValuationDataFacade
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private StockValuationDataRepository $stockValuationDataRepository,
+		private LoggerInterface $logger,
 	)
 	{
 	}
@@ -49,6 +51,7 @@ class StockValuationDataFacade
 			$data = $parser->parseStockData();
 
 			$stockAsset = $this->stockAssetRepository->getById(Uuid::fromString($parsedStockAsset->id));
+			$this->logger->debug(sprintf('Processing stock asset %s', $stockAsset->getName()));
 
 			$this->stockValuationDataRepository->removeTodayData($stockAsset, $now);
 			$this->stockValuationDataRepository->updateLastActive($stockAsset);
@@ -90,6 +93,8 @@ class StockValuationDataFacade
 					$this->entityManager->flush();
 				}
 			}
+
+			$this->logger->debug(sprintf('Processed stock asset %s', $stockAsset->getName()));
 		}
 
 		$processedFile = sprintf(

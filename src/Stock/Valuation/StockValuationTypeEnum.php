@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation;
 
+use Nette\Utils\Strings;
+
 enum StockValuationTypeEnum: string
 {
 
@@ -182,6 +184,34 @@ enum StockValuationTypeEnum: string
 
 			default => StockValuationTypeValueTypeEnum::FLOAT,
 		};
+	}
+
+	public function isCurrencyValue(): bool
+	{
+		return match ($this) {
+			StockValuationTypeEnum::PRICE_CHANGE_PERCENT,
+			StockValuationTypeEnum::AFTER_HOURS_CHANGE_PERCENT,
+			StockValuationTypeEnum::FORWARD_PE,
+			StockValuationTypeEnum::PEG_RATIO,
+			StockValuationTypeEnum::TRAILING_PE,
+			StockValuationTypeEnum::DIVIDEND_DATE,
+			StockValuationTypeEnum::EX_DIVIDEND_DATE,
+			StockValuationTypeEnum::PRICE_SALES,
+			StockValuationTypeEnum::PRICE_BOOK,
+			StockValuationTypeEnum::EV_EBITDA,
+			StockValuationTypeEnum::CURRENT_RATIO,
+			StockValuationTypeEnum::TOTAL_CASH,
+			StockValuationTypeEnum::BOOK_VALUE_PER_SHARE,
+			StockValuationTypeEnum::SHARES_OUTSTANDING,
+			StockValuationTypeEnum::FLOAT,
+			StockValuationTypeEnum::EV_REVENUE => false,
+			default => true,
+		};
+	}
+
+	public function format(): string
+	{
+		return Strings::capitalize(str_replace('_', ' ', $this->value));
 	}
 
 }

@@ -89,4 +89,6 @@ enum SvgIcon: string
 
 	case NORWEGIAN_KRONE = 'norwegian-krone.svg';
 
+	case ACADEMIC_CAP = 'academic-cap.svg';
+
 }

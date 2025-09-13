@@ -1,4 +1,4 @@
-import { FinancialsScraper } from './FinancialsScraper.js';
+//import { FinancialsScraper } from './FinancialsScraper.js';
 import { KeyStatisticsScraper } from './KeyStatisticsScraper.js';
 
 // const financialsScraper = new FinancialsScraper();

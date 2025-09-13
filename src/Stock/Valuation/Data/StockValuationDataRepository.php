@@ -39,15 +39,16 @@ class StockValuationDataRepository extends BaseRepository
 	}
 
 	/**
-	 * @return array<StockValuationData>
+	 * @return array<string, StockValuationData>
 	 */
 	public function findLatestForStockAsset(StockAsset $stockAsset): array
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockValuationData');
+		$qb = $this->doctrineRepository->createQueryBuilder('stockValuationData', 'stockValuationData.valuationType');
 		$qb->andWhere($qb->expr()->eq('stockValuationData.stockAsset', ':stockAsset'));
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->andWhere($qb->expr()->eq('stockValuationData.lastActive', ':lastActive'));
 		$qb->setParameter('lastActive', true);
+		$qb->groupBy('stockValuationData.valuationType');
 		return $qb->getQuery()->getResult();
 	}
 

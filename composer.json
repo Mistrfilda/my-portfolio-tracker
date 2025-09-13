@@ -140,6 +140,11 @@
 			"bin/console stock:asset:downloadJsonDividends",
 			"bin/console stock:asset:dividendRecords"
 		],
+		"stock-valuation": [
+			"bin/console puppeter:valuation:data",
+			"node ./puppeter/financials.js",
+			"bin/console stock:valuation:data"
+		],
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"ormv": "bin/console orm:validate-schema -vvv --skip-sync",
 		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",
