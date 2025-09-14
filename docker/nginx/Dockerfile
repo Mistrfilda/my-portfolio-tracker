@@ -1,4 +1,4 @@
-FROM node:20 AS asset-builder
+FROM node:24 AS asset-builder
 
 COPY . /app
 WORKDIR /app
