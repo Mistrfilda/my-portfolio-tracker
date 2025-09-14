@@ -16,8 +16,6 @@ class CompactCurrencyFilter
 	): string
 	{
 		$absValue = abs($value);
-		$isNegative = $value < 0;
-
 		$unit = '';
 		$divisor = 1;
 
@@ -44,7 +42,7 @@ class CompactCurrencyFilter
 			}
 		}
 
-		$result = ($isNegative ? '-' : '') . $formattedValue;
+		$result = $formattedValue;
 
 		if ($unit !== '') {
 			$result .= ' ' . $unit;

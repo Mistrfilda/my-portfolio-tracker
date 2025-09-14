@@ -25,4 +25,8 @@ class StockValuationTemplate extends BaseAdminPresenterTemplate
 	/** @var array<StockValuationTypeEnum> */
 	public array $typesForGroup;
 
+	public string|null $currentSortBy;
+
+	public string $currentSortDirection;
+
 }

@@ -448,3 +448,4 @@ services:
 	- App\Stock\Valuation\StockValuationFacade
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand
+	- App\Stock\Valuation\UI\StockValuationSortService

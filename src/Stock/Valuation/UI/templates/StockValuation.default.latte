@@ -1,5 +1,6 @@
 {templateType App\Stock\Valuation\UI\StockValuationTemplate}
 {block #content}
+
     {snippet valuationPage}
         <ul role="list" class="divide-y divide-gray-200">
             <li class="px-4 py-4 sm:px-0">
@@ -8,7 +9,7 @@
                         <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
                             {foreach $renderableTypeGroups as $typeGroup}
                                 <a
-                                        n:href="default typeGroupEnum: $typeGroup->value"
+                                        n:href="default typeGroupEnum: $typeGroup->value, sortBy: null"
                                         n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $typeGroup->value === $currentTypeGroup ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
                                         aria-current="page"
                                 >
@@ -40,13 +41,35 @@
                         <tr>
                             <th scope="col"
                                 class="py-2 pl-4 pr-8 font-semibold sm:pl-6 lg:pl-8 sticky left-0 bg-white min-w-48">
-                                Akcie
+                                <a n:href="default typeGroupEnum: $currentTypeGroup, sortBy: 'name', sortDirection: ($currentSortBy === 'name' && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
+                                        class="ajax group flex items-center gap-x-1 hover:text-blue-600">
+                                    <span>Akcie</span>
+                                    {if $currentSortBy === 'name'}
+                                        {if $currentSortDirection === 'asc'}
+                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500']}
+                                        {else}
+                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500']}
+                                        {/if}
+                                    {else}
+                                        {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400']}
+                                    {/if}
+                                </a>
                             </th>
                             {foreach $typesForGroup as $type}
                                 <th scope="col" class="py-2 px-4 text-center font-semibold min-w-32">
-                                    <div class="truncate">
-                                        {$type->format()}
-                                    </div>
+                                    <a n:href="default typeGroupEnum: $currentTypeGroup, sortBy: $type->value, sortDirection: ($currentSortBy === $type->value && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
+                                            class="ajax group flex items-center justify-center gap-x-1 hover:text-blue-600">
+                                        <span class="truncate">{$type->format()}</span>
+                                        {if $currentSortBy === $type->value}
+                                            {if $currentSortDirection === 'asc'}
+                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500 flex-shrink-0']}
+                                            {else}
+                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500 flex-shrink-0']}
+                                            {/if}
+                                        {else}
+                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400 flex-shrink-0']}
+                                        {/if}
+                                    </a>
                                 </th>
                             {/foreach}
                         </tr>
@@ -78,17 +101,17 @@
                                                             </div>
                                                         {else}
                                                             <span class="font-medium">
-                                                                {$valuationData->getFloatValue()}
-                                                            </span>
+                                                            {$valuationData->getFloatValue()}
+                                                        </span>
                                                         {/if}
                                                     {elseif $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
                                                         <span class="font-medium">
-                                                            {$valuationData->getFloatValue()|number:2}%
-                                                        </span>
+                                                        {$valuationData->getFloatValue()|number:2}%
+                                                    </span>
                                                     {else}
                                                         <span class="font-medium">
-                                                            {$valuationData->getFloatValue()|number:2}
-                                                        </span>
+                                                        {$valuationData->getFloatValue()|number:2}
+                                                    </span>
                                                     {/if}
                                                 </div>
                                             {elseif $valuationData->getStringValue()}
@@ -109,4 +132,5 @@
             </div>
         </div>
     {/snippet}
+
 {/block}
