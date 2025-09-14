@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE latte PUBLIC "-//LATTE//Latte plugin XML V0.0.1//EN" ".idea/intellij-latte-pro/xmlSources/Latte.dtd">
+<latte vendor="my-portfolio-tracker" version="1">
+    <filters>
+        <filter name="datetimeFormat"/>
+        <filter name="secondsFormat"/>
+        <filter name="nullablestring"/>
+        <filter name="flashMessageColor"/>
+        <filter name="assetPriceFormat"/>
+        <filter name="summaryPriceFormat"/>
+        <filter name="percentage"/>
+        <filter name="ruleOfThree"/>
+        <filter name="expensePriceFormat"/>
+        <filter name="nullableCurrencyConvert"/>
+        <filter name="summaryPriceConvert"/>
+        <filter name="currency" description="Format currency">
+            <filterArguments>
+                <filterArgument name="currencyEnum" type="App\Currency\CurrencyEnum"/>
+            </filterArguments>
+        </filter>
+        <filter name="currencyConvert" description="Convert currency">
+            <filterArguments>
+                <filterArgument name="from" type="App\Currency\CurrencyEnum"/>
+                <filterArgument name="to" type="App\Currency\CurrencyEnum"/>
+            </filterArguments>
+        </filter>
+        <filter name="nullableCurrencyConvert" description="Convert currency">
+            <filterArguments>
+                <filterArgument name="from" type="App\Currency\CurrencyEnum"/>
+                <filterArgument name="to" type="App\Currency\CurrencyEnum"/>
+            </filterArguments>
+        </filter>
+        <filter name="compactCurrency" description="Convert currency">
+            <filterArguments>
+                <filterArgument name="from" type="App\Currency\CurrencyEnum"/>
+                <filterArgument name="to" type="App\Currency\CurrencyEnum"/>
+            </filterArguments>
+        </filter>
+    </filters>
+</latte>
