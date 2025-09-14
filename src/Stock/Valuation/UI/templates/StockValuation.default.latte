@@ -28,9 +28,6 @@
             </li>
         </ul>
 
-        {var $currentTypeGroupEnum = App\Stock\Valuation\StockValuationTypeGroupEnum::from($currentTypeGroup)}
-        {var $typesForGroup = $currentTypeGroupEnum->getTypes()}
-
         <div class="bg-white py-10">
             <h2 class="px-4 text-base/7 font-semibold text-gray-900 sm:px-6 lg:px-8">
                 {$currentTypeGroupEnum->format()}
@@ -67,24 +64,35 @@
                                 {foreach $typesForGroup as $type}
                                     <td class="py-4 px-4 text-sm/6 text-center">
                                         {var $valuationData = $stockValuation->getCurrentStockValuationData()[$type->value] ?? null}
-                                        {if $valuationData}
+                                        {varType App\Stock\Valuation\Data\StockValuationData $valuationData}
+                                        {if $valuationData !== null}
                                             {if $valuationData->getFloatValue() !== null}
-                                                <span class="text-gray-900">
-                                                {if $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::FLOAT}
-{*                                                    {$valuationData->getFloatValue()|currencyConvert:$stockValuation->getStockAsset()->getCurrency(),App\Currency\CurrencyEnum::USD|compactCurrency:$valuationData->getCurrency()}*}
-                                                    {if $type->isCurrencyValue()}
-                                                    {$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
+                                                <div class="text-gray-900">
+                                                    {if $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::FLOAT}
+                                                        {if $type->isCurrencyValue()}
+                                                            <div class="font-medium">
+                                                                {$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
+                                                            </div>
+                                                            <div class="text-xs text-gray-500 mt-1">
+                                                                {$valuationData->getFloatValue()|currencyConvert:$stockValuation->getStockAsset()->getCurrency(),App\Currency\CurrencyEnum::CZK|compactCurrency:App\Currency\CurrencyEnum::CZK}
+                                                            </div>
+                                                        {else}
+                                                            <span class="font-medium">
+                                                                {$valuationData->getFloatValue()}
+                                                            </span>
+                                                        {/if}
+                                                    {elseif $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
+                                                        <span class="font-medium">
+                                                            {$valuationData->getFloatValue()|number:2}%
+                                                        </span>
                                                     {else}
-                                                        {$valuationData->getFloatValue()}
+                                                        <span class="font-medium">
+                                                            {$valuationData->getFloatValue()|number:2}
+                                                        </span>
                                                     {/if}
-                                                {elseif $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
-                                                    {$valuationData->getFloatValue()|number:2}%
-                                                {else}
-                                                    {$valuationData->getFloatValue()|number:2}
-                                                {/if}
-                                            </span>
+                                                </div>
                                             {elseif $valuationData->getStringValue()}
-                                                <span class="text-gray-900">{$valuationData->getStringValue()}</span>
+                                                <span class="text-gray-900 font-medium">{$valuationData->getStringValue()}</span>
                                             {else}
                                                 <span class="text-gray-500">N/A</span>
                                             {/if}

@@ -27,6 +27,8 @@ class StockValuationPresenter extends BaseAdminPresenter
 		$this->template->renderableTypeGroups = StockValuationTypeGroupEnum::getRenderableGroups();
 		$this->template->currentTypeGroup = $typeGroupEnum;
 		$this->template->stockValuations = $this->stockValuationFacade->getStockValuations();
+		$this->template->currentTypeGroupEnum = StockValuationTypeGroupEnum::from($typeGroupEnum);
+		$this->template->typesForGroup = StockValuationTypeGroupEnum::from($typeGroupEnum)->getTypes();
 
 		if ($this->isAjax()) {
 			$this->redrawControl('valuationPage');

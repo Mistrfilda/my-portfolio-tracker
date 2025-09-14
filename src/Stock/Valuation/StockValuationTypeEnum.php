@@ -200,11 +200,10 @@ enum StockValuationTypeEnum: string
 			StockValuationTypeEnum::PRICE_BOOK,
 			StockValuationTypeEnum::EV_EBITDA,
 			StockValuationTypeEnum::CURRENT_RATIO,
-			StockValuationTypeEnum::TOTAL_CASH,
 			StockValuationTypeEnum::BOOK_VALUE_PER_SHARE,
 			StockValuationTypeEnum::SHARES_OUTSTANDING,
 			StockValuationTypeEnum::FLOAT,
-			StockValuationTypeEnum::EV_REVENUE => false,
+			StockValuationTypeEnum::EV_REVENUE, => false,
 			default => true,
 		};
 	}
