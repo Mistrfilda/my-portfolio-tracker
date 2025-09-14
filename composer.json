@@ -143,7 +143,7 @@
 		"stock-valuation": [
 			"bin/console puppeter:valuation:data",
 			"node ./puppeter/financials.js",
-			"bin/console stock:valuation:data"
+			"bin/console stock:asset:valuation:data"
 		],
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"ormv": "bin/console orm:validate-schema -vvv --skip-sync",

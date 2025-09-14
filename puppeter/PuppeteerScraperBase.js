@@ -24,6 +24,8 @@ export class PuppeteerScraperBase {
 				'--disable-background-timer-throttling',
 				'--disable-extensions',
 				'--disable-sync',
+				'--memory-pressure-off',
+				'--max-old-space-size=2048',
 			],
 		};
 	}
@@ -83,6 +85,9 @@ export class PuppeteerScraperBase {
 
 					const page = await browser.newPage();
 
+					await page.setDefaultTimeout(30000);
+					await page.setDefaultNavigationTimeout(30000);
+
 					try {
 						await page.goto(url, { timeout: 30000, waitUntil: 'domcontentloaded' });
 						await this.setupPage(page);
@@ -95,6 +100,7 @@ export class PuppeteerScraperBase {
 					} catch (pageError) {
 						console.error(`Error processing page for entry ${name} (ID: ${id}):`, pageError);
 					} finally {
+						await page.removeAllListeners();
 						await page.close();
 					}
 				} catch (entryError) {
