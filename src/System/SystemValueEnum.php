@@ -8,6 +8,7 @@ use App\System\Resolver\SystemValueCurrentVersionResolver;
 use App\System\Resolver\SystemValueDatabaseResolver;
 use App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver;
 use App\System\Resolver\SystemValueEnabledStockAssetsResolver;
+use App\System\Resolver\SystemValueEnabledStockValuationsAssetsResolver;
 use App\System\Resolver\SystemValueLastUpdatedPricesCountResolver;
 
 enum SystemValueEnum: string
@@ -33,6 +34,12 @@ enum SystemValueEnum: string
 
 	case PUPPETER_UPDATED_AT = 'puppeter_data_updated_at';
 
+	case STOCK_VALUATION_COUNT = 'stock_valuation_count';
+
+	case STOCK_VALUATION_DOWNLOADED_AT = 'stock_valuation_downloaded_at';
+
+	case STOCK_VALUATION_DOWNLOADED_COUNT = 'stock_valuation_downloaded_count';
+
 	public function getLabel(): string
 	{
 		return match ($this) {
@@ -46,6 +53,9 @@ enum SystemValueEnum: string
 			SystemValueEnum::TWELVE_DATA_UPDATED_AT => 'Poslední aktualizace cen z Twelve data',
 			SystemValueEnum::PSE_DATA_UPDATED_AT => 'Poslední aktualizace cen z PSE',
 			SystemValueEnum::PUPPETER_UPDATED_AT => 'Poslední aktualizace cen z PUPPETER',
+			SystemValueEnum::STOCK_VALUATION_COUNT => 'Počet akcíí se stažením valuace',
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => 'Poslední aktualizace dat pro valuace',
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => 'Počet stažených valuací',
 		};
 	}
 
@@ -62,6 +72,9 @@ enum SystemValueEnum: string
 			SystemValueEnum::PUPPETER_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::ENABLED_STOCK_ASSETS => SystemValueEnabledStockAssetsResolver::class,
 			SystemValueEnum::LAST_UPDATED_STOCK_PRICES_COUNT => SystemValueLastUpdatedPricesCountResolver::class,
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::STOCK_VALUATION_COUNT => SystemValueEnabledStockValuationsAssetsResolver::class,
 			//          default => throw new SystemValueNotResolvableException()
 		};
 	}

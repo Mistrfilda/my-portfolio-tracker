@@ -421,6 +421,7 @@ services:
 	- App\System\Resolver\SystemValueEnabledStockAssetsResolver
 	- App\System\Resolver\SystemValueLastUpdatedPricesCountResolver
 	- App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver
+	- App\System\Resolver\SystemValueEnabledStockValuationsAssetsResolver
 
 	#Notifications
 	- App\Notification\NotificationFacade

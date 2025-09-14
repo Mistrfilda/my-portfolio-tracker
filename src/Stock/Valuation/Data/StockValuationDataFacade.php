@@ -10,6 +10,8 @@ use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use App\Stock\Valuation\StockValuationTypeGroupEnum;
 use App\Stock\Valuation\StockValuationTypeValueTypeEnum;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
@@ -27,6 +29,7 @@ class StockValuationDataFacade
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private StockValuationDataRepository $stockValuationDataRepository,
+		private SystemValueFacade $systemValueFacade,
 		private LoggerInterface $logger,
 	)
 	{
@@ -104,8 +107,18 @@ class StockValuationDataFacade
 			JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME,
 		);
 
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT,
+			intValue: count($parsedJson),
+		);
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT,
+			datetimeValue: $now,
+		);
+
 		FileSystem::copy($file, $processedFile);
-		//      FileSystem::delete($file);
+		FileSystem::delete($file);
 	}
 
 }
