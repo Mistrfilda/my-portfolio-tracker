@@ -25,7 +25,7 @@ export class PuppeteerScraperBase {
 				'--disable-extensions',
 				'--disable-sync',
 				'--memory-pressure-off',
-				'--max-old-space-size=2048',
+				'--max-old-space-size=1024',
 			],
 		};
 	}
