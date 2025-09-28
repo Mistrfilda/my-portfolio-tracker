@@ -23,6 +23,9 @@ REPO_URL="192.168.1.245:32000"
 PHP_IMAGE="my-portfolio-tracker-php"
 NGINX_IMAGE="my-portfolio-tracker-nginx"
 
+#Build prod assets
+npm run build-docker
+
 # Sestavení Docker obrazů
 docker-compose build
 if [ $? -ne 0 ]; then

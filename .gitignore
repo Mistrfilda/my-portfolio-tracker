@@ -12,6 +12,7 @@ temp/*
 log/*
 
 www/build/*
+www/prod-build/*
 
 .phpunit.result.cache
 
@@ -19,3 +20,4 @@ node_modules/*
 puppeter/node_modules/*
 
 !www/build/admin/.gitkeep
+!www/prod-build/.gitkeep

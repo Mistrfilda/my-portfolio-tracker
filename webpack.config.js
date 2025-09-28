@@ -7,12 +7,14 @@ if (!Encore.isRuntimeEnvironmentConfigured()) {
 
 var publicPath = '/my-portfolio-tracker/www/build/admin';
 var prodHost = process.env.PROD_HOST;
+var outputPath = './www/build/admin';
 if (prodHost !== undefined) {
     publicPath = '/build/admin';
+	outputPath = './www/prod-build/build/admin'
 }
 
 Encore
-    .setOutputPath('./www/build/admin')
+    .setOutputPath(outputPath)
     .setPublicPath(publicPath)
     .addEntry('admin', './assets/app.ts')
     .splitEntryChunks()

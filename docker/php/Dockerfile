@@ -1,4 +1,4 @@
-FROM php:8.4-fpm AS php-build
+FROM php:8.4.12-fpm AS php-build
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -30,7 +30,8 @@ COPY docker/config-docker.local.neon /var/config/config-docker.local.neon
 
 COPY docker/php/custom-php.ini /usr/local/etc/php/conf.d/
 
-RUN npm run build-docker
+RUN rm -rf /var/www/build/admin
+RUN mv /var/www/prod-build/build/admin /var/www/build/admin
 
 RUN php composer.phar doctrine-proxies
 

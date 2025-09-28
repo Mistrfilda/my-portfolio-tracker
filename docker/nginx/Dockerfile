@@ -3,8 +3,8 @@ FROM node:24 AS asset-builder
 COPY . /app
 WORKDIR /app
 
-RUN npm install
-RUN npm run build-docker
+RUN rm -rf /app/www/build/admin
+RUN mv /app/www/prod-build/build/admin /app/www/build/admin
 
 ########################################################################################################################
 
