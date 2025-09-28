@@ -25,11 +25,6 @@ Encore
         config.useBuiltIns = 'usage';
         config.corejs = 3;
     })
-    .enableSassLoader((options) => {
-        options.sassOptions = {
-            quietDeps: true,
-        };
-    })
     .enablePostCssLoader()
     .enableTypeScriptLoader();
 

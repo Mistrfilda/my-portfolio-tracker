@@ -21,8 +21,6 @@
     "autoprefixer": "^10.4.0",
     "core-js": "^3.19.1",
     "postcss-loader": "^8.0",
-    "sass": "^1.43.4",
-    "sass-loader": "^16.0",
     "ts-loader": "^9.2.6",
     "typescript": "^5.0",
     "webpack-notifier": "^1.14.1"

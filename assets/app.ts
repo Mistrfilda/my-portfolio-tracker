@@ -16,7 +16,8 @@ declare global {
 }
 
 //styles
-import './scss/index.scss';
+import 'tom-select/dist/css/tom-select.default.css';
+import './css/index.css';
 
 import './js/LiveFormValidation';
 
