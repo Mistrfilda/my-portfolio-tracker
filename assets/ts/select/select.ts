@@ -1,6 +1,6 @@
 import TomSelect from "tom-select";
 
-let settings = {
+const settings = {
     plugins: ['remove_button'],
     render: {
         // item: function (data: any, escape: any) {
@@ -10,13 +10,13 @@ let settings = {
     }
 };
 
-let tomSelectElements: HTMLCollectionOf<Element> = document.getElementsByClassName("tom-select-selector");
-let selectors = [];
+const tomSelectElements: HTMLCollectionOf<Element> = document.getElementsByClassName("tom-select-selector");
+const selectors = [];
 
-for (var i = 0; i< tomSelectElements.length; i++) {
+for (let i = 0; i< tomSelectElements.length; i++) {
     selectors.push('#' + tomSelectElements[i].id);
 }
 
-for (var g = 0; g < selectors.length; g++) {
+for (let g = 0; g < selectors.length; g++) {
     new TomSelect(selectors[g], settings);
 }
