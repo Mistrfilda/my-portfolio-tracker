@@ -6,7 +6,7 @@
             <li class="px-4 py-4 sm:px-0">
                 <div>
                     <div class="block">
-                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow" aria-label="Tabs">
+                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow-sm" aria-label="Tabs">
                             {foreach $renderableTypeGroups as $typeGroup}
                                 <a
                                         n:href="default typeGroupEnum: $typeGroup->value, sortBy: null"
@@ -62,12 +62,12 @@
                                         <span class="truncate">{$type->format()}</span>
                                         {if $currentSortBy === $type->value}
                                             {if $currentSortDirection === 'asc'}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500 flex-shrink-0']}
+                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
                                             {else}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500 flex-shrink-0']}
+                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
                                             {/if}
                                         {else}
-                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400 flex-shrink-0']}
+                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0']}
                                         {/if}
                                     </a>
                                 </th>

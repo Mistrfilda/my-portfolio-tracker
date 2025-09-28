@@ -72,7 +72,7 @@
                 >
                     <button
                             x-on:click="click()"
-                            class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white"
+                            class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-white"
                     >
                         <span class="sr-only">Close sidebar</span>
                         {renderSvg 'x.svg', ['class' => 'h-6 w-6 text-white']}
@@ -84,7 +84,7 @@
                         {renderSvg App\UI\Icon\SvgIcon::DOLLAR->value, ['class' => 'h-6 w-6 text-white mr-4']} My portfolio
                     </a>
                 </div>
-                <nav class="mt-5 flex-shrink-0 h-full overflow-y-auto" aria-label="Sidebar">
+                <nav class="mt-5 shrink-0 h-full overflow-y-auto" aria-label="Sidebar">
                     <div class="px-2">
                         {foreach $menuItems as $menuItem}
                             {if $presenter->isMenuLinkActive($menuItem->getActiveLinks())}
@@ -92,7 +92,7 @@
                                    class="bg-blue-800 text-white group flex items-center px-2 py-2 text-base font-medium rounded-md"
                                 >
                                     {if $menuItem->getIcon() !== null}
-                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
+                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
                                     {$menuItem->getLabel()}
                                 </a>
@@ -101,7 +101,7 @@
                                    class="text-blue-100 hover:text-white hover:bg-blue-600 group flex items-center px-2 py-2 text-base font-medium rounded-md"
                                 >
                                     {if $menuItem->getIcon() !== null}
-                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
+                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
                                     {$menuItem->getLabel()}
                                 </a>
@@ -114,7 +114,7 @@
                 </nav>
             </div>
 
-            <div class="flex-shrink-0 w-14" aria-hidden="true" x-show="isOpen()">
+            <div class="shrink-0 w-14" aria-hidden="true" x-show="isOpen()">
                 <!-- Dummy element to force sidebar to shrink to fit close icon -->
             </div>
         </div>
@@ -122,7 +122,7 @@
         <!-- Static sidebar for desktop -->
         <div class="hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0">
             <!-- Sidebar component, swap this element with another sidebar if you like -->
-            <div class="flex flex-col flex-grow bg-blue-700 pt-5 pb-4 overflow-y-auto">
+            <div class="flex flex-col grow bg-blue-700 pt-5 pb-4 overflow-y-auto">
                 <div class="px-4">
                     <a n:href="Dashboard:default" class="text-base font-medium rounded-md text-white flex">
                         {renderSvg App\UI\Icon\SvgIcon::DOLLAR->value, ['class' => 'h-6 w-6 text-white mr-4']} My portfolio
@@ -137,7 +137,7 @@
                                         class="bg-blue-800 text-white group flex items-center px-2 py-2 text-sm leading-6 font-medium rounded-md"
                                 >
                                     {if $menuItem->getIcon() !== null}
-                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
+                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
                                     <span class="flex-1">{$menuItem->getLabel()}</span>
 
@@ -150,7 +150,7 @@
                                         class="text-blue-100 hover:text-white hover:bg-blue-600 group flex items-center px-2 py-2 text-sm leading-6 font-medium rounded-md"
                                 >
                                     {if $menuItem->getIcon() !== null}
-                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 flex-shrink-0 h-6 w-6 text-blue-200']}
+                                        {renderSvg $menuItem->getIcon(), ['class' => 'mr-4 shrink-0 h-6 w-6 text-blue-200']}
                                     {/if}
                                     <span class="flex-1">{$menuItem->getLabel()}</span>
 
@@ -166,10 +166,10 @@
         </div>
 
         <div class="lg:pl-64 flex flex-col flex-1">
-            <div class="relative z-10 flex-shrink-0 flex h-16 bg-white border-b border-gray-200 lg:border-none">
+            <div class="relative z-10 shrink-0 flex h-16 bg-white border-b border-gray-200 lg:border-none">
                 <button
                         x-on:click="click"
-                        class="px-4 border-r border-gray-200 text-gray-400 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
+                        class="px-4 border-r border-gray-200 text-gray-400 focus:outline-hidden focus:ring-2 focus:ring-inset focus:ring-blue-500 lg:hidden"
                 >
                     <span class="sr-only">Open sidebar</span>
                     <!-- Heroicon name: outline/menu-alt-1 -->
@@ -191,14 +191,14 @@
                             <div>
                                 <button
                                         x-on:click="toggle()"
-                                        class="max-w-xs bg-white rounded-full flex items-center text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:p-2 lg:rounded-md lg:hover:bg-gray-50" id="user-menu-button"
+                                        class="max-w-xs bg-white rounded-full flex items-center text-sm focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 lg:p-2 lg:rounded-md lg:hover:bg-gray-50" id="user-menu-button"
                                         aria-expanded="false"
                                         aria-haspopup="true"
                                 >
                                     {renderSvg 'user.svg', ['class' => 'h-5 w-5 rounded-full']}
                                     <span class="ml-3 text-gray-700 text-sm font-medium block"><span class="sr-only">Open user menu for </span> {$currentAppAdmin->getName()} </span>
                                     <!-- Heroicon name: solid/chevron-down -->
-                                    {renderSvg 'chevron-down.svg', ['class' => 'flex-shrink-0 ml-1 h-5 w-5 text-gray-400 block']}
+                                    {renderSvg 'chevron-down.svg', ['class' => 'shrink-0 ml-1 h-5 w-5 text-gray-400 block']}
                                 </button>
                             </div>
                             <div
@@ -211,7 +211,7 @@
                                     x-transition:leave="transition ease-in duration-75"
                                     x-transition:leave-start="transform opacity-100 scale-100"
                                     x-transition:leave-end="transform opacity-0 scale-95"
-                                    class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
+                                    class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-gray-300 ring-opacity-5 focus:outline-hidden"
                                     role="menu"
                                     aria-orientation="vertical"
                                     aria-labelledby="user-menu-button" tabindex="-1"
@@ -225,7 +225,7 @@
             </div>
             <main class="flex-1 pb-8">
                 <!-- Page header -->
-                <div class="bg-white shadow">
+                <div class="bg-white shadow-sm">
                     <div class="px-4 sm:px-6 lg:max-w-6xl 2xl:max-w-7xl lg:mx-auto lg:px-2">
                         <div class="py-6 md:flex md:items-center md:justify-between lg:border-t lg:border-gray-200">
                             <div class="flex-1 min-w-0">
@@ -274,11 +274,11 @@
                             x-transition:leave="transition ease-in duration-100"
                             x-transition:leave-start="opacity-100"
                             x-transition:leave-end="opacity-0"
-                            class="max-w-sm w-full bg-{$flashMessage->type|flashMessageColor}-50 shadow-lg rounded-lg pointer-events-auto ring-1 ring-black ring-opacity-5 overflow-hidden"
+                            class="max-w-sm w-full bg-{$flashMessage->type|flashMessageColor}-50 shadow-lg rounded-lg pointer-events-auto ring-1 ring-gray-300 ring-opacity-5 overflow-hidden"
                     >
                         <div class="p-4">
                             <div class="flex items-start">
-                                <div class="flex-shrink-0">
+                                <div class="shrink-0">
                                     {if $flashMessage->type === \App\UI\FlashMessage\FlashMessageType::SUCCESS}
                                         {renderSvg 'check-circle.svg', ['class' => 'h-6 w-6 text-green-400']}
                                     {elseif $flashMessage->type === \App\UI\FlashMessage\FlashMessageType::INFO}
@@ -294,8 +294,8 @@
                                         {$flashMessage->message}
                                     </p>
                                 </div>
-                                <div class="ml-4 flex-shrink-0 flex">
-                                    <button x-on:click="close()" class="bg-{$flashMessage->type|flashMessageColor}-50 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <div class="ml-4 shrink-0 flex">
+                                    <button x-on:click="close()" class="bg-{$flashMessage->type|flashMessageColor}-50 rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                         <span class="sr-only">Close</span>
                                         {renderSvg 'x.svg', ['class' => 'h-5 w-5']}
                                     </button>

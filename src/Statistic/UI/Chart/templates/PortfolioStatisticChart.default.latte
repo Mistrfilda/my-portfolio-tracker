@@ -2,8 +2,8 @@
 {block #content}
 
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3 w-1/2">
-        <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg divide-y divide-gray-200">
                 <nav class="flex flex-1 flex-col m-4" aria-label="Sidebar">
                     <ul role="list" class="-mx-2 space-y-1">
                         {foreach $charts as $chart}
@@ -20,8 +20,8 @@
 
     {foreach $charts as $chart}
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3" id="{$chart->getControl()}">
-            <div class="bg-white overflow-hidden shadow rounded-lg">
-                <div class="bg-white overflow-hidden shadow rounded-lg divide-y divide-gray-200">
+            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
+                <div class="bg-white overflow-hidden shadow-sm rounded-lg divide-y divide-gray-200">
                     <div class="px-4 py-5 sm:px-6">
                         <h3 class="text-lg leading-6 font-medium text-gray-900">
                             {$chart->getTitle()}

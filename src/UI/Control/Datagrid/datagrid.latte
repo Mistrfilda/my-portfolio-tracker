@@ -2,14 +2,14 @@
 <div class="flex flex-col">
     <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-            <div class="shadow overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
+            <div class="shadow-sm overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
                 {if $filters->count() > 0}
                     {snippet filters}
                         <div x-data="datagridFilter()">
                             <div class="px-4 py-5">
                                 <button
                                         @click="click()"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                                 >
                                 <span
                                         x-text="show === false ? 'Zobrazit filtr' : 'Skrýt filtr'"
@@ -44,7 +44,7 @@
                                                                         </label>
                                                                         <input n:name="{$component->getName()}"
                                                                                 autocomplete="given-name"
-                                                                                class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md">
+                                                                                class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-xs sm:text-sm border-gray-300 rounded-md">
                                                                     </div>
                                                                 {/if}
                                                             {/foreach}
@@ -53,12 +53,12 @@
                                                     <div class="px-4 py-3 text-left sm:px-6">
                                                         <button
                                                                 n:name="submit"
-                                                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                                class="inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                             Filtrovat
                                                         </button>
                                                         <a
                                                                 n:href="resetFilters!"
-                                                                class="ajax inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                                                class="ajax inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                                                             Resetovat filtr
                                                         </a>
                                                     </div>
@@ -90,15 +90,15 @@
                                                 </span>
 
                                                 {if $column->getSort()->getCurrentDirection() === null}
-                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded-sm text-xs font-medium bg-blue-100 text-blue-800">
                                                         {renderSvg App\UI\Icon\SvgIcon::SWITCH_VERTICAL->value, ['class' => 'h-3 w-3 text-blue-400']}
                                                         </span>
                                                 {elseif $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::ASC}
-                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded text-xs font-medium bg-blue-600 text-blue-800">
+                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded-sm text-xs font-medium bg-blue-600 text-blue-800">
                                                         {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'h-3 w-3 text-white']}
                                                         </span>
                                                 {else}
-                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded text-xs font-medium bg-blue-600 text-blue-800">
+                                                    <span class="inline-flex justify-center items-center p-1 ml-1 rounded-sm text-xs font-medium bg-blue-600 text-blue-800">
                                                         {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3 w-3 text-white']}
                                                         </span>
                                                 {/if}
@@ -157,7 +157,7 @@
                         </table>
                     </div>
 
-                    <ul role="list" class="mt-2 divide-y divide-gray-200 overflow-hidden shadow sm:hidden">
+                    <ul role="list" class="mt-2 divide-y divide-gray-200 overflow-hidden shadow-sm sm:hidden">
                         {foreach $items as $item}
                             <li>
                                 <span class="flex items-center space-x-4 bg-white hover:bg-gray-50">
@@ -215,10 +215,10 @@
                                 </p>
                             </div>
                             <div>
-                                <nav class="relative z-0 inline-flex shadow-sm">
+                                <nav class="relative z-0 inline-flex shadow-xs">
                                     <a
                                             n:href="arrowLeft!"
-                                            class="ajax relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                                            class="ajax relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-hidden focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
                                             aria-label="Previous"
                                     >
                                         <!-- Heroicon name: chevron-left -->
@@ -240,14 +240,14 @@
                                                 {if $paginationItem->isDisabled() === false}
                                                     href="{link changePagination!, 'limit' => $pagination->getLimit(), 'offset' => $paginationItem->getOffset()}"
                                                 {/if}
-                                                n:class="'ajax -ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium hover:text-gray-500 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:text-gray-700 transition ease-in-out duration-150', $paginationItem->isActive() ? 'font-bold bg-blue-600 text-gray-100' : 'bg-white active:bg-gray-100 text-gray-700'"
+                                                n:class="'ajax -ml-px relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm leading-5 font-medium hover:text-gray-500 focus:z-10 focus:outline-hidden focus:border-blue-300 focus:shadow-outline-blue active:text-gray-700 transition ease-in-out duration-150', $paginationItem->isActive() ? 'font-bold bg-blue-600 text-gray-100' : 'bg-white active:bg-gray-100 text-gray-700'"
                                         >
                                             {$paginationItem->getLabel()}
                                         </a>
                                     {/foreach}
                                     <a
                                             n:href="arrowRight!"
-                                            class="ajax -ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-none focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
+                                            class="ajax -ml-px relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm leading-5 font-medium text-gray-500 hover:text-gray-400 focus:z-10 focus:outline-hidden focus:border-blue-300 focus:shadow-outline-blue active:bg-gray-100 active:text-gray-500 transition ease-in-out duration-150"
                                             aria-label="Next"
                                     >
                                         <!-- Heroicon name: chevron-right -->

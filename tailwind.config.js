@@ -9,20 +9,6 @@ module.exports = {
 		'./assets/**/*.ts',
 		'./assets/**/*.js'
 	],
-	safelist: [
-		{
-			pattern: /bg-/
-		},
-		{
-			pattern: /border-/
-		},
-		{
-			pattern: /ring-/
-		},
-		{
-			pattern: /text-/
-		},
-	],
 	theme: {
 		extend: {
 			colors: {
@@ -41,9 +27,4 @@ module.exports = {
 			fontWeight: ["hover", "focus"]
 		}
 	},
-	plugins: [
-		require("@tailwindcss/forms"),
-		require("@tailwindcss/typography"),
-		require("@tailwindcss/aspect-ratio")
-	]
 };

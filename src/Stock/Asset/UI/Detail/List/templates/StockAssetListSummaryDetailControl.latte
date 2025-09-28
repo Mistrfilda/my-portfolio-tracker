@@ -1,4 +1,4 @@
-{templateType App\Stock\Asset\UI\Detail\StockAssetListSummaryDetailControlTemplate}
+{templateType App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlTemplate}
 
 <div
         class="mt-8 flex flex-col"
@@ -36,7 +36,7 @@
 >
     <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
         <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+            <div class="overflow-hidden shadow-sm ring ring-gray-300 ring-opacity-5 md:rounded-lg">
                 <table class="min-w-full divide-y divide-gray-300">
                     <thead class="bg-gray-50">
                     <tr>
@@ -66,7 +66,7 @@
                                     :aria-expanded="open"
                                     :aria-controls="$id('dropdown-button')"
                                     type="button"
-                                    class="flex items-center gap-2 bg-white px-5 py-2.5 rounded-md shadow"
+                                    class="flex items-center gap-2 bg-white px-5 py-2.5 rounded-md shadow-sm"
                             >
                                 Sloupce
 
@@ -193,7 +193,7 @@
                                 </td>
                             {/if}
                             <td class="px-2">
-                                <a href="{plink StockAssetDetail:detail, 'id' => $stockPositionDTO->getStockAsset()->getId()->toString()}" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                <a href="{plink StockAssetDetail:detail, 'id' => $stockPositionDTO->getStockAsset()->getId()->toString()}" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                     Detail
                                 </a>
                             </td>

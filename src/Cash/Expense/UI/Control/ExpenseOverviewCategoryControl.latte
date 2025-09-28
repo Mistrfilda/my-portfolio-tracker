@@ -1,7 +1,7 @@
 {varType App\Cash\Expense\UI\Control\ExpanseOverviewData[] $data}
 {varType App\Asset\Price\SummaryPrice $totalSummaryPrice}
 {varType App\Cash\Expense\UI\Control\ExpenseOverviewBankAccountSummary[] $bankAccountSummaryPrices}
-<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm">
     <div class="px-4 py-5 sm:px-6">
         <h3 class="text-base font-semibold leading-6 text-gray-900">Výdaje dle kategorií</h3>
     </div>
@@ -136,15 +136,15 @@
                                                                 </td>
                                                                 <td class="relative whitespace-nowrap py-2 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
                                                                     <a href="{plink Expense:form, id: $bankExpense->getId()->toString()}"
-                                                                       class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                                       class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                                         Editovat
                                                                     </a>
                                                                     <a href="{plink showModal!, id: $bankExpense->getId()->toString()}"
-                                                                       class="ajax inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                                       class="ajax inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                                                         Detail
                                                                     </a>
                                                                     <a href="{plink Expense:form, duplicateId: $bankExpense->getId()->toString()}"
-                                                                       class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                                                                       class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-teal-600 hover:bg-teal-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
                                                                         Duplikovat
                                                                     </a>
                                                                 </td>

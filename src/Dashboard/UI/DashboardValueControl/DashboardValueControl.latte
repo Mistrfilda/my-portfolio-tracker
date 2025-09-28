@@ -57,7 +57,7 @@
             >
                 {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
                     {varType App\Dashboard\DashboardValue $dashboardValue}
-                    <div class="relative bg-white pt-5 px-4 pb-6 sm:pt-6 sm:px-6 shadow rounded-lg overflow-hidden">
+                    <div class="relative bg-white pt-5 px-4 pb-6 sm:pt-6 sm:px-6 shadow-sm rounded-lg overflow-hidden">
                         <dt>
                             <div class="absolute bg-{$dashboardValue->getColor()}-500 rounded-md p-3">
                                 {if $dashboardValue->getSvgIcon() !== null}
@@ -83,7 +83,7 @@
             </dl>
 
             {foreach $dasboardValueGroup->getTables() as $table}
-                <div class="mt-10 shadow rounded-lg overflow-hidden bg-white">
+                <div class="mt-10 shadow-sm rounded-lg overflow-hidden bg-white">
                     <div class="sm:flex-auto px-5 py-5">
                         <h1 class="text-base font-semibold leading-6 text-gray-900">{$table->getLabel()}</h1>
                         <p class="mt-2 text-sm text-gray-700">{$table->getValue()}</p>
@@ -112,7 +112,7 @@
 
                                     <td class="px-2">
                                         <a href="{$data['link']}"
-                                           class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                           class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                                             Detail
                                         </a>
                                     </td>
