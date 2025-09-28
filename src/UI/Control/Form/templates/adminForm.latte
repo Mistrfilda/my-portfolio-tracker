@@ -6,7 +6,7 @@
                 {foreach $form->getErrors() as $error}
                     <div class="rounded-md bg-red-100 p-4 mt-4">
                         <div class="flex">
-                            <div class="flex-shrink-0">
+                            <div class="shrink-0">
                                 <!-- Heroicon name: solid/x-circle -->
                                 {renderSvg 'x-circle.svg', ['class' => 'h-5 w-5 text-red-400']}
                             </div>
@@ -57,7 +57,7 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getControl()->addAttributes([
-                    'class' => 'max-w-lg block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass,
+                    'class' => 'max-w-lg block w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass,
                      'type' => 'date'
                     ])}
                     {if $componentError !== null}
@@ -72,7 +72,7 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getControl()->addAttributes([
-                    'class' => 'max-w-lg block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
+                    'class' => 'max-w-lg block w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
                     ])}
 
                     {if $componentError !== null}
@@ -87,7 +87,7 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getControl()->addAttributes([
-                    'class' => 'shadow-sm sm:max-w-xl focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
+                    'class' => 'shadow-xs sm:max-w-xl focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
                     ])}
 
                     {if $componentError !== null}
@@ -101,7 +101,7 @@
                     {$component->getLabelPart()->addAttributes(['class' => 'text-base font-medium text-gray-700'])}
                 </div>
                 <div class="flex items-center h-5">
-                    {$component->getControlPart()->addAttributes(['class' => 'focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded mr-2'])}
+                    {$component->getControlPart()->addAttributes(['class' => 'focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded-sm mr-2'])}
                 </div>
                 {if $componentError !== null}
                     {$componentError}
@@ -119,11 +119,11 @@
                         {include './tailwindAdvancedSelect.latte', $component}
                     {elseif $component->getOption('tomSelect') === true}
                         {$component->getControl()->addAttributes([
-                        'class' => 'tom-select-selector w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control mt-2' . $errorClass
+                        'class' => 'tom-select-selector w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control mt-2' . $errorClass
                         ])}
                     {else}
 {*                        {$component->getControlPart()->addAttributes([*}
-{*                        'class' => 'sm:max-w-xl mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md',*}
+{*                        'class' => 'sm:max-w-xl mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md',*}
 {*                        ])}*}
                         {include './tailwindAdvancedSelect.latte', $component}
                     {/if}
@@ -145,7 +145,7 @@
                             <div class="relative flex items-start">
                                 <div class="flex items-center h-5">
                                     <input n:name="$component->getName():$key" type="checkbox"
-                                                                               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                                                               class="focus:ring-blue-500 h-4 w-4 text-blue-600 border-gray-300 rounded-sm">
                                 </div>
                                 <div class="ml-3 text-sm">
                                     <label n:name="$component->getName():$key"
@@ -163,7 +163,7 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getControl()->addAttributes([
-                    'class' => 'tom-select-selector w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control mt-2' . $errorClass
+                    'class' => 'tom-select-selector w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control mt-2' . $errorClass
                     ])}
                 </div>
                 {if $componentError !== null}
@@ -195,7 +195,7 @@
 
 
                             <div class="flex text-sm text-gray-600 justify-center">
-                                    <label class="border-2 border-gray-200 p-3 w-full block rounded cursor-pointer my-2 form-control"
+                                    <label class="border-2 border-gray-200 p-3 w-full block rounded-sm cursor-pointer my-2 form-control"
                                            for="customFile" x-data="{ files: null }">
                                         <span x-text="files ? files.map(file => file.name).join(', ') : 'Nahrajte soubor'"></span>
                                         <input n:name="{$component->getName()}" type="file" class="sr-only"
@@ -211,7 +211,7 @@
                             {if $component->getOption('deleteHref') !== null}
                                 <a
                                         href="{$form->getPresenter()->link($component->getOption('deleteHref'))}"
-                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-xs text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
                                     Odstranit
                                 </a>
                             {/if}
@@ -229,13 +229,13 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getComponent('day')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('month')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('year')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                 </div>
             </div>
@@ -246,22 +246,22 @@
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getComponent('day')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 sm:w-1/6 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('month')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('year')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/4 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                 </div>
                 <div>Čas</div>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
                     {$component->getComponent('hour')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/8 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/8 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                     {$component->getComponent('minute')->getControl()->addAttributes([
-                    'class' => 'mt-1 w-1/8 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
+                    'class' => 'mt-1 w-1/8 pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md'
                     ])}
                 </div>
             </div>
@@ -283,7 +283,7 @@
             <div class="pt-5 border-t border-gray-200">
                 <div class="flex justify-end">
                     {$component->getControl()->addAttributes([
-                    'class' => 'ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                    'class' => 'ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                     ])}
                 </div>
             </div>
@@ -316,7 +316,7 @@
                             </label>
                             <div class="mt-1 sm:mt-0 sm:col-span-2">
                                 {$component->getControl()->addAttributes([
-                                'class' => 'max-w-lg block w-full shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
+                                'class' => 'max-w-lg block w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control' . $errorClass
                                 ])}
 
                                 {if $componentError !== null}
@@ -328,7 +328,7 @@
                         <div class="pt-1 pb-1">
                             <div class="flex justify-end">
                                 {$component->getControl()->addAttributes([
-                                'class' => 'ml-3 inline-flex justify-center py-2 px-4 shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
+                                'class' => 'ml-3 inline-flex justify-center py-2 px-4 shadow-xs text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
                                 ])}
                             </div>
                         </div>
@@ -342,7 +342,7 @@
         <div class="pt-5">
             <div class="flex justify-end">
                 {$components['multiplier_creator']->getControl()->addAttributes([
-                'class' => 'ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                'class' => 'ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                 ])}
             </div>
         </div>

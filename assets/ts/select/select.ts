@@ -5,7 +5,7 @@ let settings = {
     render: {
         // item: function (data: any, escape: any) {
         //     console.log(data);
-        //     return '<div class="tom-span-bg"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium text-white">' + escape(data.text) + '</span></div>';
+        //     return '<div class="tom-span-bg"><span class="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium text-white">' + escape(data.text) + '</span></div>';
         // },
     }
 };

@@ -1,59 +1,85 @@
-@import 'form.css';
-@import 'alpine.css';
+@import './form.css' layer(base);
+@import './alpine.css' layer(base);
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+@config '../../tailwind.config.js';
+@source not "../../www";
 
-.ts-control {
-  @apply mt-2 w-full rounded-md border border-gray-300 py-1 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 h-9 sm:text-sm sm:leading-6;
-}
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
 
-.ts-control input {
-  @apply pr-5 text-sm m-0;
-}
-
-.ts-wrapper.plugin-remove_button .item {
-  @apply rounded-md;
-}
-.ts-wrapper.multi .ts-control > div {
-  @apply p-0 m-0 pl-1;
-}
-
-.ts-wrapper.plugin-remove_button .item .remove {
-  @apply border-none text-lg leading-none py-1 rounded-r-lg;
-}
-
-.ts-dropdown {
-  @apply rounded-md border border-solid border-t border-gray-300;
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
 }
 
-.ts-dropdown [data-selectable].option, .ts-dropdown .no-results {
-  @apply py-2;
-}
-.ts-dropdown [data-selectable].option:first-child {
-  @apply rounded-t-md;
-}
+/*
+    Safelist - BG
+ */
+@source inline("bg-blue-{50,{100..900..100},950}");
+@source inline("bg-red-{50,{100..900..100},950}");
+@source inline("bg-green-{50,{100..900..100},950}");
+@source inline("bg-teal-{50,{100..900..100},950}");
+@source inline("bg-yellow-{50,{100..900..100},950}");
+@source inline("bg-black-{50,{100..900..100},950}");
+@source inline("bg-indigo-{50,{100..900..100},950}");
+@source inline("bg-gray-{50,{100..900..100},950}");
+@source inline("bg-emerald-{50,{100..900..100},950}");
+@source inline("bg-cyan-{50,{100..900..100},950}");
+@source inline("bg-rose-{50,{100..900..100},950}");
 
-.ts-dropdown [data-selectable].option:last-child {
-  @apply rounded-b-md;
-}
-.ts-dropdown .create:hover, .ts-dropdown .option:hover, .ts-dropdown .active {
-  @apply bg-indigo-100 text-indigo-900;
-}
 
-.ts-dropdown .spinner {
-  @apply h-auto w-auto;
-}
+/*
+    Safelist - Border
+ */
+@source inline("border-blue-{50,{100..900..100},950}");
+@source inline("border-red-{50,{100..900..100},950}");
+@source inline("border-green-{50,{100..900..100},950}");
+@source inline("border-teal-{50,{100..900..100},950}");
+@source inline("border-yellow-{50,{100..900..100},950}");
+@source inline("border-black-{50,{100..900..100},950}");
+@source inline("border-indigo-{50,{100..900..100},950}");
+@source inline("border-gray-{50,{100..900..100},950}");
+@source inline("border-emerald-{50,{100..900..100},950}");
+@source inline("border-cyan-{50,{100..900..100},950}");
+@source inline("border-rose-{50,{100..900..100},950}");
 
-.ts-dropdown .spinner:after {
-  @apply h-5 w-5 border-2 p-0 my-0 inline-block;
-}
+/*
+    Safelist - ring
+ */
+@source inline("ring-blue-{50,{100..900..100},950}");
+@source inline("ring-red-{50,{100..900..100},950}");
+@source inline("ring-green-{50,{100..900..100},950}");
+@source inline("ring-teal-{50,{100..900..100},950}");
+@source inline("ring-yellow-{50,{100..900..100},950}");
+@source inline("ring-black-{50,{100..900..100},950}");
+@source inline("ring-indigo-{50,{100..900..100},950}");
+@source inline("ring-gray-{50,{100..900..100},950}");
+@source inline("ring-emerald-{50,{100..900..100},950}");
+@source inline("ring-cyan-{50,{100..900..100},950}");
+@source inline("ring-rose-{50,{100..900..100},950}");
 
-.ts-wrapper:not(.form-control):not(.form-select).single .ts-control {
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-  print-color-adjust: exact;
-}
+/*
+    Safelist - text
+ */
+@source inline("text-blue-{50,{100..900..100},950}");
+@source inline("text-red-{50,{100..900..100},950}");
+@source inline("text-green-{50,{100..900..100},950}");
+@source inline("text-teal-{50,{100..900..100},950}");
+@source inline("text-yellow-{50,{100..900..100},950}");
+@source inline("text-black-{50,{100..900..100},950}");
+@source inline("text-indigo-{50,{100..900..100},950}");
+@source inline("text-gray-{50,{100..900..100},950}");
+@source inline("text-emerald-{50,{100..900..100},950}");
+@source inline("text-cyan-{50,{100..900..100},950}");
+@source inline("text-rose-{50,{100..900..100},950}");
