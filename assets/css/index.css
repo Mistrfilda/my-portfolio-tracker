@@ -1,6 +1,5 @@
-@use 'form';
-@use 'alpine';
-@use "~tom-select/dist/scss/tom-select.default.scss";
+@import 'form.css';
+@import 'alpine.css';
 
 @tailwind base;
 @tailwind components;
