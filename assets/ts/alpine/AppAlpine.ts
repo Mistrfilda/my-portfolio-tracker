@@ -14,8 +14,8 @@ import {CompleteEvent} from "naja/dist/Naja";
 naja.initialize();
 registerExtensions(naja);
 
-let loadedCharts: Array<ChartInstance> = [];
-let chartRenderer = new ChartRenderer(naja, loadedCharts);
+const loadedCharts: Array<ChartInstance> = [];
+const chartRenderer = new ChartRenderer(naja, loadedCharts);
 
 naja.addEventListener(
     'complete',
@@ -24,19 +24,19 @@ naja.addEventListener(
             return;
         }
 
-        let startUrl = new URL(event.detail.request.url);
+        const startUrl = new URL(event.detail.request.url);
 
         // Získáme parametry z původní URL
-        let params = new URLSearchParams(startUrl.search);
+        const params = new URLSearchParams(startUrl.search);
         console.log(params);
 
         for (let i = 0; i < loadedCharts.length; i++) {
             // URL adresa, kam chcete odeslat GET požadavek
-            let targetUrl = new URL(loadedCharts[i].chartDataUrl, startUrl.origin);
+            const targetUrl = new URL(loadedCharts[i].chartDataUrl, startUrl.origin);
 
             // Přidáme další parametry dotazu
-            for(let pair of params.entries()) {
-                let name = 'originalRequest' + pair[0];
+            for(const pair of params.entries()) {
+                const name = 'originalRequest' + pair[0];
                 targetUrl.searchParams.append(name, pair[1]);
             }
 
@@ -192,8 +192,8 @@ Alpine.data('modal', () => ({
 Alpine.data('loadChart', () => ({
     show: true,
     loadGraph(chartId: any, chartDataUrl: string, type: ChartType, shouldUpdateOnAjaxRequest: number): boolean {
-        let chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
-        let shouldUpdateOnAjaxRequestValue = Boolean(Number(shouldUpdateOnAjaxRequest));
+        const chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
+        const shouldUpdateOnAjaxRequestValue = Boolean(Number(shouldUpdateOnAjaxRequest));
 
         if (type.valueOf() === ChartType.LINE.valueOf()) {
             chartRenderer.createLineChart(chartCanvasElement, chartDataUrl, chartId, shouldUpdateOnAjaxRequestValue)

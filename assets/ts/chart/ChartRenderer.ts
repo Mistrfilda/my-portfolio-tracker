@@ -46,10 +46,10 @@ export class ChartRenderer {
     }
 
     async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
-        let graphData = this.fetchData(chartDataUrl);
+        const graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
-            let myChart = new Chart(graphCanvasElement, {
+            const myChart = new Chart(graphCanvasElement, {
                 type: 'line',
                 data: {
                     labels: response.labels,
@@ -90,10 +90,10 @@ export class ChartRenderer {
     }
 
     async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
-        let graphData = this.fetchData(chartDataUrl);
+        const graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
-            let myChart = new Chart(graphCanvasElement, {
+            const myChart = new Chart(graphCanvasElement, {
                 type: 'bar',
                 data: {
                     labels: response.labels,
@@ -134,10 +134,10 @@ export class ChartRenderer {
 
 
     async createDoughnutCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
-        let graphData = this.fetchData(chartDataUrl);
+        const graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
-            let myChart = new Chart(graphCanvasElement, {
+            const myChart = new Chart(graphCanvasElement, {
                 type: 'doughnut',
                 data: {
                     labels: response.labels,
@@ -174,7 +174,7 @@ export class ChartRenderer {
     }
 
     async updateChart(chart: Chart, chartDataUrl: string): Promise<void> {
-        let graphData = this.naja.makeRequest(
+        const graphData = this.naja.makeRequest(
             'GET',
             chartDataUrl,
             null,
