@@ -8,14 +8,12 @@ export class SpinnerExtension {
                 'start',
                 () => {
                     mainContent.classList.remove('hidden');
-                    mainContent.classList.add('fixed');
                 }
             );
 
             naja.addEventListener(
                 'complete',
                 () => {
-                    mainContent.classList.remove('fixed');
                     mainContent.classList.add('hidden');
                 }
             );
