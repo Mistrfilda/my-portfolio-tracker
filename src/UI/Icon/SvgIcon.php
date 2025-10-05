@@ -91,4 +91,14 @@ enum SvgIcon: string
 
 	case ACADEMIC_CAP = 'academic-cap.svg';
 
+	case VALUATION_FAIR_VALUE = 'valuation-fair-value.svg';
+
+	case VALUATION_NEUTRAL = 'valuation-neutral.svg';
+
+	case VALUATION_OVERPRICED = 'valuation-overpriced.svg';
+
+	case VALUATION_UNABLE_TO_CALCULATE = 'valuation-unable-to-calculate.svg';
+
+	case VALUATION_UNDERPRICED = 'valuation-underpriced.svg';
+
 }

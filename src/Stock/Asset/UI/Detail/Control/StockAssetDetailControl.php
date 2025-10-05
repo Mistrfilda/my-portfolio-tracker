@@ -9,6 +9,8 @@ use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Dividend\UI\Detail\StockDividendDetailControl;
 use App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory;
 use App\Stock\Position\StockPositionFacade;
+use App\Stock\Valuation\UI\Control\Detail\StockValuationDetailControl;
+use App\Stock\Valuation\UI\Control\Detail\StockValuationDetailControlFactory;
 use App\UI\Base\BaseControl;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
@@ -39,6 +41,7 @@ class StockAssetDetailControl extends BaseControl
 		private DatetimeFactory $datetimeFactory,
 		private ChartControlFactory $chartControlFactory,
 		private StockDividendDetailControlFactory $stockDividendDetailControlFactory,
+		private StockValuationDetailControlFactory $stockValuationDetailControlFactory,
 	)
 	{
 	}
@@ -76,6 +79,11 @@ class StockAssetDetailControl extends BaseControl
 	protected function createComponentStockDividendDetailControl(): StockDividendDetailControl
 	{
 		return $this->stockDividendDetailControlFactory->create($this->id);
+	}
+
+	protected function createComponentStockValuationDetailControl(): StockValuationDetailControl
+	{
+		return $this->stockValuationDetailControlFactory->create($this->id);
 	}
 
 }
