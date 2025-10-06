@@ -101,4 +101,6 @@ enum SvgIcon: string
 
 	case VALUATION_UNDERPRICED = 'valuation-underpriced.svg';
 
+	case BUILDING_STOREFRONT = 'building-storefront.svg';
+
 }

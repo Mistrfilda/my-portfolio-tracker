@@ -13,8 +13,7 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class PriceEarningsValuationModel extends BasePriceModel
 {
 
-	//TODO: DODELAT PRO VSECHNY INDUSTRY
-	private const INDUSTRY_AVERAGE_PE = 15.0;
+	private const DEFAULT_INDUSTRY_AVERAGE_PE = 15.0;
 
 	private const UNDERPRICED_THRESHOLD = 10.0;
 
@@ -22,17 +21,30 @@ class PriceEarningsValuationModel extends BasePriceModel
 
 	private const FAIR_VALUE_THRESHOLD = 5.0;
 
+	private float $industryAveragePe;
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();
 		$currentPrice = $stockValuation->getStockAsset()->getAssetCurrentPrice()->getPrice();
 		$dilutedEps = $stockValuation->getValuationDataByType(StockValuationTypeEnum::DILUTED_EPS)?->getFloatValue();
 
+		$industryAveragePe = null;
+		if ($stockAsset->getIndustry() !== null) {
+			$industryAveragePe = $stockAsset->getIndustry()->getCurrentPERatio();
+		}
+
+		if ($industryAveragePe === null) {
+			$industryAveragePe = self::DEFAULT_INDUSTRY_AVERAGE_PE;
+		}
+
+		$this->industryAveragePe = $industryAveragePe;
+
 		if ($dilutedEps === null || $dilutedEps <= 0) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		$fairPrice = $dilutedEps * self::INDUSTRY_AVERAGE_PE;
+		$fairPrice = $dilutedEps * $industryAveragePe;
 
 		$assetPrice = null;
 		$percentage = null;
@@ -80,7 +92,7 @@ class PriceEarningsValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('INDUSTRY_AVERAGE_PE', self::INDUSTRY_AVERAGE_PE),
+			new StockValuationModelUsedValue('INDUSTRY_AVERAGE_PE', $this->industryAveragePe),
 			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
 			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
 			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),

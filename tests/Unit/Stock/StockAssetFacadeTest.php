@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Asset\StockAssetExchange;
 use App\Stock\Asset\StockAssetFacade;
 use App\Stock\Asset\StockAssetRepository;
@@ -32,6 +33,8 @@ class StockAssetFacadeTest extends TestCase
 
 	private CurrentAppAdminGetter|MockObject $currentAppAdminGetter;
 
+	private StockAssetIndustryRepository|MockObject $stockAssetIndustryRepository;
+
 	protected function setUp(): void
 	{
 		$this->stockAssetRepository = $this->createMock(StockAssetRepository::class);
@@ -39,6 +42,7 @@ class StockAssetFacadeTest extends TestCase
 		$this->datetimeFactory = $this->createMock(DatetimeFactory::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
 		$this->currentAppAdminGetter = $this->createMock(CurrentAppAdminGetter::class);
+		$this->stockAssetIndustryRepository = $this->createMock(StockAssetIndustryRepository::class);
 
 		$this->stockAssetFacade = new StockAssetFacade(
 			$this->stockAssetRepository,
@@ -46,6 +50,7 @@ class StockAssetFacadeTest extends TestCase
 			$this->datetimeFactory,
 			$this->logger,
 			$this->currentAppAdminGetter,
+			$this->stockAssetIndustryRepository,
 		);
 	}
 
@@ -73,6 +78,7 @@ class StockAssetFacadeTest extends TestCase
 			$brokerDividendCurrency,
 			true,
 			true,
+			null,
 		);
 
 		self::assertSame($name, $stockAsset->getName());

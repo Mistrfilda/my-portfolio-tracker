@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Asset\UI;
 
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
 use App\Stock\Asset\StockAssetFacade;
@@ -25,6 +26,7 @@ class StockAssetFormFactory
 		private AdminFormFactory $adminFormFactory,
 		private StockAssetFacade $stockAssetFacade,
 		private StockAssetRepository $stockAssetRepository,
+		private StockAssetIndustryRepository $stockAssetIndustryRepository,
 	)
 	{
 	}
@@ -35,6 +37,10 @@ class StockAssetFormFactory
 
 		$form->addText('name', 'Název akcie')
 			->setRequired();
+
+		$form->addSelect('industry', 'Industry', $this->stockAssetIndustryRepository->findPairs())
+			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
+			->setRequired(false);
 
 		$form->addText('ticker', 'Ticker')
 			->setRequired();
@@ -110,6 +116,7 @@ class StockAssetFormFactory
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
 					TypeValidator::validateBool($values->shouldDownloadValuation),
+					TypeValidator::validateNullableString($values->industry),
 				);
 			} else {
 				$this->stockAssetFacade->create(
@@ -128,6 +135,7 @@ class StockAssetFormFactory
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
 					TypeValidator::validateBool($values->shouldDownloadValuation),
+					TypeValidator::validateNullableString($values->industry),
 				);
 			}
 
@@ -156,7 +164,8 @@ class StockAssetFormFactory
 			'dividendTax' => $stockAsset->getDividendTax(),
 			'brokerDividendCurrency' => $stockAsset->getBrokerDividendCurrency()?->value,
 			'shouldDownloadPrice' => $stockAsset->shouldBeUpdated(),
-			'shouldDownloadValuation' => $stockAsset->isShouldDownloadValuation(),
+			'shouldDownloadValuation' => $stockAsset->shouldDownloadValuation(),
+			'industry' => $stockAsset->getIndustry()?->getId(),
 		]);
 	}
 

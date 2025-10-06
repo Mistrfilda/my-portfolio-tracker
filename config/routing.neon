@@ -33,3 +33,4 @@ custompresenterfactory:
 		Admin:PortfolioGoal: App\Goal\UI\PortfolioGoalPresenter
 		Admin:BankAccount: App\Cash\Bank\Account\UI\BankAccountPresenter
 		Admin:StockValuation: App\Stock\Valuation\UI\StockValuationPresenter
+		Admin:StockAssetIndustry: App\Stock\Asset\Industry\UI\StockAssetIndustryPresenter

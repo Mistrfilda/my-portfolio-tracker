@@ -267,6 +267,10 @@ services:
 	- App\Stock\Price\Downloader\Pse\PseDataDownloaderCommand
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory
 	- App\Stock\Asset\UI\Detail\Control\StockAssetDetailPriceChartProvider
+	- App\Stock\Asset\Industry\StockAssetIndustryFacade
+	- App\Stock\Asset\Industry\StockAssetIndustryRepository(App\Stock\Asset\Industry\StockAssetIndustry)
+	- App\Stock\Asset\Industry\UI\StockAssetIndustryGridFactory
+	- App\Stock\Asset\Industry\UI\StockAssetIndustryFormFactory
 
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)

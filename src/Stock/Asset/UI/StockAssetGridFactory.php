@@ -52,6 +52,12 @@ class StockAssetGridFactory
 			->setSortable();
 
 		$grid->addColumnText(
+			'industry',
+			'Odvětví',
+			static fn (StockAsset $stockAsset): string|null => $stockAsset->getIndustry()?->getName(),
+		);
+
+		$grid->addColumnText(
 			'currentPrice',
 			'Aktualní cena',
 			static fn (StockAsset $stockAsset): string => AssetPriceFilter::format($stockAsset->getAssetCurrentPrice()),
@@ -81,6 +87,18 @@ class StockAssetGridFactory
 			},
 		);
 
+		$grid->addColumnText(
+			'valuation',
+			'Stahování valuace',
+			static function (StockAsset $stockAsset): string {
+				if ($stockAsset->shouldDownloadValuation()) {
+					return 'Ano';
+				}
+
+				return 'Ne';
+			},
+		);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',
@@ -101,6 +119,17 @@ class StockAssetGridFactory
 			],
 			SvgIcon::DOLLAR,
 			TailwindColorConstant::EMERALD,
+		);
+
+		$grid->addAction(
+			'detail',
+			'Detail',
+			'StockAssetDetail:detail',
+			[
+				new DatagridActionParameter('id', 'id'),
+			],
+			SvgIcon::DOLLAR,
+			TailwindColorConstant::INDIGO,
 		);
 
 		return $grid;

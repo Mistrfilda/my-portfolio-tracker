@@ -13,6 +13,7 @@ use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
+use App\Stock\Asset\Industry\StockAssetIndustry;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Position\StockPosition;
@@ -95,6 +96,10 @@ class StockAsset implements Entity, Asset
 	#[ORM\OneToMany(targetEntity: StockValuationData::class, mappedBy: 'stockAsset')]
 	private Collection $valuations;
 
+	#[ORM\ManyToOne(targetEntity: StockAssetIndustry::class, inversedBy: 'stockAssets')]
+	#[ORM\JoinColumn(nullable: true)]
+	private StockAssetIndustry|null $industry = null;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -108,6 +113,7 @@ class StockAsset implements Entity, Asset
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		StockAssetIndustry|null $industry = null,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -122,6 +128,7 @@ class StockAsset implements Entity, Asset
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
 		$this->shouldDownloadValuation = $shouldDownloadValuation;
+		$this->industry = $industry;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -148,6 +155,7 @@ class StockAsset implements Entity, Asset
 		ImmutableDateTime $now,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		StockAssetIndustry|null $industry = null,
 	): void
 	{
 		$this->name = $name;
@@ -162,6 +170,7 @@ class StockAsset implements Entity, Asset
 		$this->updatedAt = $now;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
 		$this->shouldDownloadValuation = $shouldDownloadValuation;
+		$this->industry = $industry;
 	}
 
 	public function setCurrentPrice(
@@ -357,7 +366,7 @@ class StockAsset implements Entity, Asset
 		return $this->brokerDividendCurrency;
 	}
 
-	public function isShouldDownloadValuation(): bool
+	public function shouldDownloadValuation(): bool
 	{
 		return $this->shouldDownloadValuation;
 	}
@@ -368,7 +377,11 @@ class StockAsset implements Entity, Asset
 	public function getValuations(): array
 	{
 		return $this->valuations->toArray();
+	}
 
+	public function getIndustry(): StockAssetIndustry|null
+	{
+		return $this->industry;
 	}
 
 }

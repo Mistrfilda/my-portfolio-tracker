@@ -68,6 +68,15 @@ class MenuBuilder
 				],
 			),
 			new MenuItem(
+				'StockAssetIndustry',
+				'default',
+				SvgIcon::BUILDING_STOREFRONT,
+				'Akciová odvětví',
+				[
+					'StockAssetIndustry',
+				],
+			),
+			new MenuItem(
 				'StockValuation',
 				'default',
 				SvgIcon::ACADEMIC_CAP,

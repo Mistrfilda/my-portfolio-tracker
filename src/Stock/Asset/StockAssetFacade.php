@@ -7,11 +7,13 @@ namespace App\Stock\Asset;
 use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\Exception\StockAssetTickerAlreadyExistsException;
+use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 class StockAssetFacade
@@ -23,6 +25,7 @@ class StockAssetFacade
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly StockAssetIndustryRepository $stockAssetIndustryRepository,
 	)
 	{
 	}
@@ -39,6 +42,7 @@ class StockAssetFacade
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		string|null $industryId,
 	): StockAsset
 	{
 		if ($this->stockAssetRepository->findByTicker($ticker) !== null) {
@@ -58,6 +62,9 @@ class StockAssetFacade
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
 			shouldDownloadValuation: $shouldDownloadValuation,
+			industry: $industryId !== null ? $this->stockAssetIndustryRepository->getById(
+				Uuid::fromString($industryId),
+			) : null,
 		);
 
 		$this->entityManager->persist($stockAsset);
@@ -88,6 +95,7 @@ class StockAssetFacade
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		string|null $industryId,
 	): StockAsset
 	{
 		$stockAsset = $this->stockAssetRepository->getById($id);
@@ -104,6 +112,9 @@ class StockAssetFacade
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
 			shouldDownloadValuation: $shouldDownloadValuation,
+			industry: $industryId !== null ? $this->stockAssetIndustryRepository->getById(
+				Uuid::fromString($industryId),
+			) : null,
 		);
 
 		$this->entityManager->flush();
