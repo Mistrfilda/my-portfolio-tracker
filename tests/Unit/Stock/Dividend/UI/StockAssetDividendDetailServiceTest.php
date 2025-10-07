@@ -10,11 +10,11 @@ use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Dividend\UI\StockAssetDividendDetailDTO;
 use App\Stock\Dividend\UI\StockAssetDividendDetailService;
+use App\Test\UpdatedTestCase;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
-use PHPUnit\Framework\TestCase;
 
-class StockAssetDividendDetailServiceTest extends TestCase
+class StockAssetDividendDetailServiceTest extends UpdatedTestCase
 {
 
 	private StockAssetDividendDetailService $stockAssetDividendDetailService;

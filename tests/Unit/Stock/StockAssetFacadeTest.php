@@ -12,13 +12,13 @@ use App\Stock\Asset\StockAssetFacade;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
+use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class StockAssetFacadeTest extends TestCase
+class StockAssetFacadeTest extends UpdatedTestCase
 {
 
 	private StockAssetFacade|MockObject $stockAssetFacade;

@@ -5,9 +5,9 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\Valuation\Data;
 
 use App\Stock\Valuation\Data\StockValuationDataParser;
-use PHPUnit\Framework\TestCase;
+use App\Test\UpdatedTestCase;
 
-class StockValuationDataParserTest extends TestCase
+class StockValuationDataParserTest extends UpdatedTestCase
 {
 
 	/**

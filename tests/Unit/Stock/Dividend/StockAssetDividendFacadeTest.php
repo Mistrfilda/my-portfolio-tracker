@@ -9,15 +9,15 @@ use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
-use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
-class StockAssetDividendFacadeTest extends TestCase
+class StockAssetDividendFacadeTest extends UpdatedTestCase
 {
 
 	private StockAssetDividendFacade $stockAssetDividendFacade;

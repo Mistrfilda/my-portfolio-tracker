@@ -14,17 +14,17 @@ use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\System\SystemValueFacade;
+use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use const DIRECTORY_SEPARATOR;
 
-class StockAssetJsonDividendDownloaderTest extends TestCase
+class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 {
 
 	private string $resultsFolder;

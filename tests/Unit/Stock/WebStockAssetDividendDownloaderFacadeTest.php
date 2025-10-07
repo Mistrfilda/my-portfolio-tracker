@@ -9,14 +9,14 @@ use App\Http\Psr7\Psr7RequestFactory;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\WebStockAssetDividendDownloaderFacade;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
-use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
-class WebStockAssetDividendDownloaderFacadeTest extends TestCase
+class WebStockAssetDividendDownloaderFacadeTest extends UpdatedTestCase
 {
 
 	private WebStockAssetDividendDownloaderFacade $downloader;

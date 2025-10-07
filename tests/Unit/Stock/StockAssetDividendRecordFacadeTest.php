@@ -13,15 +13,15 @@ use App\Stock\Dividend\Record\StockAssetDividendRecordService;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Position\StockPosition;
+use App\Test\UpdatedTestCase;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mockery;
 use PHPUnit\Framework\MockObject\MockObject;
-use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class StockAssetDividendRecordFacadeTest extends TestCase
+class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 {
 
 	private StockAssetDividendRecordFacade|MockObject $stockAssetDividendRecordFacade;
