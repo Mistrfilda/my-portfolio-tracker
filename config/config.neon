@@ -460,3 +460,4 @@ services:
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel
 	- App\Stock\Valuation\Model\Price\DividendDiscountValuationModel
 	- App\Stock\Valuation\Model\Price\PriceEarningsValuationModel
+	- App\Stock\Valuation\Model\Price\FreeCashFlowValuationModel
