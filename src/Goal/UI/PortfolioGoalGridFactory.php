@@ -44,6 +44,7 @@ class PortfolioGoalGridFactory
 		);
 
 		$grid->addColumnBadge('goal', 'Cílová částka', TailwindColorConstant::BLUE);
+		$grid->addColumnBadge('repeatable', 'Opakování', TailwindColorConstant::GREEN);
 		$grid->addColumnBadge('valueAtStart', 'Hodnota na začátku', TailwindColorConstant::YELLOW);
 		$grid->addColumnBadge('currentValue', 'Aktuální hodnota', TailwindColorConstant::BLUE);
 		$grid->addColumnBadge('valueAtEnd', 'Hodnota na konci', TailwindColorConstant::GREEN);

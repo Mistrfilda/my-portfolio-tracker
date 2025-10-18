@@ -25,6 +25,7 @@ class PortfolioGoalFacade
 		ImmutableDateTime $endDate,
 		PortfolioGoalTypeEnum $type,
 		float $goal,
+		PortfolioGoalRepeatableEnum|null $repeatable,
 	): void
 	{
 		$portfolioGoal = new PortfolioGoal(
@@ -32,6 +33,7 @@ class PortfolioGoalFacade
 			$endDate,
 			$type,
 			$goal,
+			$repeatable,
 			$this->datetimefactory->createNow(),
 		);
 
@@ -44,6 +46,7 @@ class PortfolioGoalFacade
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		float $goal,
+		PortfolioGoalRepeatableEnum|null $repeatable,
 	): void
 	{
 		$portfolioGoal = $this->portfolioGoalRepository->getById($id);
@@ -51,9 +54,50 @@ class PortfolioGoalFacade
 			$startDate,
 			$endDate,
 			$goal,
+			$repeatable,
 			$this->datetimefactory->createNow(),
 		);
 		$this->entityManager->flush();
+	}
+
+	public function createNewMonthGoal(UuidInterface $portfolioGoalId): PortfolioGoal
+	{
+		$now = $this->datetimefactory->createNow();
+		$portfolioGoal = $this->portfolioGoalRepository->getById($portfolioGoalId);
+
+		$newPortfolioGoal = new PortfolioGoal(
+			$now->modify('first day of this month'),
+			$now->modify('last day of this month'),
+			$portfolioGoal->getType(),
+			$portfolioGoal->getGoal(),
+			$portfolioGoal->getRepeatable(),
+			$this->datetimefactory->createNow(),
+		);
+
+		$this->entityManager->persist($newPortfolioGoal);
+		$newPortfolioGoal->start(0, 0, $now);
+		$this->entityManager->flush();
+		return $newPortfolioGoal;
+	}
+
+	public function createNewWeeklyGoal(UuidInterface $portfolioGoalId): PortfolioGoal
+	{
+		$now = $this->datetimefactory->createNow();
+		$portfolioGoal = $this->portfolioGoalRepository->getById($portfolioGoalId);
+
+		$newPortfolioGoal = new PortfolioGoal(
+			$now->modify('monday this week'),
+			$now->modify('sunday this week'),
+			$portfolioGoal->getType(),
+			$portfolioGoal->getGoal(),
+			$portfolioGoal->getRepeatable(),
+			$this->datetimefactory->createNow(),
+		);
+
+		$this->entityManager->persist($newPortfolioGoal);
+		$newPortfolioGoal->start(0, 0, $now);
+		$this->entityManager->flush();
+		return $newPortfolioGoal;
 	}
 
 }

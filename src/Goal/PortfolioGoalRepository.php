@@ -53,11 +53,13 @@ class PortfolioGoalRepository extends BaseRepository
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
 		$qb->andWhere(
-			$qb->expr()->gt('portfolioGoal.endDate', ':now'),
 			$qb->expr()->lt('portfolioGoal.startDate', ':now'),
+			$qb->expr()->eq('portfolioGoal.active', ':active'),
 		);
 
 		$qb->setParameter('now', $now);
+		$qb->setParameter('active', true);
+		$qb->orderBy('portfolioGoal.startDate', 'ASC');
 		return $qb->getQuery()->getResult();
 	}
 

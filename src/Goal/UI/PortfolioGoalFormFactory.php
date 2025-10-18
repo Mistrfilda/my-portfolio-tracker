@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Goal\UI;
 
 use App\Goal\PortfolioGoalFacade;
+use App\Goal\PortfolioGoalRepeatableEnum;
 use App\Goal\PortfolioGoalRepository;
 use App\Goal\PortfolioGoalTypeEnum;
 use App\UI\Control\Form\AdminForm;
@@ -33,9 +34,13 @@ class PortfolioGoalFormFactory
 			PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT->value => PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT->format(),
 			PortfolioGoalTypeEnum::TOTAL_INCOME->value => PortfolioGoalTypeEnum::TOTAL_INCOME->format(),
 			PortfolioGoalTypeEnum::TOTAL_DIVIDEND_AMOUNT->value => PortfolioGoalTypeEnum::TOTAL_DIVIDEND_AMOUNT->format(),
+			PortfolioGoalTypeEnum::MONTHLY_INCOME->value => PortfolioGoalTypeEnum::MONTHLY_INCOME->format(),
 		])->setRequired()->setPrompt(AdminForm::SELECT_PLACEHOLDER);
 
 		$form->addFloat('goal', 'Cílová částka')->setRequired();
+
+		$form->addSelect('repeatable', 'Opakování', PortfolioGoalRepeatableEnum::getFormOptions())
+			->setPrompt('Žádné');
 
 		$form->addSubmit('submit', 'Odeslat');
 
@@ -59,6 +64,9 @@ class PortfolioGoalFormFactory
 					TypeValidator::validateImmutableDatetime($values->startDate),
 					TypeValidator::validateImmutableDatetime($values->endDate),
 					TypeValidator::validateFloat($values->goal),
+					$values->repeatable !== null ? PortfolioGoalRepeatableEnum::tryFrom(
+						TypeValidator::validateString($values->repeatable),
+					) : null,
 				);
 			} else {
 				$this->portfolioGoalFacade->create(
@@ -66,6 +74,9 @@ class PortfolioGoalFormFactory
 					TypeValidator::validateImmutableDatetime($values->endDate),
 					PortfolioGoalTypeEnum::from(TypeValidator::validateString($values->type)),
 					TypeValidator::validateFloat($values->goal),
+					$values->repeatable !== null ? PortfolioGoalRepeatableEnum::tryFrom(
+						TypeValidator::validateString($values->repeatable),
+					) : null,
 				);
 			}
 

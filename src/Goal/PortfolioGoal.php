@@ -51,11 +51,15 @@ class PortfolioGoal implements Entity
 	#[ORM\Column(type: Types::JSON)]
 	private array $statistics;
 
+	#[ORM\Column(type: Types::STRING, enumType: PortfolioGoalRepeatableEnum::class, nullable: true)]
+	private PortfolioGoalRepeatableEnum|null $repeatable;
+
 	public function __construct(
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		PortfolioGoalTypeEnum $type,
 		float $goal,
+		PortfolioGoalRepeatableEnum|null $repeatable,
 		ImmutableDateTime $now,
 	)
 	{
@@ -65,6 +69,7 @@ class PortfolioGoal implements Entity
 		$this->type = $type;
 		$this->goal = $goal;
 		$this->active = false;
+		$this->repeatable = $repeatable;
 		$this->valueAtStart = 0;
 		$this->currentValue = 0;
 		$this->valueAtEnd = 0;
@@ -77,12 +82,14 @@ class PortfolioGoal implements Entity
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		float $goal,
+		PortfolioGoalRepeatableEnum|null $repeatable,
 		ImmutableDateTime $now,
 	): void
 	{
 		$this->startDate = $startDate;
 		$this->endDate = $endDate;
 		$this->goal = $goal;
+		$this->repeatable = $repeatable;
 		$this->updatedAt = $now;
 	}
 
@@ -109,6 +116,12 @@ class PortfolioGoal implements Entity
 		$this->updatedAt = $now;
 	}
 
+	public function endWithCurrentValue(ImmutableDateTime $now): void
+	{
+		$this->active = false;
+		$this->updatedAt = $now;
+	}
+
 	public function updateCurrentValue(float $currentValue, ImmutableDateTime $now): void
 	{
 		$this->currentValue = $currentValue;
@@ -119,6 +132,9 @@ class PortfolioGoal implements Entity
 
 	public function getCompletionPercentage(): float
 	{
+		bdump($this->currentValue);
+		bdump($this->goal);
+		bdump($this->valueAtStart);
 		return ($this->currentValue - $this->valueAtStart) / ($this->goal - $this->valueAtStart) * 100;
 	}
 
@@ -193,6 +209,11 @@ class PortfolioGoal implements Entity
 	public function setGoal(float $goal): void
 	{
 		$this->goal = $goal;
+	}
+
+	public function getRepeatable(): PortfolioGoalRepeatableEnum|null
+	{
+		return $this->repeatable;
 	}
 
 }

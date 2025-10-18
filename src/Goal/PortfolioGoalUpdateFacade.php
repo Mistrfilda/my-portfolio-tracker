@@ -20,6 +20,7 @@ class PortfolioGoalUpdateFacade
 		private PortfolioGoalRepository $portfolioGoalRepository,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
+		private PortfolioGoalFacade $portfolioGoalFacade,
 	)
 	{
 	}
@@ -43,6 +44,25 @@ class PortfolioGoalUpdateFacade
 				);
 
 				$this->entityManager->flush();
+			}
+		}
+
+		$now = $this->datetimeFactory->createNow();
+		if ($portfolioGoal->getEndDate() < $now) {
+			$portfolioGoal->endWithCurrentValue($now);
+			$this->entityManager->flush();
+
+			$newPortfolioGoal = null;
+			if ($portfolioGoal->getRepeatable() === PortfolioGoalRepeatableEnum::MONTHLY) {
+				$newPortfolioGoal = $this->portfolioGoalFacade->createNewMonthGoal($id);
+			}
+
+			if ($portfolioGoal->getRepeatable() === PortfolioGoalRepeatableEnum::WEEKLY) {
+				$newPortfolioGoal = $this->portfolioGoalFacade->createNewWeeklyGoal($id);
+			}
+
+			if ($newPortfolioGoal !== null) {
+				$this->updateGoal($newPortfolioGoal->getId());
 			}
 		}
 	}

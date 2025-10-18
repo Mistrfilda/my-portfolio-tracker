@@ -446,6 +446,7 @@ services:
 	- App\Goal\PortfolioGoalUpdateCommand
 	- App\Goal\UI\Control\PortfolioGoalControlFactory
 	- App\Goal\Resolver\PortfolioGoalTotalDividendAmountResolver
+	- App\Goal\Resolver\PortfolioGoalMonthlyIncomeResolver
 
 	#Stock valuation
 	- App\Stock\Valuation\Command\ValuationJsonDataSourceProviderCommand
