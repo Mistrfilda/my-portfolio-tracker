@@ -2,15 +2,14 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI\Total\UI\Control;
+namespace App\Statistic\Total;
 
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
-use App\UI\Base\BaseControl;
 use InvalidArgumentException;
 use Mistrfilda\Datetime\DatetimeFactory;
 
-class PortfolioStatisticTotalControl extends BaseControl
+class PortfolioTotalStatisticControlFacade
 {
 
 	public function __construct(
@@ -22,17 +21,10 @@ class PortfolioStatisticTotalControl extends BaseControl
 
 	}
 
-	public function render(): void
-	{
-		$this->getTemplate()->groups = array_reverse($this->getData());
-		$this->getTemplate()->setFile(__DIR__ . '/PortfolioStatisticTotalControl.latte');
-		$this->getTemplate()->render();
-	}
-
 	/**
 	 * @return array<PortfolioStatisticTotalGroup>
 	 */
-	private function getData(): array
+	public function getData(): array
 	{
 		$now = $this->datetimeFactory->createNow();
 		$currentYear = $now->getYear();
@@ -110,9 +102,8 @@ class PortfolioStatisticTotalControl extends BaseControl
 				new PortfolioStatisticTotalValue(
 					null,
 					sprintf(
-						'%s - %s',
-						$firstYearValue->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
-						$lastYearValue->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
+						'Rok %s',
+						$firstYearValue->getCreatedAt()->format('Y'),
 					),
 					$this->parseStatisticIntoFloat(
 						$firstYearValue->getPortfolioStatisticByType(

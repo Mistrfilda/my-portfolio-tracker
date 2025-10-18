@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI\Total\UI\Control;
+namespace App\Statistic\Total;
 
 class PortfolioStatisticTotalGroup
 {

@@ -9,6 +9,8 @@ use App\Dashboard\UI\DashboardValueControl\DashboardValueControl;
 use App\Dashboard\UI\DashboardValueControl\DashboardValueControlFactory;
 use App\Goal\UI\Control\PortfolioGoalControl;
 use App\Goal\UI\Control\PortfolioGoalControlFactory;
+use App\Statistic\Total\UI\Control\PortfolioStatisticTotalControl;
+use App\Statistic\Total\UI\Control\PortfolioStatisticTotalControlFactory;
 use App\System\UI\SystemValueControl;
 use App\System\UI\SystemValueControlFactory;
 use App\UI\Base\BaseAdminPresenter;
@@ -21,6 +23,7 @@ class DashboardPresenter extends BaseAdminPresenter
 		private readonly DashboardValueControlFactory $dashboardValueControlFactory,
 		private readonly SystemValueControlFactory $systemValueControlFactory,
 		private readonly PortfolioGoalControlFactory $portfolioGoalControlFactory,
+		private readonly PortfolioStatisticTotalControlFactory $portfolioStatisticTotalControl,
 	)
 	{
 		parent::__construct();
@@ -44,6 +47,13 @@ class DashboardPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioGoalControl(): PortfolioGoalControl
 	{
 		return $this->portfolioGoalControlFactory->create();
+	}
+
+	protected function createComponentPortfolioStatisticTotalControl(): PortfolioStatisticTotalControl
+	{
+		$control = $this->portfolioStatisticTotalControl->create();
+		$control->renderOnlyYears();
+		return $control;
 	}
 
 }

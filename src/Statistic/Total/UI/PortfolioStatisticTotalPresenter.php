@@ -2,10 +2,10 @@
 
 declare(strict_types = 1);
 
-namespace App\Statistic\UI\Total\UI;
+namespace App\Statistic\Total\UI;
 
-use App\Statistic\UI\Total\UI\Control\PortfolioStatisticTotalControl;
-use App\Statistic\UI\Total\UI\Control\PortfolioStatisticTotalControlFactory;
+use App\Statistic\Total\UI\Control\PortfolioStatisticTotalControl;
+use App\Statistic\Total\UI\Control\PortfolioStatisticTotalControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
 class PortfolioStatisticTotalPresenter extends BaseAdminPresenter

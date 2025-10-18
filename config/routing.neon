@@ -29,7 +29,7 @@ custompresenterfactory:
 		Admin:StockAssetDetail: App\Stock\Asset\UI\Detail\StockAssetDetailPresenter
 		Admin:WorkMonthlyIncome: App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomePresenter
 		Admin:BankIncome: App\Cash\Income\Bank\UI\BankIncomePresenter
-		Admin:PortfolioStatisticTotal: App\Statistic\UI\Total\UI\PortfolioStatisticTotalPresenter
+		Admin:PortfolioStatisticTotal: App\Statistic\Total\UI\PortfolioStatisticTotalPresenter
 		Admin:PortfolioGoal: App\Goal\UI\PortfolioGoalPresenter
 		Admin:BankAccount: App\Cash\Bank\Account\UI\BankAccountPresenter
 		Admin:StockValuation: App\Stock\Valuation\UI\StockValuationPresenter

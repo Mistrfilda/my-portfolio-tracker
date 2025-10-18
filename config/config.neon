@@ -301,10 +301,9 @@ services:
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
 	- App\Statistic\UI\Record\PortfolioStatisticRecordGridFactory
-	-
-	 	implement: App\Statistic\UI\Total\UI\Control\PortfolioStatisticTotalControlFactory
-	 	arguments:
-	 		startYear: %portfolioStatistic.startYear%
+
+	- App\Statistic\Total\UI\Control\PortfolioStatisticTotalControlFactory
+	- App\Statistic\Total\PortfolioTotalStatisticControlFacade(startYear: %portfolioStatistic.startYear%)
 
 	#Stock dividends
 	- App\Stock\Dividend\StockAssetDividendFacade
