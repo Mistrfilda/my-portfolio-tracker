@@ -27,7 +27,7 @@ abstract class BaseConsumer implements IConsumer
 	 */
 	private function mapMessageData(string $json): RabbitMQMessage
 	{
-		$mapper = (new MapperBuilder())->allowPermissiveTypes()->mapper();
+		$mapper = new MapperBuilder()->allowPermissiveTypes()->mapper();
 		return $mapper->map($this->getMessageClass(), Source::json($json));
 	}
 

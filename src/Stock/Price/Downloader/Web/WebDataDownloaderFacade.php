@@ -94,6 +94,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 			assert($nodes instanceof DOMNodeList);
 
 			foreach ($nodes as $node) {
+				assert($node instanceof DOMElement);
 				$priceTags = $domXpath->query(".//fin-streamer[@data-field='regularMarketPrice']", $node);
 				assert($priceTags instanceof DOMNodeList);
 				assert($priceTags->count() === 1);

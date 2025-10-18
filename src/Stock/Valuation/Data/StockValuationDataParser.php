@@ -309,6 +309,7 @@ class StockValuationDataParser
 				$result = $this->xpath->query($expression);
 			}
 
+			// @phpstan-ignore-next-line
 			return $result !== false ? $result : null;
 		} catch (Throwable) {
 			return null;

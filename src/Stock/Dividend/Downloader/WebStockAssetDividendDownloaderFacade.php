@@ -87,6 +87,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 			);
 
 			foreach ($trNodes as $node) {
+				assert($node instanceof DOMNode);
 				$tdNodes = $domXpath->query('.//td', $node);
 
 				assert($tdNodes instanceof DOMNodeList);

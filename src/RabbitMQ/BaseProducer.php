@@ -5,8 +5,8 @@ declare(strict_types = 1);
 namespace App\RabbitMQ;
 
 use Contributte\RabbitMQ\Producer\Producer;
-use CuyZ\Valinor\MapperBuilder;
 use CuyZ\Valinor\Normalizer\Format;
+use CuyZ\Valinor\NormalizerBuilder;
 use InvalidArgumentException;
 
 /**
@@ -48,7 +48,7 @@ abstract class BaseProducer
 	 */
 	private function mapMessageData(RabbitMQMessage $message): string
 	{
-		$normalizer = (new MapperBuilder())
+		$normalizer = new NormalizerBuilder()
 			->normalizer(Format::json());
 
 		return $normalizer->normalize($message);

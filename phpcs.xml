@@ -204,6 +204,9 @@ BASED ON https://github.com/orisai/coding-standard-php
         <!-- Property may have native type -->
         <exclude name="Squiz.Commenting.VariableComment.Missing"/>
         <exclude name="Squiz.Commenting.VariableComment.MissingVar"/>
+        <exclude name="Squiz.Commenting.VariableComment.Phpstan-ignore-next-lineTagNotAllowed"/>
+        <exclude name="Squiz.Commenting.VariableComment.Phpstan-varTagNotAllowed"/>
+        <exclude name="Squiz.Commenting.VariableComment.PersistentTagNotAllowed"/>
     </rule>
 
     <rule ref="SlevomatCodingStandard.Commenting.DocCommentSpacing">
