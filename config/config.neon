@@ -66,6 +66,12 @@ parameters:
 				trend_alert_30_days: null
 				default: null
 
+	monitoring:
+		monitoringUptimeMonitorMapping:
+			updated_stock_dividends_count: null
+			updated_stock_prices_count: null
+			updated_stock_valuation_count: null
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -461,3 +467,7 @@ services:
 	- App\Stock\Valuation\Model\Price\DividendDiscountValuationModel
 	- App\Stock\Valuation\Model\Price\PriceEarningsValuationModel
 	- App\Stock\Valuation\Model\Price\FreeCashFlowValuationModel
+
+	#Monitoring
+	- App\Monitoring\MonitoringFacade(%monitoring.monitoringUptimeMonitorMapping%)
+	- App\Monitoring\MonitoringPushMonitorsCommand

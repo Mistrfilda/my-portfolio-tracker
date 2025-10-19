@@ -38,6 +38,23 @@ class SystemValueResolveFacade
 		return $values;
 	}
 
+	/**
+	 * @return array<string, string>
+	 */
+	public function getAllValuesByEnumType(): array
+	{
+		$values = [];
+		foreach (SystemValueEnum::cases() as $case) {
+			foreach ($this->resolvers as $resolver) {
+				if ($case->getResolverClass() === $resolver::class) {
+					$values[$case->value] = $this->formatValue($resolver->getValueForEnum($case));
+				}
+			}
+		}
+
+		return $values;
+	}
+
 	private function formatValue(string|int|ImmutableDateTime|null $value): string
 	{
 		if ($value === null) {

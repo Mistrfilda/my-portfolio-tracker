@@ -164,7 +164,8 @@
 		"goal-update": "bin/console goal:portfolio:update",
 		"kube-local-deploy": "./deploy-local.sh",
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser",
-		"doctrine-proxies": "bin/console orm:generate-proxies"
+		"doctrine-proxies": "bin/console orm:generate-proxies",
+		"monitoring-push-monitors": "bin/console monitoring:push-monitors"
 	},
 	"config": {
 		"allow-plugins": {
