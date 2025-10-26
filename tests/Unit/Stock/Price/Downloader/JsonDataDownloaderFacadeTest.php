@@ -2,9 +2,7 @@
 
 declare(strict_types = 1);
 
-
 namespace App\Test\Unit\Stock\Price\Downloader;
-
 
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
@@ -111,7 +109,7 @@ class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 		$stockAsset->shouldReceive('setCurrentPrice')->once();
 
 		$this->stockAssetRepository->shouldReceive('getById')
-			->with(Mockery::on(fn($uuid) => $uuid->toString() === $stockAssetId->toString()))
+			->with(Mockery::on(static fn ($uuid) => $uuid->toString() === $stockAssetId->toString()))
 			->once()
 			->andReturn($stockAsset);
 
@@ -170,7 +168,7 @@ class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 		$existingPriceRecord->shouldReceive('updatePrice')->with(150.75, $now)->once();
 
 		$this->stockAssetRepository->shouldReceive('getById')
-			->with(Mockery::on(fn($uuid) => $uuid->toString() === $stockAssetId->toString()))
+			->with(Mockery::on(static fn ($uuid) => $uuid->toString() === $stockAssetId->toString()))
 			->once()
 			->andReturn($stockAsset);
 
@@ -236,12 +234,12 @@ class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 		$stockAsset2->shouldReceive('setCurrentPrice')->once();
 
 		$this->stockAssetRepository->shouldReceive('getById')
-			->with(Mockery::on(fn($uuid) => $uuid->toString() === $stockAssetId1->toString()))
+			->with(Mockery::on(static fn ($uuid) => $uuid->toString() === $stockAssetId1->toString()))
 			->once()
 			->andReturn($stockAsset1);
 
 		$this->stockAssetRepository->shouldReceive('getById')
-			->with(Mockery::on(fn($uuid) => $uuid->toString() === $stockAssetId2->toString()))
+			->with(Mockery::on(static fn ($uuid) => $uuid->toString() === $stockAssetId2->toString()))
 			->once()
 			->andReturn($stockAsset2);
 
@@ -325,6 +323,7 @@ class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 			$path = $dir . '/' . $file;
 			is_dir($path) ? $this->deleteDirectory($path) : unlink($path);
 		}
+
 		rmdir($dir);
 	}
 
