@@ -58,6 +58,11 @@ export class PuppeteerScraperBase {
 			try {
 				await page.waitForSelector('.consent-overlay');
 				await page.click('.consent-overlay .accept-all');
+				await Promise.race([
+					page.waitForSelector('.consent-overlay', { hidden: true, timeout: 5000 }).catch(() => {}),
+					page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 5000 }).catch(() => {}),
+					this.delay(5000)
+				]);
 			} catch (e) {
 				console.log('Cookie has been authorized');
 			}
