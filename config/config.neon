@@ -208,6 +208,9 @@ services:
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)
 
+	doctrine.schemaFilterListener:
+		factory: App\Doctrine\EventListener\SchemaFilterListener
+
 	#FORM
 	- App\UI\Control\Form\AdminFormFactory
 	- App\UI\Control\Form\AdminFormRenderer

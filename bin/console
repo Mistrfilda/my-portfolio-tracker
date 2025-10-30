@@ -3,9 +3,21 @@
 
 declare(strict_types=1);
 
+use App\Doctrine\EventListener\SchemaFilterListener;
+use Contributte\Console\Application;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
 require __DIR__ . '/../vendor/autoload.php';
 
-exit(App\Bootstrap::boot()
-    ->createContainer()
-    ->getByType(Contributte\Console\Application::class)
-    ->run());
+$dispatcher = new EventDispatcher();
+
+$container = App\Bootstrap::boot(true)->createContainer();
+
+$consoleApplication = $container->getByType(Application::class);
+
+$schemaFilterListener = $container->getByType(SchemaFilterListener::class);
+$dispatcher->addListener(ConsoleEvents::COMMAND, [$schemaFilterListener, 'onConsoleCommand']);
+
+$consoleApplication->setDispatcher($dispatcher);
+exit($consoleApplication->run());
