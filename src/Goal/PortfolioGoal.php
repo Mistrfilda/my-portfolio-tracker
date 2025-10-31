@@ -64,8 +64,8 @@ class PortfolioGoal implements Entity
 	)
 	{
 		$this->id = Uuid::uuid4();
-		$this->startDate = $startDate;
-		$this->endDate = $endDate;
+		$this->startDate = $startDate->setTime(0, 0, 1);
+		$this->endDate = $endDate->setTime(23, 59, 59);
 		$this->type = $type;
 		$this->goal = $goal;
 		$this->active = false;
@@ -86,8 +86,8 @@ class PortfolioGoal implements Entity
 		ImmutableDateTime $now,
 	): void
 	{
-		$this->startDate = $startDate;
-		$this->endDate = $endDate;
+		$this->startDate = $startDate->setTime(0, 0, 1);
+		$this->endDate = $endDate->setTime(23, 59, 59);
 		$this->goal = $goal;
 		$this->repeatable = $repeatable;
 		$this->updatedAt = $now;
@@ -132,9 +132,6 @@ class PortfolioGoal implements Entity
 
 	public function getCompletionPercentage(): float
 	{
-		bdump($this->currentValue);
-		bdump($this->goal);
-		bdump($this->valueAtStart);
 		return ($this->currentValue - $this->valueAtStart) / ($this->goal - $this->valueAtStart) * 100;
 	}
 
@@ -168,12 +165,12 @@ class PortfolioGoal implements Entity
 
 	public function getStartDate(): ImmutableDateTime
 	{
-		return $this->startDate;
+		return $this->startDate->setTime(0, 0, 1);
 	}
 
 	public function getEndDate(): ImmutableDateTime
 	{
-		return $this->endDate;
+		return $this->endDate->setTime(23, 59, 59);
 	}
 
 	public function getType(): PortfolioGoalTypeEnum
