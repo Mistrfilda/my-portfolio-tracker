@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\System\UI;
+namespace App\System\UI\Control;
 
 interface SystemValueControlFactory
 {

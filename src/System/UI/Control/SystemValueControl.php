@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\System\UI;
+namespace App\System\UI\Control;
 
 use App\System\SystemValueResolveFacade;
 use App\UI\Base\BaseControl;

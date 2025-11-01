@@ -40,6 +40,8 @@ enum SystemValueEnum: string
 
 	case STOCK_VALUATION_DOWNLOADED_COUNT = 'stock_valuation_downloaded_count';
 
+	case EXPENSE_TAGS_PROCESSED_AT = 'expense_tags_processed_at';
+
 	public function getLabel(): string
 	{
 		return match ($this) {
@@ -56,6 +58,7 @@ enum SystemValueEnum: string
 			SystemValueEnum::STOCK_VALUATION_COUNT => 'Počet akcíí se stažením valuace',
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => 'Poslední aktualizace dat pro valuace',
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => 'Počet stažených valuací',
+			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => 'Výdajové tagy naposledy zprocesovány'
 		};
 	}
 
@@ -75,7 +78,7 @@ enum SystemValueEnum: string
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::STOCK_VALUATION_COUNT => SystemValueEnabledStockValuationsAssetsResolver::class,
-			//          default => throw new SystemValueNotResolvableException()
+			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => SystemValueDatabaseResolver::class,
 		};
 	}
 

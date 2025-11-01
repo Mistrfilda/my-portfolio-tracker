@@ -7,6 +7,7 @@ namespace App\System;
 use App\System\Resolver\SystemValueResolver;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Filter\DatetimeFormatFilter;
+use InvalidArgumentException;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class SystemValueResolveFacade
@@ -36,6 +37,17 @@ class SystemValueResolveFacade
 		}
 
 		return $values;
+	}
+
+	public function getValue(SystemValueEnum $enum): string
+	{
+		foreach ($this->resolvers as $resolver) {
+			if ($enum->getResolverClass() === $resolver::class) {
+				return $this->formatValue($resolver->getValueForEnum($enum));
+			}
+		}
+
+		throw new InvalidArgumentException();
 	}
 
 	/**
