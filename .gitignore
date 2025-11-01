@@ -16,6 +16,7 @@ www/prod-build/*
 
 .phpunit.result.cache
 
+.phpunit.cache/*
 node_modules/*
 puppeter/node_modules/*
 
