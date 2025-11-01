@@ -126,8 +126,8 @@
                                                         </span>
                                                                     {/foreach}
                                                                 </td>
-                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{$bankExpense->getSettlementDate()|datetimeFormat}</td>
-                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{$bankExpense->getTransactionDate()|datetimeFormat}</td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">{$bankExpense->getSettlementDate()|dateFormat}</td>
+                                                                <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">{$bankExpense->getTransactionDate()|dateFormat}</td>
                                                                 <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-500">
                                                                     {$bankExpense->getExpenseType()->format()}
                                                                 </td>

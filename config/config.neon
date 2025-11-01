@@ -175,6 +175,7 @@ services:
 		setup:
 			- setStrictTypes(true)
 			- addFilter(datetimeFormat, [@datetimeFormatFilter, format])
+			- addFilter(dateFormat, [@dateFormatFilter, format])
 			- addFilter(secondsFormat, [@secondsFormatFilter, format])
 			- addFilter(nullablestring, [@nullableStringFilter, format])
 			- addFilter(flashMessageColor, [@flashMessageColorFilter, format])
@@ -204,6 +205,7 @@ services:
 	currencyNullableConversionFilter: App\UI\Filter\CurrencyNullableConversionFilter
 	summaryPriceConvertFilter: App\UI\Filter\SummaryPriceConvertFilter
 	compactCurrencyFilter: App\UI\Filter\CompactCurrencyFilter
+	dateFormatFilter: App\UI\Filter\DateFormatFilter
 
 	#BASE PRESENTER PARAMETERS
 	- App\UI\Base\BasePresenterParameters(pageTitle: %basePresenterParameters.pageTitle%, storageName: %basePresenterParameters.storageName%)

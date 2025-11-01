@@ -38,8 +38,8 @@ class BankExpenseGridFactory
 		);
 
 		$grid->addColumnText('source', 'Zdroj');
-		$grid->addColumnDatetime('settlementDate', 'Datum zúčtování')->setSortable();
-		$grid->addColumnDatetime('transactionDate', 'Datum transakce')->setSortable();
+		$grid->addColumnDate('settlementDate', 'Datum zúčtování')->setSortable();
+		$grid->addColumnDate('transactionDate', 'Datum transakce')->setSortable();
 
 		$grid->addColumnText('bankTransactionType', 'Typ transakce')->setSortable();
 		$grid->addColumnText(

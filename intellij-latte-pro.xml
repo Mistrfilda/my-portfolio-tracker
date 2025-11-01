@@ -13,6 +13,7 @@
         <filter name="expensePriceFormat"/>
         <filter name="nullableCurrencyConvert"/>
         <filter name="summaryPriceConvert"/>
+        <filter name="dateFormat"/>
         <filter name="currency" description="Format currency">
             <filterArguments>
                 <filterArgument name="currencyEnum" type="App\Currency\CurrencyEnum"/>
