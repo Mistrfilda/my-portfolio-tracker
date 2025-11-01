@@ -51,6 +51,7 @@ class ExpenseTagRepository extends BaseRepository
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('expenseTag');
 		$qb->andWhere($qb->expr()->isNull('expenseTag.parentTag'));
+		$qb->orderBy('expenseTag.name', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}
@@ -62,6 +63,7 @@ class ExpenseTagRepository extends BaseRepository
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('expenseTag');
 		$qb->andWhere($qb->expr()->isNotNull('expenseTag.parentTag'));
+		$qb->orderBy('expenseTag.name', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}
