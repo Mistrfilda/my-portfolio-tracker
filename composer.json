@@ -60,6 +60,7 @@
 		"psr/log": "^3.0",
 		"ramsey/uuid": "^4.0",
 		"ramsey/uuid-doctrine": "^2.0",
+		"react/promise": "*",
 		"smalot/pdfparser": "^2.9",
 		"symfony/console": "^7.0",
 		"symfony/event-dispatcher": "^7.3",
@@ -168,6 +169,13 @@
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser",
 		"doctrine-proxies": "bin/console orm:generate-proxies",
 		"monitoring-push-monitors": "bin/console monitoring:push-monitors"
+	},
+	"extra": {
+		"patches": {
+			"react/promise": {
+				"Fix php 8.4 compability 1": "patches/react-promise.patch"
+			}
+		}
 	},
 	"config": {
 		"allow-plugins": {
