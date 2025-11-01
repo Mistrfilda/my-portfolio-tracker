@@ -211,6 +211,8 @@ services:
 	doctrine.schemaFilterListener:
 		factory: App\Doctrine\EventListener\SchemaFilterListener
 
+	- App\Utils\Console\ConsoleCurrentOutputHelper
+
 	#FORM
 	- App\UI\Control\Form\AdminFormFactory
 	- App\UI\Control\Form\AdminFormRenderer
@@ -425,7 +427,7 @@ services:
 	- App\System\SystemValueFacade
 	- App\System\SystemValueRepository(App\System\SystemValue)
 	- App\System\SystemValueResolveFacade
-	- App\System\UI\SystemValueControlFactory
+	- App\System\UI\Control\SystemValueControlFactory
 
 	#Resolvers
 	- App\System\Resolver\SystemValueCurrentVersionResolver
@@ -474,3 +476,6 @@ services:
 	#Monitoring
 	- App\Monitoring\MonitoringFacade(%monitoring.monitoringUptimeMonitorMapping%)
 	- App\Monitoring\MonitoringPushMonitorsCommand
+
+	#Job request
+	- App\JobRequest\JobRequestFacade
