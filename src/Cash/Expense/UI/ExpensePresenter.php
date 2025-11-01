@@ -8,6 +8,10 @@ use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Cash\Expense\Tag\ExpenseTagRepository;
+use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
+use App\System\SystemValueEnum;
+use App\System\SystemValueResolveFacade;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
@@ -29,6 +33,8 @@ class ExpensePresenter extends BaseAdminPresenter
 		private ExpenseTagRepository $expenseTagRepository,
 		private ExpenseTagFacade $expenseTagFacade,
 		private BankExpenseFormFactory $bankExpenseFormFactory,
+		private SystemValueResolveFacade $systemValueResolveFacade,
+		private JobRequestFacade $jobRequestFacade,
 	)
 	{
 		parent::__construct();
@@ -38,6 +44,9 @@ class ExpensePresenter extends BaseAdminPresenter
 	{
 		$this->template->heading = 'Výdaje';
 		$this->template->showModal = $this->showModal;
+		$this->template->lastProcessedAt = $this->systemValueResolveFacade->getValue(
+			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT,
+		);
 	}
 
 	public function renderKbForm(): void
@@ -104,6 +113,13 @@ class ExpensePresenter extends BaseAdminPresenter
 	{
 		$this->processModal($id);
 
+	}
+
+	public function handleAddProcessRequest(): void
+	{
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::EXPENSE_TAG_PROCESS);
+		$this->flashMessage('Request zařazen do fronty', FlashMessageType::SUCCESS);
+		$this->redirect('this');
 	}
 
 	public function handleChangeMainTag(string $expenseId, string $tagId): void

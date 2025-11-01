@@ -1,8 +1,10 @@
 {block #headingButtons}
-    <a n:href="Expense:form" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <a n:href="Expense:form"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         Manuální vytvoření výdaje
     </a>
-    <a n:href="Expense:kbForm" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+    <a n:href="Expense:kbForm"
+            class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         Nahrát výpis z komerční banky
     </a>
 {/block}
@@ -19,11 +21,24 @@
     {/snippet}
 
     <div class="pb-5 border-b border-gray-200 py-6">
-        <h2 class="text-2xl leading-6 font-medium text-gray-900">
-            Výdaje bez hlavního tagu
-        </h2>
+        <div class="md:flex md:items-center md:justify-between">
+            <div class="min-w-0 flex-1">
+                <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                    Výdaje bez hlavního tagu
+                </h2>
+            </div>
+            <div class="mt-4 flex md:mt-0 md:ml-4">
+                <a n:href="addProcessRequest!"
+                        class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Zařadit zprocesování výdajů do fronty
+                </a>
+            </div>
+        </div>
         <p class="mt-2 max-w-4xl text-sm text-gray-500">
             Výdaje u kterých není přířazen hlavní tag
+        </p>
+        <p class="mt-2 max-w-4xl text-sm text-gray-500">
+            Poslední zprocesování výdajových tagů: {$lastProcessedAt}
         </p>
     </div>
 

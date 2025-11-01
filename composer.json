@@ -96,7 +96,7 @@
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"scripts": {
-		"clear": "rm -rf temp/*",
+		"clear": ["rm -rf temp/*", "@comload", "@doctrine-proxies"],
 		"comload": "composer dump-autoload -o",
 		"stan": "vendor/bin/phpstan analyse -c phpstan.neon src --ansi  --memory-limit=-1 -v",
 		"stan-tests": "vendor/bin/phpstan analyse -l max -c phpstan.neon tests --ansi  --memory-limit=-1",

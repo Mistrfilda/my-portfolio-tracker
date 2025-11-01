@@ -10,7 +10,9 @@ use App\Cash\Expense\Tag\ExpenseTag;
 use App\Cash\Expense\Tag\ExpenseTagException;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Cash\Expense\Tag\ExpenseTagRepository;
+use App\System\SystemValueFacade;
 use App\Test\UpdatedTestCase;
+use App\Utils\Console\ConsoleCurrentOutputHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use PHPUnit\Framework\TestCase;
@@ -28,6 +30,8 @@ class ExpenseTagFacadeTest extends TestCase
 			UpdatedTestCase::createMockWithIgnoreMethods(BankExpenseRepository::class),
 			UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class),
 			UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class),
+			UpdatedTestCase::createMockWithIgnoreMethods(ConsoleCurrentOutputHelper::class),
+			UpdatedTestCase::createMockWithIgnoreMethods(SystemValueFacade::class),
 		);
 	}
 

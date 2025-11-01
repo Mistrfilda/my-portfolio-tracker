@@ -19,6 +19,7 @@ RUN docker-php-ext-install simplexml dom pdo_mysql intl
 WORKDIR /var
 
 COPY composer.json composer.lock ./
+COPY patches/ ./patches
 COPY package.json package-lock.json ./
 RUN curl -sS https://getcomposer.org/installer | php \
     && php composer.phar install --no-dev --optimize-autoloader \
