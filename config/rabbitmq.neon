@@ -1,18 +1,30 @@
+parameters:
+	rabbitmq:
+		user: appuser
+		password: extremelysecretrabbit
+		host: 192.168.1.245
+		port: 31383
+		lazy: true
+
 services:
 	notificationConsumer: App\Notification\RabbitMQ\NotificationConsumer
 	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@Contributte\RabbitMQ\Client::getProducer(notificationProducer))
+	jobRequestConsumer: App\JobRequest\RabbitMQ\JobRequestConsumer
+	jobRequestProducer:	App\JobRequest\RabbitMQ\JobRequestProducer(@Contributte\RabbitMQ\Client::getProducer(jobRequestProducer))
 
 rabbitmq:
 	connections:
 		default:
-			user: appuser
-			password: extremelysecretrabbit
-			host: 192.168.1.245
-			port: 31383
-			lazy: true
+			user: %rabbitmq.user%
+			password: %rabbitmq.password%
+			host: %rabbitmq.host%
+			port: %rabbitmq.port%
+			lazy: %rabbitmq.lazy%
 
 	queues:
 		notificationQueue:
+			connection: default
+		jobRequestQueue:
 			connection: default
 
 	producers:
@@ -20,11 +32,21 @@ rabbitmq:
 			queue: notificationQueue
 			contentType: application/json
 			deliveryMode: 2 # Producer::DELIVERY_MODE_PERSISTENT
+		jobRequestProducer:
+			queue: jobRequestQueue
+			contentType: application/json
+			deliveryMode: 2 # Producer::DELIVERY_MODE_PERSISTENT
 
 	consumers:
 		notificationConsumer:
 			queue: notificationQueue
 			callback: [@notificationConsumer, consume]
+			qos:
+				prefetchSize: 0
+				prefetchCount: 5
+		jobRequestConsumer:
+			queue: jobRequestQueue
+			callback: [@jobRequestConsumer, consume]
 			qos:
 				prefetchSize: 0
 				prefetchCount: 5

@@ -6,6 +6,9 @@ namespace App\Cash\Expense\Tag;
 
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
+use App\Utils\Console\ConsoleCurrentOutputHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -20,6 +23,8 @@ class ExpenseTagFacade
 		private BankExpenseRepository $bankExpenseRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private ConsoleCurrentOutputHelper $consoleCurrentOutputHelper,
+		private SystemValueFacade $systemValueFacade,
 	)
 	{
 
@@ -79,6 +84,11 @@ class ExpenseTagFacade
 
 	public function processExpenses(OutputInterface|null $output = null): void
 	{
+		if ($output === null) {
+			$output = $this->consoleCurrentOutputHelper->getOutput();
+		}
+
+		$output?->writeln('Processing expenses...');
 		$expenseTags = $this->expenseTagRepository->findAll();
 		foreach ($this->bankExpenseRepository->findAll() as $bankExpense) {
 			//remove new lines
@@ -123,6 +133,12 @@ class ExpenseTagFacade
 				}
 			}
 		}
+
+		$output?->writeln('Done');
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT,
+			$this->datetimeFactory->createNow(),
+		);
 	}
 
 	public function manuallySetMainTag(UuidInterface $id, int $tagId): void

@@ -10,6 +10,8 @@ use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Cash\Expense\UI\Control\ExpanseOverviewCategoryControlFactory;
 use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryChartDataProvider;
 use App\Cash\Expense\UI\Control\ExpenseOverviewCategoryControl;
+use App\JobRequest\JobRequestFacade;
+use App\System\SystemValueResolveFacade;
 use App\UI\Control\Chart\ChartControl;
 use App\UI\Control\Chart\ChartControlFactory;
 use App\UI\Control\Chart\ChartType;
@@ -41,6 +43,8 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 		ExpenseTagRepository $expenseTagRepository,
 		ExpenseTagFacade $expenseTagFacade,
 		BankExpenseFormFactory $bankExpenseFormFactory,
+		SystemValueResolveFacade $systemValueResolveFacade,
+		JobRequestFacade $jobRequestFacade,
 	)
 	{
 		parent::__construct(
@@ -51,6 +55,8 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 			$expenseTagRepository,
 			$expenseTagFacade,
 			$bankExpenseFormFactory,
+			$systemValueResolveFacade,
+			$jobRequestFacade,
 		);
 	}
 

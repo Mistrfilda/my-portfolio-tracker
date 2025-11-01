@@ -19,6 +19,7 @@ $config = new Configuration();
 
 return $config
 	->addForceUsedSymbols($matches[0])
+	->ignoreErrorsOnPackage('react/promise', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('symfony/event-dispatcher', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('gedmo/doctrine-extensions', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nette/finder', [ErrorType::UNUSED_DEPENDENCY])
