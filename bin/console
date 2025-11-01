@@ -4,8 +4,10 @@
 declare(strict_types=1);
 
 use App\Doctrine\EventListener\SchemaFilterListener;
+use App\Utils\Console\ConsoleCurrentOutputHelper;
 use Contributte\Console\Application;
 use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -15,9 +17,13 @@ $dispatcher = new EventDispatcher();
 $container = App\Bootstrap::boot(true)->createContainer();
 
 $consoleApplication = $container->getByType(Application::class);
+$consoleCurrentOutputHelper = $container->getByType(ConsoleCurrentOutputHelper::class);
 
 $schemaFilterListener = $container->getByType(SchemaFilterListener::class);
 $dispatcher->addListener(ConsoleEvents::COMMAND, [$schemaFilterListener, 'onConsoleCommand']);
+$dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) use ($consoleCurrentOutputHelper): void {
+    $consoleCurrentOutputHelper->setOutput($event->getOutput());
+});
 
 $consoleApplication->setDispatcher($dispatcher);
 exit($consoleApplication->run());

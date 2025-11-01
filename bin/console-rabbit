@@ -3,9 +3,24 @@
 
 declare(strict_types=1);
 
+use App\Utils\Console\ConsoleCurrentOutputHelper;
+use Contributte\Console\Application;
+use Symfony\Component\Console\ConsoleEvents;
+use Symfony\Component\Console\Event\ConsoleCommandEvent;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+
 require __DIR__ . '/../vendor/autoload.php';
 
-exit(App\Bootstrap::boot()
-    ->createContainer()
-    ->getByType(Contributte\Console\Application::class)
-    ->run());
+$dispatcher = new EventDispatcher();
+
+$container = App\Bootstrap::boot()->createContainer();
+
+$consoleApplication = $container->getByType(Application::class);
+$consoleCurrentOutputHelper = $container->getByType(ConsoleCurrentOutputHelper::class);
+
+$dispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) use ($consoleCurrentOutputHelper): void {
+    $consoleCurrentOutputHelper->setOutput($event->getOutput());
+});
+
+$consoleApplication->setDispatcher($dispatcher);
+exit($consoleApplication->run());
