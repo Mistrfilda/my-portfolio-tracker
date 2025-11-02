@@ -227,6 +227,7 @@ services:
 	- App\UI\Control\Datagrid\DatagridFactory
 
 	- App\UI\Menu\MenuBuilder
+	- App\UI\Control\Search\SearchControlFactory
 
 	#AppAdmin
 	- App\Admin\AppAdminRepository(App\Admin\AppAdmin)

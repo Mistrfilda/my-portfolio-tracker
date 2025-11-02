@@ -103,4 +103,6 @@ enum SvgIcon: string
 
 	case BUILDING_STOREFRONT = 'building-storefront.svg';
 
+	case MAGNIFYING_GLASS = 'magnifying-glass.svg';
+
 }

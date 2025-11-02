@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\UI\Base;
 
+use App\UI\Control\Search\SearchControl;
+use App\UI\Control\Search\SearchControlFactory;
 use App\UI\Menu\MenuBuilder;
 
 /**
@@ -16,9 +18,16 @@ abstract class BaseAdminPresenter extends BasePresenter
 
 	protected MenuBuilder $menuBuilder;
 
+	protected SearchControlFactory $searchControlFactory;
+
 	public function injectMenuBuilder(MenuBuilder $menuBuilder): void
 	{
 		$this->menuBuilder = $menuBuilder;
+	}
+
+	public function injectSearchControlFactory(SearchControlFactory $searchControlFactory): void
+	{
+		$this->searchControlFactory = $searchControlFactory;
 	}
 
 	public function startup(): void
@@ -53,6 +62,11 @@ abstract class BaseAdminPresenter extends BasePresenter
 	public function formatLayoutTemplateFiles(): array
 	{
 		return array_merge([__DIR__ . '/templates/@layout.latte'], parent::formatLayoutTemplateFiles());
+	}
+
+	protected function createComponentSearchControl(): SearchControl
+	{
+		return $this->searchControlFactory->create();
 	}
 
 }
