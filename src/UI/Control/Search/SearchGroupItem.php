@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Search;
 
+use Nette\Utils\Strings;
+
+
 class SearchGroupItem
 {
 
@@ -21,4 +24,8 @@ class SearchGroupItem
 		return $this->link;
 	}
 
+	public function getWebalizedLabel(): string
+	{
+		return Strings::webalize($this->label);
+	}
 }
