@@ -6,7 +6,6 @@ namespace App\UI\Control\Search;
 
 use Nette\Utils\Strings;
 
-
 class SearchGroupItem
 {
 
@@ -28,4 +27,5 @@ class SearchGroupItem
 	{
 		return Strings::webalize($this->label);
 	}
+
 }
