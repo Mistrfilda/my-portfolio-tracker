@@ -1,0 +1,201 @@
+{templateType App\Stock\Dividend\Forecast\UI\Control\StockAssetDividendForecastDetailControlTemplate}
+
+<div class="px-4 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
+        <div class="sm:flex-auto">
+            <h1 class="text-base font-semibold text-gray-900">Predikce dividend pro rok {$forecast->getForYear()}</h1>
+            <div class="mt-3 flex flex-wrap gap-3">
+                <div class="text-sm">
+                    <span class="text-gray-500">Trend:</span>
+                    <span class="ml-1 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"
+                          style="background-color: {$forecast->getTrend()->getTrendColor()}/10; color: {$forecast->getTrend()->getTrendColor()}; --tw-ring-color: {$forecast->getTrend()->getTrendColor()}/20;">
+                        {$forecast->getTrend()->format()}
+                    </span>
+                </div>
+                <div class="text-sm">
+                    <span class="text-gray-500">Stav:</span>
+                    <span class="ml-1 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {if $forecast->getState()->value === 'finished'}bg-green-50 text-green-700 ring-green-600/20{else}bg-yellow-50 text-yellow-700 ring-yellow-600/20{/if}">
+                        {$forecast->getState()->format()}
+                    </span>
+                </div>
+                {if $forecast->getLastRecalculatedAt()}
+                    <div class="text-sm">
+                        <span class="text-gray-500">Poslední přepočet:</span>
+                        <span class="ml-1 text-gray-900">{$forecast->getLastRecalculatedAt()|datetimeFormat}</span>
+                    </div>
+                {/if}
+                {if $forecast->isDefaultForYear()}
+                    <div class="text-sm">
+                        <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            Výchozí predikce pro tento rok
+                        </span>
+                    </div>
+                {/if}
+            </div>
+        </div>
+        <div class="mt-4 sm:mt-0 sm:ml-4">
+            <a n:href="recalculate!, id => $forecast->getId()->toString()"
+                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Přepočítat
+            </a>
+        </div>
+    </div>
+
+    {if count($records) > 0}
+        <div class="mt-8 flow-root">
+            <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead>
+                        <tr>
+                            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
+                                Akcie
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Ks
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Už vyplaceno/ks
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Zbývá/ks
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Celkem za rok/ks
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Vyplaceno celkem
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Zbývá celkem
+                            </th>
+                            <th scope="col" class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-0 whitespace-nowrap">
+                                Celkem za rok
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                        {foreach $records as $record}
+                            <tr>
+                                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-0">
+                                    <div class="font-medium text-gray-900">{$record->getStockAsset()->getName()}</div>
+                                    <div class="mt-1 space-y-0.5">
+                                        <div class="text-gray-500 text-xs">{$record->getStockAsset()->getTicker()}</div>
+                                        {if count($record->getDividendUsuallyPaidAtMonths()) > 0}
+                                            <div class="text-gray-500 text-xs">
+                                                Obvykle: {implode(', ', $record->getDividendUsuallyPaidAtMonths())}
+                                            </div>
+                                        {/if}
+                                        {if count($record->getReceivedDividendMonths()) > 0}
+                                            <div class="text-green-600 text-xs">
+                                                Obdrženo v: {implode(', ', $record->getReceivedDividendMonths())}
+                                            </div>
+                                        {/if}
+                                        {if $record->getCustomDividendUsedForCalculation() !== null}
+                                            <div class="text-blue-600 text-xs">
+                                                Vlastní výpočet
+                                            </div>
+                                        {/if}
+                                    </div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                    {$record->getPiecesCurrentlyHeld()}
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                    <div>{$record->getAlreadyReceivedDividendPerStock()|currency:$record->getCurrency(),4}</div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-right {if $record->getRemainingDividendPerStock() > 0}text-blue-600 font-medium{else}text-gray-400{/if}">
+                                    <div>{$record->getRemainingDividendPerStock()|currency:$record->getCurrency(),4}</div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-right font-semibold">
+                                    <div>{$record->getTotalYearDividendPerStock()|currency:$record->getCurrency(),4}</div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                    <div>{$record->getActualReceivedTotal()|currency:$record->getCurrency()}</div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-right {if $record->getRemainingDividendTotal() > 0}text-green-600 font-medium{else}text-gray-400{/if}">
+                                    <div>{$record->getRemainingDividendTotal()|currency:$record->getCurrency()}</div>
+                                </td>
+                                <td class="whitespace-nowrap py-4 pl-3 pr-4 text-sm text-gray-900 font-semibold text-right sm:pr-0">
+                                    <div>{$record->getTotalYearDividend()|currency:$record->getCurrency()}</div>
+                                </td>
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        {* Totals summary *}
+        <div class="mt-6 border-t border-gray-200 pt-6">
+            {* CZK Total Summary *}
+            <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg px-4 py-4 ring-1 ring-blue-900/10">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-base font-semibold text-gray-900">
+                        Celkový souhrn v CZK
+                    </h3>
+                </div>
+                <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                        <dt class="text-xs font-medium text-gray-500">Už vyplaceno celkem</dt>
+                        <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-900">
+                            {$czkTotalAlreadyReceived->getPrice()|currency:$czkTotalAlreadyReceived->getCurrency()}
+                        </dd>
+                    </div>
+                    <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                        <dt class="text-xs font-medium text-gray-500">Zbývá do konce roku</dt>
+                        <dd class="mt-1 text-xl font-semibold tracking-tight text-green-600">
+                            {$czkTotalRemaining->getPrice()|currency:$czkTotalRemaining->getCurrency()}
+                        </dd>
+                    </div>
+                    <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                        <dt class="text-xs font-medium text-gray-500">Celkem za celý rok</dt>
+                        <dd class="mt-1 text-xl font-semibold tracking-tight text-gray-900">
+                            {$czkTotalYear->getPrice()|currency:$czkTotalYear->getCurrency()}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+
+            {* Currency specific summaries *}
+            <div class="space-y-4">
+                {foreach $totalsByCurrency as $totals}
+                    <div class="bg-gray-50 rounded-lg px-4 py-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-semibold text-gray-900">
+                                Souhrn {$totals['currency']->format()}
+                            </h3>
+                        </div>
+                        <dl class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                            <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                                <dt class="text-xs font-medium text-gray-500">Už vyplaceno celkem</dt>
+                                <dd class="mt-1 text-lg font-semibold tracking-tight text-gray-900">
+                                    {$totals['alreadyReceived']|currency:$totals['currency']}
+                                </dd>
+                            </div>
+                            <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                                <dt class="text-xs font-medium text-gray-500">Zbývá do konce roku</dt>
+                                <dd class="mt-1 text-lg font-semibold tracking-tight text-green-600">
+                                    {$totals['remaining']|currency:$totals['currency']}
+                                </dd>
+                            </div>
+                            <div class="overflow-hidden rounded-lg bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5">
+                                <dt class="text-xs font-medium text-gray-500">Celkem za celý rok</dt>
+                                <dd class="mt-1 text-lg font-semibold tracking-tight text-gray-900">
+                                    {$totals['totalYear']|currency:$totals['currency']}
+                                </dd>
+                            </div>
+                        </dl>
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+    {else}
+        <div class="mt-8 text-center">
+            {renderSvg App\UI\Icon\SvgIcon::FILE_NEW->value, ["class" => "mx-auto h-12 w-12 text-gray-400"]}
+            <h3 class="mt-2 text-sm font-semibold text-gray-900">Žádné záznamy</h3>
+            <p class="mt-1 text-sm text-gray-500">Tato predikce zatím neobsahuje žádné záznomy o akciích.</p>
+        </div>
+    {/if}
+</div>

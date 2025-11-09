@@ -7,6 +7,8 @@ namespace App\Stock\Dividend\Record;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
@@ -27,6 +29,7 @@ class StockAssetDividendRecordFacade
 		private DatetimeFactory $datetimeFactory,
 		private CurrencyConversionFacade $currencyConversionFacade,
 		private LoggerInterface $logger,
+		private JobRequestFacade $jobRequestFacade,
 	)
 	{
 	}
@@ -77,6 +80,7 @@ class StockAssetDividendRecordFacade
 			$this->entityManager->flush();
 		}
 
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL);
 		return $processedDividendRecords;
 	}
 
