@@ -122,6 +122,13 @@ class MenuBuilder
 				),
 			),
 			new MenuItem(
+				'StockAssetDividendForecast',
+				'default',
+				SvgIcon::CLOUD,
+				'Predikce dividend',
+				[],
+			),
+			new MenuItem(
 				'StockAssetDividendRecord',
 				'default',
 				SvgIcon::ARROW_TRENDING_UP,

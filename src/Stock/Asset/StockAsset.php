@@ -277,6 +277,16 @@ class StockAsset implements Entity, Asset
 		return $this->positions->first() === false ? null : $this->positions->first();
 	}
 
+	public function getTotalPiecesHeld(): int
+	{
+		$count = 0;
+		foreach ($this->positions->toArray() as $position) {
+			$count += $position->getOrderPiecesCount();
+		}
+
+		return $count;
+	}
+
 	public function getCurrency(): CurrencyEnum
 	{
 		return $this->currency;

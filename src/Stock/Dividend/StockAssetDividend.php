@@ -52,6 +52,9 @@ class StockAssetDividend implements Entity
 	#[ORM\OneToMany(targetEntity: StockAssetDividendRecord::class, mappedBy: 'stockAssetDividend')]
 	private Collection $records;
 
+	#[ORM\Column(type: Types::STRING, enumType: StockAssetDividendTypeEnum::class)]
+	private StockAssetDividendTypeEnum $dividendType;
+
 	public function __construct(
 		StockAsset $stockAsset,
 		ImmutableDateTime $exDate,
@@ -60,6 +63,7 @@ class StockAssetDividend implements Entity
 		CurrencyEnum $currency,
 		float $amount,
 		ImmutableDateTime $now,
+		StockAssetDividendTypeEnum $dividendType = StockAssetDividendTypeEnum::REGULAR,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -70,6 +74,7 @@ class StockAssetDividend implements Entity
 		$this->declarationDate = $declarationDate;
 		$this->currency = $currency;
 		$this->amount = $amount;
+		$this->dividendType = $dividendType;
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -83,6 +88,7 @@ class StockAssetDividend implements Entity
 		ImmutableDateTime|null $declarationDate,
 		CurrencyEnum $currency,
 		float $amount,
+		StockAssetDividendTypeEnum $dividendType,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -91,6 +97,7 @@ class StockAssetDividend implements Entity
 		$this->declarationDate = $declarationDate;
 		$this->currency = $currency;
 		$this->amount = $amount;
+		$this->dividendType = $dividendType;
 
 		$this->updatedAt = $now;
 	}
@@ -150,6 +157,11 @@ class StockAssetDividend implements Entity
 	public function getDividendTax(): float|null
 	{
 		return $this->getStockAsset()->getDividendTax();
+	}
+
+	public function getDividendType(): StockAssetDividendTypeEnum
+	{
+		return $this->dividendType;
 	}
 
 	public function getSummaryPrice(bool $shouldDeductTax = true): SummaryPrice
