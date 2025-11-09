@@ -8,6 +8,7 @@ use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
@@ -51,6 +52,10 @@ class StockAssetDividendFormFactory
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
 			->setRequired();
 
+		$form->addSelect('dividendType', 'Typ dividendy', StockAssetDividendTypeEnum::getOptionsForAdminSelect())
+			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
+			->setRequired();
+
 		if ($id !== null) {
 			$this->setDefaults(
 				$form,
@@ -72,6 +77,7 @@ class StockAssetDividendFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->declarationDate),
 					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
 					TypeValidator::validateFloat($values->amount),
+					StockAssetDividendTypeEnum::from(TypeValidator::validateString($values->dividendType)),
 				);
 			} else {
 				$this->stockAssetDividendFacade->create(
@@ -81,6 +87,7 @@ class StockAssetDividendFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->declarationDate),
 					CurrencyEnum::from(TypeValidator::validateString($values->currency)),
 					TypeValidator::validateFloat($values->amount),
+					StockAssetDividendTypeEnum::from(TypeValidator::validateString($values->dividendType)),
 				);
 			}
 
@@ -98,6 +105,7 @@ class StockAssetDividendFormFactory
 			'declarationDate' => $stockAssetDividend->getDeclarationDate(),
 			'currency' => $stockAssetDividend->getCurrency()->value,
 			'amount' => $stockAssetDividend->getAmount(),
+			'dividendType' => $stockAssetDividend->getDividendType()->value,
 		]);
 	}
 

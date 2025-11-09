@@ -35,3 +35,4 @@ custompresenterfactory:
 		Admin:StockValuation: App\Stock\Valuation\UI\StockValuationPresenter
 		Admin:StockAssetIndustry: App\Stock\Asset\Industry\UI\StockAssetIndustryPresenter
 		Admin:SystemValue: App\System\UI\SystemValuePresenter
+		Admin:StockAssetDividendForecast: App\Stock\Dividend\Forecast\UI\StockAssetDividendForecastPresenter

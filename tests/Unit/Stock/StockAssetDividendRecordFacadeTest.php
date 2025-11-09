@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock;
 
 use App\Currency\CurrencyConversionFacade;
+use App\JobRequest\JobRequestFacade;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
@@ -40,6 +41,8 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 
 	private LoggerInterface|MockObject $logger;
 
+	private JobRequestFacade|MockObject $jobRequestFacade;
+
 	protected function setUp(): void
 	{
 		$this->stockAssetDividendRecordRepository = Mockery::mock(StockAssetDividendRecordRepository::class);
@@ -49,6 +52,9 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 		$this->entityManager = Mockery::mock(EntityManagerInterface::class);
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$this->logger = Mockery::mock(LoggerInterface::class);
+		$this->jobRequestFacade = Mockery::mock(JobRequestFacade::class);
+
+		$this->jobRequestFacade->shouldReceive('addToQueue');
 
 		$this->stockAssetDividendRecordFacade = new StockAssetDividendRecordFacade(
 			$this->stockAssetDividendRecordRepository,
@@ -59,6 +65,7 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 			$this->datetimeFactory,
 			Mockery::mock(CurrencyConversionFacade::class),
 			$this->logger,
+			$this->jobRequestFacade,
 		);
 	}
 

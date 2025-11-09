@@ -9,6 +9,7 @@ use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -72,6 +73,7 @@ class StockAssetDividendFacadeTest extends UpdatedTestCase
 			$declarationDate,
 			$currency,
 			$amount,
+			StockAssetDividendTypeEnum::REGULAR,
 		);
 
 		$this->assertTrue(true);

@@ -108,6 +108,8 @@ class StockAssetDividendRepository extends BaseRepository
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->setParameter('year', $year);
 
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
+
 		return $qb->getQuery()->getResult();
 	}
 
@@ -169,12 +171,31 @@ class StockAssetDividendRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividend>
 	 */
-	public function findLastDividends(int $limit = 8): array
+	public function findLastDividends(int $limit = 8, StockAssetDividendTypeEnum|null $typeEnum = null): array
 	{
 		$qb = $this->createQueryBuilder();
 		$qb->setMaxResults($limit);
 		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
+		if ($typeEnum !== null) {
+			$qb->andWhere($qb->expr()->eq('stockAssetDividend.dividendType', ':typeEnum'));
+			$qb->setParameter('typeEnum', $typeEnum->value);
+		}
+
 		return $qb->getQuery()->getResult();
+	}
+
+	public function getLastDividend(StockAssetDividendTypeEnum|null $typeEnum = null): StockAssetDividend
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
+		if ($typeEnum !== null) {
+			$qb->andWhere($qb->expr()->eq('stockAssetDividend.dividendType', ':typeEnum'));
+			$qb->setParameter('typeEnum', $typeEnum->value);
+		}
+
+		$result = $qb->getQuery()->getSingleResult();
+		assert($result instanceof StockAssetDividend);
+		return $result;
 	}
 
 	public function createQueryBuilder(): QueryBuilder

@@ -105,4 +105,7 @@ enum SvgIcon: string
 
 	case MAGNIFYING_GLASS = 'magnifying-glass.svg';
 
+
+	case FILE_NEW = 'file-new.svg';
+
 }

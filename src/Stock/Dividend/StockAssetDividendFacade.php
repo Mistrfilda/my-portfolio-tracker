@@ -30,6 +30,7 @@ class StockAssetDividendFacade
 		ImmutableDateTime|null $declarationDate,
 		CurrencyEnum $currency,
 		float $amount,
+		StockAssetDividendTypeEnum $dividendType,
 	): void
 	{
 		$stockAssetDividend = new StockAssetDividend(
@@ -40,6 +41,7 @@ class StockAssetDividendFacade
 			$currency,
 			$amount,
 			$this->datetimeFactory->createNow(),
+			$dividendType,
 		);
 
 		$this->entityManager->persist($stockAssetDividend);
@@ -53,6 +55,7 @@ class StockAssetDividendFacade
 		ImmutableDateTime|null $declarationDate,
 		CurrencyEnum $currency,
 		float $amount,
+		StockAssetDividendTypeEnum $dividendType,
 	): void
 	{
 		$stockAssetDividend = $this->stockAssetDividendRepository->getById($id);
@@ -62,6 +65,7 @@ class StockAssetDividendFacade
 			$declarationDate,
 			$currency,
 			$amount,
+			$dividendType,
 			$this->datetimeFactory->createNow(),
 		);
 

@@ -20,7 +20,6 @@ class JobRequestConsumer extends BaseConsumer
 
 	protected function processMessage(object $messageObject): void
 	{
-		Debugger::log('hALO');
 		Debugger::log(json_encode($messageObject));
 		$this->jobRequestFacade->process($messageObject->getJobRequestType(), $messageObject->getAdditionalData());
 	}

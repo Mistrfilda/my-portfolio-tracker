@@ -8,6 +8,7 @@ use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
 use App\JobRequest\RabbitMQ\JobRequestProducer;
+use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mockery;
@@ -20,11 +21,13 @@ class JobRequestFacadeTest extends UpdatedTestCase
 		$expenseTagFacadeMock = Mockery::mock(ExpenseTagFacade::class);
 		$jobRequestProducerMock = Mockery::mock(JobRequestProducer::class);
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
+		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
 
 		$jobRequestFacade = new JobRequestFacade(
 			$expenseTagFacadeMock,
 			$jobRequestProducerMock,
 			$datetimeFactoryMock,
+			$stockAssetDividendForecastRecordFacadeMock,
 		);
 
 		$type = JobRequestTypeEnum::EXPENSE_TAG_PROCESS;

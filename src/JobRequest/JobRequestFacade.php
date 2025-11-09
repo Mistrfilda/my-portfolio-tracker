@@ -7,7 +7,10 @@ namespace App\JobRequest;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\JobRequest\RabbitMQ\JobRequestMessage;
 use App\JobRequest\RabbitMQ\JobRequestProducer;
+use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
+use App\Utils\TypeValidator;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Ramsey\Uuid\Uuid;
 
 class JobRequestFacade
 {
@@ -16,6 +19,7 @@ class JobRequestFacade
 		private ExpenseTagFacade $expenseTagFacade,
 		private JobRequestProducer $jobRequestProducer,
 		private DatetimeFactory $datetimeFactory,
+		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
 	)
 	{
 	}
@@ -28,6 +32,14 @@ class JobRequestFacade
 		switch ($type) {
 			case JobRequestTypeEnum::EXPENSE_TAG_PROCESS:
 				$this->expenseTagFacade->processExpenses();
+				break;
+			case JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE:
+				$this->stockAssetDividendForecastFacade->recalculate(
+					Uuid::fromString(TypeValidator::validateString($additionalData['id'] ?? null)),
+				);
+				break;
+			case JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL:
+				$this->stockAssetDividendForecastFacade->recalculateAll();
 		}
 	}
 
