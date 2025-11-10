@@ -114,6 +114,11 @@ dbal:
 			password: %database.password%
 			dbname: %database.dbname%
 			driver: 'pdo_mysql'
+			charset: utf8
+			defaultTableOptions:
+				charset: utf8
+				collation: utf8_unicode_ci
+				engine: InnoDB
 
 	types:
 		uuid: Ramsey\Uuid\Doctrine\UuidType
@@ -340,6 +345,12 @@ services:
 	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
 	- App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory
 	- App\Stock\Dividend\UI\StockAssetDividendDetailService
+	- App\Stock\Dividend\Forecast\StockAssetDividendForecastFacade
+	- App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository(App\Stock\Dividend\Forecast\StockAssetDividendForecast)
+	- App\Stock\Dividend\Forecast\UI\Control\StockAssetDividendForecastDetailControlFactory
+	- App\Stock\Dividend\Forecast\UI\StockAssetDividendForecastFormFactory
+	- App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade
+	- App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordRepository(App\Stock\Dividend\Forecast\StockAssetDividendForecastRecord)
 
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderFacade(url: %webStockPriceDownloader.url%, requestHost: %webStockPriceDownloader.requestHost%, verifySsl: %webStockPriceDownloader.verifySsl%, updateStockAssetHoursThreshold: %webStockPriceDownloader.updateStockAssetHoursThreshold%, cookie: %webStockPriceDownloader.cookie%)
 	- App\Stock\Price\Downloader\Web\WebDataDownloaderCommand

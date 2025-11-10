@@ -104,13 +104,22 @@ class CurrencyConversionFacade
 		float $price,
 		CurrencyEnum $fromCurrency,
 		CurrencyEnum $toCurrency,
+		ImmutableDateTime|null $forDate = null,
 	): float
 	{
 		try {
-			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-				$fromCurrency,
-				$toCurrency,
-			);
+			if ($forDate === null) {
+				$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+					$fromCurrency,
+					$toCurrency,
+				);
+			} else {
+				$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
+					$fromCurrency,
+					$toCurrency,
+					$forDate,
+				);
+			}
 		} catch (NoResultException $e) {
 			throw new MissingCurrencyPairException(previous: $e);
 		}

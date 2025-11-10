@@ -108,6 +108,8 @@ class StockAssetDividendRepository extends BaseRepository
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->setParameter('year', $year);
 
+		$qb->orderBy('stockAssetDividend.exDate', 'ASC');
+
 		return $qb->getQuery()->getResult();
 	}
 

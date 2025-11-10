@@ -70,6 +70,8 @@ class StockAssetDividendGridFactory
 			),
 		);
 
+		$grid->addColumnBadge('dividendType', 'Typ dividendy', TailwindColorConstant::TEAL);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',
