@@ -143,6 +143,21 @@ class StockAssetDividendRecord implements Entity
 		return new SummaryPrice($this->currency, $this->totalAmount, 1);
 	}
 
+	public function getSummaryPriceInBrokerCurrency(bool $shouldDeductTax = true): SummaryPrice
+	{
+		if ($this->totalAmountInBrokerCurrency === null || $this->brokerCurrency === null) {
+			return $this->getSummaryPrice($shouldDeductTax);
+		}
+
+		$dividendTax = $this->getDividendTax();
+		if ($dividendTax !== null && $shouldDeductTax) {
+			$totalAmountAfterTax = $this->totalAmountInBrokerCurrency * (1 - ($dividendTax * 0.01));
+			return new SummaryPrice($this->brokerCurrency, $totalAmountAfterTax, 1);
+		}
+
+		return new SummaryPrice($this->brokerCurrency, $this->totalAmountInBrokerCurrency, 1);
+	}
+
 	public function isReinvested(): bool
 	{
 		return $this->reinvested;

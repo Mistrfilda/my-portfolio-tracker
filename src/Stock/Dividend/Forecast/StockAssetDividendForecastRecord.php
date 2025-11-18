@@ -254,9 +254,9 @@ class StockAssetDividendForecastRecord implements Entity
 					$record->getBrokerCurrency() === $this->currency
 					&& $record->getTotalAmountInBrokerCurrency() !== null
 				) {
-					$total += $record->getTotalAmountInBrokerCurrency();
+					$total += $record->getSummaryPriceInBrokerCurrency()->getPrice();
 				} elseif ($record->getCurrency() === $this->currency) {
-					$total += $record->getTotalAmount();
+					$total += $record->getSummaryPrice()->getPrice();
 				}
 			}
 		}
