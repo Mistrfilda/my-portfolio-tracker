@@ -116,11 +116,12 @@ class StockAssetDividendForecastRecordFacade
 			$usedDividendForCalculation = $lastDividendForYear;
 			if ($usedDividendForCalculation === null) {
 				$usedDividendForCalculation = $this->stockAssetDividendRepository->getLastDividend(
+					$stockAsset,
 					StockAssetDividendTypeEnum::REGULAR,
 				);
 			}
 
-			$adjustedPrice = $usedDividendForCalculation->getAmount();
+			$adjustedPrice = $usedDividendForCalculation->getSummaryPrice()->getPrice();
 			if ($stockAssetForecast->getTrend()->getTrendNumber() !== 0) {
 				$trendPercentage = $stockAssetForecast->getTrend()->getTrendNumber();
 				$multiplier = 1 + ($trendPercentage / 100);
@@ -138,7 +139,7 @@ class StockAssetDividendForecastRecordFacade
 
 			$brokerCurrency = $stockAsset->getCurrency();
 			$alreadyReceivedConverted = $receivedTotalPriceForYear->getPrice();
-			$originalDividendConverted = $usedDividendForCalculation->getAmount();
+			$originalDividendConverted = $usedDividendForCalculation->getSummaryPrice()->getPrice();
 			$adjustedPriceConverted = $adjustedPrice;
 			$expectedDividendPerStockConverted = $expectedDividendPerStock;
 			$specialDividendsConverted = $specialDividendsTotalPriceForYear->getPrice();
@@ -148,6 +149,7 @@ class StockAssetDividendForecastRecordFacade
 				$existingRecord->recalculate(
 					$receivedDividendMonths,
 					$alreadyReceivedConverted,
+					$dividendUsuallyPaidAtMonths,
 					$stockAsset->getTotalPiecesHeld(),
 					$originalDividendConverted,
 					$adjustedPriceConverted,

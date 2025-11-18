@@ -105,11 +105,13 @@ class StockAssetDividendForecastRecord implements Entity
 	}
 
 	/**
+	 * @param array<int> $dividendUsuallyPaidAtMonths
 	 * @param array<int> $receivedDividendMonths
 	 */
 	public function recalculate(
 		array $receivedDividendMonths,
 		float $alreadyReceivedDividendPerStock,
+		array $dividendUsuallyPaidAtMonths,
 		int $piecesCurrentlyHeld,
 		float $originalDividendUsedForCalculation,
 		float $adjustedDividendUsedForCalculation,
@@ -120,6 +122,7 @@ class StockAssetDividendForecastRecord implements Entity
 	{
 		$this->receivedDividendMonths = $receivedDividendMonths;
 		$this->alreadyReceivedDividendPerStock = $alreadyReceivedDividendPerStock;
+		$this->dividendUsuallyPaidAtMonths = $dividendUsuallyPaidAtMonths;
 		$this->piecesCurrentlyHeld = $piecesCurrentlyHeld;
 		$this->originalDividendUsedForCalculation = $originalDividendUsedForCalculation;
 		$this->adjustedDividendUsedForCalculation = $adjustedDividendUsedForCalculation;
