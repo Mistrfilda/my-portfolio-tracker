@@ -6,7 +6,8 @@ export class DividendsScraper extends PuppeteerScraperBase {
 
 		const selectors = [
 			"::-p-xpath(/html/body/div[2]/main/section/section/section/section/div[1]/div[3]/table)",
-			"::-p-xpath(/html/body/div[2]/main/section/section/section/section/div[2]/div[3]/table)"
+			"::-p-xpath(/html/body/div[2]/main/section/section/section/section/div[2]/div[3]/table)",
+			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/div[1]/div[3]/table)"
 		];
 
 		let element = null;
