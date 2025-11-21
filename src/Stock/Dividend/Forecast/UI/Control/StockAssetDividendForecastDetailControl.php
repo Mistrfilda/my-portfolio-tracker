@@ -11,7 +11,6 @@ use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
-use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use App\UI\Base\BaseControl;
 use App\UI\FlashMessage\FlashMessageType;
 use Ramsey\Uuid\UuidInterface;
@@ -71,10 +70,6 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 			$actualReceivedForStock = 0.0;
 			foreach ($record->getStockAsset()->getDividends() as $dividend) {
 				if ($dividend->getExDate()->getYear() !== $forYear) {
-					continue;
-				}
-
-				if ($dividend->getDividendType() !== StockAssetDividendTypeEnum::REGULAR) {
 					continue;
 				}
 

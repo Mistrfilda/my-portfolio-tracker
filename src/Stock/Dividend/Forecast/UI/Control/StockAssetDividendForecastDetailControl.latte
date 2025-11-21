@@ -1,43 +1,50 @@
 {templateType App\Stock\Dividend\Forecast\UI\Control\StockAssetDividendForecastDetailControlTemplate}
 
-<div class="px-4 sm:px-6 lg:px-8">
-    <div class="sm:flex sm:items-center">
-        <div class="sm:flex-auto">
-            <h1 class="text-base font-semibold text-gray-900">Predikce dividend pro rok {$forecast->getForYear()}</h1>
-            <div class="mt-3 flex flex-wrap gap-3">
-                <div class="text-sm">
-                    <span class="text-gray-500">Trend:</span>
-                    <span class="ml-1 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset"
-                          style="background-color: {$forecast->getTrend()->getTrendColor()}/10; color: {$forecast->getTrend()->getTrendColor()}; --tw-ring-color: {$forecast->getTrend()->getTrendColor()}/20;">
-                        {$forecast->getTrend()->format()}
-                    </span>
-                </div>
-                <div class="text-sm">
-                    <span class="text-gray-500">Stav:</span>
-                    <span class="ml-1 inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {if $forecast->getState()->value === 'finished'}bg-green-50 text-green-700 ring-green-600/20{else}bg-yellow-50 text-yellow-700 ring-yellow-600/20{/if}">
-                        {$forecast->getState()->format()}
-                    </span>
-                </div>
-                {if $forecast->getLastRecalculatedAt()}
-                    <div class="text-sm">
-                        <span class="text-gray-500">Poslední přepočet:</span>
-                        <span class="ml-1 text-gray-900">{$forecast->getLastRecalculatedAt()|datetimeFormat}</span>
-                    </div>
-                {/if}
-                {if $forecast->isDefaultForYear()}
-                    <div class="text-sm">
-                        <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
-                            Výchozí predikce pro tento rok
+<div class="px-4 sm:px-6 lg:px-8 bg-white shadow-sm rounded-lg">
+    <div class="py-6 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex-1">
+                <h1 class="text-2xl font-bold text-gray-900">
+                    Predikce dividend pro rok {$forecast->getForYear()}
+                </h1>
+                <div class="mt-4 flex flex-wrap gap-3">
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-600">Trend:</span>
+                        <span class="inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-semibold ring-1 ring-inset"
+                              style="background-color: {$forecast->getTrend()->getTrendColor()}/10; color: {$forecast->getTrend()->getTrendColor()}; --tw-ring-color: {$forecast->getTrend()->getTrendColor()}/20;">
+                            {$forecast->getTrend()->format()}
                         </span>
                     </div>
-                {/if}
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-medium text-gray-600">Stav:</span>
+                        <span class="inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-semibold ring-1 ring-inset {if $forecast->getState()->value === 'finished'}bg-green-50 text-green-700 ring-green-600/20{else}bg-yellow-50 text-yellow-700 ring-yellow-600/20{/if}">
+                            {$forecast->getState()->format()}
+                        </span>
+                    </div>
+                    {if $forecast->getLastRecalculatedAt()}
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-medium text-gray-600">Poslední přepočet:</span>
+                            <span class="text-sm text-gray-900 font-medium">{$forecast->getLastRecalculatedAt()|datetimeFormat}</span>
+                        </div>
+                    {/if}
+                    {if $forecast->isDefaultForYear()}
+                        <div class="flex items-center">
+                            <span class="inline-flex items-center rounded-lg bg-blue-50 px-3 py-1.5 text-sm font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                ⭐ Výchozí predikce pro tento rok
+                            </span>
+                        </div>
+                    {/if}
+                </div>
             </div>
-        </div>
-        <div class="mt-4 sm:mt-0 sm:ml-4">
-            <a n:href="recalculate!, id => $forecast->getId()->toString()"
-                    class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                Přepočítat
-            </a>
+            <div class="flex-shrink-0">
+                <a n:href="recalculate!, id => $forecast->getId()->toString()"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 border border-transparent shadow-sm text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Přepočítat
+                </a>
+            </div>
         </div>
     </div>
 
