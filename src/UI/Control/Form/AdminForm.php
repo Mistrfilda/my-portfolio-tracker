@@ -104,7 +104,7 @@ class AdminForm extends Form
 	{
 		$items = $selectBox->getItems();
 		if ($selectBox->getPrompt() !== false) {
-			$items[null] = $selectBox->getPrompt();
+			$items[] = $selectBox->getPrompt();
 		}
 
 		$defaultValue = $selectBox->getValue();

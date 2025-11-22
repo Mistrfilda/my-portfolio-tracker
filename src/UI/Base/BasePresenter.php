@@ -11,8 +11,6 @@ use Nette\Application\UI\Presenter;
 use Nette\Bridges\SecurityHttp\SessionStorage;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
-use ReflectionClass;
-use ReflectionMethod;
 
 abstract class BasePresenter extends Presenter
 {
@@ -139,9 +137,10 @@ abstract class BasePresenter extends Presenter
 	}
 
 	/**
-	 * @phpstan-ignore-next-line
+	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.ParameterTypeHint.MissingAnyTypeHint
 	 */
-	public function checkRequirements(ReflectionClass|ReflectionMethod $element): void
+	//@phpstan-ignore missingType.parameter
+	public function checkRequirements($element): void
 	{
 		$storage = $this->getUser()->getStorage();
 		assert($storage instanceof SessionStorage);

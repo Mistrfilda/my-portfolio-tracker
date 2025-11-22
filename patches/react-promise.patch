@@ -11,6 +11,19 @@ index 3ca034b..0cd089f 100644
      {
          $this->canceller = $canceller;
      }
+diff --git a/src/functions.php b/src/functions.php
+index 2177dc2..4b081c4 100644
+--- a/src/functions.php
++++ b/src/functions.php
+@@ -366,7 +366,7 @@ function _checkTypehint(callable $callback, $object)
+             break;
+         case $type instanceof \ReflectionIntersectionType:
+             $isTypeUnion = false;
+-        case $type instanceof \ReflectionUnionType;
++	    case $type instanceof \ReflectionUnionType:
+             $types = $type->getTypes();
+             break;
+         default:
 diff --git a/src/ExtendedPromiseInterface.php b/src/ExtendedPromiseInterface.php
 index 13b6369..942fc5e 100644
 --- a/src/ExtendedPromiseInterface.php

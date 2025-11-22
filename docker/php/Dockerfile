@@ -1,4 +1,4 @@
-FROM php:8.4.12-fpm AS php-build
+FROM php:8.5-fpm AS php-build
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && apt-get clean
 
-RUN docker-php-ext-install simplexml dom pdo_mysql intl
+RUN docker-php-ext-install simplexml pdo_mysql intl
 
 WORKDIR /var
 
