@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Monitoring;
 
+use App\Currency\Download\CNBCurrencyConversionDownloadFacade;
+use App\Currency\Download\ECBCurrencyConversionDownloadFacade;
 use App\System\SystemValueEnum;
 use App\System\SystemValueResolveFacade;
 use GuzzleHttp\Client;
@@ -56,6 +58,20 @@ class MonitoringFacade
 				if ($systemValues[SystemValueEnum::STOCK_VALUATION_COUNT->value]
 					=== $systemValues[SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT->value]
 				) {
+					$this->sendPushMonitor($url);
+				}
+			}
+
+			if ($type === MonitoringUptimeMonitorEnum::CNB_CURRENCY_DOWNLOADED_COUNT) {
+				$cnbCountValue = $systemValues[SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT->value];
+				if ((int) $cnbCountValue === count(CNBCurrencyConversionDownloadFacade::RATES_TO_BE_DOWNLOADED) * 2) {
+					$this->sendPushMonitor($url);
+				}
+			}
+
+			if ($type === MonitoringUptimeMonitorEnum::ECB_CURRENCY_DOWNLOADED_COUNT) {
+				$cnbCountValue = $systemValues[SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT->value];
+				if ((int) $cnbCountValue === count(ECBCurrencyConversionDownloadFacade::RATES_TO_BE_DOWNLOADED) * 2) {
 					$this->sendPushMonitor($url);
 				}
 			}

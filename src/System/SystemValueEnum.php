@@ -42,6 +42,10 @@ enum SystemValueEnum: string
 
 	case EXPENSE_TAGS_PROCESSED_AT = 'expense_tags_processed_at';
 
+	case CNB_CURRENCY_DOWNLOADED_COUNT = 'cnb_currency_downloaded_count';
+
+	case ECB_CURRENCY_DOWNLOADED_COUNT = 'ecb_currency_downloaded_count';
+
 	public function getLabel(): string
 	{
 		return match ($this) {
@@ -58,7 +62,9 @@ enum SystemValueEnum: string
 			SystemValueEnum::STOCK_VALUATION_COUNT => 'Počet akcíí se stažením valuace',
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => 'Poslední aktualizace dat pro valuace',
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => 'Počet stažených valuací',
-			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => 'Výdajové tagy naposledy zprocesovány'
+			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => 'Výdajové tagy naposledy zprocesovány',
+			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ČNB',
+			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ECB',
 		};
 	}
 
@@ -79,6 +85,8 @@ enum SystemValueEnum: string
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::STOCK_VALUATION_COUNT => SystemValueEnabledStockValuationsAssetsResolver::class,
 			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 		};
 	}
 

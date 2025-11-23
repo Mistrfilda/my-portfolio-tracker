@@ -10,6 +10,8 @@ use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Arrays;
@@ -20,7 +22,7 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 
 	private const ECB_RATES_XML = 'https://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml';
 
-	private const RATES_TO_BE_DOWNLOADED = [
+	public const RATES_TO_BE_DOWNLOADED = [
 		'USD' => CurrencyEnum::USD,
 		'GBP' => CurrencyEnum::GBP,
 		'PLN' => CurrencyEnum::PLN,
@@ -34,9 +36,9 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		private readonly CurrencyConversionDownloadInverseRateHelper $currencyConversionDownloadInverseRateHelper,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
+		private readonly SystemValueFacade $systemValueFacade,
 	)
 	{
-
 	}
 
 	/**
@@ -53,9 +55,11 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		);
 
 		$xml = new SimpleXMLElement($ecbResponseXml->getBody()->getContents());
+		$xml->registerXPathNamespace('ecb', 'http://www.ecb.int/vocabulary/2002-08-01/eurofxref');
+
 		foreach (self::RATES_TO_BE_DOWNLOADED as $rateToBeDownloaded => $matchedEnum) {
-			$xpathResult = $xml->xpath('//Cube[@currency="' . $rateToBeDownloaded . '"]');
-			if ($xpathResult === null) {
+			$xpathResult = $xml->xpath('//ecb:Cube[@currency="' . $rateToBeDownloaded . '"]');
+			if ($xpathResult === null || $xpathResult === false) {
 				continue;
 			}
 
@@ -110,6 +114,11 @@ class ECBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		}
 
 		$this->entityManager->flush();
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT,
+			intValue: count($downloadedRates),
+		);
 
 		return $downloadedRates;
 	}

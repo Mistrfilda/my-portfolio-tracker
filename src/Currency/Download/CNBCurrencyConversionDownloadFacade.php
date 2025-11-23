@@ -10,6 +10,8 @@ use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -20,7 +22,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 
 	private const CNB_RATES_URL = 'https://www.cnb.cz/cs/financni-trhy/devizovy-trh/kurzy-devizoveho-trhu/kurzy-devizoveho-trhu/denni_kurz.txt';
 
-	private const RATES_TO_BE_DOWNLOADED = [
+	public const RATES_TO_BE_DOWNLOADED = [
 		'USD' => CurrencyEnum::USD,
 		'EUR' => CurrencyEnum::EUR,
 		'GBP' => CurrencyEnum::GBP,
@@ -35,6 +37,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		private readonly CurrencyConversionDownloadInverseRateHelper $currencyConversionDownloadInverseRateHelper,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
+		private readonly SystemValueFacade $systemValueFacade,
 	)
 	{
 
@@ -111,6 +114,11 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		}
 
 		$this->entityManager->flush();
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT,
+			intValue: count($downloadedRates),
+		);
 
 		return $downloadedRates;
 	}

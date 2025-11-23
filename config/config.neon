@@ -71,6 +71,8 @@ parameters:
 			updated_stock_dividends_count: null
 			updated_stock_prices_count: null
 			updated_stock_valuation_count: null
+			cnb_currency_downloaded_count: null
+			ecb_currency_downloaded_count: null
 
 application:
 	errorPresenter: Error:Error

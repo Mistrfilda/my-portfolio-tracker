@@ -13,4 +13,8 @@ enum MonitoringUptimeMonitorEnum: string
 
 	case UPDATED_STOCK_VALUATION_COUNT = 'updated_stock_valuation_count';
 
+	case CNB_CURRENCY_DOWNLOADED_COUNT = 'cnb_currency_downloaded_count';
+
+	case ECB_CURRENCY_DOWNLOADED_COUNT = 'ecb_currency_downloaded_count';
+
 }
