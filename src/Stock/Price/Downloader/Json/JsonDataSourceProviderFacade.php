@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Price\Downloader\Json;
 
 use App\Asset\Price\AssetPriceSourceProvider;
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\StockAssetDividendSourceProvider;

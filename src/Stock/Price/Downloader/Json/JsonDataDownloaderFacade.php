@@ -6,6 +6,7 @@ namespace App\Stock\Price\Downloader\Json;
 
 use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;

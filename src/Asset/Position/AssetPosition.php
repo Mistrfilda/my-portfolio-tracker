@@ -17,7 +17,7 @@ interface AssetPosition
 
 	public function getAppAdmin(): AppAdmin;
 
-	public function getOrderPiecesCount(): int;
+	public function getOrderPiecesCount(): int|float;
 
 	public function getTotalInvestedAmount(): AssetPrice;
 

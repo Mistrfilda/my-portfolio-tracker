@@ -1,0 +1,116 @@
+{varType App\Crypto\Position\Closed\CryptoAssetClossedPositionDTO[] $positions}
+<div class="flex flex-col mt-6">
+    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
+            <div class="shadow-sm overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
+                <div class="px-4 sm:px-6 lg:px-8 my-4">
+                    <div class="sm:flex sm:items-center">
+                        <div class="sm:flex-auto">
+                            <div class="flex justify-between">
+                                <h1 class="text-xl font-semibold text-gray-900">
+                                    Zavřené akciové pozice
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="-mx-4 mt-8 flex flex-col sm:-mx-6 md:mx-0">
+                        <table class="min-w-full divide-y divide-gray-300">
+                            <thead>
+                            <tr>
+                                <th scope="col"
+                                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 md:pl-0">
+                                    Kryptoměny
+                                </th>
+                                <th scope="col"
+                                    class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                    Celkový počet uzavřených pozic
+                                </th>
+                                <th scope="col"
+                                    class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                    Celková nákupní hodnota
+                                </th>
+                                <th scope="col"
+                                    class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                    Celková prodejní hodnota + dividendy
+                                </th>
+                                <th scope="col"
+                                    class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
+                                    Celková nákupní hodnota CZK
+                                </th>
+                                <th scope="col"
+                                    class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
+                                    Celková prodejní hodnota CZK + dividendy
+                                </th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {foreach $positions as $position}
+                                <tr class="border-b border-gray-200">
+                                    <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
+                                        {$position->getCryptoAsset()->getName()}
+                                    </td>
+                                    <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                        {$position->getTotalAmount()->getCounter()}
+                                    </td>
+                                    <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                        {$position->getTotalInvestedAmountInBrokerCurrency()|summaryPriceFormat}
+                                    </td>
+                                    <td class="py-4 px-3 text-right text-sm text-gray-500 table-cell">
+                                        <div class="font-medium text-gray-900">
+                                            {$position->getTotalAmountInBrokerCurrency()|summaryPriceFormat}
+                                        </div>
+                                        <div class="mt-1 truncate text-gray-500">
+                                            <span class="inline-flex items-center p-0.5 rounded-full text-sm font-medium bg-{$position->getTotalAmountPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-100 text-{$position->getTotalAmountPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
+                                                {renderSvg $position->getTotalAmountPriceDiffInBrokerCurrency()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                                {$position->getTotalAmountPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$position->getTotalAmountPriceDiffInBrokerCurrency()->getCurrencyEnum()}
+                                                {$position->getTotalAmountPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
+                                            </span>
+                                        </div>
+                                        <div class="mt-1 truncate text-gray-500">
+                                            {if $position->getDividendsSummary() !== null}
+                                                <span class="inline-flex items-center p-0.5 rounded-full text-sm font-medium bg-{$position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getTrend()->getTailwindColor()}-100 text-{$position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getTrend()->getTailwindColor()}-800">
+                                                    {renderSvg $position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                                    {$position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getPriceDifference()|currency:$position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getCurrencyEnum()}
+                                                    {$position->getTotalAmountPriceDiffInBrokerCurrencyWithDividends()->getPercentageDifference()|percentage}
+                                                </span>
+                                            {else}
+                                                ----
+                                            {/if}
+                                        </div>
+                                    </td>
+                                    <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
+                                        {$position->getTotalInvestedAmountInBrokerCurrencyInCzk()|summaryPriceFormat}
+                                    </td>
+                                    <td class="py-4 px-3 text-right text-sm text-gray-500 table-cell">
+                                        <div class="font-medium text-gray-900">
+                                            {$position->getTotalAmountInBrokerCurrencyInCzk()|summaryPriceFormat}
+                                        </div>
+                                        <div class="mt-1 truncate text-gray-500">
+                                            <span class="inline-flex items-center rounded-full text-sm font-medium bg-{$position->getTotalAmountPriceDiffInCzk()->getTrend()->getTailwindColor()}-100 text-{$position->getTotalAmountPriceDiffInCzk()->getTrend()->getTailwindColor()}-800">
+                                            {renderSvg $position->getTotalAmountPriceDiffInCzk()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                                {$position->getTotalAmountPriceDiffInCzk()->getPriceDifference()|currency:$position->getTotalAmountPriceDiffInCzk()->getCurrencyEnum()}
+                                                {$position->getTotalAmountPriceDiffInCzk()->getPercentageDifference()|percentage}
+                                        </span>
+                                        </div>
+                                        <div class="mt-1 truncate text-gray-500">
+                                            {if $position->getDividendsSummary() !== null}
+                                                <span class="inline-flex items-center p-0.5 rounded-full text-sm font-medium bg-{$position->getTotalAmountPriceDiffInCzkWithDividends()->getTrend()->getTailwindColor()}-100 text-{$position->getTotalAmountPriceDiffInCzkWithDividends()->getTrend()->getTailwindColor()}-800">
+                                                    {renderSvg $position->getTotalAmountPriceDiffInCzkWithDividends()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                                    {$position->getTotalAmountPriceDiffInCzkWithDividends()->getPriceDifference()|currency:$position->getTotalAmountPriceDiffInCzkWithDividends()->getCurrencyEnum()}
+                                                    {$position->getTotalAmountPriceDiffInCzkWithDividends()->getPercentageDifference()|percentage}
+                                                </span>
+                                            {else}
+                                                ----
+                                            {/if}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

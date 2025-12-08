@@ -217,4 +217,9 @@ class PortuPositionFacade implements AssetPriceFacade
 		);
 	}
 
+	public function includeToTotalValues(): bool
+	{
+		return true;
+	}
+
 }

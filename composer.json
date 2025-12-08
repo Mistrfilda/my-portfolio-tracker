@@ -96,7 +96,11 @@
 	"minimum-stability": "dev",
 	"prefer-stable": true,
 	"scripts": {
-		"clear": ["rm -rf temp/*", "@comload", "@doctrine-proxies"],
+		"clear": [
+			"rm -rf temp/*",
+			"@comload",
+			"@doctrine-proxies"
+		],
 		"comload": "composer dump-autoload -o",
 		"stan": "vendor/bin/phpstan analyse -c phpstan.neon src --ansi  --memory-limit=-1 -v",
 		"stan-tests": "vendor/bin/phpstan analyse -l max -c phpstan.neon tests --ansi  --memory-limit=-1",
@@ -168,7 +172,12 @@
 		"kube-local-deploy": "./deploy-local.sh",
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser",
 		"doctrine-proxies": "bin/console orm:generate-proxies",
-		"monitoring-push-monitors": "bin/console monitoring:push-monitors"
+		"monitoring-push-monitors": "bin/console monitoring:push-monitors",
+		"crypto-download-data": [
+			"bin/console crypto:prices:generate",
+			"node ./puppeter/crypto.js",
+			"bin/console crypto:prices:download"
+		]
 	},
 	"extra": {
 		"patches": {

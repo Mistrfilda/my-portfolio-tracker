@@ -270,4 +270,9 @@ class StockPositionFacade implements AssetPriceFacade
 		);
 	}
 
+	public function includeToTotalValues(): bool
+	{
+		return true;
+	}
+
 }

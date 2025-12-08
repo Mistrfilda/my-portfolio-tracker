@@ -98,7 +98,7 @@ class StockAsset implements Entity, Asset
 
 	#[ORM\ManyToOne(targetEntity: StockAssetIndustry::class, inversedBy: 'stockAssets')]
 	#[ORM\JoinColumn(nullable: true)]
-	private StockAssetIndustry|null $industry = null;
+	private StockAssetIndustry|null $industry;
 
 	public function __construct(
 		string $name,

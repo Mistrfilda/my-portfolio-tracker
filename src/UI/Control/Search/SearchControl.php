@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Search;
 
+use App\Crypto\Asset\CryptoAssetRepository;
 use App\Stock\Asset\StockAssetRepository;
 use App\UI\Base\BaseControl;
 use App\UI\Menu\MenuBuilder;
@@ -14,6 +15,7 @@ class SearchControl extends BaseControl
 
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
+		private CryptoAssetRepository $cryptoAssetRepository,
 		private LinkGenerator $linkGenerator,
 		private MenuBuilder $menuBuilder,
 	)
@@ -30,6 +32,16 @@ class SearchControl extends BaseControl
 				$this->linkGenerator->link(
 					'Admin:StockAssetDetail:detail',
 					['id' => $stockAsset->getId()->toString()],
+				) ?? '#',
+			);
+		}
+
+		foreach ($this->cryptoAssetRepository->findAll() as $cryptoAsset) {
+			$stockAssets[] = new SearchGroupItem(
+				$cryptoAsset->getName(),
+				$this->linkGenerator->link(
+					'Admin:CryptoAssetDetail:detail',
+					['id' => $cryptoAsset->getId()->toString()],
 				) ?? '#',
 			);
 		}

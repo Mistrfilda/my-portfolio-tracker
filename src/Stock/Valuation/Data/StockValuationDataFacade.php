@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\Data;
 
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Stock\Asset\StockAssetRepository;
-use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use App\Stock\Valuation\StockValuationTypeGroupEnum;

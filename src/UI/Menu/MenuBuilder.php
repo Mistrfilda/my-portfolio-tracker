@@ -205,6 +205,30 @@ class MenuBuilder
 				'Cíle',
 				[],
 			),
+			new MenuItem(
+				'CryptoAsset',
+				'default',
+				SvgIcon::CRYPTO_BITCOIN,
+				'Kryptoměny',
+				[
+					'CryptoAssetEdit',
+				],
+			),
+			new MenuItem(
+				'CryptoPosition',
+				'default',
+				SvgIcon::CRYPTO_BITCOIN,
+				'Kryptoměnové pozice',
+				[
+					'CryptoPositionEdit',
+				],
+			),
+			new MenuItem(
+				'CryptoAssetPositionDetail',
+				'default',
+				SvgIcon::CRYPTO_BITCOIN,
+				'Přehled kryptoměnových pozic',
+			),
 		];
 	}
 

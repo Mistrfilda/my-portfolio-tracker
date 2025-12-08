@@ -6,6 +6,8 @@ namespace App\Dashboard;
 
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
+use App\Crypto\Asset\CryptoAssetRepository;
+use App\Crypto\Position\CryptoPositionFacade;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Portu\Position\PortuPositionFacade;
@@ -29,6 +31,8 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly AssetPriceSummaryFacade $assetPriceSummaryFacade,
 		private readonly DashboardDividendvalueBuilderFacade $dashboardDividendvalueBuilderFacade,
 		private readonly StockClosedPositionFacade $stockClosedPositionFacade,
+		private readonly CryptoPositionFacade $cryptoPositionFacade,
+		private readonly CryptoAssetRepository $cryptoAssetRepository,
 	)
 	{
 	}
@@ -43,6 +47,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			$this->getStockValues(),
 			$this->getPortuValues(),
 			$this->dashboardDividendvalueBuilderFacade->buildDividendValues(),
+			$this->getCryptoValues(),
 			$this->getCurrencyConversionValues(),
 		];
 	}
@@ -486,6 +491,84 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					$diff->getTrend()->getSvgIcon(),
 				),
 			],
+		);
+	}
+
+	private function getCryptoValues(): DashboardValueGroup
+	{
+		$totalInvestedAmount = $this->cryptoPositionFacade->getTotalInvestedAmountSummaryPrice(
+			CurrencyEnum::CZK,
+		);
+
+		$currentValue = $this->cryptoPositionFacade->getCurrentPortfolioValueSummaryPrice(
+			CurrencyEnum::CZK,
+		);
+
+		$diff = $this->summaryPriceService->getSummaryPriceDiff(
+			$currentValue,
+			$totalInvestedAmount,
+		);
+
+		$positions = [
+			new DashboardValue(
+				'Aktuálně zainvestováno v kryptoměnách',
+				CurrencyFilter::format(
+					$totalInvestedAmount->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::YELLOW,
+				SvgIcon::CRYPTO_BITCOIN,
+				sprintf('Celkový počet pozic %s', $totalInvestedAmount->getCounter()),
+				PortolioStatisticType::CRYPTO_TOTAL_INVESTED_IN_CZK,
+			),
+			new DashboardValue(
+				'Aktuální hodnota portfolia v kryptoměnách',
+				CurrencyFilter::format(
+					$currentValue->getRoundedPrice(),
+					CurrencyEnum::CZK,
+				),
+				TailwindColorConstant::YELLOW,
+				SvgIcon::CRYPTO_BITCOIN,
+				sprintf('Celkový počet pozic %s', $currentValue->getCounter()),
+				PortolioStatisticType::CRYPTO_TOTAL_VALUE_IN_CZK,
+			),
+			new DashboardValue(
+				'Celkový zisk/ztráta v kryptoměnách',
+				CurrencyFilter::format(
+					$diff->getPriceDifference(),
+					$diff->getCurrencyEnum(),
+				),
+				$diff->getTrend()->getTailwindColor(),
+				$diff->getTrend()->getSvgIcon(),
+			),
+			new DashboardValue(
+				'Celkový zisk/ztráta v kryptoměnách v procentech',
+				PercentageFilter::format($diff->getPercentageDifference()),
+				$diff->getTrend()->getTailwindColor(),
+				$diff->getTrend()->getSvgIcon(),
+			),
+		];
+
+		foreach ($this->cryptoAssetRepository->findAll() as $cryptoAsset) {
+			$positions[] = new DashboardValue(
+				sprintf(
+					'%s - %s',
+					$cryptoAsset->getName(),
+					$cryptoAsset->getCurrentAssetPrice()->getCurrency()->format(),
+				),
+				CurrencyFilter::format(
+					$cryptoAsset->getCurrentAssetPrice()->getPrice(),
+					$cryptoAsset->getCurrentAssetPrice()->getCurrency(),
+				),
+				TailwindColorConstant::YELLOW,
+				$cryptoAsset->getSvgIcon(),
+			);
+		}
+
+		return new DashboardValueGroup(
+			DashboardValueGroupEnum::CRYPTO,
+			'Kryptoměny',
+			positions: $positions,
 		);
 	}
 

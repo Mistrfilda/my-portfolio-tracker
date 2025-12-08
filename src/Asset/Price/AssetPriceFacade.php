@@ -13,4 +13,6 @@ interface AssetPriceFacade
 
 	public function getCurrentPortfolioValueSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice;
 
+	public function includeToTotalValues(): bool;
+
 }

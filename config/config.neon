@@ -74,6 +74,10 @@ parameters:
 			cnb_currency_downloaded_count: null
 			ecb_currency_downloaded_count: null
 
+
+	crypto:
+		tableUrl: https://example.com
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -431,7 +435,7 @@ services:
 	- App\Stock\Price\Downloader\Json\Command\JsonDataDownloaderCommand
 
 	-
-		class: App\Stock\Price\Downloader\Json\JsonDataFolderService
+		class: App\Asset\Price\Downloader\JsonDataFolderService
 		arguments:
 			folder: %puppeter.folder%
 
@@ -504,3 +508,26 @@ services:
 
 	#Job request
 	- App\JobRequest\JobRequestFacade
+
+	#Crypto
+	- App\Crypto\Asset\CryptoAssetRepository(App\Crypto\Asset\CryptoAsset)
+	- App\Crypto\Position\Closed\CryptoClosedPositionFacade
+	- App\Crypto\Position\Closed\CryptoClosedPositionFormFactory
+	- App\Crypto\Position\Closed\CryptoClosedPositionRepository(App\Crypto\Position\Closed\CryptoClosedPosition)
+	- App\Crypto\Position\CryptoPositionRepository(App\Crypto\Position\CryptoPosition)
+	- App\Crypto\Price\Downloader\Json\CryptoAssetJsonDownloaderFacade
+	- App\Crypto\Price\Downloader\Json\CryptoAssetJsonGenerateSourceFilesCommand
+	- App\Crypto\Price\Downloader\Json\CryptoJsonDataSourceProviderFacade(cryptoTableUrl: %crypto.tableUrl%)
+	- App\Crypto\Price\CryptoAssetPriceRecordRepository(App\Crypto\Price\CryptoAssetPriceRecord)
+	- App\Crypto\Asset\UI\Detail\Control\CryptoAssetDetailControlFactory
+	- App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlFactory
+	- App\Crypto\Asset\UI\Detail\List\CryptoAssetListSummaryDetailControlFactory
+	- App\Crypto\Asset\UI\CryptoAssetFormFactory
+	- App\Crypto\Asset\UI\CryptoAssetGridFactory
+	- App\Crypto\Position\CryptoPositionFacade
+	- App\Crypto\Asset\UI\Detail\Control\CryptoAssetDetailPriceChartProvider
+	- App\Crypto\Asset\CryptoAssetFacade
+	- App\Crypto\Position\Closed\UI\CryptoAssetClosedPositionListControlFactory
+	- App\Crypto\Position\UI\CryptoPositionGridFactory
+	- App\Crypto\Position\UI\CryptoPositionFormFactory
+	- App\Crypto\Price\Downloader\Json\CryptoAssetJsonDownloaderCommand
