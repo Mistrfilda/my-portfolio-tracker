@@ -53,7 +53,7 @@
 		"nettrine/cache": "^0.5",
 		"nettrine/dbal": "^0.10",
 		"nettrine/migrations": "^0.10",
-		"nettrine/orm": "^0.10",
+		"nettrine/orm": "dev-master",
 		"nyholm/psr7": "^1.5",
 		"psr/http-client": "^1.0",
 		"psr/http-message": "^2.0",

@@ -131,6 +131,7 @@ orm:
 	managers:
 		default:
 			connection: default
+			lazyNativeObjects: true
 			mapping:
 				App:
 					directories: [%appDir%]
