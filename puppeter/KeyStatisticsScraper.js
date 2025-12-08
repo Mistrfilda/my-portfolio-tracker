@@ -5,7 +5,8 @@ export class KeyStatisticsScraper extends PuppeteerScraperBase {
 		const { id, name, currency } = entry;
 
 		const selectors = [
-			"::-p-xpath(/html/body/div[2]/main/section/section/section/section)",
+			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section)",
+			"::-p-xpath(/html/body/div[2]/main/section/section/section/section)"
 		];
 
 		let element = null;
