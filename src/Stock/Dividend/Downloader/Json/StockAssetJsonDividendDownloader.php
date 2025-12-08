@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Downloader\Json;
 
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
 use App\Notification\NotificationTypeEnum;
@@ -12,7 +13,6 @@ use App\Stock\Dividend\Downloader\StockAssetDividendDownloader;
 use App\Stock\Dividend\Downloader\StockAssetDividendDownloaderDTO;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
-use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;

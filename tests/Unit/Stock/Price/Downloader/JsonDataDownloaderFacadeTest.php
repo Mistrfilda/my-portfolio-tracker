@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Price\Downloader;
 
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\Downloader\Json\JsonDataDownloaderFacade;
-use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;

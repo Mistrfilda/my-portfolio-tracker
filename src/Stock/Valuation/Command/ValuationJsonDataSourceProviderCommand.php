@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\Command;
 
-use App\Stock\Price\Downloader\Json\JsonDataFolderService;
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

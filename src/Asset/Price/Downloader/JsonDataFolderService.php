@@ -2,7 +2,7 @@
 
 declare(strict_types = 1);
 
-namespace App\Stock\Price\Downloader\Json;
+namespace App\Asset\Price\Downloader;
 
 class JsonDataFolderService
 {
@@ -26,6 +26,11 @@ class JsonDataFolderService
 	public function getResultsFolder(): string
 	{
 		return $this->folder . self::RESULTS_FOLDER;
+	}
+
+	public function getRequestsFolder(): string
+	{
+		return $this->folder . self::REQUESTS_FOLDER;
 	}
 
 	public function getParsedResultsFolder(): string

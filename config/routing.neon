@@ -37,3 +37,10 @@ custompresenterfactory:
 		Admin:SystemValue: App\System\UI\SystemValuePresenter
 		Admin:StockAssetDividendForecast: App\Stock\Dividend\Forecast\UI\StockAssetDividendForecastPresenter
 		Admin:StockValuationModel: App\Stock\Valuation\Model\UI\StockValuationModelPresenter
+		Admin:CryptoAssetClosedPositionDetail: App\Crypto\Asset\UI\CryptoAssetClosedPositionDetailPresenter
+		Admin:CryptoAssetPositionDetail: App\Crypto\Asset\UI\CryptoAssetPositionDetailPresenter
+		Admin:CryptoAsset: App\Crypto\Asset\UI\CryptoAssetPresenter
+		Admin:CryptoAssetEdit: App\Crypto\Asset\UI\CryptoAssetEditPresenter
+		Admin:CryptoAssetDetail: App\Crypto\Asset\UI\Detail\CryptoAssetDetailPresenter
+		Admin:CryptoPosition: App\Crypto\Position\UI\CryptoPositionPresenter
+		Admin:CryptoPositionEdit: App\Crypto\Position\UI\CryptoPositionEditPresenter

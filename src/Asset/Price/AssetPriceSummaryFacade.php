@@ -27,6 +27,10 @@ class AssetPriceSummaryFacade
 	{
 		$summaryPrice = new SummaryPrice($inCurrency);
 		foreach ($this->assetPriceFacades as $assetPriceFacade) {
+			if ($assetPriceFacade->includeToTotalValues() === false) {
+				continue;
+			}
+
 			$summaryPrice->addSummaryPrice($assetPriceFacade->getTotalInvestedAmountSummaryPrice(
 				$inCurrency,
 			));
@@ -39,6 +43,10 @@ class AssetPriceSummaryFacade
 	{
 		$summaryPrice = new SummaryPrice($inCurrency);
 		foreach ($this->assetPriceFacades as $assetPriceFacade) {
+			if ($assetPriceFacade->includeToTotalValues() === false) {
+				continue;
+			}
+
 			$summaryPrice->addSummaryPrice($assetPriceFacade->getCurrentPortfolioValueSummaryPrice(
 				$inCurrency,
 			));

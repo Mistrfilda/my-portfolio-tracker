@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend;
 
+use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Currency\CurrencyEnum;
 use App\Notification\NotificationFacade;
 use App\Stock\Asset\StockAsset;
@@ -11,7 +12,6 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\Json\StockAssetJsonDividendDownloader;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
-use App\Stock\Price\Downloader\Json\JsonDataFolderService;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\System\SystemValueFacade;
 use App\Test\UpdatedTestCase;

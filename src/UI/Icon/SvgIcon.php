@@ -105,7 +105,12 @@ enum SvgIcon: string
 
 	case MAGNIFYING_GLASS = 'magnifying-glass.svg';
 
-
 	case FILE_NEW = 'file-new.svg';
+
+	case CRYPTO_BITCOIN = 'crypto-bitcoin.svg';
+
+	case CRYPTO_CARDANO = 'crypto-cardano.svg';
+
+	case CRYPTO_ETHEREUM = 'crypto-ethereum.svg';
 
 }
