@@ -30,7 +30,7 @@ class SearchControl extends BaseControl
 				$this->linkGenerator->link(
 					'Admin:StockAssetDetail:detail',
 					['id' => $stockAsset->getId()->toString()],
-				),
+				) ?? '#',
 			);
 		}
 
@@ -41,14 +41,14 @@ class SearchControl extends BaseControl
 					$menuItem->getLabel(),
 					$this->linkGenerator->link(
 						'Admin:' . $menuItem->getLink(),
-					),
+					) ?? '#',
 				);
 			}
 		}
 
 		$menuItems[] = new SearchGroupItem(
 			'Systémové informace',
-			$this->linkGenerator->link('Admin:SystemValue:default'),
+			$this->linkGenerator->link('Admin:SystemValue:default') ?? '#',
 		);
 
 		$groups[] = new SearchGroup('Akcie', $stockAssets);
