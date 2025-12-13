@@ -483,6 +483,7 @@ services:
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand
 	- App\Stock\Valuation\UI\StockValuationSortService
 	- App\Stock\Valuation\UI\Control\Detail\StockValuationDetailControlFactory
+	- App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlFactory
 
 	#Stock valuation models
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel

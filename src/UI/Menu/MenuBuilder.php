@@ -86,6 +86,15 @@ class MenuBuilder
 				],
 			),
 			new MenuItem(
+				'StockValuationModel',
+				'default',
+				SvgIcon::COLLECTION,
+				'Valuační modely akcií',
+				[
+					'StockValuation',
+				],
+			),
+			new MenuItem(
 				'StockPosition',
 				'default',
 				SvgIcon::DOCUMENT_DUPLICATE,

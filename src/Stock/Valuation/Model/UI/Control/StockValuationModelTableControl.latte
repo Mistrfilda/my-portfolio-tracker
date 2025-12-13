@@ -1,0 +1,106 @@
+
+{templateType App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlTemplate}
+
+<div class="mb-6">
+    <h2 class="text-xl font-semibold text-gray-900">Přehled valuačních modelů</h2>
+    <p class="mt-2 text-sm text-gray-600">Porovnání aktuálních cen akcií s vypočítanými hodnotami z valuačních modelů</p>
+</div>
+
+<div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="sticky left-0 z-10 bg-gray-50 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Akcie
+                </th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
+                    Aktuální cena
+                </th>
+                {* Dynamické sloupce pro jednotlivé modely *}
+                {if count($tableControlItems) > 0}
+                    {foreach $tableControlItems[0]->getModelResponses() as $model}
+                        <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
+                            {$model->getLabel()}
+                        </th>
+                    {/foreach}
+                {/if}
+            </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white">
+            {foreach $tableControlItems as $item}
+                {var $stockAsset = $item->getStockAsset()}
+                {var $modelResponses = $item->getModelResponses()}
+
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="sticky left-0 z-10 bg-white hover:bg-gray-50 whitespace-nowrap px-6 py-4">
+                        <div class="flex flex-col">
+                            <div class="font-medium text-gray-900">{$stockAsset->getName()}</div>
+                            <div class="text-sm text-gray-500">{$stockAsset->getTicker()}</div>
+                        </div>
+                    </td>
+
+                    <td class="whitespace-nowrap px-6 py-4 text-right">
+                        <div class="font-semibold text-gray-900">
+                            {$stockAsset->getAssetCurrentPrice()|assetPriceFormat}
+                        </div>
+                    </td>
+
+                    {foreach $modelResponses as $modelResponse}
+                        <td class="whitespace-nowrap px-6 py-4">
+                            {var $state = $modelResponse->getStockValuationModelTrend()}
+                            {var $color = $state->getTailwindColor()}
+                            {var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
+
+                            {if $isCalculated}
+                                <div class="flex flex-col items-center gap-2">
+                                    {* Vypočítaná fair value *}
+                                    {if $modelResponse->getAssetPrice() !== null}
+                                        <div class="font-semibold text-{$color}-700">
+                                            {$modelResponse->getAssetPrice()|assetPriceFormat}
+                                        </div>
+                                    {/if}
+
+                                    {* Procentuální rozdíl s barevným označením *}
+                                    {if $modelResponse->getCalculatedPercentage() !== null}
+                                        {var $percentage = $modelResponse->getCalculatedPercentage()}
+                                        <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+                                                {if $percentage > 0}
+                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
+                                                        <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    +{$percentage|number:2}%
+                                                {elseif $percentage < 0}
+                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
+                                                        <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    {$percentage|number:2}%
+                                                {else}
+                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
+                                                        <circle cx="3" cy="3" r="3" />
+                                                    </svg>
+                                                    0.00%
+                                                {/if}
+                                            </span>
+                                    {/if}
+
+                                    {* Badge se stavem *}
+                                    <span class="inline-flex items-center rounded-md bg-{$color}-50 px-2 py-1 text-xs font-medium text-{$color}-700 ring-1 ring-inset ring-{$color}-700/10">
+                                            {$state->getLabel()}
+                                        </span>
+                                </div>
+                            {else}
+                                <div class="text-center">
+                                        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                            {$state->getLabel()}
+                                        </span>
+                                </div>
+                            {/if}
+                        </td>
+                    {/foreach}
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    </div>
+</div>
