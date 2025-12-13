@@ -91,7 +91,7 @@ class MenuBuilder
 				SvgIcon::COLLECTION,
 				'Valuační modely akcií',
 				[
-					'StockValuation',
+					'StockValuationModel',
 				],
 			),
 			new MenuItem(

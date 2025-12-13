@@ -490,6 +490,11 @@ services:
 	- App\Stock\Valuation\Model\Price\DividendDiscountValuationModel
 	- App\Stock\Valuation\Model\Price\PriceEarningsValuationModel
 	- App\Stock\Valuation\Model\Price\FreeCashFlowValuationModel
+	- App\Stock\Valuation\Model\Price\EnterpriseValueValuationModel
+	- App\Stock\Valuation\Model\Price\GrahamNumberValuationModel
+	- App\Stock\Valuation\Model\Price\PegRatioValuationModel
+	- App\Stock\Valuation\Model\Price\PriceToSalesValuationModel
+	- App\Stock\Valuation\Model\Price\DebtAdjustedValuationModel
 
 	#Monitoring
 	- App\Monitoring\MonitoringFacade(%monitoring.monitoringUptimeMonitorMapping%)
