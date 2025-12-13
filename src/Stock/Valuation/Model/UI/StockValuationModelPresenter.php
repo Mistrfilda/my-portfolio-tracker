@@ -11,6 +11,10 @@ use App\UI\Base\BaseAdminPresenter;
 class StockValuationModelPresenter extends BaseAdminPresenter
 {
 
+	private string|null $sortBy = null;
+
+	private string $sortDirection = 'desc';
+
 	public function __construct(
 		private StockValuationModelTableControlFactory $stockValuationModelTableControlFactory,
 	)
@@ -18,14 +22,31 @@ class StockValuationModelPresenter extends BaseAdminPresenter
 		parent::__construct();
 	}
 
+	public function actionDefault(
+		string|null $sortBy = null,
+		string $sortDirection = 'desc',
+	): void
+	{
+		$this->sortBy = $sortBy;
+		$this->sortDirection = $sortDirection;
+	}
+
 	public function renderDefault(): void
 	{
 		$this->template->heading = 'Valuační modely akcií';
+		$this->template->sortBy = $this->sortBy;
+		$this->template->sortDirection = $this->sortDirection;
+
+		if ($this->isAjax()) {
+			$this->redrawControl('modelTable');
+		}
 	}
 
 	protected function createComponentStockValuationTable(): StockValuationModelTableControl
 	{
-		return $this->stockValuationModelTableControlFactory->create();
+		$control = $this->stockValuationModelTableControlFactory->create();
+		$control->setSortParameters($this->sortBy, $this->sortDirection);
+		return $control;
 	}
 
 }

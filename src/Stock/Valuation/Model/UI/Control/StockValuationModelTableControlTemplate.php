@@ -16,4 +16,8 @@ class StockValuationModelTableControlTemplate extends BaseControlTemplate
 	/** @var array<StockAsset> */
 	public array $stockAssets;
 
+	public string|null $sortBy = null;
+
+	public string $sortDirection = 'desc';
+
 }

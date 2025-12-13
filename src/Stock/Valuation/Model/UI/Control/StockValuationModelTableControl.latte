@@ -1,4 +1,3 @@
-
 {templateType App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlTemplate}
 
 <div class="mb-6">
@@ -12,16 +11,54 @@
             <thead class="bg-gray-50">
             <tr>
                 <th scope="col" class="sticky left-0 z-10 bg-gray-50 px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Akcie
+                    <a href="{plink StockValuationModel:default sortBy: 'name', sortDirection: ($sortBy === 'name' && $sortDirection === 'asc') ? 'desc' : 'asc'}"
+                            class="ajax group flex items-center gap-x-1 hover:text-blue-600 cursor-pointer">
+                        <span>Akcie</span>
+                        {if $sortBy === 'name'}
+                            {if $sortDirection === 'asc'}
+                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500']}
+                            {else}
+                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500']}
+                            {/if}
+                        {else}
+                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400']}
+                        {/if}
+                    </a>
                 </th>
                 <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Aktuální cena
+                    <a href="{plink StockValuationModel:default sortBy: 'current_price', sortDirection: ($sortBy === 'current_price' && $sortDirection === 'asc') ? 'desc' : 'asc'}"
+                            class="ajax group flex items-center justify-end gap-x-1 hover:text-blue-600 cursor-pointer">
+                        <span>Aktuální cena</span>
+                        {if $sortBy === 'current_price'}
+                            {if $sortDirection === 'asc'}
+                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500']}
+                            {else}
+                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500']}
+                            {/if}
+                        {else}
+                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400']}
+                        {/if}
+                    </a>
                 </th>
                 {* Dynamické sloupce pro jednotlivé modely *}
                 {if count($tableControlItems) > 0}
                     {foreach $tableControlItems[0]->getModelResponses() as $model}
+                        {var $modelIndex = $iterator->counter - 1}
+                        {var $modelSortKey = 'model_' . $modelIndex}
                         <th scope="col" class="px-6 py-3 text-center text-xs font-medium uppercase tracking-wider text-gray-500">
-                            {$model->getLabel()}
+                            <a href="{plink StockValuationModel:default sortBy: $modelSortKey, sortDirection: ($sortBy === $modelSortKey && $sortDirection === 'asc') ? 'desc' : 'asc'}"
+                                    class="ajax group flex items-center justify-center gap-x-1 hover:text-blue-600 cursor-pointer">
+                                <span class="truncate">{$model->getLabel()}</span>
+                                {if $sortBy === $modelSortKey}
+                                    {if $sortDirection === 'asc'}
+                                        {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
+                                    {else}
+                                        {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
+                                    {/if}
+                                {else}
+                                    {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0']}
+                                {/if}
+                            </a>
                         </th>
                     {/foreach}
                 {/if}
@@ -65,35 +102,35 @@
                                     {if $modelResponse->getCalculatedPercentage() !== null}
                                         {var $percentage = $modelResponse->getCalculatedPercentage()}
                                         <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
-                                                {if $percentage > 0}
-                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
-                                                        <circle cx="3" cy="3" r="3" />
-                                                    </svg>
-                                                    +{$percentage|number:2}%
-                                                {elseif $percentage < 0}
-                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
-                                                        <circle cx="3" cy="3" r="3" />
-                                                    </svg>
-                                                    {$percentage|number:2}%
-                                                {else}
-                                                    <svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
-                                                        <circle cx="3" cy="3" r="3" />
-                                                    </svg>
-                                                    0.00%
-                                                {/if}
-                                            </span>
+                                            {if $percentage > 0}
+                                                <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                </svg>
+                                                +{$percentage|number:2}%
+                                            {elseif $percentage < 0}
+                                                <svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                </svg>
+                                                {$percentage|number:2}%
+                                            {else}
+                                                <svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
+                                                    <circle cx="3" cy="3" r="3" />
+                                                </svg>
+                                                0.00%
+                                            {/if}
+                                        </span>
                                     {/if}
 
                                     {* Badge se stavem *}
                                     <span class="inline-flex items-center rounded-md bg-{$color}-50 px-2 py-1 text-xs font-medium text-{$color}-700 ring-1 ring-inset ring-{$color}-700/10">
-                                            {$state->getLabel()}
-                                        </span>
+                                        {$state->getLabel()}
+                                    </span>
                                 </div>
                             {else}
                                 <div class="text-center">
-                                        <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                                            {$state->getLabel()}
-                                        </span>
+                                    <span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                        {$state->getLabel()}
+                                    </span>
                                 </div>
                             {/if}
                         </td>
@@ -102,5 +139,42 @@
             {/foreach}
             </tbody>
         </table>
+    </div>
+</div>
+
+{* Legenda pro interpretaci barev *}
+<div class="mt-6 rounded-lg bg-gray-50 p-4">
+    <h3 class="text-sm font-semibold text-gray-900 mb-3">Legenda</h3>
+    <div class="flex flex-wrap gap-3">
+        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-green-50 px-3 py-1.5 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-700/10">
+            <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
+                <circle cx="3" cy="3" r="3" />
+            </svg>
+            Podhodnocená (zelená %)
+        </span>
+        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-700 ring-1 ring-inset ring-red-700/10">
+            <svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
+                <circle cx="3" cy="3" r="3" />
+            </svg>
+            Nadhodnocená (červená %)
+        </span>
+        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+            <svg viewBox="0 0 6 6" class="size-1.5 fill-blue-500">
+                <circle cx="3" cy="3" r="3" />
+            </svg>
+            Spravedlivá cena
+        </span>
+        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-3 py-1.5 text-sm font-medium text-yellow-700 ring-1 ring-inset ring-yellow-700/10">
+            <svg viewBox="0 0 6 6" class="size-1.5 fill-yellow-500">
+                <circle cx="3" cy="3" r="3" />
+            </svg>
+            Neutrální
+        </span>
+        <span class="inline-flex items-center gap-x-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+            <svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
+                <circle cx="3" cy="3" r="3" />
+            </svg>
+            Nelze vypočítat
+        </span>
     </div>
 </div>
