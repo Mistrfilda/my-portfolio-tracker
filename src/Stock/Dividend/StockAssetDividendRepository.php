@@ -187,7 +187,7 @@ class StockAssetDividendRepository extends BaseRepository
 	public function getLastDividend(
 		StockAsset $stockAsset,
 		StockAssetDividendTypeEnum|null $typeEnum = null,
-	): StockAssetDividend
+	): StockAssetDividend|null
 	{
 		$qb = $this->createQueryBuilder();
 		if ($typeEnum !== null) {
@@ -201,9 +201,13 @@ class StockAssetDividendRepository extends BaseRepository
 		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
 		$qb->setMaxResults(1);
 
-		$result = $qb->getQuery()->getSingleResult();
-		assert($result instanceof StockAssetDividend);
-		return $result;
+		try {
+			$result = $qb->getQuery()->getSingleResult();
+			assert($result instanceof StockAssetDividend);
+			return $result;
+		} catch (NoResultException) {
+			return null;
+		}
 	}
 
 	public function createQueryBuilder(): QueryBuilder

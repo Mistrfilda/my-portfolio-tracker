@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Forecast;
 
+use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
@@ -12,6 +13,7 @@ use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendTrendEnum;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -221,6 +223,58 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->entityManager->shouldReceive('flush')->times(4);
 
 		$this->facade->recalculateAll();
+
+		$this->assertTrue(true);
+	}
+
+	public function testRecalculateSkipsStockAssetWhenGetLastDividendReturnsNull(): void
+	{
+		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
+		$forecast->shouldReceive('getForYear')->andReturn(2024);
+		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
+		$forecast->shouldReceive('recalculated')->once()->with($this->now);
+
+		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('hasOpenPositions')->andReturn(true);
+		$stockAsset->shouldReceive('doesPaysDividends')->andReturn(true);
+		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
+		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
+		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(1);
+
+		$this->stockAssetDividendForecastRepository
+			->shouldReceive('getById')
+			->with($this->forecastId)
+			->once()
+			->andReturn($forecast);
+
+		$this->stockAssetDividendForecastRecordRepository
+			->shouldReceive('findByStockAssetDividendForecast')
+			->with($this->forecastId)
+			->once()
+			->andReturn([]);
+
+		$this->stockAssetRepository
+			->shouldReceive('findAll')
+			->once()
+			->andReturn([$stockAsset]);
+
+		$this->stockAssetDividendRepository
+			->shouldReceive('findByStockAssetForYear')
+			->twice()
+			->andReturn([], []);
+
+		$this->stockAssetDividendRepository
+			->shouldReceive('getLastDividend')
+			->with($stockAsset, StockAssetDividendTypeEnum::REGULAR)
+			->once()
+			->andReturn(null);
+
+		$this->entityManager->shouldReceive('persist')->never();
+		$this->entityManager->shouldReceive('remove')->never();
+		$this->entityManager->shouldReceive('flush')->twice();
+
+		$this->facade->recalculate($this->forecastId);
 
 		$this->assertTrue(true);
 	}

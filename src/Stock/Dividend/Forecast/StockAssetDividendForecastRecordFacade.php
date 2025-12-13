@@ -115,10 +115,15 @@ class StockAssetDividendForecastRecordFacade
 
 			$usedDividendForCalculation = $lastDividendForYear;
 			if ($usedDividendForCalculation === null) {
-				$usedDividendForCalculation = $this->stockAssetDividendRepository->getLastDividend(
+				$lastDividend = $this->stockAssetDividendRepository->getLastDividend(
 					$stockAsset,
 					StockAssetDividendTypeEnum::REGULAR,
 				);
+				if ($lastDividend === null) {
+					break;
+				}
+
+				$usedDividendForCalculation = $lastDividend;
 			}
 
 			$adjustedPrice = $usedDividendForCalculation->getSummaryPrice()->getPrice();
