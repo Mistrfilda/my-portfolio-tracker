@@ -485,6 +485,7 @@ services:
 	- App\Stock\Valuation\UI\Control\Detail\StockValuationDetailControlFactory
 	- App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlFactory
 	- App\Stock\Valuation\Model\UI\StockValuationModelSortService
+	- App\Stock\Valuation\Model\Price\RoeQualityValuationModel
 
 	#Stock valuation models
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel
