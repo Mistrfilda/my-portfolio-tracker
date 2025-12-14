@@ -12,6 +12,7 @@ declare global {
         addExpenseOtherTag: any;
         removeOtherTag: any;
         currencyConvert: any;
+        stockValuationModelData: any;
     }
 }
 

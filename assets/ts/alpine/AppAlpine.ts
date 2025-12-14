@@ -311,5 +311,40 @@ Alpine.data('currencyConvert', (handleLink: string, amount: string, fromCurrency
     }
 }));
 
+Alpine.data('stockValuationModelData', (totalColumns: number) => ({
+    open: false,
+    hiddenColumns: [] as number[],
+    totalColumns: totalColumns,
+    toggle() {
+        if (this.open) {
+            return this.close()
+        }
+        this.$refs.button.focus()
+        this.open = true
+    },
+    close(focusAfter?: HTMLElement) {
+        if (!this.open) return
+        this.open = false
+        focusAfter && focusAfter.focus()
+    },
+    toggleColumn(index: number) {
+        if (this.hiddenColumns.includes(index)) {
+            let idx = this.hiddenColumns.indexOf(index);
+            this.hiddenColumns.splice(idx, 1);
+        } else {
+            this.hiddenColumns.push(index);
+        }
+    },
+    isHidden(index: number): boolean {
+        return this.hiddenColumns.includes(index);
+    },
+    showAll() {
+        this.hiddenColumns = [];
+    },
+    hideAll() {
+        this.hiddenColumns = Array.from({length: this.totalColumns - 1}, (_, i) => i + 1);
+    }
+}));
+
 window.Alpine = Alpine;
 Alpine.start();
