@@ -46,6 +46,8 @@ enum SystemValueEnum: string
 
 	case ECB_CURRENCY_DOWNLOADED_COUNT = 'ecb_currency_downloaded_count';
 
+	case CRYPTO_CURRENCY_DOWNLOADED_COUNT = 'crypto_currency_downloaded_count';
+
 	public function getLabel(): string
 	{
 		return match ($this) {
@@ -65,6 +67,7 @@ enum SystemValueEnum: string
 			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => 'Výdajové tagy naposledy zprocesovány',
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ČNB',
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ECB',
+			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => 'Počet stažených cen kryptoměn',
 		};
 	}
 
@@ -87,6 +90,7 @@ enum SystemValueEnum: string
 			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 		};
 	}
 

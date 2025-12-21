@@ -7,6 +7,8 @@ namespace App\Crypto\Price\Downloader\Json;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Price\CryptoAssetPriceRecord;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
+use App\System\SystemValueEnum;
+use App\System\SystemValueFacade;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -25,6 +27,7 @@ class CryptoAssetJsonDownloaderFacade
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
 		private LoggerInterface $logger,
+		private SystemValueFacade $systemValueFacade,
 	)
 	{
 	}
@@ -123,6 +126,10 @@ class CryptoAssetJsonDownloaderFacade
 			}
 		}
 
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT,
+			intValue: count($results),
+		);
 		$this->entityManager->flush();
 
 		return $results;

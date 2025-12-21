@@ -17,4 +17,6 @@ enum MonitoringUptimeMonitorEnum: string
 
 	case ECB_CURRENCY_DOWNLOADED_COUNT = 'ecb_currency_downloaded_count';
 
+	case CRYPTO_CURRENCY_DOWNLOADED_COUNT = 'crypto_currency_downloaded_count';
+
 }

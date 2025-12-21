@@ -562,6 +562,10 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 				),
 				TailwindColorConstant::YELLOW,
 				$cryptoAsset->getSvgIcon(),
+				sprintf(
+					'Aktualizováno %s',
+					$cryptoAsset->getLastPriceRecord()?->getCreatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+				),
 			);
 		}
 

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Monitoring;
 
+use App\Crypto\Asset\CryptoAssetRepository;
 use App\Currency\Download\CNBCurrencyConversionDownloadFacade;
 use App\Currency\Download\ECBCurrencyConversionDownloadFacade;
 use App\System\SystemValueEnum;
@@ -21,6 +22,7 @@ class MonitoringFacade
 	public function __construct(
 		private array $monitoringUptimeMonitorMapping,
 		private SystemValueResolveFacade $systemValueResolveFacade,
+		private CryptoAssetRepository $cryptoAssetRepository,
 	)
 	{
 		$this->client = new Client();
@@ -72,6 +74,13 @@ class MonitoringFacade
 			if ($type === MonitoringUptimeMonitorEnum::ECB_CURRENCY_DOWNLOADED_COUNT) {
 				$cnbCountValue = $systemValues[SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT->value];
 				if ((int) $cnbCountValue === count(ECBCurrencyConversionDownloadFacade::RATES_TO_BE_DOWNLOADED) * 2) {
+					$this->sendPushMonitor($url);
+				}
+			}
+
+			if ($type === MonitoringUptimeMonitorEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT) {
+				$cryptoCountValue = $systemValues[SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT->value];
+				if ((int) $cryptoCountValue === count($this->cryptoAssetRepository->findAll())) {
 					$this->sendPushMonitor($url);
 				}
 			}

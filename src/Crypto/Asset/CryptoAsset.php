@@ -268,4 +268,14 @@ class CryptoAsset implements Entity, Asset
 		return $this->svgIcon;
 	}
 
+	public function getLastPriceRecord(): CryptoAssetPriceRecord|null
+	{
+		$last = $this->priceRecords->last();
+		if ($last === false) {
+			return null;
+		}
+
+		return $last;
+	}
+
 }
