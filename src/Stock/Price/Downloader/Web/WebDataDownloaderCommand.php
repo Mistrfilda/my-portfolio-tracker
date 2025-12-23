@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Price\Downloader\Web;
 
 use App\Stock\Price\StockAssetPriceRecord;
-use App\Utils\MonologHelper;
+use App\Utils\Monolog\MonologHelper;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;

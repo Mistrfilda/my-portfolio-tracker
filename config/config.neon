@@ -78,6 +78,9 @@ parameters:
 	crypto:
 		tableUrl: https://example.com
 
+	logger:
+		discordWebhookUrl: https://example.com
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -164,6 +167,7 @@ monolog:
 			handlers:
 				- Monolog\Handler\RotatingFileHandler(%appDir%/../log/app-log.log, 30)
 				- Monolog\Handler\StreamHandler("php://stdout")
+				- App\Utils\Monolog\MonologDiscordHandler(%logger.discordWebhookUrl%, Monolog\Level::Error)
 			processors:
 				- Monolog\Processor\MemoryPeakUsageProcessor()
 				- Monolog\Processor\WebProcessor()

@@ -37,6 +37,7 @@
 		"guzzlehttp/guzzle": "^7.4",
 		"latte/latte": "^3.0",
 		"mistrfilda/datetime": "^0.5",
+		"monolog/monolog": "*",
 		"nette/application": "^3.1",
 		"nette/bootstrap": "^3.1",
 		"nette/caching": "^3.1",
