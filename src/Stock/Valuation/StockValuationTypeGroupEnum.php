@@ -29,6 +29,7 @@ enum StockValuationTypeGroupEnum: string
 			StockValuationTypeGroupEnum::CASH_FLOW,
 			StockValuationTypeGroupEnum::TRADING_INFO,
 			StockValuationTypeGroupEnum::DIVIDENDS,
+			StockValuationTypeGroupEnum::ANALYST_INSIGHT,
 		];
 	}
 
