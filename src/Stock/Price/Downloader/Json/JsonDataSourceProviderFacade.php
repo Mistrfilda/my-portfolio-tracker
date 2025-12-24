@@ -26,6 +26,8 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 
 	public const STOCK_ASSET_KEY_STATISTICS_FILENAME = 'keyStatistics.json';
 
+	public const STOCK_ASSET_ANALYST_INSIGHT = 'analystInsights.json';
+
 	public function __construct(
 		private readonly int $updateStockAssetHoursThreshold,
 		private StockAssetRepository $stockAssetRepository,
@@ -96,6 +98,7 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 
 		$keyStatistics = [];
 		$financials = [];
+		$analystInsights = [];
 		foreach ($stockAssets as $stockAsset) {
 			$keyStatistics[] = [
 				'id' => $stockAsset->getId()->toString(),
@@ -110,6 +113,13 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 				'currency' => $stockAsset->getCurrency()->value,
 				'url' => $this->jsonWebDataService->getFinancialsDataUrl($stockAsset),
 			];
+
+			$analystInsights[] = [
+				'id' => $stockAsset->getId()->toString(),
+				'name' => $stockAsset->getName(),
+				'currency' => $stockAsset->getCurrency()->value,
+				'url' => $this->jsonWebDataService->getAnalystInsightUrl($stockAsset),
+			];
 		}
 
 		FileSystem::write(
@@ -120,6 +130,11 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 		FileSystem::write(
 			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_FINANCIALS_FILENAME,
 			Json::encode($financials),
+		);
+
+		FileSystem::write(
+			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_ANALYST_INSIGHT,
+			Json::encode($analystInsights),
 		);
 	}
 

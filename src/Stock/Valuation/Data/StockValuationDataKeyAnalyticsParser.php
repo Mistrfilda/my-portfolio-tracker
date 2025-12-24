@@ -12,7 +12,7 @@ use DOMXPath;
 use Throwable;
 use const XML_ELEMENT_NODE;
 
-class StockValuationDataParser
+class StockValuationDataKeyAnalyticsParser
 {
 
 	private DOMDocument $dom;
@@ -314,48 +314,6 @@ class StockValuationDataParser
 		} catch (Throwable) {
 			return null;
 		}
-	}
-
-	/**
-	 * Konvertuje textové hodnoty na číselné pro další zpracování
-	 */
-	public function parseNumericValue(string|null $value): float|null
-	{
-		if ($value === null || $value === '--' || $value === 'N/A' || trim($value) === '') {
-			return null;
-		}
-
-		$value = trim($value);
-		if (str_contains($value, '%')) {
-			$cleaned = preg_replace('/[^\d.,-]/', '', $value);
-			if ($cleaned === null) {
-				throw new StockValuationDataException();
-			}
-
-			return (float) str_replace(',', '.', $cleaned);
-		}
-
-		$multiplier = 1;
-		if (str_contains($value, 'B')) {
-			$multiplier = 1000000000;
-		} elseif (str_contains($value, 'M')) {
-			$multiplier = 1000000;
-		} elseif (str_contains($value, 'K')) {
-			$multiplier = 1000;
-		}
-
-		$cleaned = preg_replace('/[^\d.,-]/', '', $value);
-		if ($cleaned === null) {
-			throw new StockValuationDataException();
-		}
-
-		$cleaned = str_replace(',', '.', $cleaned);
-
-		if (is_numeric($cleaned)) {
-			return (float) $cleaned * $multiplier;
-		}
-
-		return null;
 	}
 
 }

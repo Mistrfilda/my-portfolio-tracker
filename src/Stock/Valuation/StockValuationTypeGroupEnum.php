@@ -15,6 +15,8 @@ enum StockValuationTypeGroupEnum: string
 	case TRADING_INFO = 'trading_info';
 	case DIVIDENDS = 'dividends';
 
+	case ANALYST_INSIGHT = 'analyst_insight';
+
 	/**
 	 * @return array<StockValuationTypeGroupEnum>
 	 */
@@ -40,6 +42,7 @@ enum StockValuationTypeGroupEnum: string
 			StockValuationTypeGroupEnum::CASH_FLOW => 'Cash Flow',
 			StockValuationTypeGroupEnum::TRADING_INFO => 'Trading Info',
 			StockValuationTypeGroupEnum::DIVIDENDS => 'Dividends',
+			StockValuationTypeGroupEnum::ANALYST_INSIGHT => 'Analyst Insight',
 		};
 	}
 
@@ -117,6 +120,12 @@ enum StockValuationTypeGroupEnum: string
 				StockValuationTypeEnum::PAYOUT_RATIO,
 				StockValuationTypeEnum::DIVIDEND_DATE,
 				StockValuationTypeEnum::EX_DIVIDEND_DATE,
+			],
+			StockValuationTypeGroupEnum::ANALYST_INSIGHT => [
+				StockValuationTypeEnum::ANALYST_PRICE_TARGET_LOW,
+				StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
+				StockValuationTypeEnum::ANALYST_PRICE_TARGET_CURRENT,
+				StockValuationTypeEnum::ANALYST_PRICE_TARGET_HIGH,
 			]
 		};
 	}

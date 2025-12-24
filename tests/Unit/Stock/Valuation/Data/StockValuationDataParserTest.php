@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Valuation\Data;
 
-use App\Stock\Valuation\Data\StockValuationDataParser;
+use App\Stock\Valuation\Data\StockValuationDataKeyAnalyticsParser;
 use App\Test\UpdatedTestCase;
 
 class StockValuationDataParserTest extends UpdatedTestCase
@@ -55,7 +55,7 @@ class StockValuationDataParserTest extends UpdatedTestCase
 		</html>
 HTML;
 
-		$parser = new StockValuationDataParser($html);
+		$parser = new StockValuationDataKeyAnalyticsParser($html);
 
 		$expected = [
 			'basic_info' => [
@@ -148,7 +148,7 @@ HTML;
 		</html>
 HTML;
 
-		$parser = new StockValuationDataParser($html);
+		$parser = new StockValuationDataKeyAnalyticsParser($html);
 
 		$expected = [
 			'basic_info' => [

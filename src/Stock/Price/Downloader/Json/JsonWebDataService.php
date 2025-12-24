@@ -15,6 +15,7 @@ class JsonWebDataService
 		private string $stockAssetDividendPriceUrl,
 		private string $financialsDataUrl,
 		private string $keyStatisticsDataUrl,
+		private string $analystInsightUrl,
 		private DatetimeFactory $datetimeFactory,
 	)
 	{
@@ -51,6 +52,14 @@ class JsonWebDataService
 	{
 		return sprintf(
 			$this->keyStatisticsDataUrl,
+			$stockAsset->getTicker(),
+		);
+	}
+
+	public function getAnalystInsightUrl(StockAsset $stockAsset): string
+	{
+		return sprintf(
+			$this->analystInsightUrl,
 			$stockAsset->getTicker(),
 		);
 	}

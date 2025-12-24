@@ -35,7 +35,7 @@ class StockValuationDataFacade
 	{
 	}
 
-	public function processResults(): void
+	public function processKeyStatistics(): void
 	{
 		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME;
 
@@ -50,7 +50,7 @@ class StockValuationDataFacade
 
 		/** @var object{id: string, currency: string, textContent: string, html: string}&stdClass $parsedStockAsset */
 		foreach ($parsedJson as $parsedStockAsset) {
-			$parser = new StockValuationDataParser($parsedStockAsset->html);
+			$parser = new StockValuationDataKeyAnalyticsParser($parsedStockAsset->html);
 			$data = $parser->parseStockData();
 
 			$stockAsset = $this->stockAssetRepository->getById(Uuid::fromString($parsedStockAsset->id));
@@ -76,7 +76,7 @@ class StockValuationDataFacade
 						if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
 							$floatValue = (float) str_replace('%', '', $value ?? '');
 						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
-							$floatValue = $parser->parseNumericValue($value);
+							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
 						}
 					}
 
@@ -115,6 +115,95 @@ class StockValuationDataFacade
 		$this->systemValueFacade->updateValue(
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT,
 			datetimeValue: $now,
+		);
+
+		FileSystem::copy($file, $processedFile);
+		FileSystem::delete($file);
+	}
+
+	public function processAnalystInsights(): void
+	{
+		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT;
+
+		if (file_exists($file) === false) {
+			return;
+		}
+
+		$parsedJson = Json::decode(FileSystem::read($file));
+		assert(is_array($parsedJson));
+
+		$now = $this->datetimeFactory->createNow();
+		$parser = new StockValuationDataAnalyticsParser();
+
+		/** @var object{id: string, ticker: string, textContent: string, html: string}&stdClass $parsedStockAsset */
+		foreach ($parsedJson as $parsedStockAsset) {
+			$stockAsset = $this->stockAssetRepository->getById(Uuid::fromString($parsedStockAsset->id));
+			$this->logger->debug(sprintf('Processing analyst insight for stock asset %s', $stockAsset->getName()));
+
+			$priceTargets = $parser->parseAnalystPriceTargets($parsedStockAsset->textContent);
+			dump($priceTargets);
+
+			if ($priceTargets === null) {
+				$this->logger->warning(sprintf('Failed to parse analyst price targets for %s', $stockAsset->getName()));
+				continue;
+			}
+
+			$valuesToCreate = [
+				[
+					'type' => StockValuationTypeEnum::ANALYST_PRICE_TARGET_LOW,
+					'value' => $priceTargets['low'],
+				],
+				[
+					'type' => StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
+					'value' => $priceTargets['average'],
+				],
+				[
+					'type' => StockValuationTypeEnum::ANALYST_PRICE_TARGET_CURRENT,
+					'value' => $priceTargets['current'],
+				],
+				[
+					'type' => StockValuationTypeEnum::ANALYST_PRICE_TARGET_HIGH,
+					'value' => $priceTargets['high'],
+				],
+			];
+
+			foreach ($valuesToCreate as $item) {
+				$valueType = $item['type'];
+				$value = $item['value'];
+
+				if ($value === null) {
+					continue;
+				}
+
+				$stockValuationData = new StockValuationData(
+					$stockAsset,
+					$valueType,
+					$valueType->getTypeGroup(),
+					$valueType->getTypeValueType(),
+					$now,
+					$value,
+					StockValuationDataNumericHelper::parseNumericValue($value),
+					$stockAsset->getCurrency(),
+					$now,
+				);
+
+				$this->entityManager->persist($stockValuationData);
+			}
+
+			$this->entityManager->flush();
+			$this->logger->debug(sprintf('Processed analyst insight for stock asset %s', $stockAsset->getName()));
+		}
+
+		$processedFile = sprintf(
+			'%s%s-%s',
+			$this->jsonDataFolderService->getParsedResultsFolder(),
+			$now->getTimestamp(),
+			JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT,
+		);
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT,
+			intValue: count($parsedJson),
 		);
 
 		FileSystem::copy($file, $processedFile);

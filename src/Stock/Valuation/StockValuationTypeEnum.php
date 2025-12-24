@@ -92,6 +92,14 @@ enum StockValuationTypeEnum: string
 	case DIVIDEND_DATE = 'dividend_date';
 	case EX_DIVIDEND_DATE = 'ex_dividend_date';
 
+	/**
+	 * ANALYST INSIGHTS
+	 */
+	case ANALYST_PRICE_TARGET_LOW = 'analyst_price_target_low';
+	case ANALYST_PRICE_TARGET_AVERAGE = 'analyst_price_target_average';
+	case ANALYST_PRICE_TARGET_CURRENT = 'analyst_price_target_current';
+	case ANALYST_PRICE_TARGET_HIGH = 'analyst_price_target_high';
+
 	public function getTypeGroup(): StockValuationTypeGroupEnum
 	{
 		return match ($this) {
@@ -156,6 +164,11 @@ enum StockValuationTypeEnum: string
 			StockValuationTypeEnum::PAYOUT_RATIO,
 			StockValuationTypeEnum::DIVIDEND_DATE,
 			StockValuationTypeEnum::EX_DIVIDEND_DATE => StockValuationTypeGroupEnum::DIVIDENDS,
+
+			StockValuationTypeEnum::ANALYST_PRICE_TARGET_LOW,
+			StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
+			StockValuationTypeEnum::ANALYST_PRICE_TARGET_CURRENT,
+			StockValuationTypeEnum::ANALYST_PRICE_TARGET_HIGH => StockValuationTypeGroupEnum::ANALYST_INSIGHT,
 		};
 	}
 

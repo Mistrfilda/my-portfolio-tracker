@@ -29,7 +29,8 @@ class StockValuationDataParseCommand extends Command
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$output->writeln('Parsing data from Puppeter');
-		$this->stockValuationDataFacade->processResults();
+		$this->stockValuationDataFacade->processKeyStatistics();
+		$this->stockValuationDataFacade->processAnalystInsights();
 		$output->writeln('Data from Puppeter processed');
 		return 0;
 	}
