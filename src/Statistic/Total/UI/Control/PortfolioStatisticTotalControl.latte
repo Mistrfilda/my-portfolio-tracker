@@ -1,417 +1,137 @@
 {varType App\Statistic\Total\PortfolioStatisticTotalGroup[] $groups}
 
 {if $renderOnlyYears}
-    <div x-data="{
-            open: true,
-            toggle() {
-                this.open = !this.open
-            }
-        }"
-    >
+    <div x-data="{ open: true, toggle() { this.open = !this.open } }">
         <div class="pb-5 border-b border-gray-200 py-6">
             <div class="flex justify-between">
-                <div>
-                    <h2 class="text-2xl leading-6 font-medium text-gray-900">
-                        <button x-on:click="toggle()">
-                            Výkonost dle roků
-                        </button>
-                    </h2>
-                </div>
-                <div>
-                    <button x-on:click="toggle()" type="button"
-                            class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
-                            aria-controls="sub-menu-1" aria-expanded="false">
-                        <svg
-                                :class="open ? 'rotate-90' : ''"
-                                class="text-gray-400 h-5 w-5 shrink-0"
-                                viewBox="0 0 20 20"
-                                fill="currentColor"
-                                aria-hidden="true"
-                        >
-                            <path fill-rule="evenodd"
-                                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                  clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
+                <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                    <button x-on:click="toggle()">Výkonnost dle roků</button>
+                </h2>
+                <button x-on:click="toggle()" type="button" class="hover:bg-gray-50 rounded-md p-2">
+                    <svg :class="open ? 'rotate-90' : ''" class="text-gray-400 h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>
+                </button>
             </div>
         </div>
 
-        <div
-                class="mt-5"
-                x-show="open"
-                x-cloak="open"
-                x-transition:enter="transition-opacity ease-linear duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="transition-opacity ease-linear duration-300"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-        >
+        <div class="mt-5" x-show="open" x-cloak x-transition>
             <ul role="list" class="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8 my-4">
                 {foreach $groups as $group}
-                    <li class="overflow-hidden rounded-xl border border-gray-200">
-                        <div class="flex items-center gap-x-4 border-b border-gray-800 bg-gray-50 p-6">
-                            <div class="text-sm font-medium leading-6 text-gray-900">{$group->getYearValue()->getLabel()}</div>
-                        </div>
-                        <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6 bg-gray-50 border-t border-t-gray-800">
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Investováno na začátku</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getInvestedAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Investováno na konci</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Hodnota na začátku</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getValueAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Hodnota na konci</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-blue-50">
-                                <dt class="text-gray-900 font-semibold">Zisk za rok</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getPeriodProfit() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-blue-50">
-                                <dt class="text-gray-900 font-semibold">Celkový zisk</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTotalProfit() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTotalProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTotalProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-purple-50">
-                                <dt class="text-gray-900 font-semibold">Výkonnost za rok</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getPeriodPerformancePercentage() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getPeriodPerformancePercentage()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getPeriodPerformancePercentage()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-purple-50">
-                                <dt class="text-gray-900 font-semibold">Celková výkonnost</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTotalPerformancePercentage() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTotalPerformancePercentage()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTotalPerformancePercentage()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-indigo-50">
-                                <dt class="text-gray-900 font-semibold">TWR (Časově vážený výnos)</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTimeWeightedReturn() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTimeWeightedReturn()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTimeWeightedReturn()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                        </dl>
-                    </li>
+                    {include #valueCard, value: $group->getYearValue()}
                 {/foreach}
             </ul>
         </div>
     </div>
 {else}
     {foreach $groups as $group}
-        <div x-data="{
-            open: true,
-            toggle() {
-                this.open = !this.open
-            }
-        }"
-        >
+        <div x-data="{ open: true, toggle() { this.open = !this.open } }">
             <div class="pb-5 border-b border-gray-200 py-6">
                 <div class="flex justify-between">
-                    <div>
-                        <h2 class="text-2xl leading-6 font-medium text-gray-900">
-                            <button x-on:click="toggle()">
-                                {$group->getYear()}
-                            </button>
-                        </h2>
-                    </div>
-                    <div>
-                        <button x-on:click="toggle()" type="button"
-                                class="hover:bg-gray-50 flex items-center w-full text-left rounded-md p-2 gap-x-3 text-sm leading-6 font-semibold text-gray-700"
-                                aria-controls="sub-menu-1" aria-expanded="false">
-                            <svg
-                                    :class="open ? 'rotate-90' : ''"
-                                    class="text-gray-400 h-5 w-5 shrink-0"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                    aria-hidden="true"
-                            >
-                                <path fill-rule="evenodd"
-                                      d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                                      clip-rule="evenodd"/>
-                            </svg>
-                        </button>
-                    </div>
+                    <h2 class="text-2xl leading-6 font-medium text-gray-900">
+                        <button x-on:click="toggle()">{$group->getYear()}</button>
+                    </h2>
+                    <button x-on:click="toggle()" type="button" class="hover:bg-gray-50 rounded-md p-2">
+                        <svg :class="open ? 'rotate-90' : ''" class="text-gray-400 h-5 w-5 transition-transform" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>
+                    </button>
                 </div>
             </div>
 
-            <div
-                    class="mt-5"
-                    x-show="open"
-                    x-cloak="open"
-                    x-transition:enter="transition-opacity ease-linear duration-300"
-                    x-transition:enter-start="opacity-0"
-                    x-transition:enter-end="opacity-100"
-                    x-transition:leave="transition-opacity ease-linear duration-300"
-                    x-transition:leave-start="opacity-100"
-                    x-transition:leave-end="opacity-0"
-            >
-                <ul role="list" class="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8 my-4">
-                    <li class="overflow-hidden rounded-xl border border-gray-200">
-                        <div class="flex items-center gap-x-4 border-b border-gray-800 bg-gray-50 p-6">
-                            <div class="text-sm font-medium leading-6 text-gray-900">{$group->getYearValue()->getLabel()}</div>
-                        </div>
-                        <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6 bg-gray-50 border-t border-t-gray-800">
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Investováno na začátku</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getInvestedAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Investováno na konci</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Hodnota na začátku</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getValueAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3">
-                                <dt class="text-gray-500">Hodnota na konci</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">{$group->getYearValue()->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-blue-50">
-                                <dt class="text-gray-900 font-semibold">Zisk za rok</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getPeriodProfit() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-blue-50">
-                                <dt class="text-gray-900 font-semibold">Celkový zisk</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTotalProfit() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTotalProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTotalProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-purple-50">
-                                <dt class="text-gray-900 font-semibold">Výkonnost za rok</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getPeriodPerformancePercentage() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getPeriodPerformancePercentage()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getPeriodPerformancePercentage()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-purple-50">
-                                <dt class="text-gray-900 font-semibold">Celková výkonnost</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTotalPerformancePercentage() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTotalPerformancePercentage()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTotalPerformancePercentage()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                            <div class="flex justify-between gap-x-4 py-3 bg-indigo-50">
-                                <dt class="text-gray-900 font-semibold">TWR (Časově vážený výnos)</dt>
-                                <dd class="flex items-start gap-x-2">
-                                    <div class="font-medium text-gray-900">
-                                        {if $group->getYearValue()->getTimeWeightedReturn() < 0}
-                                            <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                {$group->getYearValue()->getTimeWeightedReturn()|number:2} %
-                                            </div>
-                                        {else}
-                                            <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                {$group->getYearValue()->getTimeWeightedReturn()|number:2} %
-                                            </div>
-                                        {/if}
-                                    </div>
-                                </dd>
-                            </div>
-                        </dl>
-                    </li>
-                </ul>
-
+            <div class="mt-5" x-show="open" x-cloak x-transition>
+                <div class="mb-8 max-w-sm">
+                    {include #valueCard, value: $group->getYearValue()}
+                </div>
                 <ul role="list" class="grid grid-cols-1 gap-x-6 gap-y-8 lg:grid-cols-3 xl:gap-x-8">
-                    {foreach $group->getValues() as $value}
-                        <li class="overflow-hidden rounded-xl border border-gray-200">
-                            <div class="flex items-center gap-x-4 border-b border-gray-800 bg-gray-50 p-6">
-                                <div class="text-sm font-medium leading-6 text-gray-900">{$value->getLabel()}</div>
-                            </div>
-                            <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6 bg-gray-50 border-t border-t-gray-800">
-                                <div class="flex justify-between gap-x-4 py-3">
-                                    <dt class="text-gray-500">Investováno na začátku</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">{$value->getInvestedAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3">
-                                    <dt class="text-gray-500">Investováno na konci</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">{$value->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3">
-                                    <dt class="text-gray-500">Hodnota na začátku</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">{$value->getValueAtStart()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3">
-                                    <dt class="text-gray-500">Hodnota na konci</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">{$value->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3 bg-blue-50">
-                                    <dt class="text-gray-900 font-semibold">Zisk za měsíc</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">
-                                            {if $value->getPeriodProfit() < 0}
-                                                <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                    {$value->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                                </div>
-                                            {else}
-                                                <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                    {$value->getPeriodProfit()|currency:App\Currency\CurrencyEnum::CZK}
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3 bg-purple-50">
-                                    <dt class="text-gray-900 font-semibold">Výkonnost za měsíc</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">
-                                            {if $value->getPeriodPerformancePercentage() < 0}
-                                                <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                    {$value->getPeriodPerformancePercentage()|number:2} %
-                                                </div>
-                                            {else}
-                                                <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                    {$value->getPeriodPerformancePercentage()|number:2} %
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    </dd>
-                                </div>
-                                <div class="flex justify-between gap-x-4 py-3 bg-indigo-50">
-                                    <dt class="text-gray-900 font-semibold">TWR</dt>
-                                    <dd class="flex items-start gap-x-2">
-                                        <div class="font-medium text-gray-900">
-                                            {if $value->getTimeWeightedReturn() < 0}
-                                                <div class="rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 ring-1 ring-inset ring-red-600/10">
-                                                    {$value->getTimeWeightedReturn()|number:2} %
-                                                </div>
-                                            {else}
-                                                <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                                    {$value->getTimeWeightedReturn()|number:2} %
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    </dd>
-                                </div>
-                            </dl>
-                        </li>
+                    {foreach $group->getValues() as $monthValue}
+                        {include #valueCard, value: $monthValue}
                     {/foreach}
                 </ul>
             </div>
         </div>
     {/foreach}
 {/if}
+
+{define valueCard App\Statistic\Total\PortfolioStatisticTotalValue $value}
+    <li class="overflow-hidden rounded-xl border border-gray-200 bg-white list-none mt-4">
+        <div class="flex items-center gap-x-4 border-b border-gray-100 bg-gray-50 p-6">
+            <div class="text-sm font-semibold leading-6 text-gray-900">{$value->getLabel()}</div>
+        </div>
+        <dl class="-my-3 divide-y divide-gray-100 px-6 py-4 text-sm leading-6">
+            <div class="flex justify-between gap-x-4 py-3">
+                <dt class="text-gray-500">Investováno</dt>
+                <dd class="text-gray-900 font-medium">{$value->getInvestedAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</dd>
+            </div>
+            <div class="flex justify-between gap-x-4 py-3">
+                <dt class="text-gray-500">Hodnota</dt>
+                <dd class="text-gray-900 font-medium">{$value->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</dd>
+            </div>
+
+            {* Výsledek za období (Rok/Měsíc) *}
+            <div class="py-3 border-t border-gray-100">
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-900 font-semibold">{if $value->getMonth()}Zisk za měsíc{else}Zisk za rok{/if}</dt>
+                    <dd>{include #box, amount: $value->getPeriodProfit()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-500 text-xs">Vč. uzavřených pozic</dt>
+                    <dd>{include #box, amount: $value->getPeriodProfitWithClosedPositions()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-500 text-xs">Vč. dividend</dt>
+                    <dd>{include #box, amount: $value->getPeriodProfitWithDividends()}</dd>
+                </div>
+            </div>
+
+            {* Celkový historický výsledek *}
+            <div class="py-3 border-t border-gray-100">
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-900 font-semibold">Celkový zisk</dt>
+                    <dd>{include #box, amount: $value->getTotalProfit()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-500 text-xs">Vč. uzavřených pozic</dt>
+                    <dd>{include #box, amount: $value->getTotalProfitWithClosedPositions()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-500 text-xs">Vč. dividend</dt>
+                    <dd>{include #box, amount: $value->getTotalProfitWithDividends()}</dd>
+                </div>
+            </div>
+
+            <div class="py-3 border-t border-gray-100">
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-900 font-semibold">Výkonnost období</dt>
+                    <dd>{include #box, amount: $value->getPeriodPerformancePercentage(), suffix: '%'}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-900 font-semibold">TWR</dt>
+                    <dd>{include #box, amount: $value->getTimeWeightedReturn(), suffix: '%'}</dd>
+                </div>
+            </div>
+
+            <div class="py-3 border-t border-gray-100">
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-600">Realizovaný zisk</dt>
+                    <dd>{include #box, amount: $value->getClosedPositionsProfitInPeriod()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-1.5">
+                    <dt class="text-gray-600">Dividendy za období</dt>
+                    <dd>
+                        <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                            {$value->getDividendsInPeriod()|currency:App\Currency\CurrencyEnum::CZK}
+                        </div>
+                    </dd>
+                </div>
+            </div>
+        </dl>
+    </li>
+{/define}
+
+{define box $amount, $suffix = null}
+    <div n:class="'rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset whitespace-nowrap',
+    $amount < 0 ? 'bg-red-50 text-red-700 ring-red-600/10' : 'bg-green-50 text-green-700 ring-green-600/20'">
+        {if $suffix === '%'}
+            {$amount|number:2} %
+        {else}
+            {$amount|currency:App\Currency\CurrencyEnum::CZK}
+        {/if}
+    </div>
+{/define}

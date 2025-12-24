@@ -14,6 +14,8 @@ class PortfolioStatisticTotalValue
 		private float $investedAtEnd,
 		private float $valueAtStart,
 		private float $valueAtEnd,
+		private float $closedPositionsProfitInPeriod = 0.0,
+		private float $dividendsInPeriod = 0.0,
 	)
 	{
 	}
@@ -46,6 +48,16 @@ class PortfolioStatisticTotalValue
 	public function getLabel(): string
 	{
 		return $this->label;
+	}
+
+	public function getClosedPositionsProfitInPeriod(): float
+	{
+		return $this->closedPositionsProfitInPeriod;
+	}
+
+	public function getDividendsInPeriod(): float
+	{
+		return $this->dividendsInPeriod;
 	}
 
 	/**
@@ -123,6 +135,26 @@ class PortfolioStatisticTotalValue
 		}
 
 		return (($this->valueAtEnd / $startingCapital) - 1) * 100;
+	}
+
+	public function getTotalProfitWithClosedPositions(): float
+	{
+		return $this->getTotalProfit() + $this->getClosedPositionsProfitInPeriod();
+	}
+
+	public function getTotalProfitWithDividends(): float
+	{
+		return $this->getTotalProfit() + $this->getDividendsInPeriod();
+	}
+
+	public function getPeriodProfitWithClosedPositions(): float
+	{
+		return $this->getPeriodProfit() + $this->getClosedPositionsProfitInPeriod();
+	}
+
+	public function getPeriodProfitWithDividends(): float
+	{
+		return $this->getPeriodProfit() + $this->getDividendsInPeriod();
 	}
 
 }

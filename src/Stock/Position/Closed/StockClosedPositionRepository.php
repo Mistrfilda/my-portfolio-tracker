@@ -8,6 +8,7 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -51,6 +52,23 @@ class StockClosedPositionRepository extends BaseRepository
 
 		$qb = $this->doctrineRepository->createQueryBuilder('stockClosedPosition');
 		$qb->andWhere($qb->expr()->in('stockClosedPosition.id', $ids));
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<StockClosedPosition>
+	 */
+	public function findBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockClosedPosition');
+		$qb->andWhere(
+			$qb->expr()->gte('stockClosedPosition.orderDate', ':start'),
+			$qb->expr()->lte('stockClosedPosition.orderDate', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('stockClosedPosition.orderDate', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}

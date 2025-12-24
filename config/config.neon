@@ -371,6 +371,7 @@ services:
 	- App\Stock\Position\Closed\StockClosedPositionRepository(App\Stock\Position\Closed\StockClosedPosition)
 	- App\Stock\Position\Closed\StockClosedPositionFormFactory
 	- App\Stock\Position\Closed\UI\StockAssetClosedPositionListControlFactory
+	- App\Stock\Position\Closed\StockClosedPositionStatisticFacade
 
 	- App\UI\Control\Chart\ChartControlFactory
 	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider
