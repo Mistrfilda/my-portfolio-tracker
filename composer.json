@@ -151,6 +151,7 @@
 		"stock-valuation": [
 			"bin/console puppeter:valuation:data",
 			"node ./puppeter/financials.js",
+			"node ./puppeter/analyst.js",
 			"bin/console stock:asset:valuation:data"
 		],
 		"migm": "bin/console migrations:migrate --no-interaction",

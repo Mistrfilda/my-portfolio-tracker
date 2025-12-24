@@ -7,6 +7,3 @@ import { AnalystInsightsScraper } from './AnalystInsightsScraper.js';
 
 const keyStatisticsScraper = new KeyStatisticsScraper();
 await keyStatisticsScraper.run('keyStatistics.json', 'keyStatistics.json');
-
-const scraper = new AnalystInsightsScraper();
-await scraper.run('analystInsights.json', 'analystInsights.json');
