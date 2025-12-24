@@ -13,10 +13,12 @@ use App\Goal\Resolver\PortfolioGoalResolver;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
+#[AllowMockObjectsWithoutExpectations]
 class PortfolioGoalUpdateFacadeTest extends TestCase
 {
 

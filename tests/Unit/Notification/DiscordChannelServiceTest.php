@@ -9,8 +9,10 @@ use App\Notification\Discord\DiscordChannelService;
 use App\Notification\Notification;
 use App\Notification\NotificationParameterEnum;
 use App\Notification\NotificationTypeEnum;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class DiscordChannelServiceTest extends TestCase
 {
 

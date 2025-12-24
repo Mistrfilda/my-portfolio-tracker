@@ -14,8 +14,10 @@ use App\Notification\NotificationTypeEnum;
 use App\Stock\Asset\StockAsset;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class AssetTrendFacadeTest extends TestCase
 {
 

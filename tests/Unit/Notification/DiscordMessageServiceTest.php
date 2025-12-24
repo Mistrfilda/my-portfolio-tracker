@@ -9,8 +9,10 @@ use App\Notification\Notification;
 use App\Notification\NotificationTypeEnum;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
 
+#[AllowMockObjectsWithoutExpectations]
 class DiscordMessageServiceTest extends TestCase
 {
 

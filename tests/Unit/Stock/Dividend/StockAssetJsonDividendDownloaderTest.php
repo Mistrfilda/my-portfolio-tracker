@@ -20,10 +20,12 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use const DIRECTORY_SEPARATOR;
 
+#[AllowMockObjectsWithoutExpectations]
 class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 {
 

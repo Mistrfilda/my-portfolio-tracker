@@ -12,10 +12,12 @@ use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use Psr\Log\LoggerInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class WebStockAssetDividendDownloaderFacadeTest extends UpdatedTestCase
 {
 

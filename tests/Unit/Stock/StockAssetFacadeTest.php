@@ -15,9 +15,11 @@ use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class StockAssetFacadeTest extends UpdatedTestCase
 {
 
