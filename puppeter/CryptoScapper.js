@@ -21,6 +21,8 @@ export class CryptoScapper extends PuppeteerScraperBase {
 				break;
 			} catch (selectorError) {
 				console.log(`Selector failed for ${name}: ${selector} - ${selectorError.message}`);
+				const html = await page.content();
+				console.log(html);
 				continue;
 			}
 		}
