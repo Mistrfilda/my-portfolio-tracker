@@ -39,6 +39,7 @@ parameters:
 	stockValuation:
 		financialsDataUrl: https://example.com
 		keyStatisticsDataUrl: https://example.com
+		analystInsightUrl: https://example.com
 
 	workMonthlyIncome:
 		harvestAccountId: 50
@@ -429,6 +430,7 @@ services:
 			stockAssetDividendPriceUrl: %stockDividend.webStockAssetDividendDownloaderUrl%
 			financialsDataUrl: %stockValuation.financialsDataUrl%
 			keyStatisticsDataUrl: %stockValuation.keyStatisticsDataUrl%
+			analystInsightUrl: %stockValuation.analystInsightUrl%
 
 	-
 		class: App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade

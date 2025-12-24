@@ -10,8 +10,6 @@ use Monolog\Handler\AbstractProcessingHandler;
 use Monolog\Level;
 use Monolog\LogRecord;
 use Throwable;
-use function is_int;
-use function is_string;
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_UNICODE;
 
