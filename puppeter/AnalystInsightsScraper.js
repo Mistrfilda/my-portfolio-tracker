@@ -6,6 +6,7 @@ export class AnalystInsightsScraper extends PuppeteerScraperBase {
 
 		const selectors = [
 			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[2]/div/section[1])",
+			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[3]/div/section[1])"
 		];
 
 		let element = null;
