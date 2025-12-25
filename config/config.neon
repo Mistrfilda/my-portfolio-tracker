@@ -538,3 +538,5 @@ services:
 	- App\Crypto\Position\UI\CryptoPositionGridFactory
 	- App\Crypto\Position\UI\CryptoPositionFormFactory
 	- App\Crypto\Price\Downloader\Json\CryptoAssetJsonDownloaderCommand
+	- App\Crypto\Price\Downloader\TwelveData\TwelveDataCryptoDownloaderFacade(apiKey: %twelveData.apiKey%)
+	- App\Crypto\Price\Downloader\TwelveData\TwelveDataCryptoDownloaderCommand

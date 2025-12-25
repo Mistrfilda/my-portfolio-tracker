@@ -53,11 +53,7 @@ class TwelveDataRequest
 
 	public function getFormattedRequestUrl(): string
 	{
-		return sprintf(
-			self::URL,
-			$this->getFormattedTickers(),
-			$this->apiKey,
-		);
+		return sprintf(self::URL, 'BTC,ETH,ADA', $this->apiKey);
 	}
 
 }

@@ -175,11 +175,7 @@
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser",
 		"doctrine-proxies": "bin/console orm:generate-proxies",
 		"monitoring-push-monitors": "bin/console monitoring:push-monitors",
-		"crypto-download-data": [
-			"bin/console crypto:prices:generate",
-			"node ./puppeter/crypto.js",
-			"bin/console crypto:prices:download"
-		]
+		"crypto-download-data": "bin/console crypto:twelve-data:download"
 	},
 	"extra": {
 		"patches": {

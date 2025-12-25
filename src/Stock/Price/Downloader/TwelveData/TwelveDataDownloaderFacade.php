@@ -54,7 +54,6 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 		);
 
 		$parsedContents = Json::decode($response->getBody()->getContents(), true);
-
 		$today = $this->datetimeFactory->createToday();
 		$now = $this->datetimeFactory->createNow();
 		$priceRecords = [];
