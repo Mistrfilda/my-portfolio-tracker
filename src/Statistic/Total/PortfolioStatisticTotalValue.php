@@ -90,23 +90,6 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Procentuální výkonnost za období
-	 * ROI = (zisk za období / průměrná investice) * 100
-	 *
-	 * Používá průměrnou investici, protože během roku se investice měnila
-	 */
-	public function getPeriodPerformancePercentage(): float
-	{
-		$averageInvested = ($this->investedAtStart + $this->investedAtEnd) / 2;
-
-		if ($averageInvested === 0.0) {
-			return 0;
-		}
-
-		return $this->getPeriodProfit() / $averageInvested * 100;
-	}
-
-	/**
 	 * Celková procentuální výkonnost od začátku
 	 * Počítá: (celkový zisk / celkem investováno) * 100
 	 */
@@ -155,6 +138,11 @@ class PortfolioStatisticTotalValue
 	public function getPeriodProfitWithDividends(): float
 	{
 		return $this->getPeriodProfit() + $this->getDividendsInPeriod();
+	}
+
+	public function getPeriodProfitWithClosedPositionsAndDividends(): float
+	{
+		return $this->getPeriodProfit() + $this->getClosedPositionsProfitInPeriod() + $this->getDividendsInPeriod();
 	}
 
 }

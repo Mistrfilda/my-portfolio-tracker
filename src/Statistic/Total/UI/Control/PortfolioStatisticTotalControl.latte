@@ -64,61 +64,45 @@
                 <dd class="text-gray-900 font-medium">{$value->getValueAtEnd()|currency:App\Currency\CurrencyEnum::CZK}</dd>
             </div>
 
-            {* Výsledek za období (Rok/Měsíc) *}
-            <div class="py-3 border-t border-gray-100">
-                <div class="flex justify-between gap-x-4 py-1.5">
+            {* Hlavní výsledek za období *}
+            <div class="py-3 border-t-2 border-gray-200">
+                <div class="flex justify-between gap-x-4 py-2">
                     <dt class="text-gray-900 font-semibold">{if $value->getMonth()}Zisk za měsíc{else}Zisk za rok{/if}</dt>
                     <dd>{include #box, amount: $value->getPeriodProfit()}</dd>
                 </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-500 text-xs">Vč. uzavřených pozic</dt>
-                    <dd>{include #box, amount: $value->getPeriodProfitWithClosedPositions()}</dd>
+                <div class="flex justify-between gap-x-4 py-1 pl-4">
+                    <dt class="text-gray-500 text-xs">+ Realizované zisky</dt>
+                    <dd class="text-xs">{include #box, amount: $value->getClosedPositionsProfitInPeriod()}</dd>
                 </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-500 text-xs">Vč. dividend</dt>
-                    <dd>{include #box, amount: $value->getPeriodProfitWithDividends()}</dd>
+                <div class="flex justify-between gap-x-4 py-1 pl-4">
+                    <dt class="text-gray-500 text-xs">+ Dividendy</dt>
+                    <dd class="text-xs">{include #box, amount: $value->getDividendsInPeriod()}</dd>
+                </div>
+                <div class="flex justify-between gap-x-4 py-2 pl-4 border-t border-gray-100 mt-1.5 pt-1.5">
+                    <dt class="text-gray-900 font-semibold text-sm">Celkem (s příjmy)</dt>
+                    <dd>{include #box, amount: $value->getPeriodProfitWithClosedPositionsAndDividends()}</dd>
                 </div>
             </div>
 
-            {* Celkový historický výsledek *}
-            <div class="py-3 border-t border-gray-100">
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-900 font-semibold">Celkový zisk</dt>
+            {* Nerealizovaný zisk *}
+            <div class="py-3 border-t-2 border-gray-200">
+                <div class="flex justify-between gap-x-4 py-2">
+                    <dt class="text-gray-900 font-semibold">
+                        Nerealizovaný zisk
+                        <span class="block text-xs text-gray-500 font-normal mt-0.5">Pouze otevřené pozice</span>
+                    </dt>
                     <dd>{include #box, amount: $value->getTotalProfit()}</dd>
                 </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-500 text-xs">Vč. uzavřených pozic</dt>
-                    <dd>{include #box, amount: $value->getTotalProfitWithClosedPositions()}</dd>
-                </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-500 text-xs">Vč. dividend</dt>
-                    <dd>{include #box, amount: $value->getTotalProfitWithDividends()}</dd>
-                </div>
             </div>
 
-            <div class="py-3 border-t border-gray-100">
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-900 font-semibold">Výkonnost období</dt>
-                    <dd>{include #box, amount: $value->getPeriodPerformancePercentage(), suffix: '%'}</dd>
-                </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-900 font-semibold">TWR</dt>
+            {* Výkonnost *}
+            <div class="py-3 border-t-2 border-gray-200">
+                <div class="flex justify-between gap-x-4 py-2">
+                    <dt class="text-gray-900 font-semibold">
+                        Výkonnost období (TWR)
+                        <span class="block text-xs text-gray-500 font-normal mt-0.5">Bez vlivu vkladů/výběrů</span>
+                    </dt>
                     <dd>{include #box, amount: $value->getTimeWeightedReturn(), suffix: '%'}</dd>
-                </div>
-            </div>
-
-            <div class="py-3 border-t border-gray-100">
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-600">Realizovaný zisk</dt>
-                    <dd>{include #box, amount: $value->getClosedPositionsProfitInPeriod()}</dd>
-                </div>
-                <div class="flex justify-between gap-x-4 py-1.5">
-                    <dt class="text-gray-600">Dividendy za období</dt>
-                    <dd>
-                        <div class="rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                            {$value->getDividendsInPeriod()|currency:App\Currency\CurrencyEnum::CZK}
-                        </div>
-                    </dd>
                 </div>
             </div>
         </dl>
