@@ -17,6 +17,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 #[ORM\UniqueConstraint(name: 'from_to_date_unidx', fields: ['fromCurrency', 'toCurrency', 'forDate'])]
 #[ORM\Index(fields: ['fromCurrency', 'toCurrency', 'forDate'], name: 'from_to_currency_date_idx')]
 #[ORM\Index(fields: ['fromCurrency', 'toCurrency'], name: 'from_to_currency_idx')]
+#[ORM\Index(fields: ['forDate'], name: 'for_date_idx')]
 class CurrencyConversion implements Entity
 {
 
