@@ -77,9 +77,6 @@ class StockValuationDataFacade
 							$floatValue = (float) str_replace('%', '', $value ?? '');
 						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
 							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
-							if ($floatValue !== null) {
-								$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
-							}
 						}
 					}
 
