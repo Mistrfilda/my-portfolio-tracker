@@ -4,6 +4,118 @@
     <h2 class="text-xl font-semibold text-gray-900 mb-4">Valuační modely</h2>
 </div>
 
+<div class="overflow-hidden bg-white shadow-sm sm:rounded-lg mb-6">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+        <tr>
+            <th scope="col" class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Model
+            </th>
+            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Spravedlivá cena
+            </th>
+            <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Odchylka
+            </th>
+        </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+        {foreach $stockValuationModelResponses as $model}
+            {var $state = $model->getStockValuationModelTrend()}
+            {var $color = $state->getTailwindColor()}
+            {var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
+
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {$model->getLabel()}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
+                    {if $isCalculated && $model->getAssetPrice() !== null}
+                        <span class="font-semibold text-{$color}-700">
+                                {$model->getAssetPrice()|assetPriceFormat}
+                            </span>
+                    {else}
+                        <span class="text-gray-400 italic">N/A</span>
+                    {/if}
+                </td>
+                <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
+                    {if $isCalculated && $model->getCalculatedPercentage() !== null}
+                        {var $percentage = $model->getCalculatedPercentage()}
+                        <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+                                {if $percentage > 0}
+                                    +{$percentage|number:2} %
+                                {elseif $percentage < 0}
+                                    {$percentage|number:2} %
+                                {else}
+                                    0.00 %
+                                {/if}
+                            </span>
+                    {else}
+                        <span class="text-gray-400 italic">N/A</span>
+                    {/if}
+                </td>
+            </tr>
+        {/foreach}
+
+        {* Řádek s průměrem *}
+        <tr class="bg-blue-50 font-semibold">
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                Průměrná cena z modelů
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-blue-700">
+                {$averagePrice|assetPriceFormat}
+            </td>
+            <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
+                {if $averagePrice->getPrice() > 0}
+                    {var $currentPrice = $stockAsset->getAssetCurrentPrice()->getPrice()}
+                    {var $avgPercentage = (($averagePrice->getPrice() - $currentPrice) / $currentPrice) * 100}
+                    <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $avgPercentage > 0}bg-green-50 text-green-700{elseif $avgPercentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+                            {if $avgPercentage > 0}
+                                +{$avgPercentage|number:2} %
+                            {elseif $avgPercentage < 0}
+                                {$avgPercentage|number:2} %
+                            {else}
+                                0.00 %
+                            {/if}
+                        </span>
+                {else}
+                    <span class="text-gray-400 italic">N/A</span>
+                {/if}
+            </td>
+        </tr>
+
+        {* Řádek s analytickou cenou *}
+        {if count($stockValuationAnalyticsPrices) > 0}
+            {foreach $stockValuationAnalyticsPrices as $analyticsPrice}
+                {if $analyticsPrice->getValuationType() === App\Stock\Valuation\StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE}
+                    <tr class="bg-purple-50 font-semibold">
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                            Cena analytiků (průměr)
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-purple-700">
+                            {$analyticsPrice->getFloatValue()|compactCurrency:$analyticsPrice->getCurrency()}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
+                            {var $currentPrice = $stockAsset->getAssetCurrentPrice()->getPrice()}
+                            {var $analystPercentage = (($analyticsPrice->getFloatValue() - $currentPrice) / $currentPrice) * 100}
+                            <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $analystPercentage > 0}bg-green-50 text-green-700{elseif $analystPercentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+                                    {if $analystPercentage > 0}
+                                        +{$analystPercentage|number:2} %
+                                    {elseif $analystPercentage < 0}
+                                        {$analystPercentage|number:2} %
+                                    {else}
+                                        0.00 %
+                                    {/if}
+                                </span>
+                        </td>
+                    </tr>
+                {/if}
+            {/foreach}
+        {/if}
+        </tbody>
+    </table>
+</div>
+
 <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow-sm sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
     {foreach $stockValuationModelResponses as $model}
         {var $state = $model->getStockValuationModelTrend()}

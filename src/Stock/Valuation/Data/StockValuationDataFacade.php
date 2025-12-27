@@ -77,6 +77,9 @@ class StockValuationDataFacade
 							$floatValue = (float) str_replace('%', '', $value ?? '');
 						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
 							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+							if ($floatValue !== null) {
+								$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
+							}
 						}
 					}
 
@@ -141,7 +144,6 @@ class StockValuationDataFacade
 			$this->logger->debug(sprintf('Processing analyst insight for stock asset %s', $stockAsset->getName()));
 
 			$priceTargets = $parser->parseAnalystPriceTargets($parsedStockAsset->textContent);
-			dump($priceTargets);
 
 			if ($priceTargets === null) {
 				$this->logger->warning(sprintf('Failed to parse analyst price targets for %s', $stockAsset->getName()));
@@ -175,6 +177,11 @@ class StockValuationDataFacade
 					continue;
 				}
 
+				$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+				if ($floatValue !== null) {
+					$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
+				}
+
 				$stockValuationData = new StockValuationData(
 					$stockAsset,
 					$valueType,
@@ -182,7 +189,7 @@ class StockValuationDataFacade
 					$valueType->getTypeValueType(),
 					$now,
 					$value,
-					StockValuationDataNumericHelper::parseNumericValue($value),
+					$floatValue,
 					$stockAsset->getCurrency(),
 					$now,
 				);

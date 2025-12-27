@@ -7,6 +7,7 @@ namespace App\Stock\Valuation\Data;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Valuation\StockValuationTypeEnum;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -48,6 +49,25 @@ class StockValuationDataRepository extends BaseRepository
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->andWhere($qb->expr()->eq('stockValuationData.lastActive', ':lastActive'));
 		$qb->setParameter('lastActive', true);
+		$qb->groupBy('stockValuationData.valuationType');
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @param array<StockValuationTypeEnum> $types
+	 * @return array<string, StockValuationData>
+	 */
+	public function findTypesLatestForStockAsset(StockAsset $stockAsset, array $types): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockValuationData', 'stockValuationData.valuationType');
+		$qb->andWhere($qb->expr()->eq('stockValuationData.stockAsset', ':stockAsset'));
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->andWhere($qb->expr()->eq('stockValuationData.lastActive', ':lastActive'));
+		$qb->setParameter('lastActive', true);
+		$typeValues = array_map(static fn (StockValuationTypeEnum $type) => $type->value, $types);
+		$qb->andWhere($qb->expr()->in('stockValuationData.valuationType', ':types'));
+		$qb->setParameter('types', $typeValues);
+
 		$qb->groupBy('stockValuationData.valuationType');
 		return $qb->getQuery()->getResult();
 	}
