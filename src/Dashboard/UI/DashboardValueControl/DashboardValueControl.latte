@@ -83,36 +83,37 @@
             </dl>
 
             {foreach $dasboardValueGroup->getTables() as $table}
-                <div class="mt-10 shadow-sm rounded-lg overflow-hidden bg-white">
-                    <div class="sm:flex-auto px-5 py-5">
-                        <h1 class="text-base font-semibold leading-6 text-gray-900">{$table->getLabel()}</h1>
-                        <p class="mt-2 text-sm text-gray-700">{$table->getValue()}</p>
+                <div class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+                    <div class="px-5 py-4 border-b border-gray-200 bg-gray-50">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900">{$table->getLabel()}</h3>
+                        <p class="mt-1 text-sm text-gray-600">{$table->getValue()}</p>
                     </div>
-                    <div class="px-5 border-t border-gray-400 pb-5">
-                        <table class="min-w-full divide-y divide-gray-300 bg-white">
-                            <thead>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
                             <tr>
                                 {foreach $table->getHeading() as $heading}
-                                    <th scope="col"
-                                        class="px-3 py-3.5 text-sm font-semibold text-gray-900 {if $iterator->first}text-left{else}text-center{/if}">{$heading}</th>
+                                    <th scope="col" class="px-4 py-3 text-xs font-semibold text-gray-700 uppercase tracking-wider {if $iterator->first}text-left{else}text-center{/if}">
+                                        {$heading}
+                                    </th>
                                 {/foreach}
-                                <th scope="col"
-                                    class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+                                <th scope="col" class="px-4 py-3 text-right">
+                                    <span class="sr-only">Akce</span>
                                 </th>
                             </tr>
                             </thead>
-                            <tbody>
+                            <tbody class="bg-white">
                             {foreach $table->getData() as $data}
-                                <tr class="bg-{$data['rowColor']}-300">
+                                <tr class="bg-{$data['rowColor']}-100 hover:bg-{$data['rowColor']}-200 transition-colors duration-150">
                                     {foreach $table->getHeading() as $key => $value}
-                                        <td class="px-3 py-3.5 text-sm text-gray-500 lg:table-cell {if $iterator->first}text-left{else}text-center{/if}">
+                                        <td class="px-4 py-3 text-sm {if $iterator->first}text-left font-medium text-gray-900{else}text-center text-gray-700{/if}">
                                             {$data[$key]}
                                         </td>
                                     {/foreach}
-
-                                    <td class="px-2">
+                                    <td class="px-4 py-3 text-right">
                                         <a href="{$data['link']}"
-                                           class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                           class="inline-flex items-center px-3 py-1.5 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors duration-150 ring-1 ring-inset ring-blue-700/10">
                                             Detail
                                         </a>
                                     </td>

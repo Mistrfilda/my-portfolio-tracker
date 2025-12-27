@@ -79,7 +79,7 @@ class StockAssetDividendFacade
 	{
 		return $this->stockAssetDividendRepository->findGreaterThan(
 			$this->datetimeFactory->createNow()->deductDaysFromDatetime(380),
-			15,
+			8,
 		);
 	}
 
