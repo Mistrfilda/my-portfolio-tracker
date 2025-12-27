@@ -10,6 +10,7 @@ import {ChartInstance} from "../chart/ChartInstance";
 import naja from 'naja';
 import {registerExtensions} from "../naja/extension";
 import {CompleteEvent} from "naja/dist/Naja";
+import dragScroll from "./DragScroll";
 
 naja.initialize();
 registerExtensions(naja);
@@ -345,6 +346,8 @@ Alpine.data('stockValuationModelData', (totalColumns: number) => ({
         this.hiddenColumns = Array.from({length: this.totalColumns - 1}, (_, i) => i + 1);
     }
 }));
+
+Alpine.data('dragScroll', dragScroll);
 
 window.Alpine = Alpine;
 Alpine.start();

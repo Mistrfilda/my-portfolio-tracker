@@ -91,7 +91,13 @@
         </div>
     </div>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto"
+         x-data="dragScroll()"
+         x-on:mousedown="startDrag($event)"
+         x-on:mouseleave="stopDrag()"
+         x-on:mouseup="stopDrag()"
+         x-on:mousemove="drag($event)"
+    >
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
             <tr>

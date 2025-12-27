@@ -34,7 +34,12 @@
                 {$currentTypeGroupEnum->format()}
             </h2>
 
-            <div class="mt-6 overflow-x-auto">
+            <div class="mt-6 overflow-x-auto"
+                 x-data="dragScroll()"
+                 x-on:mousedown="startDrag($event)"
+                 x-on:mouseleave="stopDrag()"
+                 x-on:mousemove="drag($event)"
+            >
                 <div class="min-w-full inline-block align-middle">
                     <table class="min-w-full whitespace-nowrap text-left">
                         <thead class="border-b border-gray-200 text-sm/6 text-gray-900">

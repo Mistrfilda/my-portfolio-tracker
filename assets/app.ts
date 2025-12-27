@@ -13,6 +13,7 @@ declare global {
         removeOtherTag: any;
         currencyConvert: any;
         stockValuationModelData: any;
+        dragScroll: any;
     }
 }
 

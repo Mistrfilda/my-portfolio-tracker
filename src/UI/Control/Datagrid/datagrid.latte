@@ -1,6 +1,11 @@
 {templateType App\UI\Control\Datagrid\DatagridTemplate}
 <div class="flex flex-col">
-    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+    <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8"
+         x-data="dragScroll()"
+         x-on:mousedown="startDrag($event)"
+         x-on:mouseleave="stopDrag()"
+         x-on:mousemove="drag($event)"
+    >
         <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
             <div class="shadow-sm overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
                 {if $filters->count() > 0}
