@@ -34,6 +34,9 @@ class StockAssetIndustry implements Entity
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
 	private float|null $currentPERatio;
 
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $marketCap;
+
 	/** @var ArrayCollection<int, StockAsset> */
 	#[ORM\OneToMany(targetEntity: StockAsset::class, mappedBy: 'industry')]
 	private Collection $stockAssets;
@@ -43,12 +46,14 @@ class StockAssetIndustry implements Entity
 		string $mappingName,
 		ImmutableDateTime $now,
 		float|null $currentPERatio,
+		float|null $marketCap,
 	)
 	{
 		$this->id = Uuid::uuid4();
 		$this->name = $name;
 		$this->mappingName = $mappingName;
 		$this->currentPERatio = $currentPERatio;
+		$this->marketCap = $marketCap;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->stockAssets = new ArrayCollection();
@@ -59,11 +64,24 @@ class StockAssetIndustry implements Entity
 		string $mappingName,
 		ImmutableDateTime $now,
 		float|null $currentPERatio,
+		float|null $marketCap,
 	): void
 	{
 		$this->name = $name;
 		$this->mappingName = $mappingName;
 		$this->currentPERatio = $currentPERatio;
+		$this->marketCap = $marketCap;
+		$this->updatedAt = $now;
+	}
+
+	public function updateValues(
+		ImmutableDateTime $now,
+		float|null $currentPERatio,
+		float|null $marketCap,
+	): void
+	{
+		$this->currentPERatio = $currentPERatio;
+		$this->marketCap = $marketCap;
 		$this->updatedAt = $now;
 	}
 
@@ -80,6 +98,11 @@ class StockAssetIndustry implements Entity
 	public function getCurrentPERatio(): float|null
 	{
 		return $this->currentPERatio;
+	}
+
+	public function getMarketCap(): float|null
+	{
+		return $this->marketCap;
 	}
 
 	/**

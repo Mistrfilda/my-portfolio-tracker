@@ -30,6 +30,7 @@ class StockAssetIndustryFormFactory
 		$form->addText('name', 'Jméno');
 		$form->addText('mappingName', 'Jméno pro mapovaní');
 		$form->addFloat('currentPERatio', 'Aktuální P/E ratio');
+		$form->addFloat('marketCap', 'Market cap');
 		$form->addSubmit('submit', 'Uložit');
 
 		if ($id !== null) {
@@ -46,12 +47,14 @@ class StockAssetIndustryFormFactory
 					TypeValidator::validateString($values->name),
 					TypeValidator::validateString($values->mappingName),
 					TypeValidator::validateFloat($values->currentPERatio),
+					TypeValidator::validateFloat($values->marketCap),
 				);
 			} else {
 				$this->stockAssetIndustryFacade->create(
 					TypeValidator::validateString($values->name),
 					TypeValidator::validateString($values->mappingName),
 					TypeValidator::validateFloat($values->currentPERatio),
+					TypeValidator::validateFloat($values->marketCap),
 				);
 			}
 

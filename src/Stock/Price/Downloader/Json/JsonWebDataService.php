@@ -15,6 +15,7 @@ class JsonWebDataService
 		private string $stockAssetDividendPriceUrl,
 		private string $financialsDataUrl,
 		private string $keyStatisticsDataUrl,
+		private string $stockAssetIndustryUrl,
 		private string $analystInsightUrl,
 		private DatetimeFactory $datetimeFactory,
 	)
@@ -62,6 +63,11 @@ class JsonWebDataService
 			$this->analystInsightUrl,
 			$stockAsset->getTicker(),
 		);
+	}
+
+	public function getStockAssetIndustryUrl(): string
+	{
+		return $this->stockAssetIndustryUrl;
 	}
 
 }

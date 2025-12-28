@@ -9,7 +9,7 @@ class StockValuationDataNumericHelper
 
 	public static function parseNumericValue(string|null $value): float|null
 	{
-		if ($value === null || $value === '--' || $value === 'N/A' || trim($value) === '') {
+		if ($value === null || $value === '--' || $value === 'N/A' || trim($value) === '' || $value === '-') {
 			return null;
 		}
 

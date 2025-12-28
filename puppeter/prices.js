@@ -1,4 +1,4 @@
 import { PricesScraper } from './PricesScraper.js';
 
 const scraper = new PricesScraper();
-scraper.run('prices.json', 'prices.json');
+await scraper.run('prices.json', 'prices.json');

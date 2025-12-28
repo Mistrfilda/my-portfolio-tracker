@@ -42,6 +42,8 @@ enum SystemValueEnum: string
 
 	case STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT = 'stock_valuation_analyst_insight_downloaded_count';
 
+	case STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT = 'stock_valuation_updated_stock_asset_industries_count';
+
 	case EXPENSE_TAGS_PROCESSED_AT = 'expense_tags_processed_at';
 
 	case CNB_CURRENCY_DOWNLOADED_COUNT = 'cnb_currency_downloaded_count';
@@ -70,7 +72,8 @@ enum SystemValueEnum: string
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ČNB',
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ECB',
 			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => 'Počet stažených cen kryptoměn',
-			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => 'Počet stažených analytických cílů'
+			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => 'Počet stažených analytických cílů',
+			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT => 'Počet aktualizovaných odvětví akcií',
 		};
 	}
 
@@ -95,6 +98,7 @@ enum SystemValueEnum: string
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT => SystemValueDatabaseResolver::class,
 		};
 	}
 

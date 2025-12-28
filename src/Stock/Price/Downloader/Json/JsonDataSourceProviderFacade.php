@@ -6,6 +6,7 @@ namespace App\Stock\Price\Downloader\Json;
 
 use App\Asset\Price\AssetPriceSourceProvider;
 use App\Asset\Price\Downloader\JsonDataFolderService;
+use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\StockAssetDividendSourceProvider;
@@ -27,6 +28,8 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 	public const STOCK_ASSET_KEY_STATISTICS_FILENAME = 'keyStatistics.json';
 
 	public const STOCK_ASSET_ANALYST_INSIGHT = 'analystInsights.json';
+
+	public const STOCK_ASSET_INDUSTRY = 'stockAssetIndustry.json';
 
 	public function __construct(
 		private readonly int $updateStockAssetHoursThreshold,
@@ -99,6 +102,15 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 		$keyStatistics = [];
 		$financials = [];
 		$analystInsights = [];
+		$stockAssetIndustry = [
+			[
+				'id' => 'stockAssetIndustry',
+				'name' => 'stockAssetIndustry',
+				'currency' => CurrencyEnum::USD->value,
+				'url' => $this->jsonWebDataService->getStockAssetIndustryUrl(),
+			],
+		];
+
 		foreach ($stockAssets as $stockAsset) {
 			$keyStatistics[] = [
 				'id' => $stockAsset->getId()->toString(),
@@ -135,6 +147,11 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 		FileSystem::write(
 			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_ANALYST_INSIGHT,
 			Json::encode($analystInsights),
+		);
+
+		FileSystem::write(
+			$fileLocation . JsonDataFolderService::REQUESTS_FOLDER . self::STOCK_ASSET_INDUSTRY,
+			Json::encode($stockAssetIndustry),
 		);
 	}
 

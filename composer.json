@@ -154,6 +154,11 @@
 			"node ./puppeter/analyst.js",
 			"bin/console stock:asset:valuation:data"
 		],
+		"stock-asset-industry-values": [
+			"bin/console puppeter:valuation:data",
+			"node ./puppeter/stockAssetIndustry.js",
+			"bin/console stock:asset:industryData"
+		],
 		"migm": "bin/console migrations:migrate --no-interaction",
 		"ormv": "bin/console orm:validate-schema -vvv",
 		"declare-queues": "bin/console-rabbit rabbitmq:declareQueuesAndExchanges ",

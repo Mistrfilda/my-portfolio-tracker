@@ -4,11 +4,14 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Industry\UI;
 
+use App\Currency\CurrencyEnum;
+use App\Stock\Asset\Industry\StockAssetIndustry;
 use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
+use App\UI\Filter\CurrencyFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 
@@ -28,10 +31,16 @@ class StockAssetIndustryGridFactory
 			new DoctrineDataSource($this->stockAssetIndustryRepository->createQueryBuilder()),
 		);
 
-		$grid->addColumnText('id', 'ID');
 		$grid->addColumnText('name', 'Jméno')->setFilterText();
 		$grid->addColumnText('mappingName', 'Jméno pro mapovaní');
 		$grid->addColumnText('currentPERatio', 'Aktuální P/E ratio');
+		$grid->addColumnText('marketCap', 'Market cap', static function (StockAssetIndustry $industry): string {
+			if ($industry->getMarketCap() === null) {
+				return Datagrid::NULLABLE_PLACEHOLDER;
+			}
+
+			return CurrencyFilter::format($industry->getMarketCap(), CurrencyEnum::USD, 0);
+		});
 
 		$grid->addAction(
 			'edit',

@@ -40,6 +40,7 @@ parameters:
 		financialsDataUrl: https://example.com
 		keyStatisticsDataUrl: https://example.com
 		analystInsightUrl: https://example.com
+		stockAssetIndustryUrl: https://example.com
 
 	workMonthlyIncome:
 		harvestAccountId: 50
@@ -302,6 +303,8 @@ services:
 	- App\Stock\Asset\Industry\StockAssetIndustryRepository(App\Stock\Asset\Industry\StockAssetIndustry)
 	- App\Stock\Asset\Industry\UI\StockAssetIndustryGridFactory
 	- App\Stock\Asset\Industry\UI\StockAssetIndustryFormFactory
+	- App\Stock\Asset\Industry\StockAssetIndustryDownloadFacade
+	- App\Stock\Asset\Industry\StockAssetIndustryDownloadCommand
 
 	#Stock position
 	- App\Stock\Position\StockPositionRepository(App\Stock\Position\StockPosition)
@@ -432,6 +435,7 @@ services:
 			financialsDataUrl: %stockValuation.financialsDataUrl%
 			keyStatisticsDataUrl: %stockValuation.keyStatisticsDataUrl%
 			analystInsightUrl: %stockValuation.analystInsightUrl%
+			stockAssetIndustryUrl: %stockValuation.stockAssetIndustryUrl%
 
 	-
 		class: App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade
