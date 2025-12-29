@@ -564,7 +564,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 				$cryptoAsset->getSvgIcon(),
 				sprintf(
 					'Aktualizováno %s',
-					$cryptoAsset->getLastPriceRecord()?->getCreatedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
+					$cryptoAsset->getPriceDownloadedAt()->format(DatetimeConst::SYSTEM_DATETIME_FORMAT),
 				),
 			);
 		}
