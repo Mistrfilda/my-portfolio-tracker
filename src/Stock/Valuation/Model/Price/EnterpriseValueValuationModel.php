@@ -38,17 +38,31 @@ class EnterpriseValueValuationModel extends BasePriceModel
 			StockValuationTypeEnum::SHARES_OUTSTANDING,
 		)?->getFloatValue();
 
+		$totalDebt = $stockValuation->getValuationDataByType(
+			StockValuationTypeEnum::TOTAL_DEBT,
+		)?->getFloatValue() ?? 0.0;
+
+		$totalCash = $stockValuation->getValuationDataByType(
+			StockValuationTypeEnum::TOTAL_CASH,
+		)?->getFloatValue() ?? 0.0;
+
+		$netDebt = $totalDebt - $totalCash;
+
 		$this->currentEvEbitda = $currentEvEbitda;
 
 		if ($ebitda === null || $ebitda <= 0 || $sharesOutstanding === null || $sharesOutstanding <= 0) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		// Fair Enterprise Value
 		$fairEV = $ebitda * self::FAIR_EV_EBITDA_RATIO;
 
-		// Fair Price per Share (simplified - assuming no net debt)
-		$fairPrice = $fairEV / $sharesOutstanding;
+		$fairEquityValue = $fairEV - $netDebt;
+
+		if ($fairEquityValue <= 0) {
+			return $this->getUnableToCalculateResponse($stockValuation);
+		}
+
+		$fairPrice = $fairEquityValue / $sharesOutstanding;
 
 		$assetPrice = null;
 		$percentage = null;
@@ -89,6 +103,8 @@ class EnterpriseValueValuationModel extends BasePriceModel
 			StockValuationTypeEnum::EBITDA,
 			StockValuationTypeEnum::SHARES_OUTSTANDING,
 			StockValuationTypeEnum::EV_EBITDA,
+			StockValuationTypeEnum::TOTAL_DEBT,
+			StockValuationTypeEnum::TOTAL_CASH,
 		];
 	}
 
