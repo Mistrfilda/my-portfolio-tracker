@@ -1,213 +1,160 @@
 {templateType App\Crypto\Asset\UI\Detail\List\CryptoAssetListSummaryDetailControlTemplate}
 
 <div
-        class="mt-8 flex flex-col"
+        class="mt-8"
         x-data="{
-            open: false,
-            hiddenButtons: [],
-            toggle() {
-                if (this.open) {
-                    return this.close()
-                }
-
-                this.$refs.button.focus()
-
-                this.open = true
-            },
-            close(focusAfter) {
-                if (! this.open) return
-
-                this.open = false
-
-                focusAfter && focusAfter.focus()
-            },
-            click(value) {
-                if (this.hiddenButtons.includes(value)) {
-                    let index = this.hiddenButtons.indexOf(value);
-                    this.hiddenButtons.splice(index, 1);
-                } else {
-                    this.hiddenButtons.push(value);
-                }
-            },
-            isHidden(value) {
-                return this.hiddenButtons.includes(value);
+        open: false,
+        hiddenColumns: [],
+        toggleDropdown() {
+            this.open = !this.open
+        },
+        closeDropdown() {
+            this.open = false
+        },
+        toggleColumn(value) {
+            if (this.hiddenColumns.includes(value)) {
+                this.hiddenColumns = this.hiddenColumns.filter(v => v !== value)
+            } else {
+                this.hiddenColumns.push(value)
             }
-        }"
+        },
+        isHidden(value) {
+            return this.hiddenColumns.includes(value)
+        }
+    }"
 >
-    <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-            <div class="overflow-hidden shadow-sm ring ring-gray-300 ring-opacity-5 md:rounded-lg">
-                <table class="min-w-full divide-y divide-gray-300">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        {foreach $fields as $key => $field}
-                            {var $alpineId = $key}
-                            <th
-                                    scope="col"
-                                    class="whitespace-normal text-balance px-2 py-3.5 text-center text-sm font-semibold text-gray-900"
-                                    :class="hiddenButtons.includes({$alpineId}) ? 'hidden' : ''"
-                            >
-                                {$field}
-                            </th>
-                        {/foreach}
-                        <th scope="col"></th>
-                    </tr>
-                    <div class="flex justify-start p-3">
-                        <div
-                                x-on:keydown.escape.prevent.stop="close($refs.button)"
-                                x-on:focusin.window="! $refs.panel.contains($event.target) && close()"
-                                x-id="['dropdown-button']"
-                                class="relative"
+    <div class="mb-4 relative inline-block" x-on:keydown.escape.prevent.stop="closeDropdown()">
+        <button
+                x-on:click="toggleDropdown()"
+                type="button"
+                class="inline-flex items-center gap-x-2 rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+            Sloupce
+            <svg class="h-5 w-5 text-gray-400 transition-transform" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+        </button>
+
+        <div
+                x-show="open"
+                x-transition:enter="transition ease-out duration-100"
+                x-transition:enter-start="opacity-0 scale-95"
+                x-transition:enter-end="opacity-100 scale-100"
+                x-transition:leave="transition ease-in duration-75"
+                x-transition:leave-start="opacity-100 scale-100"
+                x-transition:leave-end="opacity-0 scale-95"
+                x-on:click.outside="closeDropdown()"
+                class="absolute left-0 z-10 mt-2 w-56 origin-top-left rounded-lg bg-white shadow-lg ring-1 ring-black/5 focus:outline-none"
+                style="display: none;"
+        >
+            <div class="py-1">
+                {foreach $fields as $key => $field}
+                    <button
+                            type="button"
+                            x-on:click="toggleColumn({$key})"
+                            class="flex w-full items-center gap-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                            :class="isHidden({$key}) && 'bg-gray-50'"
+                    >
+                        <span class="w-5 h-5 flex-shrink-0" :class="isHidden({$key}) ? 'text-gray-400' : 'text-blue-600'">
+                            <template x-if="!isHidden({$key})">
+                                {renderSvg App\UI\Icon\SvgIcon::EYE->value, ['class' => 'h-5 w-5']}
+                            </template>
+                            <template x-if="isHidden({$key})">
+                                {renderSvg App\UI\Icon\SvgIcon::EYE_CLOSED->value, ['class' => 'h-5 w-5']}
+                            </template>
+                        </span>
+                        <span class="truncate">{$field}</span>
+                    </button>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+
+    {* Table *}
+    <div class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    {foreach $fields as $key => $field}
+                        <th
+                                scope="col"
+                                class="px-3 py-3.5 text-center text-sm font-semibold text-gray-900"
+                                x-show="!isHidden({$key})"
                         >
-                            <!-- Button -->
-                            <button
-                                    x-ref="button"
-                                    x-on:click="toggle()"
-                                    :aria-expanded="open"
-                                    :aria-controls="$id('dropdown-button')"
-                                    type="button"
-                                    class="flex items-center gap-2 bg-white px-5 py-2.5 rounded-md shadow-sm"
-                            >
-                                Sloupce
-
-                                <!-- Heroicon: chevron-down -->
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" viewBox="0 0 20 20"
-                                     fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                          d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                            </button>
-
-                            <!-- Panel -->
-                            <div
-                                    x-ref="panel"
-                                    x-show="open"
-                                    x-transition.origin.top.left
-                                    x-on:click.outside="close($refs.button)"
-                                    :id="$id('dropdown-button')"
-                                    style="display: none;"
-                                    class="absolute left-0 mt-2 w-48 rounded-md bg-white shadow-md"
-                            >
-                                <div role="none">
-                                    <!-- Active: "bg-gray-100 text-gray-900", Not Active: "text-gray-700" -->
-                                    {foreach $fields as $key => $field}
-                                        {var $alpineId = $key}
-                                        <a
-                                                href="#"
-                                                x-on:click="click({$key})"
-                                                class="text-gray-700 group flex items-left px-4 py-2 text-sm text-gray-900"
-                                                role="menuitem"
-                                                tabindex="-1"
-                                                id="menu-item-0" ,
-                                                :class="{ 'bg-gray-300': isHidden({$alpineId}) }"
-                                        >
-                                            <div :class="hiddenButtons.includes({$alpineId}) ? '' : 'hidden'">
-                                                {renderSvg App\UI\Icon\SvgIcon::EYE_CLOSED->value, ['class' => 'mr-5 h-5 w-5 text-gray-400 group-hover:text-gray-500']}
-                                            </div>
-                                            <div :class="isHidden({$alpineId}) && 'hidden'">
-                                                {renderSvg App\UI\Icon\SvgIcon::EYE->value, ['class' => 'mr-5 h-5 w-5 text-gray-400 group-hover:text-gray-500']}
-                                            </div>
-                                            <div class="truncate">
-                                                {$field}
-                                            </div>
-                                        </a>
-                                    {/foreach}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    </thead>
-                    <tbody class="divide-y divide-gray-200 bg-white">
-                    {foreach $sortedCryptoAssetsPositionsDTOs as $cryptoPositionDTO}
-                        <tr class="divide-x divide-gray-200">
-                            <td
-                                    class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 text-center"
-                                    :class="hiddenButtons.includes(0) ? 'hidden' : ''"
-                            >
-                                <a href="#{$cryptoPositionDTO->getHtmlTarget()}">
-                                    {$cryptoPositionDTO->getCryptoAsset()->getName()}
-                                </a>
+                            {$field}
+                        </th>
+                    {/foreach}
+                    <th scope="col" class="relative px-3 py-3.5">
+                        <span class="sr-only">Akce</span>
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                {foreach $sortedCryptoAssetsPositionsDTOs as $cryptoPositionDTO}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900 text-center" x-show="!isHidden(0)">
+                            <a href="#{$cryptoPositionDTO->getHtmlTarget()}" class="hover:text-blue-600 transition-colors">
+                                {$cryptoPositionDTO->getCryptoAsset()->getName()}
+                            </a>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-center" x-show="!isHidden(1)">
+                                <span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-1 text-sm font-medium text-gray-700">
+                                    {$cryptoPositionDTO->getCryptoAsset()->getAssetCurrentPrice()|assetPriceFormat}
+                                </span>
+                        </td>
+                        {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::OPEN_POSITIONS}
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-center" x-show="!isHidden(2)">
+                                {$cryptoPositionDTO->getPiecesCount()}
                             </td>
-                            <td
-                                    class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
-                                    :class="hiddenButtons.includes(1) ? 'hidden' : ''"
-                            >
-                                <div class="flex justify-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800">
-                                        {$cryptoPositionDTO->getCryptoAsset()->getAssetCurrentPrice()|assetPriceFormat}
-                                    </span>
-                                </div>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-center" x-show="!isHidden(3)">
+                                {$cryptoPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
                             </td>
-                            {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::OPEN_POSITIONS}
-                                <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
-                                        :class="hiddenButtons.includes(2) ? 'hidden' : ''"
-                                >
-                                    {$cryptoPositionDTO->getPiecesCount()}
-                                </td>
-                                <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center"
-                                        :class="hiddenButtons.includes(3) ? 'hidden' : ''"
-                                >
-                                    {$cryptoPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
-                                </td>
-                                <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
-                                        :class="hiddenButtons.includes(4) ? 'hidden' : ''"
-                                >
-                                    <div class="flex justify-center">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-yellow-100 text-yellow-800">
+                            <td class="whitespace-nowrap px-3 py-4 text-center" x-show="!isHidden(4)">
+                                    <span class="inline-flex items-center rounded-md bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
                                         {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::CLOSED_POSITIONS}
                                             0%
                                         {else}
                                             {$cryptoPositionDTO->getCurrentPriceInCzk()->getPrice()|ruleOfThree:$totalInvestedAmountInCzk|percentage}
                                         {/if}
                                     </span>
-                                    </div>
-                                </td>
-                                <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
-                                        :class="hiddenButtons.includes(5) ? 'hidden' : ''"
-                                >
-                                    <div class="flex justify-center">
-                                    <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-100 text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
-                                        {renderSvg $cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
-                                        {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-center" x-show="!isHidden(5)">
+                                {var $trend = $cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()}
+                                <span class="inline-flex items-center gap-x-1 rounded-full bg-{$trend->getTailwindColor()}-50 px-2.5 py-1 text-sm font-medium text-{$trend->getTailwindColor()}-700 ring-1 ring-inset ring-{$trend->getTailwindColor()}-600/20">
+                                        {renderSvg $trend->getSvgIcon()->value, ['class' => 'h-3.5 w-3.5']}
+                                    {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
                                     </span>
-                                    </div>
-                                </td>
-                                <td
-                                        class="whitespace-nowrap px-2 py-2 text-sm text-gray-500 text-center"
-                                        :class="hiddenButtons.includes(6) ? 'hidden' : ''"
-                                >
-                                    <div class="flex justify-center text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-center" x-show="!isHidden(6)">
+                                    <span class="font-medium text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-700">
                                         {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
-                                    </div>
-                                </td>
-                            {/if}
-                            <td class="px-2">
-                                <a href="{plink CryptoAssetDetail:detail, 'id' => $cryptoPositionDTO->getCryptoAsset()->getId()->toString()}" class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Detail
-                                </a>
+                                    </span>
                             </td>
-                        </tr>
-                    {/foreach}
-                    </tbody>
-                    {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::OPEN_POSITIONS}
-                        <tfoot>
-                        <tr>
-                            <td></td>
-                            <td></td>
-                            <td></td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900 text-center">
-                                {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
-                            </td>
-                        </tr>
-                        </tfoot>
-                    {/if}
-                </table>
-            </div>
+                        {/if}
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-right">
+                            <a
+                                    href="{plink CryptoAssetDetail:detail, 'id' => $cryptoPositionDTO->getCryptoAsset()->getId()->toString()}"
+                                    class="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                            >
+                                Detail
+                            </a>
+                        </td>
+                    </tr>
+                {/foreach}
+                </tbody>
+                {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::OPEN_POSITIONS}
+                    <tfoot class="bg-gray-50">
+                    <tr>
+                        <td colspan="3"></td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm font-semibold text-gray-900 text-center">
+                            {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
+                        </td>
+                        <td colspan="4"></td>
+                    </tr>
+                    </tfoot>
+                {/if}
+            </table>
         </div>
     </div>
 </div>

@@ -1,223 +1,136 @@
 {templateType App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlTemplate}
 
 {foreach $cryptoAssetsPositionDTOs as $cryptoPositionDTO}
-    <div class="flex flex-col mt-6" id="{$cryptoPositionDTO->getHtmlTarget()}">
-        <div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-                <div class="shadow-sm overflow-hidden border-b bg-white border-gray-200 sm:rounded-lg">
-                    <div class="px-4 sm:px-6 lg:px-8 my-4">
-                        <div class="sm:flex sm:items-center">
-                            <div class="sm:flex-auto">
-                                <div class="flex justify-between">
-                                    <h1 class="text-xl font-semibold text-gray-900">
-                                        {$cryptoPositionDTO->getCryptoAsset()->getName()}
-                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
-                                            {$cryptoPositionDTO->getCryptoAsset()->getAssetCurrentPrice()|assetPriceFormat}
-                                        </span>
-                                    </h1>
-                                </div>
-                                <p class="mt-2 text-sm text-gray-700">
-                                    Cena aktualizována v
-                                    <time datetime="{$cryptoPositionDTO->getCryptoAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}">{$cryptoPositionDTO->getCryptoAsset()->getPriceDownloadedAt()->format(App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT)}</time>
-                                </p>
-                            </div>
-                            <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-                                <a href="{plink CryptoAssetDetail:detail, 'id' => $cryptoPositionDTO->getCryptoAsset()->getId()->toString()}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                                    Detail
-                                </a>
-                            </div>
-                        </div>
-                        <div class="-mx-4 mt-8 flex flex-col sm:-mx-6 md:mx-0">
-                            <table class="min-w-full divide-y divide-gray-300">
-                                <thead>
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 md:pl-0">
-                                        Pozice založena dne
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Množství
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Nákupní cena
-                                    </th>
-                                    {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::CLOSED_POSITIONS}
-                                        <th scope="col"
-                                            class="hidden py-3.5 px-3 text-right text-sm font-semibold text-gray-900 sm:table-cell">
-                                            Prodejní cena za kus
-                                        </th>
-                                    {/if}
-                                    <th scope="col"
-                                        class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-                                        Aktuální cena
-                                    </th>
-                                    <th scope="col"
-                                        class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-                                        Zisk/ztráta
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {foreach $cryptoPositionDTO->getPositions() as $position}
-                                    <tr class="border-b border-gray-200">
-                                        <td class="py-4 pl-4 pr-3 text-sm sm:pl-6 md:pl-0">
-                                            <div class="font-medium text-gray-900">{$position->getCryptoPosition()->getOrderDate()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATE_FORMAT}
-                                            </div>
-                                            <div class="mt-0.5 text-gray-500 sm:hidden">
-                                                {$position->getCryptoPosition()->getOrderPiecesCount()} za {$position->getCryptoPosition()->getPricePerPiece()|assetPriceFormat}
-                                            </div>
-                                        </td>
-                                        <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
-                                            {$position->getCryptoPosition()->getOrderPiecesCount()}
-                                        </td>
-                                        <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
-                                            {$position->getCryptoPosition()->getPricePerPiece()|assetPriceFormat}
-                                        </td>
-                                        {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::CLOSED_POSITIONS}
-                                            <td class="hidden py-4 px-3 text-right text-sm text-gray-500 sm:table-cell">
-                                                {$position->getCryptoPosition()->getCryptoClosedPosition()?->getPricePerPiece()|assetPriceFormat}
-                                            </td>
-                                        {/if}
-                                        <td class="py-4 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                            {$position->getCryptoPosition()->getCurrentTotalAmount()|assetPriceFormat}
-                                        </td>
-                                        <td class="py-4 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-100 text-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-800">
-                                            {renderSvg $position->getPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
-                                            {$position->getPriceDiff()->getPriceDifference()|currency:$position->getPriceDiff()->getCurrencyEnum()}
-                                        </span>
-                                        </td>
-                                    </tr>
-                                {/foreach}
+    <div class="mt-6 bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden" id="{$cryptoPositionDTO->getHtmlTarget()}">
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">
+                        {$cryptoPositionDTO->getCryptoAsset()->getName()}
+                    </h2>
+                    <div class="mt-1 flex items-center gap-3">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-blue-100 text-blue-800">
+                            {$cryptoPositionDTO->getCryptoAsset()->getAssetCurrentPrice()|assetPriceFormat}
+                        </span>
+                        <span class="text-xs text-gray-500">
+                            Aktualizováno {$cryptoPositionDTO->getCryptoAsset()->getPriceDownloadedAt()|datetimeFormat}
+                        </span>
+                    </div>
+                </div>
+                <a href="{plink CryptoAssetDetail:detail, 'id' => $cryptoPositionDTO->getCryptoAsset()->getId()->toString()}"
+                   class="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors ring-1 ring-inset ring-blue-700/10">
+                    Detail
+                </a>
+            </div>
+        </div>
 
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                <tr>
+                    <th scope="col" class="py-3 pl-5 pr-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Pozice založena dne
+                    </th>
+                    <th scope="col" class="hidden sm:table-cell py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Množství
+                    </th>
+                    <th scope="col" class="hidden sm:table-cell py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Nákupní cena
+                    </th>
+                    {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::CLOSED_POSITIONS}
+                        <th scope="col" class="hidden sm:table-cell py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                            Prodejní cena
+                        </th>
+                    {/if}
+                    <th scope="col" class="py-3 pl-3 pr-5 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                        Aktuální / Zisk
+                    </th>
+                </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-100">
+                {foreach $cryptoPositionDTO->getPositions() as $position}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 pl-5 pr-3 text-sm">
+                            <div class="font-medium text-gray-900">
+                                {$position->getCryptoPosition()->getOrderDate()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATE_FORMAT}
+                            </div>
+                            <div class="mt-0.5 text-xs text-gray-500 sm:hidden">
+                                {$position->getCryptoPosition()->getOrderPiecesCount()} × {$position->getCryptoPosition()->getPricePerPiece()|assetPriceFormat}
+                            </div>
+                        </td>
+                        <td class="hidden sm:table-cell py-3 px-3 text-right text-sm text-gray-700">
+                            {$position->getCryptoPosition()->getOrderPiecesCount()}
+                        </td>
+                        <td class="hidden sm:table-cell py-3 px-3 text-right text-sm text-gray-700">
+                            {$position->getCryptoPosition()->getPricePerPiece()|assetPriceFormat}
+                        </td>
+                        {if $assetDetailControlEnum === App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum::CLOSED_POSITIONS}
+                            <td class="hidden sm:table-cell py-3 px-3 text-right text-sm text-gray-700">
+                                {$position->getCryptoPosition()->getCryptoClosedPosition()?->getPricePerPiece()|assetPriceFormat}
+                            </td>
+                        {/if}
+                        <td class="py-3 pl-3 pr-5 text-right text-sm">
+                            <div class="font-medium text-gray-900 mb-1">
+                                {$position->getCryptoPosition()->getCurrentTotalAmount()|assetPriceFormat}
+                            </div>
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-100 text-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-800 ring-1 ring-inset ring-{$position->getPriceDiff()->getTrend()->getTailwindColor()}-600/20">
+                                {renderSvg $position->getPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
+                                {$position->getPriceDiff()->getPriceDifference()|currency:$position->getPriceDiff()->getCurrencyEnum()}
+                            </span>
+                        </td>
+                    </tr>
+                {/foreach}
+                </tbody>
+            </table>
+        </div>
 
-                                </tbody>
-                                <tfoot>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Celkové množství
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Celkové množství
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getPiecesCount()}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Celková investovaná částka
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Celková investovaná částka
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getTotalInvestedAmount()|summaryPriceFormat}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Celková investovaná částka v měně platby
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Celková investovaná částka v měně platby
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getTotalInvestedAmountInBrokerCurrency()|summaryPriceFormat}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Aktuální hodnota pozice
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Aktuální hodnota pozice
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getCurrentAmount()|summaryPriceFormat}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Aktuální hodnota v měně platby
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Aktuální hodnota v měně platby
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getCurrentAmountInBrokerCurrency()|summaryPriceFormat}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">
-                                        Zisk/ztráta
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                                        Zisk/ztráta
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">
-                                        Rozdíl v %
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                                        Rozdíl v %
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-                                        <span class="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-100 text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-800">
-                                            {renderSvg $cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getSvgIcon()->value, ['class' => 'h-3 w-3']}
-                                            {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
-                                        </span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-normal text-gray-500 sm:table-cell md:pl-0">
-                                        Aktuální hodnota pozice v CZK
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                        Aktuální hodnota pozice v CZK
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm text-gray-500 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <th scope="row" colspan="4"
-                                        class="hidden pl-6 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell md:pl-0">
-                                        Zisk/ztráta v CZK
-                                    </th>
-                                    <th scope="row"
-                                        class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                                        Zisk/ztráta v CZK
-                                    </th>
-                                    <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-6 md:pr-0">
-                                        {$cryptoPositionDTO->getCurrentPriceDiffInFromBrokerCurrencyToCzk()->getPriceDifference()|currency:$cryptoPositionDTO->getCurrentPriceDiffInFromBrokerCurrencyToCzk()->getCurrencyEnum()}
-                                    </td>
-                                </tr>
-                                </tfoot>
-                            </table>
-                        </div>
+        <div class="px-5 py-5 bg-gray-50 border-t border-gray-200">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <div class="bg-white rounded-lg border border-gray-200 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Množství</div>
+                    <div class="text-xl font-bold text-gray-900">{$cryptoPositionDTO->getPiecesCount()}</div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-gray-200 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Investováno</div>
+                    <div class="text-xl font-bold text-gray-900">{$cryptoPositionDTO->getTotalInvestedAmount()|summaryPriceFormat}</div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-gray-200 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Aktuální hodnota</div>
+                    <div class="text-xl font-bold text-gray-900">{$cryptoPositionDTO->getCurrentAmount()|summaryPriceFormat}</div>
+                </div>
+
+                <div class="bg-white rounded-lg border border-gray-200 p-3">
+                    <div class="text-xs font-medium text-gray-500 mb-1">Hodnota (CZK)</div>
+                    <div class="text-xl font-bold text-gray-900">{$cryptoPositionDTO->getCurrentPriceInCzk()|summaryPriceFormat}</div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg border-2 border-{$cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Zisk/ztráta</div>
+                        {renderSvg $cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-5 w-5 text-' . $cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor() . '-600']}
+                    </div>
+                    <div class="text-2xl font-bold text-{$cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-700 mb-2">
+                        {$cryptoPositionDTO->getCurrentPriceDiff()->getPriceDifference()|currency:$cryptoPositionDTO->getCurrentPriceDiff()->getCurrencyEnum()}
+                    </div>
+                    <div class="text-sm text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-700">
+                        Měna brokera: {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border-2 border-{$cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Rozdíl v %</div>
+                        {renderSvg $cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getSvgIcon()->value, ['class' => 'h-5 w-5 text-' . $cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor() . '-600']}
+                    </div>
+                    <div class="text-2xl font-bold text-{$cryptoPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-700 mb-2">
+                        {$cryptoPositionDTO->getCurrentPriceDiff()->getPercentageDifference()|percentage}
+                    </div>
+                    <div class="text-sm text-{$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-700">
+                        Měna brokera: {$cryptoPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
                     </div>
                 </div>
             </div>
