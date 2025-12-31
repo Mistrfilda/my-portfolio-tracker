@@ -67,6 +67,7 @@ class PriceEarningsValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -118,6 +119,13 @@ class PriceEarningsValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Porovnává P/E ratio s průměrem odvětví. Akcie s nižším P/E než odvětvový průměr může být podhodnocená, vyšší P/E značí přeceňování nebo růstové očekávání.';
+		//phpcs:enable
 	}
 
 }

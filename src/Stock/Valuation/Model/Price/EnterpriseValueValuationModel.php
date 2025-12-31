@@ -85,6 +85,7 @@ class EnterpriseValueValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -146,6 +147,13 @@ class EnterpriseValueValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Oceňuje firmu pomocí EV/EBITDA poměru zohledňujícího celkovou hodnotu podniku včetně dluhu. Vhodné pro srovnání firem s různou kapitálovou strukturou.';
+		//phpcs:enable
 	}
 
 }

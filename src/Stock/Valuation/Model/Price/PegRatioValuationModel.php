@@ -64,6 +64,7 @@ class PegRatioValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -116,6 +117,13 @@ class PegRatioValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Kombinuje P/E ratio s růstem zisků. PEG = 1 značí férové ocenění, nižší hodnota naznačuje podhodnocení vzhledem k růstovému potenciálu.';
+		//phpcs:enable
 	}
 
 }

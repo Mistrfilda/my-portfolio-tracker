@@ -95,6 +95,7 @@ class RoeQualityValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -207,6 +208,13 @@ class RoeQualityValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Upravuje P/B multiplikátor podle rentability vlastního kapitálu (ROE). Firmy s vysokým ROE si zaslouží vyšší ocenění než průměrné společnosti.';
+		//phpcs:enable
 	}
 
 }

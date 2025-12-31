@@ -56,6 +56,7 @@ class PriceToSalesValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -107,6 +108,13 @@ class PriceToSalesValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Oceňuje akcii pomocí poměru ceny k tržbám na akcii. Užitečné pro firmy s nízkými nebo záporným ziskem, kde P/E nelze použít.';
+		//phpcs:enable
 	}
 
 }

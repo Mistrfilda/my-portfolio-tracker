@@ -24,6 +24,7 @@ abstract class BasePriceModel implements StockValuationModel
 			usedStockValuationDataTypes: $this->getUsedTypes(),
 			label: $this->getLabel(),
 			state: StockValuationModelState::UNABLE_TO_CALCULATE,
+			description: $this->getDescription(),
 		);
 	}
 
@@ -34,5 +35,7 @@ abstract class BasePriceModel implements StockValuationModel
 
 	/** @return array<StockValuationModelUsedValue> */
 	abstract protected function getModelUsedValues(): array;
+
+	abstract protected function getDescription(): string;
 
 }

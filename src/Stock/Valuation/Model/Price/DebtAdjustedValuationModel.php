@@ -105,6 +105,7 @@ class DebtAdjustedValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -225,6 +226,13 @@ class DebtAdjustedValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Upravuje účetní hodnotu na základě zadlužení a likvidity společnosti. Firmy s nízkým dluhem a dobrou likviditou získávají bonus, vysoce zadlužené jsou penalizovány.';
+		//phpcs:enable
 	}
 
 }

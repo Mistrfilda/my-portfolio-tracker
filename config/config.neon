@@ -512,6 +512,8 @@ services:
 	- App\Stock\Valuation\Model\Price\PegRatioValuationModel
 	- App\Stock\Valuation\Model\Price\PriceToSalesValuationModel
 	- App\Stock\Valuation\Model\Price\DebtAdjustedValuationModel
+	- App\Stock\Valuation\Model\Price\DividendPayoutSafetyModel
+	- App\Stock\Valuation\Model\Price\DividendYieldFairValueModel
 
 	#Monitoring
 	- App\Monitoring\MonitoringFacade(%monitoring.monitoringUptimeMonitorMapping%)

@@ -78,6 +78,7 @@ class DividendDiscountValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -131,6 +132,13 @@ class DividendDiscountValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Gordon Growth Model oceňuje akcii na základě budoucích dividend diskontovaných požadovanou výnosností. Vhodný pro stabilní dividendové společnosti s předvídatelným růstem.';
+		//phpcs:enable
 	}
 
 }

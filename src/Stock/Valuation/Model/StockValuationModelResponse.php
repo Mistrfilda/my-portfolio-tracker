@@ -33,4 +33,6 @@ interface StockValuationModelResponse
 	/** @return array<StockValuationModelUsedValue> */
 	public function getModelUsedValues(): array;
 
+	public function getDescription(): string|null;
+
 }

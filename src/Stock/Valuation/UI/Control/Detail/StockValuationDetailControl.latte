@@ -84,7 +84,6 @@
             </td>
         </tr>
 
-        {* Řádek s analytickou cenou *}
         {if count($stockValuationAnalyticsPrices) > 0}
             {foreach $stockValuationAnalyticsPrices as $analyticsPrice}
                 {if $analyticsPrice->getValuationType() === App\Stock\Valuation\StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE}
@@ -134,9 +133,12 @@
                     {$model->getLabel()}
                 </h3>
 
+                <div class="flex items-center justify-between text-sm my-4">
+                    <span class="text-gray-500">{$model->getDescription()}</span>
+                </div>
+
                 {if $isCalculated}
                     <div class="mt-4 space-y-3">
-                        {* Aktuální cena *}
                         <div class="flex items-center justify-between text-sm">
                             <span class="text-gray-500">Aktuální cena:</span>
                             <span class="font-semibold text-gray-900">

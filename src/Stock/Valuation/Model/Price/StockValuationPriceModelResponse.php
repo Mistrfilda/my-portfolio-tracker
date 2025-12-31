@@ -29,6 +29,7 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 		private string $label,
 		private StockValuationModelState $state,
 		private array $modelUsedValues = [],
+		private string|null $description = null,
 	)
 	{
 	}
@@ -82,6 +83,13 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 	public function getModelUsedValues(): array
 	{
 		return $this->modelUsedValues;
+	}
+
+	public function getDescription(): string|null
+	{
+		//phpcs:disable
+		return $this->description;
+		//phpcs:enable
 	}
 
 }

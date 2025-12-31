@@ -63,6 +63,7 @@ class GrahamNumberValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -115,6 +116,13 @@ class GrahamNumberValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Klasická metoda Benjamina Grahama kombinující EPS a účetní hodnotu. Konzervativní přístup hledající akcie s dostatečnou bezpečnostní marží.';
+		//phpcs:enable
 	}
 
 }

@@ -56,6 +56,7 @@ class BookValueValuationModel extends BasePriceModel
 			label: $this->getLabel(),
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
+			description: $this->getDescription(),
 		);
 	}
 
@@ -107,6 +108,13 @@ class BookValueValuationModel extends BasePriceModel
 		}
 
 		return StockValuationModelState::NEUTRAL;
+	}
+
+	protected function getDescription(): string
+	{
+		//phpcs:disable
+		return 'Porovnává aktuální cenu s účetní hodnotou na akcii pomocí P/B poměru. Vhodné zejména pro kapitálově náročná odvětví jako banky nebo průmyslové firmy.';
+		//phpcs:enable
 	}
 
 }
