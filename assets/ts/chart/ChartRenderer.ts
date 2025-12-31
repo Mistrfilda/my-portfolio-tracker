@@ -100,6 +100,7 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
+                    responsive: true,
                     interaction: {
                         intersect: false,
                         mode: 'index',
@@ -145,6 +146,7 @@ export class ChartRenderer {
                 },
                 options: {
                     maintainAspectRatio: false,
+                    responsive: true,
                     plugins: {
                         tooltip: {
                             callbacks: {
