@@ -1,69 +1,52 @@
 {templateType App\Cash\Expense\UI\ExpenseOverviewTemplate}
 {block #content}
     {snippet pageSnippet}
-        <ul role="list" class="divide-y divide-gray-200">
-            <li class="px-4 py-4 sm:px-0">
-                <div>
-                    {*                <div class="sm:hidden">*}
-                    {*                    <label for="tabs" class="sr-only">Select a tab</label>*}
-                    {*                    <!-- Use an "onChange" listener to redirect the user to the selected tab URL. -->*}
-                    {*                    <select id="tabs" name="tabs" class="block w-full rounded-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">*}
-                    {*                        <option selected>My Account</option>*}
-                    {*                        <option>Company</option>*}
-                    {*                        <option>Team Members</option>*}
-                    {*                        <option>Billing</option>*}
-                    {*                    </select>*}
-                    {*                </div>*}
-                    {*                <div class="hidden sm:block">*}
-                    <div class="block">
-                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow-sm" aria-label="Tabs">
-                            {foreach $yearOptions as $yearOption}
-                                <a
-                                        n:href="setYear! selectedYear: $yearOption"
-                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $selectedYear === $yearOption ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
-                                        aria-current="page"
-                                >
-                                    <span>{$yearOption}</span>
-                                    {if $selectedYear === $yearOption}
-                                        <span aria-hidden="true"
-                                              class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {else}
-                                        <span aria-hidden="true"
-                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {/if}
-                                </a>
-                            {/foreach}
-                        </nav>
-                    </div>
+        <div class="space-y-6">
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-medium text-gray-500">Rok</h3>
                 </div>
-            </li>
+                <div class="flex flex-wrap gap-2">
+                    {foreach $yearOptions as $yearOption}
+                        <a
+                                n:href="setYear! selectedYear: $yearOption"
+                                n:class="'ajax inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200',
+                                $selectedYear === $yearOption
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'"
+                        >
+                            {$yearOption}
+                        </a>
+                    {/foreach}
+                </div>
+            </div>
 
-            <li class="px-4 py-4 sm:px-0">
-                <div>
-                    <div class="block">
-                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow-sm" aria-label="Tabs">
-                            {foreach $monthOptions as $key => $monthOption}
-                                <a
-                                        n:href="setMonth! selectedMonth: ($selectedMonth === $key ? null : $key)"
-                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $selectedMonth === $key ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
-                                        aria-current="page"
-                                >
-                                    <span>{$monthOption}</span>
-                                    {if $selectedMonth === $key}
-                                        <span aria-hidden="true"
-                                              class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {else}
-                                        <span aria-hidden="true"
-                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {/if}
-                                </a>
-                            {/foreach}
-                        </nav>
-                    </div>
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-sm font-medium text-gray-500">Měsíc</h3>
+                    {if $selectedMonth !== null}
+                        <a n:href="setMonth! selectedMonth: null" class="ajax text-xs text-blue-600 hover:text-blue-800 font-medium">
+                            Zobrazit celý rok
+                        </a>
+                    {/if}
                 </div>
-            </li>
-        </ul>
-        {control expanseOverviewCategoryControl}
+                <div class="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-12 gap-2">
+                    {foreach $monthOptions as $key => $monthOption}
+                        <a
+                                n:href="setMonth! selectedMonth: ($selectedMonth === $key ? null : $key)"
+                                n:class="'ajax flex items-center justify-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
+                                $selectedMonth === $key
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                : 'bg-gray-50 text-gray-600 hover:bg-blue-50 hover:text-blue-700 border border-gray-200'"
+                        >
+                            {$monthOption}
+                        </a>
+                    {/foreach}
+                </div>
+            </div>
+
+            {control expanseOverviewCategoryControl}
+        </div>
     {/snippet}
 
     {snippet modal}
@@ -72,19 +55,14 @@
         {/if}
     {/snippet}
 
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3">
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg divide-y divide-gray-200">
-                <div class="px-4 py-5 sm:px-6">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Výdaje dle kategorií
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                    </p>
-                </div>
-                <div class="px-1 py-1">
-                    {control chartOverview}
-                </div>
+    <div class="mt-6">
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Výdaje dle kategorií</h3>
+                <p class="mt-1 text-sm text-gray-500">Grafické zobrazení rozložení výdajů</p>
+            </div>
+            <div class="p-4">
+                {control chartOverview}
             </div>
         </div>
     </div>
