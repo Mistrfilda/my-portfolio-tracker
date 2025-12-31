@@ -63,6 +63,23 @@ class PortfolioGoalRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	public function findFirstActiveByType(PortfolioGoalTypeEnum $type): PortfolioGoal|null
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
+		$qb->andWhere($qb->expr()->eq('portfolioGoal.type', ':type'));
+		$qb->andWhere($qb->expr()->eq('portfolioGoal.active', ':active'));
+		$qb->setParameter('type', $type);
+		$qb->setParameter('active', true);
+		$qb->orderBy('portfolioGoal.startDate', 'ASC');
+		$result = $qb->getQuery()->getOneOrNullResult();
+		if ($result === null) {
+			return null;
+		}
+
+		assert($result instanceof PortfolioGoal);
+		return $result;
+	}
+
 	/**
 	 * @param array<UuidInterface> $ids
 	 * @return array<PortfolioGoal>

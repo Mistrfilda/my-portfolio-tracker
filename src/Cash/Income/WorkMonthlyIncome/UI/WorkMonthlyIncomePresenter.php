@@ -8,6 +8,8 @@ use App\Asset\Price\SummaryPrice;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
+use App\Goal\PortfolioGoalRepository;
+use App\Goal\PortfolioGoalTypeEnum;
 use App\UI\Base\BaseSysadminPresenter;
 use App\UI\Filter\CurrencyFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -37,7 +39,6 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 	];
 
 	public const HOURS = [
-		50,
 		60,
 		70,
 		80,
@@ -63,6 +64,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		private DatetimeFactory $datetimeFactory,
 		private CzechHolidayService $czechHolidayService,
 		private WorkMonthlyIncomeFacade $workMonthlyIncomeFacade,
+		private PortfolioGoalRepository $portfolioGoalRepository,
 	)
 	{
 		parent::__construct();
@@ -159,6 +161,9 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			];
 		}
 
+		$this->template->activeIncomeGoal = $this->portfolioGoalRepository->findFirstActiveByType(
+			PortfolioGoalTypeEnum::MONTHLY_INCOME,
+		);
 		$this->template->hours = $hours;
 		$this->template->goals = $goals;
 	}

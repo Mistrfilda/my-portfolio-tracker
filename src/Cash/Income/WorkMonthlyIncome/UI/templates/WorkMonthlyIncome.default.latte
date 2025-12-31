@@ -1,263 +1,188 @@
-{templateType App\Cash\WorkMonthlyIncome\UI\WorkMonthlyIncomeTemplate}
+
+{templateType App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomeTemplate}
 {block #content}
     {snippet pageSnippet}
-        <div class="grid grid-cols-1 md:grid-cols-2 auto-rows-fr gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-                <h2 class="sr-only">Summary</h2>
-                <div class="rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5 h-full">
-                    <div class="sm:flex-auto pl-6 pt-6">
-                        <div class="flex justify-between">
-                            <h1 class="text-xl font-semibold text-gray-900">
-                                Aktuální měsíc
-                            </h1>
-                        </div>
-                        <p class="mt-2 text-sm text-gray-700">
-                            Poslední aktualizace {$currentMonthWorkIncome->getUpdatedAt()|datetimeFormat}
+                <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Aktuální měsíc</h2>
+                        <p class="mt-1 text-sm text-gray-500">
+                            Aktualizováno {$currentMonthWorkIncome->getUpdatedAt()|datetimeFormat}
                         </p>
+
+                        {* Hero stats *}
+                        <div class="mt-6 grid grid-cols-2 gap-4">
+                            <div class="rounded-xl bg-gradient-to-br from-blue-50 to-blue-50 p-4">
+                                <p class="text-sm font-medium text-blue-600">Odpracováno</p>
+                                <p class="mt-1 text-2xl font-bold text-gray-900">{$currentMonthWorkIncome->getHours()} h</p>
+                            </div>
+                            <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 p-4">
+                                <p class="text-sm font-medium text-emerald-600">Vyděláno</p>
+                                <p class="mt-1 text-2xl font-bold text-gray-900">{$currentMonthWorkIncome->getSummaryPrice()|summaryPriceFormat}</p>
+                            </div>
+                        </div>
+
+                        {var $progressPercent = min(100, round(($currentMonthWorkIncome->getSummaryPrice()->getPrice() / $activeIncomeGoal->getGoal()) * 100))}
+                        <div class="mt-6">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-medium text-gray-700">Progress k cíli {$activeIncomeGoal->getGoal()|number:0, ' ', ' '} CZK</span>
+                                <span class="font-semibold text-gray-900">{$progressPercent} %</span>
+                            </div>
+                            <div class="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500" style="width: {$progressPercent}%"></div>
+                            </div>
+                        </div>
+
+                        {* Time remaining *}
+                        <div class="mt-6 flex items-center gap-4">
+                            <div class="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2">
+                                <svg class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+                                </svg>
+                                <div>
+                                    <p class="text-xs text-amber-700">Pracovní dny</p>
+                                    <p class="text-sm font-semibold text-amber-900">{$workingDaysTillEndOfMonth}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
+                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div>
+                                    <p class="text-xs text-gray-500">Celkem dnů</p>
+                                    <p class="text-sm font-semibold text-gray-700">{$daysTillEndOfMonth}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <dl class="flex flex-wrap">
-                        <div class="flex-auto pl-6 pt-6">
-                            <dd class="mt-1 text-base leading-6 text-gray-900">Odpracováno {$currentMonthWorkIncome->getHours()} hodin</dd>
-                            <dd class="mt-1 text-base leading-6 text-gray-900">Vyděláno {$currentMonthWorkIncome->getSummaryPrice()|summaryPriceFormat}</dd>
-                        </div>
-                        <div class="mt-6 flex w-full flex-none gap-x-4 border-t border-gray-900/5 px-6 pt-6">
-                            <dt class="flex-none">
-                                <span class="sr-only">Due date</span>
-                                <svg class="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
-                                     aria-hidden="true">
-                                    <path d="M5.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75V12zM6 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H6zM7.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H8a.75.75 0 01-.75-.75V12zM8 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H8zM9.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V10zM10 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H10zM9.25 14a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V14zM12 9.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V10a.75.75 0 00-.75-.75H12zM11.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H12a.75.75 0 01-.75-.75V12zM12 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H12zM13.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H14a.75.75 0 01-.75-.75V10zM14 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H14z"/>
-                                    <path fill-rule="evenodd"
-                                          d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                            </dt>
-                            <dd class="text-sm leading-6 text-gray-500">
-                                <span>{$workingDaysTillEndOfMonth} pracovních dnů do konce měsíce</span>
-                            </dd>
-                        </div>
-                        <div class="mt-4 flex w-full flex-none gap-x-4 px-6">
-                            <dt class="flex-none">
-                                <span class="sr-only">Due date</span>
-                                <svg class="h-6 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor"
-                                     aria-hidden="true">
-                                    <path d="M5.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H6a.75.75 0 01-.75-.75V12zM6 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H6zM7.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H8a.75.75 0 01-.75-.75V12zM8 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H8zM9.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V10zM10 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H10zM9.25 14a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H10a.75.75 0 01-.75-.75V14zM12 9.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V10a.75.75 0 00-.75-.75H12zM11.25 12a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H12a.75.75 0 01-.75-.75V12zM12 13.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V14a.75.75 0 00-.75-.75H12zM13.25 10a.75.75 0 01.75-.75h.01a.75.75 0 01.75.75v.01a.75.75 0 01-.75.75H14a.75.75 0 01-.75-.75V10zM14 11.25a.75.75 0 00-.75.75v.01c0 .414.336.75.75.75h.01a.75.75 0 00.75-.75V12a.75.75 0 00-.75-.75H14z"/>
-                                    <path fill-rule="evenodd"
-                                          d="M5.75 2a.75.75 0 01.75.75V4h7V2.75a.75.75 0 011.5 0V4h.25A2.75 2.75 0 0118 6.75v8.5A2.75 2.75 0 0115.25 18H4.75A2.75 2.75 0 012 15.25v-8.5A2.75 2.75 0 014.75 4H5V2.75A.75.75 0 015.75 2zm-1 5.5c-.69 0-1.25.56-1.25 1.25v6.5c0 .69.56 1.25 1.25 1.25h10.5c.69 0 1.25-.56 1.25-1.25v-6.5c0-.69-.56-1.25-1.25-1.25H4.75z"
-                                          clip-rule="evenodd"/>
-                                </svg>
-                            </dt>
-                            <dd class="text-sm leading-6 text-gray-500">
-                                <span>{$daysTillEndOfMonth} dnů do konce měsíce</span>
-                            </dd>
-                        </div>
-                    </dl>
-
-                    <div class="px-6 py-4">
-                        <div class="-mx-4 flow-root sm:mx-0">
-                            <table class="min-w-full ">
-                                <colgroup>
-                                    <col class="w-full sm:w-1/2">
-                                    <col class="sm:w-1/6">
-                                </colgroup>
-                                <thead class="border-b border-gray-300 text-gray-900">
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                        Cílová částka
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Potřebných hodin celkem
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Zbýva odpracovat hodin
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Průměr denně pracovní dny
-                                    </th>
-                                    <th scope="col"
-                                        class="hidden px-3 py-3.5 text-center text-sm font-semibold text-gray-900 sm:table-cell">
-                                        Průměr denně vše
-                                    </th>
+                    {* Goals table - full view *}
+                    <div class="border-t border-gray-100 px-6 py-4">
+                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Cíle</h3>
+                        <table class="min-w-full text-sm">
+                            <thead>
+                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <th class="pb-2">Částka</th>
+                                <th class="pb-2 text-right">Zbývá hodin</th>
+                                <th class="pb-2 text-right">Ø/prac. den</th>
+                            </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                            {foreach $goals as $goal}
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="py-2 font-medium text-gray-900">{$goal['amount']}</td>
+                                    <td class="py-2 text-right">
+                                        {if $goal['remainingHours'] <= 0}
+                                            <span class="inline-flex items-center text-green-600">
+                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                                                </svg>
+                                            </span>
+                                        {else}
+                                            <span class="text-gray-600">{$goal['remainingHours']}</span>
+                                        {/if}
+                                    </td>
+                                    <td class="py-2 text-right text-gray-500">
+                                        {$goal['workDaysAverage'] === null ? '—' : $goal['workDaysAverage']}
+                                    </td>
                                 </tr>
-                                </thead>
-                                <tbody>
-                                {foreach $goals as $goal}
-                                    <tr n:class="$iterator->isLast() === false ? 'border-b border-gray-200', 'divide-x divide-gray-200'">
-                                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0 text-left">
-                                            <div class="font-medium text-gray-900">
-                                                {$goal['amount']}
-                                            </div>
-                                        </td>
-                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['requiredHours']}</td>
-                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['remainingHours']}</td>
-                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['workDaysAverage'] === null ? 'již není' : $goal['workDaysAverage']}</td>
-                                        <td class="py-5 pl-3 pr-4 text-center text-sm text-gray-500 sm:pr-0">{$goal['allDaysAverage']}</td>
-                                    </tr>
-                                {/foreach}
-
-                                </tbody>
-                            </table>
-                        </div>
+                            {/foreach}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
+            {* Income calculator - full grid *}
             <div>
-                <div class="overflow-hidden rounded-lg bg-white shadow-sm">
-                    <div class="sm:flex-auto pl-6 pt-6">
-                        <div class="flex justify-between">
-                            <h1 class="text-xl font-semibold text-gray-900">
-                                Výpočet příjmu
-                            </h1>
-                        </div>
-                    </div>
-                    <div class="px-6 py-4">
-                        <div class="-mx-4 flow-root sm:mx-0">
-                            <table class="min-w-full ">
-{*                                <colgroup>*}
-{*                                    <col class="w-full sm:w-1/2">*}
-{*                                    <col class="sm:w-1/6">*}
-{*                                </colgroup>*}
-                                <thead class="border-b border-gray-300 text-gray-900">
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pr-3 text-sm font-semibold text-gray-900 text-center">
-                                        Počet hodin
-                                    </th>
-                                    <th scope="col"
-                                        class="px-3 py-3.5 text-sm font-semibold text-gray-900 text-center">
-                                        Částka
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {foreach $hours as $hour}
-                                    <tr n:class="$iterator->isLast() === false ? 'border-b border-gray-200', 'divide-x divide-gray-200'">
-                                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
-                                            <div class="font-medium text-gray-900">
-                                                {$hour['hour']}
-                                            </div>
-                                        </td>
-                                        <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0 text-center">
-                                            <div class="font-medium text-gray-900">
-                                                {$hour['amount']}
-                                            </div>
-                                        </td>
-                                    </tr>
-                                {/foreach}
+                <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+                    <div class="p-6">
+                        <h2 class="text-lg font-semibold text-gray-900">Kalkulačka příjmu</h2>
+                        <p class="mt-1 text-sm text-gray-500">Přehled výdělku podle odpracovaných hodin</p>
 
-                                </tbody>
-                            </table>
+                        <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            {foreach $hours as $hour}
+                                <div class="rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 transition-all">
+                                    <p class="text-2xl font-bold text-gray-900">{$hour['hour']}</p>
+                                    <p class="text-xs text-gray-500">hodin</p>
+                                    <p class="mt-2 text-sm font-semibold text-blue-600">{$hour['amount']}</p>
+                                </div>
+                            {/foreach}
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <ul role="list" class="divide-y divide-gray-200">
-            <li class="px-4 py-4 sm:px-0">
-                <div>
-                    <div class="block">
-                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow-sm" aria-label="Tabs">
-                            {foreach $yearOptions as $yearOption}
-                                <a
-                                        n:href="setYear! selectedYear: $yearOption"
-                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $selectedYear === $yearOption ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
-                                        aria-current="page"
-                                >
-                                    <span>{$yearOption}</span>
-                                    {if $selectedYear === $yearOption}
-                                        <span aria-hidden="true"
-                                              class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {else}
-                                        <span aria-hidden="true"
-                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {/if}
-                                </a>
-                            {/foreach}
-                        </nav>
-                    </div>
-                </div>
-            </li>
-        </ul>
-
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm">
-            <div class="px-4 py-5 sm:px-6">
-                <h3 class="text-base font-semibold leading-6 text-gray-900">Celkový přehled příjmů</h3>
+        <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-sm font-medium text-gray-500">Rok</h3>
             </div>
-            <div class="px-6 py-4">
-                <div class="-mx-4 flow-root sm:mx-0">
-                    <table class="min-w-full">
-                        <colgroup>
-                            <col class="w-full sm:w-1/2">
-                            <col class="sm:w-1/6">
-                            <col class="sm:w-1/6">
-                            <col class="sm:w-1/6">
-                        </colgroup>
-                        <thead class="border-b border-gray-300 text-gray-900">
-                        <tr>
-                            <th scope="col"
-                                class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                Měsíc
-                            </th>
-                            <th scope="col"
-                                class="invisible">
-                                ---
-                            </th>
-                            <th scope="col"
-                                class="hidden px-3 py-3.5 text-right text-sm font-semibold text-gray-900 sm:table-cell">
-                                Počet odpracovaných hodin
-                            </th>
-                            <th scope="col"
-                                class="py-3.5 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">
-                                Vyděláno
-                            </th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {foreach $workMonthlyIncomes as $workMonthlyIncome}
-                            <tr class="border-b border-gray-200">
-                                <td class="max-w-0 py-5 pl-4 pr-3 text-sm sm:pl-0">
-                                    <div class="font-medium text-gray-900">{$workMonthlyIncome->getFormatedName()}</div>
-                                </td>
-                                <td class="invisible"></td>
-                                <td class="hidden px-3 py-5 text-right text-sm text-gray-500 sm:table-cell">{$workMonthlyIncome->getHours()}</td>
-                                <td class="py-5 pl-3 pr-4 text-right text-sm text-gray-500 sm:pr-0">{$workMonthlyIncome->getSummaryPrice()|summaryPriceFormat}</td>
-                            </tr>
-                        {/foreach}
+            <div class="flex flex-wrap gap-2">
+                {foreach $yearOptions as $yearOption}
+                    <a
+                            n:href="setYear! selectedYear: $yearOption"
+                            n:class="'ajax inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200',
+                            $selectedYear === $yearOption
+                            ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'"
+                    >
+                        {$yearOption}
+                    </a>
+                {/foreach}
+            </div>
+        </div>
 
-                        </tbody>
-                        <tfoot>
-                        <tr>
-                            <th scope="row" colspan="3"
-                                class="hidden pl-4 pr-3 pt-6 text-right text-sm font-normal text-gray-500 sm:table-cell sm:pl-0">
-                                Celkový počet hodin
-                            </th>
-                            <th scope="row"
-                                class="pl-4 pr-3 pt-6 text-left text-sm font-normal text-gray-500 sm:hidden">
-                                Celkový počet hodin
-                            </th>
-                            <td class="pl-3 pr-4 pt-6 text-right text-sm text-gray-500 sm:pr-0">{$totalSummaryPrice->getCounter()}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row" colspan="3"
-                                class="hidden pl-4 pr-3 pt-4 text-right text-sm font-semibold text-gray-900 sm:table-cell sm:pl-0">
-                                Celkem
-                            </th>
-                            <th scope="row"
-                                class="pl-4 pr-3 pt-4 text-left text-sm font-semibold text-gray-900 sm:hidden">
-                                Celkem
-                            </th>
-                            <td class="pl-3 pr-4 pt-4 text-right text-sm font-semibold text-gray-900 sm:pr-0">{$totalSummaryPrice|summaryPriceFormat}
+        {* Monthly overview *}
+        <div class="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 overflow-hidden">
+            <div class="px-6 py-5 border-b border-gray-100">
+                <h3 class="text-lg font-semibold text-gray-900">Přehled za rok {$selectedYear}</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-100">
+                    <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Měsíc
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Hodiny
+                        </th>
+                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
+                            Příjem
+                        </th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 bg-white">
+                    {foreach $workMonthlyIncomes as $workMonthlyIncome}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900">
+                                {$workMonthlyIncome->getFormatedName()}
+                            </td>
+                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                {$workMonthlyIncome->getHours()} h
+                            </td>
+                            <td class="whitespace-nowrap py-4 pl-3 pr-6 text-sm font-semibold text-gray-900 text-right">
+                                {$workMonthlyIncome->getSummaryPrice()|summaryPriceFormat}
                             </td>
                         </tr>
-                        </tfoot>
-                    </table>
-                </div>
+                    {/foreach}
+                    </tbody>
+                    <tfoot class="bg-gray-50">
+                    <tr>
+                        <th scope="row" class="py-4 pl-6 pr-3 text-left text-sm font-semibold text-gray-900">
+                            Celkem
+                        </th>
+                        <td class="px-3 py-4 text-right text-sm font-semibold text-gray-900">
+                            {$totalSummaryPrice->getCounter()} h
+                        </td>
+                        <td class="py-4 pl-3 pr-6 text-right text-sm font-bold text-blue-600">
+                            {$totalSummaryPrice|summaryPriceFormat}
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
             </div>
         </div>
     {/snippet}
