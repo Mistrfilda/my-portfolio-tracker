@@ -1,151 +1,143 @@
 {templateType App\Stock\Dividend\UI\Detail\StockDividendDetailControlTemplate}
 
 {foreach $dividendDetailDTOs as $dividendDetailDTO}
-    <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm mb-3">
-        <div class="gap-x-4 gap-y-2 bg-white px-4 py-4 sm:px-6 xl:px-8">
-            <h3 class="text-base font-semibold leading-6 text-gray-900">
+    <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+        {* Hlavička sekce *}
+        <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">
                 {$dividendDetailDTO['label']}
             </h3>
         </div>
 
-        <dl class="mx-auto grid grid-cols-1 gap-px bg-gray-900/5 sm:grid-cols-4 lg:grid-cols-4">
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-                <dt class="text-sm font-medium leading-6 text-gray-500">Dividenda včetně daně</dt>
-                <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$dividendDetailDTO['detailDTO']->getDividendsSummaryPriceWithTax()|summaryPriceFormat}</dd>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500">
+        <div class="p-5">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
+                    <div class="text-xs font-medium text-blue-600 uppercase tracking-wider mb-2">Dividenda včetně daně</div>
+                    <div class="text-2xl font-bold text-blue-900 mb-2">
+                        {$dividendDetailDTO['detailDTO']->getDividendsSummaryPriceWithTax()|summaryPriceFormat}
+                    </div>
+                    <div class="text-sm text-blue-700 mb-1">
                         {$dividendDetailDTO['detailDTO']->getDividendsSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
-                    </span>
+                    </div>
+                    <div class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-200 text-blue-800">
+                        Výnos: {$dividendDetailDTO['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                    </div>
                 </div>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500">
-                        Aktuální výnos
-                        {$dividendDetailDTO['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$currentPrice|percentage}
-                    </span>
-                </div>
-            </div>
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-                <dt class="text-sm font-medium leading-6 text-gray-500">Čistá dividenda</dt>
-                <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$dividendDetailDTO['detailDTO']->getDividendsSummaryPrice()|summaryPriceFormat}</dd>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500">
+
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 p-4">
+                    <div class="text-xs font-medium text-green-600 uppercase tracking-wider mb-2">Čistá dividenda</div>
+                    <div class="text-2xl font-bold text-green-900 mb-2">
+                        {$dividendDetailDTO['detailDTO']->getDividendsSummaryPrice()|summaryPriceFormat}
+                    </div>
+                    <div class="text-sm text-green-700 mb-1">
                         {$dividendDetailDTO['detailDTO']->getDividendsSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
-                    </span>
+                    </div>
+                    <div class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-200 text-green-800">
+                        Výnos: {$dividendDetailDTO['detailDTO']->getDividendsSummaryPrice()->getPrice()|ruleOfThree:$currentPrice|percentage}
+                    </div>
                 </div>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500">
-                        Aktuální výnos
-                        {$dividendDetailDTO['detailDTO']->getDividendsSummaryPrice()->getPrice()|ruleOfThree:$currentPrice|percentage}
-                    </span>
-                </div>
-            </div>
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-                <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená dividenda</dt>
-                <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPriceWithTax()|summaryPriceFormat}</dd>
-                <div class="flex justify-start ">
 
-                    <span class="mt-3 text-sm font-medium text-gray-500">
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200 p-4">
+                    <div class="text-xs font-medium text-blue-600 uppercase tracking-wider mb-2">Obdržená dividenda</div>
+                    <div class="text-2xl font-bold text-blue-900 mb-2">
+                        {$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPriceWithTax()|summaryPriceFormat}
+                    </div>
+                    <div class="text-sm text-blue-700">
                         {$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPriceWithTax()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
-                    </span>
+                    </div>
                 </div>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500 invisible">
-                        span
-                    </span>
-                </div>
-            </div>
-            <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 bg-white px-4 py-10 sm:px-6 xl:px-8">
-                <dt class="text-sm font-medium leading-6 text-gray-500">Obdržená čistá dividenda</dt>
-                <dd class="w-full flex-none text-3xl font-medium leading-10 tracking-tight text-gray-900">{$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPrice()|summaryPriceFormat}</dd>
-                <div class="flex justify-start ">
-                    <span class="mt-3 text-sm font-medium text-gray-500">
+
+                <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-lg border border-green-200 p-4">
+                    <div class="text-xs font-medium text-green-600 uppercase tracking-wider mb-2">Obdržená čistá dividenda</div>
+                    <div class="text-2xl font-bold text-green-900 mb-2">
+                        {$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPrice()|summaryPriceFormat}
+                    </div>
+                    <div class="text-sm text-green-700">
                         {$dividendDetailDTO['detailDTO']->getDividendRecordSummaryPrice()|summaryPriceConvert:App\Currency\CurrencyEnum::CZK}
-                    </span>
-                </div>
-                <div class="flex justify-start w-full">
-                    <span class="mt-3 text-sm font-medium text-gray-500 invisible">
-                        span
-                    </span>
-                </div>
-            </div>
-        </dl>
-    </div>
-{/foreach}
-
-<div class="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-    <div class="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow-sm mb-3">
-            <div class="gap-x-4 gap-y-2 bg-white px-4 py-4 sm:px-6 xl:px-8">
-                <h3 class="text-base font-semibold leading-6 text-gray-900">
-                    Aktuální výnost jednotlivých pozic
-                </h3>
-            </div>
-            <div class="gap-x-4 gap-y-2 bg-white px-4 py-4 sm:px-6 xl:px-8">
-                <div class="flow-root">
-                    <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-                        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-                            <table class="min-w-full divide-y divide-gray-300 table-auto">
-                                <thead>
-                                <tr>
-                                    <th scope="col"
-                                        class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-0">
-                                        Pozice založena dne
-                                    </th>
-                                    <th scope="col"
-                                        class="whitespace-nowrap px-2 py-2 text-left text-sm font-semibold text-gray-900">
-                                        Počet kusů
-                                    </th>
-                                    <th scope="col"
-                                        class="px-2 py-2 text-left text-sm font-semibold text-gray-900">
-                                        Nákupní cena
-                                    </th>
-                                    <th scope="col"
-                                        class="text-wrap px-2 py-2 text-left text-sm font-semibold text-gray-900 overflow-auto max-w-3">
-                                        Výnos za posledních 365 dní
-                                    </th>
-                                    <th scope="col"
-                                        class="text-wrap px-2 py-2 text-left text-sm font-semibold text-gray-900 overflow-auto max-w-3">
-                                        Výnos za poslední rok {$lastYear}
-                                    </th>
-                                    <th scope="col"
-                                        class="text-wrap px-2 py-2 text-left text-sm font-semibold text-gray-900 overflow-auto max-w-3">
-                                        Výnos tento rok
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody class="divide-y divide-gray-200 bg-white">
-                                {foreach $openStockAssetDetailDTO->getPositions() as $position}
-                                    <tr>
-                                        <td class="whitespace-nowrap py-2 pl-4 pr-3 text-sm text-gray-500 sm:pl-0">
-                                            {$position->getStockPosition()->getCreatedAt()|datetimeFormat}
-                                        </td>
-                                        <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900">
-                                            {$position->getStockPosition()->getOrderPiecesCount()}
-                                        </td>
-                                        <td class="whitespace-nowrap px-2 py-2 text-sm text-gray-900">
-                                            {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
-                                        </td>
-                                        <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[0]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
-                                        </td>
-                                        <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[2]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
-                                        </td>
-                                        <td class="px-2 py-2 text-sm text-gray-500">
-                                            {$dividendDetailDTOs[1]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
-                                        </td>
-                                    </tr>
-                                {/foreach}
-
-                                <!-- More transactions... -->
-                                </tbody>
-                            </table>
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+{/foreach}
+
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+            Aktuální výnos jednotlivých pozic
+        </h3>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+            <tr>
+                <th scope="col" class="py-3 pl-5 pr-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Pozice založena dne
+                </th>
+                <th scope="col" class="hidden sm:table-cell py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Počet kusů
+                </th>
+                <th scope="col" class="hidden sm:table-cell py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Nákupní cena
+                </th>
+                <th scope="col" class="py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    365 dní
+                </th>
+                <th scope="col" class="py-3 px-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Rok {$lastYear}
+                </th>
+                <th scope="col" class="py-3 pl-3 pr-5 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                    Tento rok
+                </th>
+            </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-100">
+            {foreach $openStockAssetDetailDTO->getPositions() as $position}
+                <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="py-3 pl-5 pr-3 text-sm">
+                        <div class="font-medium text-gray-900">
+                            {$position->getStockPosition()->getCreatedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATE_FORMAT}
+                        </div>
+                        <div class="mt-0.5 text-xs text-gray-500 sm:hidden">
+                            {$position->getStockPosition()->getOrderPiecesCount()} ks × {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
+                        </div>
+                    </td>
+                    <td class="hidden sm:table-cell py-3 px-3 text-right text-sm text-gray-700">
+                        {$position->getStockPosition()->getOrderPiecesCount()}
+                    </td>
+                    <td class="hidden sm:table-cell py-3 px-3 text-right text-sm text-gray-700">
+                        {$position->getStockPosition()->getPricePerPiece()|assetPriceFormat}
+                    </td>
+                    <td class="py-3 px-3 text-right text-sm">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-600/20">
+                            {$dividendDetailDTOs[0]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
+                        </span>
+                    </td>
+                    <td class="py-3 px-3 text-right text-sm">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-600/20">
+                            {$dividendDetailDTOs[2]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
+                        </span>
+                    </td>
+                    <td class="py-3 pl-3 pr-5 text-right text-sm">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-green-100 text-green-800 ring-1 ring-inset ring-green-600/20">
+                            {$dividendDetailDTOs[1]['detailDTO']->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$position->getStockPosition()->getPricePerPiece()->getPrice()|percentage}
+                        </span>
+                    </td>
+                </tr>
+            {/foreach}
+            </tbody>
+        </table>
+    </div>
 </div>
 
-{control stockAssetDividendRecordGrid}
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
+    <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">
+            Historie dividend
+        </h3>
+    </div>
+    <div class="p-5">
+        {control stockAssetDividendRecordGrid}
+    </div>
+</div>
