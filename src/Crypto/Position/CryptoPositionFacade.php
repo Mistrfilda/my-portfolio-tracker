@@ -250,7 +250,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 
 	public function includeToTotalValues(): bool
 	{
-		return false;
+		return true;
 	}
 
 }

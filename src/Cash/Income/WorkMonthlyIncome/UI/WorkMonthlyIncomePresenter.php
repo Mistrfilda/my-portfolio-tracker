@@ -22,7 +22,7 @@ use Nette\Application\Attributes\Persistent;
 class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 {
 
-	public const DEFAULT_YEAR = 2025;
+	public const DEFAULT_YEAR = 2026;
 
 	public const MONEY_GOALS = [
 		65000,
@@ -96,7 +96,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		$this->template->currentMonthWorkIncome = $currentMonthWorkIncome;
 
 		$this->template->totalSummaryPrice = $totalSummaryPrice;
-		$this->template->yearOptions = [2024, 2025, 2026];
+		$this->template->yearOptions = [2024, 2025, 2026, 2027];
 		$this->template->selectedYear = $this->selectedYear;
 
 		$lastDayOfMonth = $now->modify('last day of this month');

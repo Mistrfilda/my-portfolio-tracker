@@ -70,7 +70,6 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 	 */
 	public function findMinMaxDateByMonth(int $year): array
 	{
-		// Dotaz na minimální datum v měsíci
 		$minDatesQb = $this->doctrineRepository->createQueryBuilder('p')
 			->select('MIN(p.createdAt) as minDate, YEAR(p.createdAt) as eventYear, MONTH(p.createdAt) as eventMonth')
 			->where('YEAR(p.createdAt) = :year')

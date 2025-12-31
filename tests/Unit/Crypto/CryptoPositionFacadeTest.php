@@ -177,7 +177,7 @@ class CryptoPositionFacadeTest extends TestCase
 	{
 		$result = $this->cryptoPositionFacade->includeToTotalValues();
 
-		$this->assertFalse($result);
+		$this->assertTrue($result);
 	}
 
 }

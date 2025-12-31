@@ -110,6 +110,10 @@ class PortfolioTotalStatisticControlFacade
 				$lastYearValue = $portfolioStatisticRecord;
 			}
 
+			if ($lastYearValue === null && $firstYearValue !== null) {
+				$lastYearValue = $firstYearValue;
+			}
+
 			if ($lastYearValue === null || $firstYearValue === null) {
 				throw new InvalidArgumentException();
 			}
