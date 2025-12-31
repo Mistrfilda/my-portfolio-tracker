@@ -6,20 +6,14 @@
     App\Doctrine\Entity $item
 }
 
-
 <a href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-   class="text-{$action->getColor()}-600 hover:text-{$action->getColor()}-900 {if $action->isAjax()} ajax {/if}"
-   {if $action->getConfirmation() !== null}
-        onclick="return confirm({$action->getConfirmation()})"
-   {/if}
+   class="{if $action->isAjax()}ajax {/if}"
+        {if $action->getConfirmation() !== null}
+            onclick="return confirm({$action->getConfirmation()})"
+        {/if}
 >
-    {if $action->getIcon() !== null}
-        <button
-                class="inline-flex items-center px-2.5 py-1.5 border border-transparent text-xs font-medium rounded-sm shadow-xs text-white bg-{$action->getColor()}-600 hover:bg-{$action->getColor()}-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-{*            {renderSvg "{$action->getIcon()}", ['class' => 'w-4 h-4 mr-1']}*}
-            {$action->getLabel()}
-        </button>
-    {else}
+    <button type="button"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-{$action->getColor()}-500 text-white bg-{$action->getColor()}-600 hover:bg-{$action->getColor()}-700">
         {$action->getLabel()}
-    {/if}
+    </button>
 </a>
