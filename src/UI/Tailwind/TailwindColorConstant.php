@@ -29,4 +29,6 @@ class TailwindColorConstant
 
 	public const ROSE = 'rose';
 
+	public const ORANGE = 'orange';
+
 }

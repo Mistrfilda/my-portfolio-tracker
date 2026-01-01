@@ -6,6 +6,7 @@ namespace App\Stock\Valuation\UI\Control\Detail;
 
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Valuation\Comparison\Industry\StockIndustryComparison;
 use App\Stock\Valuation\Data\StockValuationData;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use App\Stock\Valuation\StockValuation;
@@ -25,5 +26,7 @@ class StockValuationDetailControlTemplate extends BaseControlTemplate
 	public array $stockValuationAnalyticsPrices;
 
 	public AssetPrice $averagePrice;
+
+	public StockIndustryComparison $stockIndustryComparison;
 
 }

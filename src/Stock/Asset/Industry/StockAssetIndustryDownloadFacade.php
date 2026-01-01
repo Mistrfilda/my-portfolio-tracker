@@ -96,15 +96,27 @@ class StockAssetIndustryDownloadFacade
 			$data = [
 				'name' => $cellValues[1],
 				'marketCap' => $cellValues[2] ?? 0,
-				'pe' => $cellValues[3] ?? '-',
+				'pe' => $cellValues[3] ?? null,
+				'fwdPe' => $cellValues[4] ?? null,
+				'peg' => $cellValues[5] ?? null,
+				'ps' => $cellValues[6] ?? null,
+				'pb' => $cellValues[7] ?? null,
+				'pc' => $cellValues[8] ?? null,
+				'pfcf' => $cellValues[9] ?? null,
 			];
 
 			if (array_key_exists($data['name'], $indexedIndustries)) {
 				$this->logger->debug('Updating industry', ['industry' => $data['name']]);
 				$indexedIndustries[$data['name']]->updateValues(
 					$now,
-					(float) $data['pe'],
+					$this->parseFloat($data['pe']),
 					StockValuationDataNumericHelper::parseNumericValue((string) $data['marketCap']),
+					$this->parseFloat($data['pfcf']),
+					$this->parseFloat($data['pc']),
+					$this->parseFloat($data['pb']),
+					$this->parseFloat($data['ps']),
+					$this->parseFloat($data['peg']),
+					$this->parseFloat($data['fwdPe']),
 				);
 				unset($indexedIndustries[$data['name']]);
 				$updatedCount++;
@@ -123,6 +135,19 @@ class StockAssetIndustryDownloadFacade
 			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT,
 			intValue: $updatedCount,
 		);
+	}
+
+	private function parseFloat(mixed $value): float|null
+	{
+		if ($value === null || $value === '-' || $value === '') {
+			return null;
+		}
+
+		if (is_numeric($value) === false) {
+			return null;
+		}
+
+		return (float) $value;
 	}
 
 }

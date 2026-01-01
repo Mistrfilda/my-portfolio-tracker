@@ -6,6 +6,7 @@ namespace App\Stock\Valuation\UI\Control\Detail;
 
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\StockValuationFacade;
 use App\Stock\Valuation\StockValuationTypeEnum;
@@ -20,6 +21,7 @@ class StockValuationDetailControl extends BaseControl
 		private StockValuationFacade $stockValuationFacade,
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationDataRepository $stockValuationDataRepository,
+		private StockIndustryComparisonFacade $stockIndustryComparisonFacade,
 	)
 	{
 	}
@@ -31,7 +33,8 @@ class StockValuationDetailControl extends BaseControl
 
 		$stockAsset = $this->stockAssetRepository->getById($this->stockAssetId);
 		$template->stockAsset = $stockAsset;
-		$template->stockValuation = $this->stockValuationFacade->getStockValuation($stockAsset->getId());
+		$stockValuation = $this->stockValuationFacade->getStockValuation($stockAsset->getId());
+		$template->stockValuation = $stockValuation;
 		$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset(
 			$stockAsset,
 		);
@@ -65,6 +68,7 @@ class StockValuationDetailControl extends BaseControl
 			$stockAsset->getCurrency(),
 		);
 
+		$template->stockIndustryComparison = $this->stockIndustryComparisonFacade->getComparison($stockValuation);
 		$template->setFile(__DIR__ . '/StockValuationDetailControl.latte');
 		$template->render();
 

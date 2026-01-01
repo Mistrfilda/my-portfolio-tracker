@@ -35,6 +35,24 @@ class StockAssetIndustry implements Entity
 	private float|null $currentPERatio;
 
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $forwardPERatio;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $pegRatio;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $priceToSales;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $priceToBook;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $priceToCashFlow;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $priceToFreeCashFlow;
+
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
 	private float|null $marketCap;
 
 	/** @var ArrayCollection<int, StockAsset> */
@@ -47,13 +65,26 @@ class StockAssetIndustry implements Entity
 		ImmutableDateTime $now,
 		float|null $currentPERatio,
 		float|null $marketCap,
+		float|null $priceToFreeCashFlow,
+		float|null $priceToCashFlow,
+		float|null $priceToBook,
+		float|null $priceToSales,
+		float|null $pegRatio,
+		float|null $forwardPERatio,
 	)
 	{
 		$this->id = Uuid::uuid4();
 		$this->name = $name;
 		$this->mappingName = $mappingName;
-		$this->currentPERatio = $currentPERatio;
+
 		$this->marketCap = $marketCap;
+		$this->priceToFreeCashFlow = $priceToFreeCashFlow;
+		$this->priceToCashFlow = $priceToCashFlow;
+		$this->priceToBook = $priceToBook;
+		$this->priceToSales = $priceToSales;
+		$this->pegRatio = $pegRatio;
+		$this->forwardPERatio = $forwardPERatio;
+		$this->currentPERatio = $currentPERatio;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->stockAssets = new ArrayCollection();
@@ -65,12 +96,24 @@ class StockAssetIndustry implements Entity
 		ImmutableDateTime $now,
 		float|null $currentPERatio,
 		float|null $marketCap,
+		float|null $priceToFreeCashFlow,
+		float|null $priceToCashFlow,
+		float|null $priceToBook,
+		float|null $priceToSales,
+		float|null $pegRatio,
+		float|null $forwardPERatio,
 	): void
 	{
 		$this->name = $name;
 		$this->mappingName = $mappingName;
-		$this->currentPERatio = $currentPERatio;
 		$this->marketCap = $marketCap;
+		$this->priceToFreeCashFlow = $priceToFreeCashFlow;
+		$this->priceToCashFlow = $priceToCashFlow;
+		$this->priceToBook = $priceToBook;
+		$this->priceToSales = $priceToSales;
+		$this->pegRatio = $pegRatio;
+		$this->forwardPERatio = $forwardPERatio;
+		$this->currentPERatio = $currentPERatio;
 		$this->updatedAt = $now;
 	}
 
@@ -78,10 +121,22 @@ class StockAssetIndustry implements Entity
 		ImmutableDateTime $now,
 		float|null $currentPERatio,
 		float|null $marketCap,
+		float|null $priceToFreeCashFlow,
+		float|null $priceToCashFlow,
+		float|null $priceToBook,
+		float|null $priceToSales,
+		float|null $pegRatio,
+		float|null $forwardPERatio,
 	): void
 	{
-		$this->currentPERatio = $currentPERatio;
 		$this->marketCap = $marketCap;
+		$this->priceToFreeCashFlow = $priceToFreeCashFlow;
+		$this->priceToCashFlow = $priceToCashFlow;
+		$this->priceToBook = $priceToBook;
+		$this->priceToSales = $priceToSales;
+		$this->pegRatio = $pegRatio;
+		$this->forwardPERatio = $forwardPERatio;
+		$this->currentPERatio = $currentPERatio;
 		$this->updatedAt = $now;
 	}
 
@@ -111,6 +166,36 @@ class StockAssetIndustry implements Entity
 	public function getStockAssets(): Collection
 	{
 		return $this->stockAssets;
+	}
+
+	public function getForwardPERatio(): float|null
+	{
+		return $this->forwardPERatio;
+	}
+
+	public function getPegRatio(): float|null
+	{
+		return $this->pegRatio;
+	}
+
+	public function getPriceToSales(): float|null
+	{
+		return $this->priceToSales;
+	}
+
+	public function getPriceToBook(): float|null
+	{
+		return $this->priceToBook;
+	}
+
+	public function getPriceToCashFlow(): float|null
+	{
+		return $this->priceToCashFlow;
+	}
+
+	public function getPriceToFreeCashFlow(): float|null
+	{
+		return $this->priceToFreeCashFlow;
 	}
 
 }

@@ -1,3 +1,4 @@
+
 {templateType App\Stock\Valuation\UI\Control\Detail\StockValuationDetailControlTemplate}
 
 <div class="mb-6">
@@ -21,17 +22,13 @@
         </thead>
         <tbody class="bg-white divide-y divide-gray-200">
         {foreach $stockValuationModelResponses as $model}
-            {var $state = $model->getStockValuationModelTrend()}
-            {var $color = $state->getTailwindColor()}
-            {var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
-
             <tr class="hover:bg-gray-50">
                 <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
                     {$model->getLabel()}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
-                    {if $isCalculated && $model->getAssetPrice() !== null}
-                        <span class="font-semibold text-{$color}-700">
+                    {if $model->isCalculated() && $model->getAssetPrice() !== null}
+                        <span class="font-semibold text-{$model->getColor()}-700">
                                 {$model->getAssetPrice()|assetPriceFormat}
                             </span>
                     {else}
@@ -39,7 +36,7 @@
                     {/if}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
-                    {if $isCalculated && $model->getCalculatedPercentage() !== null}
+                    {if $model->isCalculated() && $model->getCalculatedPercentage() !== null}
                         {var $percentage = $model->getCalculatedPercentage()}
                         <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
                                 {if $percentage > 0}
@@ -57,7 +54,6 @@
             </tr>
         {/foreach}
 
-        {* Řádek s průměrem *}
         <tr class="bg-blue-50 font-semibold">
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
                 Průměrná cena z modelů
@@ -115,102 +111,249 @@
     </table>
 </div>
 
-<div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow-sm sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
-    {foreach $stockValuationModelResponses as $model}
-        {var $state = $model->getStockValuationModelTrend()}
-        {var $color = $state->getTailwindColor()}
-        {var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
-
-        <div class="group relative border-gray-200 bg-white p-6 {if $iterator->first}rounded-tl-lg{/if} {if $iterator->counter === 2}rounded-tr-lg{/if} {if $iterator->last && $iterator->counter % 2 !== 0}rounded-bl-lg rounded-br-lg{/if} {if $iterator->last && $iterator->counter % 2 === 0}rounded-br-lg{/if} {if $iterator->counter === count($stockValuationModelResponses) - 1 && $iterator->counter % 2 !== 0}rounded-bl-lg{/if}">
+{if $stockIndustryComparison !== null && $stockIndustryComparison->hasIndustryData()}
+    <div x-data="{ comparisonOpen: false }" class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+        <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
             <div>
-				<span class="inline-flex rounded-lg bg-{$color}-50 p-3 text-{$color}-700">
-					{renderSvg $state->getIcon()}
-				</span>
+                <h3 class="text-base font-semibold leading-6 text-gray-900">Srovnání s odvětvím</h3>
+                <p class="mt-1 text-sm text-gray-600">
+                    {if $stockIndustryComparison->getStockAsset()->getIndustry() !== null}
+                        Odvětví: {$stockIndustryComparison->getStockAsset()->getIndustry()->getName()}
+                        {if $stockIndustryComparison->getOverallScore() !== null}
+                            {var $score = $stockIndustryComparison->getOverallScore()}
+                            · <span class="font-semibold {if $score >= 70}text-green-700{elseif $score >= 40}text-orange-700{else}text-red-700{/if}">
+                                Skóre: {$score|number:0}%
+                            </span>
+                        {/if}
+                    {/if}
+                </p>
             </div>
+            <button
+                    @click="comparisonOpen = !comparisonOpen"
+                    type="button"
+                    class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 transition-colors ring-1 ring-inset ring-gray-300"
+            >
+                <span x-text="comparisonOpen ? 'Skrýt' : 'Zobrazit'"></span>
+                <svg
+                        :class="comparisonOpen ? 'rotate-180' : ''"
+                        class="ml-1.5 h-4 w-4 transition-transform duration-200"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                >
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                </svg>
+            </button>
+        </div>
 
-            <div class="mt-8">
-                <h3 class="text-base font-semibold text-gray-900">
-                    {$model->getLabel()}
-                </h3>
-
-                <div class="flex items-center justify-between text-sm my-4">
-                    <span class="text-gray-500">{$model->getDescription()}</span>
-                </div>
-
-                {if $isCalculated}
-                    <div class="mt-4 space-y-3">
-                        <div class="flex items-center justify-between text-sm">
-                            <span class="text-gray-500">Aktuální cena:</span>
-                            <span class="font-semibold text-gray-900">
-								{$model->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
-							</span>
-                        </div>
-
-                        {* Vypočítaná fair value *}
-                        {if $model->getAssetPrice() !== null}
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-gray-500">Spravedlivá cena:</span>
-                                <span class="font-semibold text-{$color}-700">
-									{$model->getAssetPrice()|assetPriceFormat}
-								</span>
-                            </div>
-                        {/if}
-
-                        {* Procentuální odchylka *}
-                        {if $model->getCalculatedPercentage() !== null}
-                            {var $percentage = $model->getCalculatedPercentage()}
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-500">Odchylka:</span>
-                                <span class="inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-sm font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
-									{if $percentage > 0}
-                                        <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
-											<circle cx="3" cy="3" r="3" />
-										</svg>
-										+{$percentage|number:2} %
-									{elseif $percentage < 0}
-										<svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
-											<circle cx="3" cy="3" r="3" />
-										</svg>
-										{$percentage|number:2} %
-									{else}
-										<svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
-											<circle cx="3" cy="3" r="3" />
-										</svg>
-                                        0.00 %
+        <div
+                x-show="comparisonOpen"
+                x-cloak
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0 -translate-y-1"
+                x-transition:enter-end="opacity-100 translate-y-0"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100 translate-y-0"
+                x-transition:leave-end="opacity-0 -translate-y-1"
+                class="p-5"
+        >
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {foreach $stockIndustryComparison->getMetrics() as $metric}
+                    <div class="relative overflow-hidden rounded-lg bg-white px-4 py-5 shadow-sm border {$metric->getBorderColorClass()}">
+                        <dt>
+                            <div class="absolute rounded-md p-3 {$metric->getIconBackgroundColor()}">
+                                <svg class="h-6 w-6 {$metric->getIconColor()}" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                    {if !$metric->hasIndustryData()}
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+                                    {else}
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
                                     {/if}
-								</span>
+                                </svg>
+                            </div>
+                            <p class="ml-16 truncate text-sm font-medium text-gray-500">
+                                {$metric->getMetric()->format()}
+                            </p>
+                        </dt>
+                        <dd class="ml-16 flex items-baseline">
+                            <p class="text-2xl font-semibold text-gray-900">
+                                {$metric->getStockValue()|number:2}
+                            </p>
+                            {if $metric->hasIndustryData() && $metric->getDeviationPercentage() !== null}
+                                {var $deviation = $metric->getDeviationPercentage()}
+                                <p class="ml-2 flex items-baseline text-sm font-semibold {$metric->getDeviationTextColor()}">
+                                    {if $deviation > 0}+{/if}{$deviation|number:1}%
+                                    <svg class="h-5 w-5 flex-shrink-0 self-center {$metric->getDeviationTextColor()}" viewBox="0 0 20 20" fill="currentColor">
+                                        {if $deviation > 0}
+                                            <path fill-rule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                        {else}
+                                            <path fill-rule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                                        {/if}
+                                    </svg>
+                                </p>
+                            {/if}
+                        </dd>
+                        {if $metric->hasIndustryData()}
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <div class="flex items-center justify-between text-xs">
+                                    <span class="text-gray-500">Průměr odvětví:</span>
+                                    <span class="font-medium text-gray-700">{$metric->getIndustryAverage()|number:2}</span>
+                                </div>
+                                <div class="mt-2">
+                                    <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset {$metric->getBadgeClasses()}">
+                                        {$metric->getState()->getLabel()}
+                                    </span>
+                                </div>
+                            </div>
+                        {else}
+                            <div class="mt-3 pt-3 border-t border-gray-100">
+                                <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium {$metric->getBadgeClasses()} ring-1 ring-inset">
+                                    Není k dispozici
+                                </span>
                             </div>
                         {/if}
+                    </div>
+                {/foreach}
+            </div>
+        </div>
+    </div>
+{/if}
 
-                        {* Status badge *}
-                        <div class="mt-4 pt-3 border-t border-gray-100">
-                            <div class="flex items-start gap-x-2">
-								<span class="inline-flex items-center rounded-md bg-{$color}-50 px-2 py-1 text-xs font-medium text-{$color}-700 ring-1 ring-inset ring-{$color}-700/10">
-									{$state->getLabel()}
-								</span>
-                            </div>
-                            <p class="mt-2 text-xs text-gray-500">{$state->getDescription()}</p>
+{* Valuační modely - detail *}
+<div x-data="{ modelsOpen: false }" class="mt-8 bg-white shadow-sm rounded-lg overflow-hidden border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
+        <div>
+            <h3 class="text-base font-semibold leading-6 text-gray-900">Detail valuačních modelů</h3>
+            <p class="mt-1 text-sm text-gray-600">Podrobné informace o parametrech a výpočtech jednotlivých modelů</p>
+        </div>
+        <button
+                @click="modelsOpen = !modelsOpen"
+                type="button"
+                class="inline-flex items-center px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-100 transition-colors ring-1 ring-inset ring-gray-300"
+        >
+            <span x-text="modelsOpen ? 'Skrýt' : 'Zobrazit'"></span>
+            <svg
+                    :class="modelsOpen ? 'rotate-180' : ''"
+                    class="ml-1.5 h-4 w-4 transition-transform duration-200"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+            >
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+        </button>
+    </div>
+
+    <div
+            x-show="modelsOpen"
+            x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-1"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-1"
+            class="p-5"
+    >
+        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow-sm sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
+            {foreach $stockValuationModelResponses as $model}
+                <div class="group relative border-gray-200 bg-white p-6 {if $iterator->first}rounded-tl-lg{/if} {if $iterator->counter === 2}rounded-tr-lg{/if} {if $iterator->last && $iterator->counter % 2 !== 0}rounded-bl-lg rounded-br-lg{/if} {if $iterator->last && $iterator->counter % 2 === 0}rounded-br-lg{/if} {if $iterator->counter === count($stockValuationModelResponses) - 1 && $iterator->counter % 2 !== 0}rounded-bl-lg{/if}">
+                    <div>
+    				<span class="inline-flex rounded-lg bg-{$model->getColor()}-50 p-3 text-{$model->getColor()}-700">
+    					{renderSvg $model->getStockValuationModelTrend()->getIcon()}
+    				</span>
+                    </div>
+
+                    <div class="mt-8">
+                        <h3 class="text-base font-semibold text-gray-900">
+                            {$model->getLabel()}
+                        </h3>
+
+                        <div class="flex items-center justify-between text-sm my-4">
+                            <span class="text-gray-500">{$model->getDescription()}</span>
                         </div>
 
-                        {* Použité hodnoty pro výpočet - description list style *}
-                        {if count($model->getModelUsedValues()) > 0}
-                            <div class="mt-4 pt-3 border-t border-gray-100">
-                                <h4 class="text-xs font-semibold text-gray-900 mb-3">Parametry modelu</h4>
-                                <dl class="divide-y divide-gray-100 text-xs">
-                                    {foreach $model->getModelUsedValues() as $usedValue}
-                                        <div class="py-2 sm:grid sm:grid-cols-2 sm:gap-4">
-                                            <dt class="font-medium text-gray-600">{$usedValue->getLabel()}</dt>
-                                            <dd class="mt-1 text-gray-900 sm:mt-0 text-right">
-                                                {if is_float($usedValue->getValue())}
-                                                    {$usedValue->getValue()|number:2}
-                                                {else}
-                                                    {$usedValue->getValue()}
-                                                {/if}
-                                            </dd>
-                                        </div>
-                                    {/foreach}
-                                </dl>
+                        {if $model->isCalculated()}
+                            <div class="mt-4 space-y-3">
+                                <div class="flex items-center justify-between text-sm">
+                                    <span class="text-gray-500">Aktuální cena:</span>
+                                    <span class="font-semibold text-gray-900">
+    								{$model->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
+    							</span>
+                                </div>
 
+                                {if $model->getAssetPrice() !== null}
+                                    <div class="flex items-center justify-between text-sm">
+                                        <span class="text-gray-500">Spravedlivá cena:</span>
+                                        <span class="font-semibold text-{$model->getColor()}-700">
+    									{$model->getAssetPrice()|assetPriceFormat}
+    								</span>
+                                    </div>
+                                {/if}
+
+                                {if $model->getCalculatedPercentage() !== null}
+                                    {var $percentage = $model->getCalculatedPercentage()}
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-sm text-gray-500">Odchylka:</span>
+                                        <span class="inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-sm font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+    									{if $percentage > 0}
+                                            <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
+    											<circle cx="3" cy="3" r="3" />
+    										</svg>
+    										+{$percentage|number:2} %
+    									{elseif $percentage < 0}
+    										<svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
+    											<circle cx="3" cy="3" r="3" />
+    										</svg>
+    										{$percentage|number:2} %
+    									{else}
+    										<svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
+    											<circle cx="3" cy="3" r="3" />
+    										</svg>
+                                            0.00 %
+                                        {/if}
+    								</span>
+                                    </div>
+                                {/if}
+
+                                <div class="mt-4 pt-3 border-t border-gray-100">
+                                    <div class="flex items-start gap-x-2">
+    								<span class="inline-flex items-center rounded-md bg-{$model->getColor()}-50 px-2 py-1 text-xs font-medium text-{$model->getColor()}-700 ring-1 ring-inset ring-{$model->getColor()}-700/10">
+    									{$model->getStockValuationModelTrend()->getLabel()}
+    								</span>
+                                    </div>
+                                    <p class="mt-2 text-xs text-gray-500">{$model->getStockValuationModelTrend()->getDescription()}</p>
+                                </div>
+
+                                {if count($model->getModelUsedValues()) > 0}
+                                    <div class="mt-4 pt-3 border-t border-gray-100">
+                                        <h4 class="text-xs font-semibold text-gray-900 mb-3">Parametry modelu</h4>
+                                        <dl class="divide-y divide-gray-100 text-xs">
+                                            {foreach $model->getModelUsedValues() as $usedValue}
+                                                <div class="py-2 sm:grid sm:grid-cols-2 sm:gap-4">
+                                                    <dt class="font-medium text-gray-600">{$usedValue->getLabel()}</dt>
+                                                    <dd class="mt-1 text-gray-900 sm:mt-0 text-right">
+                                                        {if is_float($usedValue->getValue())}
+                                                            {$usedValue->getValue()|number:2}
+                                                        {else}
+                                                            {$usedValue->getValue()}
+                                                        {/if}
+                                                    </dd>
+                                                </div>
+                                            {/foreach}
+                                        </dl>
+
+                                        <p class="mt-2 text-xs text-gray-400">
+                                            Model vyžaduje následující data:
+                                            {foreach $model->getUsedStockValuationDataTypes() as $type}
+                                                {$type->format()}{if !$iterator->last}, {/if}
+                                            {/foreach}
+                                        </p>
+                                    </div>
+                                {/if}
+                            </div>
+                        {else}
+                            <div class="mt-4">
+                                <p class="text-sm text-gray-500">{$model->getStockValuationModelTrend()->getDescription()}</p>
                                 <p class="mt-2 text-xs text-gray-400">
                                     Model vyžaduje následující data:
                                     {foreach $model->getUsedStockValuationDataTypes() as $type}
@@ -220,30 +363,21 @@
                             </div>
                         {/if}
                     </div>
-                {else}
-                    <div class="mt-4">
-                        <p class="text-sm text-gray-500">{$state->getDescription()}</p>
-                        <p class="mt-2 text-xs text-gray-400">
-                            Model vyžaduje následující data:
-                            {foreach $model->getUsedStockValuationDataTypes() as $type}
-                                {$type->format()}{if !$iterator->last}, {/if}
-                            {/foreach}
-                        </p>
-                    </div>
-                {/if}
-            </div>
 
-            {if $isCalculated}
-                <span aria-hidden="true" class="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400">
-					<svg viewBox="0 0 24 24" fill="currentColor" class="size-6">
-						<path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
-					</svg>
-				</span>
-            {/if}
+                    {if $model->isCalculated()}
+                        <span aria-hidden="true" class="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400">
+    					<svg viewBox="0 0 24 24" fill="currentColor" class="size-6">
+    						<path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
+    					</svg>
+    				</span>
+                    {/if}
+                </div>
+            {/foreach}
         </div>
-    {/foreach}
+    </div>
 </div>
 
+{* Ostatní valuační data *}
 <div class="mt-8">
     {foreach App\Stock\Valuation\StockValuationTypeGroupEnum::cases() as $typeGroup}
         {var $typesInGroup = []}

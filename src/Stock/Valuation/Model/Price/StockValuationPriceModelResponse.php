@@ -92,4 +92,14 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 		//phpcs:enable
 	}
 
+	public function isCalculated(): bool
+	{
+		return $this->state !== StockValuationModelState::UNABLE_TO_CALCULATE;
+	}
+
+	public function getColor(): string
+	{
+		return $this->state->getTailwindColor();
+	}
+
 }

@@ -501,6 +501,7 @@ services:
 	- App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlFactory
 	- App\Stock\Valuation\Model\UI\StockValuationModelSortService
 	- App\Stock\Valuation\Model\Price\RoeQualityValuationModel
+	- App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade
 
 	#Stock valuation models
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel

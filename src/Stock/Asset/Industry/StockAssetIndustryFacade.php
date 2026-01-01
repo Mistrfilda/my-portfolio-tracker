@@ -24,6 +24,12 @@ class StockAssetIndustryFacade
 		string $mappingName,
 		float|null $currentPERatio,
 		float|null $marketCap,
+		float|null $priceToFreeCashFlow,
+		float|null $priceToCashFlow,
+		float|null $priceToBook,
+		float|null $priceToSales,
+		float|null $pegRatio,
+		float|null $forwardPERatio,
 	): void
 	{
 		$stockAssetIndustry = new StockAssetIndustry(
@@ -32,6 +38,12 @@ class StockAssetIndustryFacade
 			$this->datetimeFactory->createNow(),
 			$currentPERatio,
 			$marketCap,
+			$priceToFreeCashFlow,
+			$priceToCashFlow,
+			$priceToBook,
+			$priceToSales,
+			$pegRatio,
+			$forwardPERatio,
 		);
 
 		$this->entityManager->persist($stockAssetIndustry);
@@ -44,6 +56,12 @@ class StockAssetIndustryFacade
 		string $mappingName,
 		float|null $currentPERatio,
 		float|null $marketCap,
+		float|null $priceToFreeCashFlow,
+		float|null $priceToCashFlow,
+		float|null $priceToBook,
+		float|null $priceToSales,
+		float|null $pegRatio,
+		float|null $forwardPERatio,
 	): void
 	{
 		$stockAssetIndustry = $this->stockAssetIndustryRepository->getById($id);
@@ -53,6 +71,12 @@ class StockAssetIndustryFacade
 			$this->datetimeFactory->createNow(),
 			$currentPERatio,
 			$marketCap,
+			$priceToFreeCashFlow,
+			$priceToCashFlow,
+			$priceToBook,
+			$priceToSales,
+			$pegRatio,
+			$forwardPERatio,
 		);
 
 		$this->entityManager->flush();

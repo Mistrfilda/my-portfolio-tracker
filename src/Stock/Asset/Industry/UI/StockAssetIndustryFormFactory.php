@@ -29,8 +29,14 @@ class StockAssetIndustryFormFactory
 		$form = $this->adminFormFactory->create();
 		$form->addText('name', 'Jméno');
 		$form->addText('mappingName', 'Jméno pro mapovaní');
-		$form->addFloat('currentPERatio', 'Aktuální P/E ratio');
-		$form->addFloat('marketCap', 'Market cap');
+		$form->addFloat('currentPERatio', 'Aktuální P/E ratio')->setNullable();
+		$form->addFloat('marketCap', 'Market cap')->setNullable();
+		$form->addFloat('priceToFreeCashFlow', 'P/FCF ratio')->setNullable();
+		$form->addFloat('priceToCashFlow', 'P/CF ratio')->setNullable();
+		$form->addFloat('priceToBook', 'P/B ratio')->setNullable();
+		$form->addFloat('priceToSales', 'P/S ratio')->setNullable();
+		$form->addFloat('pegRatio', 'PEG ratio')->setNullable();
+		$form->addFloat('forwardPERatio', 'Forward P/E ratio')->setNullable();
 		$form->addSubmit('submit', 'Uložit');
 
 		if ($id !== null) {
@@ -46,15 +52,27 @@ class StockAssetIndustryFormFactory
 					$id,
 					TypeValidator::validateString($values->name),
 					TypeValidator::validateString($values->mappingName),
-					TypeValidator::validateFloat($values->currentPERatio),
-					TypeValidator::validateFloat($values->marketCap),
+					TypeValidator::validateNullableFloat($values->currentPERatio),
+					TypeValidator::validateNullableFloat($values->marketCap),
+					TypeValidator::validateNullableFloat($values->priceToFreeCashFlow),
+					TypeValidator::validateNullableFloat($values->priceToCashFlow),
+					TypeValidator::validateNullableFloat($values->priceToBook),
+					TypeValidator::validateNullableFloat($values->priceToSales),
+					TypeValidator::validateNullableFloat($values->pegRatio),
+					TypeValidator::validateNullableFloat($values->forwardPERatio),
 				);
 			} else {
 				$this->stockAssetIndustryFacade->create(
 					TypeValidator::validateString($values->name),
 					TypeValidator::validateString($values->mappingName),
-					TypeValidator::validateFloat($values->currentPERatio),
-					TypeValidator::validateFloat($values->marketCap),
+					TypeValidator::validateNullableFloat($values->currentPERatio),
+					TypeValidator::validateNullableFloat($values->marketCap),
+					TypeValidator::validateNullableFloat($values->priceToFreeCashFlow),
+					TypeValidator::validateNullableFloat($values->priceToCashFlow),
+					TypeValidator::validateNullableFloat($values->priceToBook),
+					TypeValidator::validateNullableFloat($values->priceToSales),
+					TypeValidator::validateNullableFloat($values->pegRatio),
+					TypeValidator::validateNullableFloat($values->forwardPERatio),
 				);
 			}
 
@@ -70,6 +88,13 @@ class StockAssetIndustryFormFactory
 			'name' => $stockAssetIndustry->getName(),
 			'mappingName' => $stockAssetIndustry->getMappingName(),
 			'currentPERatio' => $stockAssetIndustry->getCurrentPERatio(),
+			'marketCap' => $stockAssetIndustry->getMarketCap(),
+			'priceToFreeCashFlow' => $stockAssetIndustry->getPriceToFreeCashFlow(),
+			'priceToCashFlow' => $stockAssetIndustry->getPriceToCashFlow(),
+			'priceToBook' => $stockAssetIndustry->getPriceToBook(),
+			'priceToSales' => $stockAssetIndustry->getPriceToSales(),
+			'pegRatio' => $stockAssetIndustry->getPegRatio(),
+			'forwardPERatio' => $stockAssetIndustry->getForwardPERatio(),
 		]);
 	}
 
