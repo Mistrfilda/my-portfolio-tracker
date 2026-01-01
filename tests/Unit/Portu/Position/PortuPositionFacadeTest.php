@@ -214,7 +214,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$this->assertEquals($currentValuePrice, $updatedPosition->getCurrentValue()->getPrice());
 	}
 
-	public function testUpdatePriceForDate_CreateNew(): void
+	public function testUpdatePriceForDateCreateNew(): void
 	{
 		$portuAssetRepositoryMock = Mockery::mock(PortuAssetRepository::class);
 		$portuPositionRepositoryMock = Mockery::mock(PortuPositionRepository::class);
@@ -302,7 +302,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$this->assertEquals($portuPositionMock, $priceRecord->getPortuPosition());
 	}
 
-	public function testUpdatePriceForDate_UpdateExisting(): void
+	public function testUpdatePriceForDateUpdateExisting(): void
 	{
 		$portuAssetRepositoryMock = Mockery::mock(PortuAssetRepository::class);
 		$portuPositionRepositoryMock = Mockery::mock(PortuPositionRepository::class);
