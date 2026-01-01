@@ -14,6 +14,7 @@ class PortfolioStatisticTotalGroup
 
 	public function __construct(private int $year)
 	{
+		$this->values = [];
 	}
 
 	public function addValue(PortfolioStatisticTotalValue $portfolioStatisticTotalValue): void
