@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Base;
 
 use App\Admin\AppAdmin;
+use App\UI\Menu\MenuGroup;
 use App\UI\Menu\MenuItem;
 use Nette\Security\User;
 
@@ -17,7 +18,7 @@ abstract class BaseAdminPresenterTemplate extends BasePresenterTemplate
 
 	public string|null $heading;
 
-	/** @var array<MenuItem> */
+	/** @var array<MenuItem|MenuGroup> */
 	public array $menuItems;
 
 	public BaseAdminPresenter $presenter;

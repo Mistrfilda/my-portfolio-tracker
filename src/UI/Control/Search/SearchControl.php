@@ -8,6 +8,8 @@ use App\Crypto\Asset\CryptoAssetRepository;
 use App\Stock\Asset\StockAssetRepository;
 use App\UI\Base\BaseControl;
 use App\UI\Menu\MenuBuilder;
+use App\UI\Menu\MenuGroup;
+use App\UI\Menu\MenuItem;
 use Nette\Application\LinkGenerator;
 
 class SearchControl extends BaseControl
@@ -48,13 +50,24 @@ class SearchControl extends BaseControl
 
 		$menuItems = [];
 		foreach ($this->menuBuilder->buildMenu() as $menuItem) {
-			if ($menuItem->getLink() !== null) {
+			if ($menuItem instanceof MenuItem) {
 				$menuItems[] = new SearchGroupItem(
 					$menuItem->getLabel(),
 					$this->linkGenerator->link(
 						'Admin:' . $menuItem->getLink(),
 					) ?? '#',
 				);
+			}
+
+			if ($menuItem instanceof MenuGroup) {
+				foreach ($menuItem->getItems() as $subMenuItem) {
+					$menuItems[] = new SearchGroupItem(
+						$subMenuItem->getLabel(),
+						$this->linkGenerator->link(
+							'Admin:' . $subMenuItem->getLink(),
+						) ?? '#',
+					);
+				}
 			}
 		}
 
