@@ -171,7 +171,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 		}
 
 		$positionDetailDTOs = [];
-		$brokerCurrency = CurrencyEnum::CZK;
+		$brokerCurrency = CurrencyEnum::USD;
 		$piecesCount = 0;
 
 		foreach ($cryptoAsset->getPositions() as $position) {
@@ -180,8 +180,6 @@ class CryptoPositionFacade implements AssetPriceFacade
 					continue;
 				}
 			}
-
-			$brokerCurrency = $position->getTotalInvestedAmountInBrokerCurrency()->getCurrency();
 
 			$positionDetailDTOs[] = new CryptoAssetPositionDetailDTO(
 				$position,
