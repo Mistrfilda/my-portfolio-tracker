@@ -22,7 +22,6 @@ return $config
 	->ignoreErrorsOnPackage('react/promise', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('symfony/event-dispatcher', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('gedmo/doctrine-extensions', [ErrorType::UNUSED_DEPENDENCY])
-	->ignoreErrorsOnPackage('nette/finder', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nette/mail', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nette/robot-loader', [ErrorType::UNUSED_DEPENDENCY])
 	->ignoreErrorsOnPackage('nettrine/annotations', [ErrorType::UNUSED_DEPENDENCY])
