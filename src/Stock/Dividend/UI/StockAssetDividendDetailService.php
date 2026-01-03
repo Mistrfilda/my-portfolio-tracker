@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\UI;
 
+use App\Currency\CurrencyConversionFacade;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
@@ -15,6 +16,7 @@ class StockAssetDividendDetailService
 	public function __construct(
 		private StockAssetDividendRepository $stockAssetDividendRepository,
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
+		private CurrencyConversionFacade $currencyConversionFacade,
 	)
 	{
 	}
@@ -25,6 +27,7 @@ class StockAssetDividendDetailService
 	): StockAssetDividendDetailDTO
 	{
 		return new StockAssetDividendDetailDTO(
+			$this->currencyConversionFacade,
 			$stockAsset,
 			$this->stockAssetDividendRecordRepository->findByStockAssetSinceDate($stockAsset, $from),
 			$this->stockAssetDividendRepository->findByStockAssetSinceDate($stockAsset, $from),
@@ -37,9 +40,28 @@ class StockAssetDividendDetailService
 	): StockAssetDividendDetailDTO
 	{
 		return new StockAssetDividendDetailDTO(
+			$this->currencyConversionFacade,
 			$stockAsset,
 			$this->stockAssetDividendRecordRepository->findByStockAssetForYear($stockAsset, $year),
 			$this->stockAssetDividendRepository->findByStockAssetForYear($stockAsset, $year),
+		);
+	}
+
+	public function getDetailDTOTotal(
+		StockAsset $stockAsset,
+	): StockAssetDividendDetailDTO
+	{
+		$dividendRecords = $this->stockAssetDividendRecordRepository->findByStockAsset($stockAsset);
+		$dividends = [];
+		foreach ($dividendRecords as $dividendRecord) {
+			$dividends[] = $dividendRecord->getStockAssetDividend();
+		}
+
+		return new StockAssetDividendDetailDTO(
+			$this->currencyConversionFacade,
+			$stockAsset,
+			$this->stockAssetDividendRecordRepository->findByStockAsset($stockAsset),
+			$dividends,
 		);
 	}
 

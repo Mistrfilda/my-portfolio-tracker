@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\UI;
 
+use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
@@ -28,6 +29,7 @@ class StockAssetDividendDetailServiceTest extends UpdatedTestCase
 		$this->stockAssetDividendDetailService = new StockAssetDividendDetailService(
 			$mockStockAssetDividendRepository,
 			$mockStockAssetDividendRecordRepository,
+			Mockery::mock(CurrencyConversionFacade::class),
 		);
 	}
 

@@ -57,13 +57,24 @@ class StockDividendDetailControl extends BaseControl
 			),
 		);
 
+		$stockAssetDividendTotal = $this->stockAssetDividendDetailService->getDetailDTOTotal($stockAsset);
+
 		$template->dividendDetailDTOs = [
+			[
+				'label' => sprintf(
+					'Obdržené dividendy celkem (počet %s)',
+					$stockAssetDividendTotal->getDividendRecordSummaryPriceWithTax()->getCounter(),
+				),
+				'detailDTO' => $stockAssetDividendTotal,
+				'showPercentage' => false,
+			],
 			[
 				'label' => sprintf(
 					'Dividendy za posledních 365 dnů (počet %s)',
 					$stockAssetDividendDetailLastDays->getDividendsSummaryPriceWithTax()->getCounter(),
 				),
 				'detailDTO' => $stockAssetDividendDetailLastDays,
+				'showPercentage' => true,
 			],
 			[
 				'label' => sprintf(
@@ -72,6 +83,7 @@ class StockDividendDetailControl extends BaseControl
 					$stockAssetDividendDetailThisYear->getDividendsSummaryPriceWithTax()->getCounter(),
 				),
 				'detailDTO' => $stockAssetDividendDetailThisYear,
+				'showPercentage' => true,
 			],
 			[
 				'label' => sprintf(
@@ -80,6 +92,7 @@ class StockDividendDetailControl extends BaseControl
 					$stockAssetDividendDetailLastYear->getDividendsSummaryPriceWithTax()->getCounter(),
 				),
 				'detailDTO' => $stockAssetDividendDetailLastYear,
+				'showPercentage' => true,
 			],
 		];
 
