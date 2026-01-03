@@ -9,183 +9,174 @@ use App\System\SystemValue;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use App\System\SystemValueRepository;
+use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
-use PHPUnit\Framework\TestCase;
 
-class SystemValueFacadeTest extends TestCase
+class SystemValueFacadeTest extends UpdatedTestCase
 {
 
-	public function testUpdateValueCreateNew(): void
+	private SystemValueFacade $systemValueFacade;
+
+	private SystemValueRepository $systemValueRepository;
+
+	private EntityManagerInterface $entityManager;
+
+	private DatetimeFactory $datetimeFactory;
+
+	protected function setUp(): void
 	{
-		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
-		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
+		$this->systemValueRepository = Mockery::mock(SystemValueRepository::class);
+		$this->entityManager = Mockery::mock(EntityManagerInterface::class);
+		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 
-		$systemValueFacade = new SystemValueFacade(
-			$systemValueRepositoryMock,
-			$entityManagerMock,
-			$datetimeFactoryMock,
+		$this->systemValueFacade = new SystemValueFacade(
+			$this->systemValueRepository,
+			$this->entityManager,
+			$this->datetimeFactory,
 		);
-
-		$now = new ImmutableDateTime('now');
-		$enum = SystemValueEnum::DIVIDENDS_UPDATED_COUNT;
-		$intValue = 42;
-
-		$systemValueRepositoryMock
-			->shouldReceive('findByEnum')
-			->with($enum)
-			->once()
-			->andReturn(null);
-
-		$datetimeFactoryMock
-			->shouldReceive('createNow')
-			->once()
-			->andReturn($now);
-
-		$entityManagerMock
-			->shouldReceive('persist')
-			->once()
-			->withArgs(static fn ($systemValue) => $systemValue instanceof SystemValue
-					&& $systemValue->getSystemValueEnum() === $enum
-					&& $systemValue->getIntValue() === $intValue
-					&& $systemValue->getDatetimeValue() === null
-					&& $systemValue->getStringValue() === null);
-
-		$entityManagerMock
-			->shouldReceive('flush')
-			->once();
-
-		$systemValueFacade->updateValue($enum, null, $intValue, null);
-
-		$this->assertTrue(true);
 	}
 
-	public function testUpdateValueUpdateExisting(): void
+	public function testUpdateValueCreatesNewValueWhenNotExists(): void
 	{
-		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
-		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
+		$now = new ImmutableDateTime('2024-01-15');
+		$datetimeValue = new ImmutableDateTime('2024-01-20');
 
-		$systemValueFacade = new SystemValueFacade(
-			$systemValueRepositoryMock,
-			$entityManagerMock,
-			$datetimeFactoryMock,
-		);
-
-		$now = new ImmutableDateTime('now');
-		$enum = SystemValueEnum::DIVIDENDS_UPDATED_AT;
-		$datetimeValue = new ImmutableDateTime('2025-12-29 10:00:00');
-
-		$existingValueMock = Mockery::mock(SystemValue::class);
-
-		$systemValueRepositoryMock
-			->shouldReceive('findByEnum')
-			->with($enum)
-			->once()
-			->andReturn($existingValueMock);
-
-		$datetimeFactoryMock
+		$this->datetimeFactory
 			->shouldReceive('createNow')
 			->once()
 			->andReturn($now);
 
-		$existingValueMock
-			->shouldReceive('update')
+		$this->systemValueRepository
+			->shouldReceive('findByEnum')
 			->once()
-			->with($now, $datetimeValue, null, null);
+			->with(SystemValueEnum::DIVIDENDS_UPDATED_AT)
+			->andReturn(null);
 
-		$entityManagerMock
+		$this->entityManager
+			->shouldReceive('persist')
+			->once()
+			->with(
+				Mockery::on(
+					static fn (SystemValue $systemValue): bool => $systemValue->getSystemValueEnum() === SystemValueEnum::DIVIDENDS_UPDATED_AT
+							&& $systemValue->getDatetimeValue() === $datetimeValue
+							&& $systemValue->getIntValue() === null
+							&& $systemValue->getStringValue() === null,
+				),
+			);
+
+		$this->entityManager
 			->shouldReceive('flush')
 			->once();
 
-		$systemValueFacade->updateValue($enum, $datetimeValue, null, null);
+		$this->assertNoError(fn () => $this->systemValueFacade->updateValue(
+			SystemValueEnum::DIVIDENDS_UPDATED_AT,
+			datetimeValue: $datetimeValue,
+		));
+	}
 
-		$this->assertTrue(true);
+	public function testUpdateValueUpdatesExistingValue(): void
+	{
+		$now = new ImmutableDateTime('2024-01-15');
+		$existingValue = new SystemValue(
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT,
+			null,
+			5,
+			null,
+			new ImmutableDateTime('2024-01-10'),
+		);
+
+		$this->datetimeFactory
+			->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$this->systemValueRepository
+			->shouldReceive('findByEnum')
+			->once()
+			->with(SystemValueEnum::DIVIDENDS_UPDATED_COUNT)
+			->andReturn($existingValue);
+
+		$this->entityManager
+			->shouldReceive('flush')
+			->once();
+
+		$this->systemValueFacade->updateValue(
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT,
+			intValue: 10,
+		);
+
+		$this->assertSame(10, $existingValue->getIntValue());
+		$this->assertSame($now, $existingValue->getUpdatedAt());
 	}
 
 	public function testUpdateValueWithStringValue(): void
 	{
-		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
-		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
+		$now = new ImmutableDateTime('2024-01-15');
 
-		$systemValueFacade = new SystemValueFacade(
-			$systemValueRepositoryMock,
-			$entityManagerMock,
-			$datetimeFactoryMock,
-		);
-
-		$now = new ImmutableDateTime('now');
-		$enum = SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION;
-		$stringValue = 'v1.2.3';
-
-		$systemValueRepositoryMock
-			->shouldReceive('findByEnum')
-			->with($enum)
-			->once()
-			->andReturn(null);
-
-		$datetimeFactoryMock
+		$this->datetimeFactory
 			->shouldReceive('createNow')
 			->once()
 			->andReturn($now);
 
-		$entityManagerMock
-			->shouldReceive('persist')
-			->once();
+		$this->systemValueRepository
+			->shouldReceive('findByEnum')
+			->once()
+			->andReturn(null);
 
-		$entityManagerMock
+		$this->entityManager
+			->shouldReceive('persist')
+			->once()
+			->with(
+				Mockery::on(static fn (SystemValue $systemValue): bool => $systemValue->getStringValue() === 'v1.0.0'),
+			);
+
+		$this->entityManager
 			->shouldReceive('flush')
 			->once();
 
-		$systemValueFacade->updateValue($enum, null, null, $stringValue);
-
-		$this->assertTrue(true);
+		$this->assertNoError(fn () => $this->systemValueFacade->updateValue(
+			SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION,
+			stringValue: 'v1.0.0',
+		));
 	}
 
 	public function testUpdateValueThrowsExceptionWhenNoValueProvided(): void
 	{
-		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
-		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
-
-		$systemValueFacade = new SystemValueFacade(
-			$systemValueRepositoryMock,
-			$entityManagerMock,
-			$datetimeFactoryMock,
+		self::assertException(
+			fn () => $this->systemValueFacade->updateValue(SystemValueEnum::DIVIDENDS_UPDATED_AT),
+			SystemValueInvalidArgumentException::class,
+			'Exactly one value must be non-null',
 		);
-
-		$enum = SystemValueEnum::DIVIDENDS_UPDATED_COUNT;
-
-		$this->expectException(SystemValueInvalidArgumentException::class);
-		$this->expectExceptionMessage('Exactly one value must be non-null');
-
-		$systemValueFacade->updateValue($enum, null, null, null);
 	}
 
 	public function testUpdateValueThrowsExceptionWhenMultipleValuesProvided(): void
 	{
-		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
-		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
-
-		$systemValueFacade = new SystemValueFacade(
-			$systemValueRepositoryMock,
-			$entityManagerMock,
-			$datetimeFactoryMock,
+		self::assertException(
+			fn () => $this->systemValueFacade->updateValue(
+				SystemValueEnum::DIVIDENDS_UPDATED_AT,
+				datetimeValue: new ImmutableDateTime(),
+				intValue: 5,
+			),
+			SystemValueInvalidArgumentException::class,
+			'Exactly one value must be non-null',
 		);
+	}
 
-		$enum = SystemValueEnum::DIVIDENDS_UPDATED_COUNT;
-		$datetimeValue = new ImmutableDateTime('now');
-		$intValue = 42;
-
-		$this->expectException(SystemValueInvalidArgumentException::class);
-		$this->expectExceptionMessage('Exactly one value must be non-null');
-
-		$systemValueFacade->updateValue($enum, $datetimeValue, $intValue, null);
+	public function testUpdateValueThrowsExceptionWhenAllValuesProvided(): void
+	{
+		self::assertException(
+			fn () => $this->systemValueFacade->updateValue(
+				SystemValueEnum::DIVIDENDS_UPDATED_AT,
+				datetimeValue: new ImmutableDateTime(),
+				intValue: 5,
+				stringValue: 'test',
+			),
+			SystemValueInvalidArgumentException::class,
+			'Exactly one value must be non-null',
+		);
 	}
 
 }
