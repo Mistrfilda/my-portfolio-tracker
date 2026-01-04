@@ -164,7 +164,7 @@ export class PuppeteerScraperBase {
 		const filePath = path.join(this.__dirname, `/files/requests/${inputFileName}`);
 		const outputFilePath = path.join(this.__dirname, `/files/results/${outputFileName}`);
 		const tempOutputPath = path.join(this.__dirname, `/files/results/temp_${outputFileName}`);
-		this.tempOutputPath = path.join(this.__dirname, `/files/results/temp_${outputFileName}`);
+		this.tempOutputPath = tempOutputPath;
 
 		try {
 			const inputData = await this.loadJsonFile(filePath);
@@ -182,20 +182,27 @@ export class PuppeteerScraperBase {
 
 			console.log(`Processing ${remainingData.length} remaining entries...`);
 
-			const newResults = await this.processData(remainingData);
+			const newResults = await this.processData(remainingData, async (partialResult) => {
+				const currentResults = [...result, ...partialResult];
+				await this.saveJsonToFile(tempOutputPath, currentResults);
+			});
+
 			result = [...result, ...newResults];
 			await this.saveJsonToFile(outputFilePath, result);
 
-			try {
-				await fs.promises.unlink(tempOutputPath);
-			} catch (e) {
-				// its k
+			if (newResults.length === remainingData.length) {
+				try {
+					await fs.promises.unlink(tempOutputPath);
+					console.log('All data processed, temp file removed');
+				} catch (e) {
+					// its k
+				}
+			} else {
+				console.log(`Only ${newResults.length}/${remainingData.length} entries processed, keeping temp file for retry`);
 			}
-
-			process.exit(0);
 		} catch (error) {
-			console.error('Error:', error);
-			process.exit(1);
+			console.error('Processing failed:', error);
+			throw error;
 		}
 	}
 }
