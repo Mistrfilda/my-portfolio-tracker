@@ -73,7 +73,7 @@ export class PuppeteerScraperBase {
 		await page.setViewport({ width: 1080, height: 1024 });
 	}
 
-	async processData(entries) {
+	async processData(entries, onProgressCallback = null) {
 		const result = [];
 
 		if (!Array.isArray(entries)) {
@@ -115,8 +115,9 @@ export class PuppeteerScraperBase {
 							result.push(processedData);
 						}
 
-						if ((index + 1) % SAVE_PROGRESS_AFTER === 0) {
-							await this.saveProgress(result);
+						// Volej callback pro průběžné ukládání
+						if (onProgressCallback && (index + 1) % SAVE_PROGRESS_AFTER === 0) {
+							await onProgressCallback(result);
 						}
 					} catch (pageError) {
 						console.error(`Error processing page for entry ${name} (ID: ${id}):`, pageError);
@@ -129,6 +130,11 @@ export class PuppeteerScraperBase {
 				}
 
 				await this.delay(5000);
+			}
+
+			// Ulož progress na konci (pro případ, že poslední dávka nedosáhla SAVE_PROGRESS_AFTER)
+			if (onProgressCallback && result.length > 0) {
+				await onProgressCallback(result);
 			}
 		} catch (browserError) {
 			console.error('Error launching browser or during processing:', browserError);
