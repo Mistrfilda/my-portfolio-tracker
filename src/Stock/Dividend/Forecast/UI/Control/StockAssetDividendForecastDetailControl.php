@@ -134,7 +134,11 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 	 */
 	protected function createComponentStockAssetDividendForecastItemValuesForm(): Multiplier
 	{
-		$onSuccess = function (): void {
+		$onSuccess = function (string $id): void {
+			$this->jobRequestFacade->addToQueue(
+				JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE,
+				['id' => $id],
+			);
 			$this->getPresenter()->flashMessage('Uloženo', FlashMessageType::SUCCESS);
 			$this->getPresenter()->redirect('this');
 		};

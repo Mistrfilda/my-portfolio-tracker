@@ -39,14 +39,13 @@ class StockAssetDividendForecastItemValuesFormFactory
 		$form->onSuccess[] = function (Form $form) use ($record, $onSuccess): void {
 			$values = $form->getValues();
 			assert($values instanceof ArrayHash);
-			bdump($values);
 			$this->stockAssetDividendForecastFacade->updateCustomValuesForRecord(
 				$record->getId(),
 				TypeValidator::validateNullableFloat($values->customDividendUsedForCalculation),
 				TypeValidator::validateNullableFloat($values->expectedSpecialDividendThisYearPerStock),
 			);
 
-			$onSuccess();
+			$onSuccess($record->getId()->toString());
 		};
 
 		$form->addSubmit('submit', 'Uložit');

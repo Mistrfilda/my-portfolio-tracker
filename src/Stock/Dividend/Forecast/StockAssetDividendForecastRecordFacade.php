@@ -69,6 +69,10 @@ class StockAssetDividendForecastRecordFacade
 				continue;
 			}
 
+			$existingRecord = $existingRecordsByStockAsset[$stockAsset->getId()->toString()] ?? null;
+			$customDividendUsedForCalculation = $existingRecord?->getCustomDividendUsedForCalculation();
+			$expectedSpecialDividendThisYearPerStock = $existingRecord?->getExpectedSpecialDividendThisYearPerStock();
+
 			$previousDividends = $this->stockAssetDividendRepository->findByStockAssetForYear(
 				$stockAsset,
 				$dividendYearForTotalCalculations,
@@ -133,13 +137,19 @@ class StockAssetDividendForecastRecordFacade
 				$adjustedPrice *= $multiplier;
 			}
 
+			$dividendForCalculation = $customDividendUsedForCalculation ?? $adjustedPrice;
+
 			$dividendUsuallyPaidAtMonths = array_keys($previousYearDividendsByMonth);
 			$receivedDividendMonths = array_keys($receivedDividendsForYear);
 
 			$expectedDividendPerStock = 0;
 			$expectedDividendsCount = count($dividendUsuallyPaidAtMonths) - count($receivedDividendMonths);
 			if ($expectedDividendsCount > 0) {
-				$expectedDividendPerStock = $adjustedPrice * $expectedDividendsCount;
+				$expectedDividendPerStock = $dividendForCalculation * $expectedDividendsCount;
+			}
+
+			if ($expectedSpecialDividendThisYearPerStock !== null) {
+				$expectedDividendPerStock += $expectedSpecialDividendThisYearPerStock;
 			}
 
 			$brokerCurrency = $stockAsset->getCurrency();
@@ -149,8 +159,7 @@ class StockAssetDividendForecastRecordFacade
 			$expectedDividendPerStockConverted = $expectedDividendPerStock;
 			$specialDividendsConverted = $specialDividendsTotalPriceForYear->getPrice();
 
-			if (array_key_exists($stockAsset->getId()->toString(), $existingRecordsByStockAsset)) {
-				$existingRecord = $existingRecordsByStockAsset[$stockAsset->getId()->toString()];
+			if ($existingRecord !== null) {
 				$existingRecord->recalculate(
 					$receivedDividendMonths,
 					$alreadyReceivedConverted,
@@ -159,7 +168,7 @@ class StockAssetDividendForecastRecordFacade
 					$originalDividendConverted,
 					$adjustedPriceConverted,
 					$expectedDividendPerStockConverted,
-					null,
+					$customDividendUsedForCalculation,
 					$specialDividendsConverted,
 				);
 			} else {

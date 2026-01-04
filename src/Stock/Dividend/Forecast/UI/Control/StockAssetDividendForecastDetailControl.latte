@@ -71,6 +71,9 @@
                                 Celkem za rok/ks
                             </th>
                             <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
+                                Očekáváná speciální dividenda
+                            </th>
+                            <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
                                 Vyplaceno celkem
                             </th>
                             <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900 whitespace-nowrap">
@@ -157,6 +160,13 @@
                                             </svg>
                                         </button>
                                     </div>
+                                </td>
+                                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
+                                    {if $record->getExpectedSpecialDividendThisYearPerStock() === null}
+                                    ---
+                                    {else}
+                                        <div class="text-blue-600 font-semibold">{$record->getExpectedSpecialDividendThisYearPerStock()|currency:$record->getCurrency()}</div>
+                                    {/if}
                                 </td>
                                 <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
                                     <div>{$record->getActualReceivedTotal()|currency:$record->getCurrency()}</div>
