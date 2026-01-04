@@ -149,7 +149,11 @@ class StockAssetDividendForecastRecordFacade
 			}
 
 			if ($expectedSpecialDividendThisYearPerStock !== null) {
-				$expectedDividendPerStock += $expectedSpecialDividendThisYearPerStock;
+				$alreadyReceivedSpecialDividendPerStock = $specialDividendsTotalPriceForYear->getPrice();
+				$remainingSpecialDividend = $expectedSpecialDividendThisYearPerStock - $alreadyReceivedSpecialDividendPerStock;
+				if ($remainingSpecialDividend > 0) {
+					$expectedDividendPerStock += $remainingSpecialDividend;
+				}
 			}
 
 			$brokerCurrency = $stockAsset->getCurrency();
