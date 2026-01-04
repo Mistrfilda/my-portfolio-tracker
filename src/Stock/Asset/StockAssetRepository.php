@@ -226,4 +226,21 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		return (int) $result;
 	}
 
+	public function getCountUpdatedPricesSince(ImmutableDateTime $date): int
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->select('count(stockAsset.id)');
+
+		$qb->andWhere($qb->expr()->gte('stockAsset.priceDownloadedAt', ':date'));
+		$qb->setParameter('date', $date);
+
+		$qb->andWhere($qb->expr()->eq('stockAsset.shouldDownloadPrice', ':shouldDownloadPrice'));
+		$qb->setParameter('shouldDownloadPrice', true);
+
+		$result = $qb->getQuery()->getSingleScalarResult();
+		assert(is_scalar($result));
+
+		return (int) $result;
+	}
+
 }

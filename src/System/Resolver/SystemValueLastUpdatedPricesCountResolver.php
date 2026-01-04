@@ -18,7 +18,7 @@ class SystemValueLastUpdatedPricesCountResolver implements SystemValueResolver
 
 	private const CRON_THIRD_UPDATE_HOUR = 22;
 
-	private const CRON_UPDATE_MINUTE = 35;
+	private const CRON_UPDATE_MINUTE = 25;
 
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
@@ -31,47 +31,43 @@ class SystemValueLastUpdatedPricesCountResolver implements SystemValueResolver
 	public function getValueForEnum(SystemValueEnum $systemValueEnum): string|int|ImmutableDateTime|null
 	{
 		$now = $this->datetimeFactory->createNow();
-		$lastUpdateDate = $this->datetimeFactory->createToday();
-		$lastUpdatedHour = self::CRON_SECOND_UPDATE_HOUR;
+		$lastUpdateDateTime = $this->getLastScheduledUpdateDateTime($now);
 
-		if (
-			$now->getHour() < self::CRON_FIRST_UPDATE_HOUR
-			|| (
-				$now->getHour() === self::CRON_FIRST_UPDATE_HOUR
-				&& $now->getMinutes() < self::CRON_UPDATE_MINUTE
-			)
-		) {
-			$lastUpdateDate = $lastUpdateDate->deductDaysFromDatetime(1);
-			$lastUpdatedHour = self::CRON_THIRD_UPDATE_HOUR;
-		} elseif (
-			$now->getHour() >= self::CRON_THIRD_UPDATE_HOUR
-			&& (
-				$now->getMinutes() > self::CRON_UPDATE_MINUTE
-				|| $now->getHour() > self::CRON_THIRD_UPDATE_HOUR
-			)
-		) {
-			$lastUpdatedHour = self::CRON_THIRD_UPDATE_HOUR;
-		} elseif (
-			$now->getHour() >= self::CRON_SECOND_UPDATE_HOUR
-			&& (
-				$now->getMinutes() > self::CRON_UPDATE_MINUTE
-				|| $now->getHour() > self::CRON_SECOND_UPDATE_HOUR
-			)
-		) {
-			$lastUpdatedHour = self::CRON_SECOND_UPDATE_HOUR;
-		} elseif (
-			$now->getMinutes() > self::CRON_UPDATE_MINUTE
-			|| $now->getHour() > self::CRON_FIRST_UPDATE_HOUR
-		) {
-			$lastUpdatedHour = self::CRON_FIRST_UPDATE_HOUR;
+		return $this->stockAssetRepository->getCountUpdatedPricesSince($lastUpdateDateTime);
+	}
+
+	private function getLastScheduledUpdateDateTime(ImmutableDateTime $now): ImmutableDateTime
+	{
+		$today = $this->datetimeFactory->createToday();
+
+		$updateTimes = [
+			['hour' => self::CRON_THIRD_UPDATE_HOUR, 'minute' => self::CRON_UPDATE_MINUTE],
+			['hour' => self::CRON_SECOND_UPDATE_HOUR, 'minute' => self::CRON_UPDATE_MINUTE],
+			['hour' => self::CRON_FIRST_UPDATE_HOUR, 'minute' => self::CRON_UPDATE_MINUTE],
+		];
+
+		if ($today->isWeekend()) {
+			$lastFriday = $now->modify('last friday');
+			return $lastFriday->setTime(self::CRON_THIRD_UPDATE_HOUR, self::CRON_UPDATE_MINUTE);
 		}
 
-		if ($lastUpdateDate->isWeekend()) {
-			$lastUpdateDate = $now->modify('last friday');
-			$lastUpdatedHour = self::CRON_THIRD_UPDATE_HOUR;
+		foreach ($updateTimes as $updateTime) {
+			if (
+				$now->getHour() > $updateTime['hour']
+				|| ($now->getHour() === $updateTime['hour'] && $now->getMinutes() >= $updateTime['minute'])
+			) {
+				return $today->setTime($updateTime['hour'], $updateTime['minute']);
+			}
 		}
 
-		return $this->stockAssetRepository->getCountUpdatedPricesAt($lastUpdateDate, $lastUpdatedHour);
+		$yesterday = $today->deductDaysFromDatetime(1);
+
+		if ($yesterday->isWeekend()) {
+			$lastFriday = $yesterday->modify('last friday');
+			return $lastFriday->setTime(self::CRON_THIRD_UPDATE_HOUR, self::CRON_UPDATE_MINUTE);
+		}
+
+		return $yesterday->setTime(self::CRON_THIRD_UPDATE_HOUR, self::CRON_UPDATE_MINUTE);
 	}
 
 }
