@@ -192,4 +192,16 @@ class StockAssetDividendForecastRecordFacade
 		$this->entityManager->flush();
 	}
 
+	public function updateCustomValuesForRecord(
+		UuidInterface $id,
+		float|null $customDividendUsedForCalculation,
+		float|null $expectedSpecialDividendThisYearPerStock,
+	): void
+	{
+		$record = $this->stockAssetDividendForecastRecordRepository->getById($id);
+		$record->setCustomValues($customDividendUsedForCalculation, $expectedSpecialDividendThisYearPerStock);
+		$record->getStockAssetDividendForecast()->recalculatingPending();
+		$this->entityManager->flush();
+	}
+
 }

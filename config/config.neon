@@ -502,6 +502,7 @@ services:
 	- App\Stock\Valuation\Model\UI\StockValuationModelSortService
 	- App\Stock\Valuation\Model\Price\RoeQualityValuationModel
 	- App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade
+	- App\Stock\Dividend\Forecast\UI\Control\StockAssetDividendForecastItemValuesFormFactory
 
 	#Stock valuation models
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel

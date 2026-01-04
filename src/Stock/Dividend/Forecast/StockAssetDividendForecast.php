@@ -73,6 +73,11 @@ class StockAssetDividendForecast implements Entity
 		$this->state = StockAssetDividendForecastStateEnum::FINISHED;
 	}
 
+	public function recalculatingPending(): void
+	{
+		$this->state = StockAssetDividendForecastStateEnum::PENDING;
+	}
+
 	public function defaultForYear(): void
 	{
 		$this->defaultForYear = true;

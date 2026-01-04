@@ -13,6 +13,9 @@ use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
 use App\UI\Base\BaseControl;
 use App\UI\FlashMessage\FlashMessageType;
+use Nette\Application\UI\Form;
+use Nette\Application\UI\Multiplier;
+use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -28,6 +31,7 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 		private StockAssetDividendForecastRepository $stockAssetDividendForecastRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
 		private JobRequestFacade $jobRequestFacade,
+		private StockAssetDividendForecastItemValuesFormFactory $stockAssetDividendForecastItemValuesFormFactory,
 	)
 	{
 		$this->stockAssetDividendForecast = $this->stockAssetDividendForecastRepository->getById($forecastId);
@@ -123,6 +127,22 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 
 		$this->template->setFile(__DIR__ . '/StockAssetDividendForecastDetailControl.latte');
 		$this->template->render();
+	}
+
+	/**
+	 * @return Multiplier<Form>
+	 */
+	protected function createComponentStockAssetDividendForecastItemValuesForm(): Multiplier
+	{
+		$onSuccess = function (): void {
+			$this->getPresenter()->flashMessage('Uloženo', FlashMessageType::SUCCESS);
+			$this->getPresenter()->redirect('this');
+		};
+
+		return new Multiplier(function (string $id) use ($onSuccess): Form {
+			$id = Uuid::fromString(str_replace('_', '-', $id));
+			return $this->stockAssetDividendForecastItemValuesFormFactory->create($id, $onSuccess);
+		});
 	}
 
 }
