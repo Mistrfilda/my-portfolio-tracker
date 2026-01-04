@@ -141,7 +141,7 @@
                                 </td>
                                 <td n:class="'whitespace-nowrap px-3 py-4 text-sm text-gray-900 text-right font-semibold'">
                                     <div class="flex items-center justify-end gap-2">
-                                        {if $hasCustomValues}
+                                        {if $record->getCustomDividendUsedForCalculation() !== null}
                                             <div class="text-blue-600">
                                                 {$record->getCustomDividendUsedForCalculation()|currency:$record->getCurrency(),4}
                                             </div>
