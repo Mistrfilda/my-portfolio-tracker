@@ -45,7 +45,7 @@ class StockAssetDividendForecastItemValuesFormFactory
 				TypeValidator::validateNullableFloat($values->expectedSpecialDividendThisYearPerStock),
 			);
 
-			$onSuccess($record->getId()->toString());
+			$onSuccess($record->getStockAssetDividendForecast()->getId()->toString());
 		};
 
 		$form->addSubmit('submit', 'Uložit');
