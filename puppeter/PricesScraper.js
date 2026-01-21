@@ -6,7 +6,8 @@ export class PricesScraper extends PuppeteerScraperBase {
 
 		const selectors = [
 			"::-p-xpath(/html/body/div[2]/main/section/section/section/section/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span)",
-			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span)"
+			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[1]/div[2]/div[1]/section/div/section/div[1]/div[1]/span)",
+			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[1]/div[2]/div[1]/section/div/section/div[1]/span[1])"
 		];
 
 		let element = null;
