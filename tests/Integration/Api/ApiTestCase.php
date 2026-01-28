@@ -7,26 +7,25 @@ namespace App\Test\Integration\Api;
 use App\Api\SlimAppFactory;
 use App\Bootstrap;
 use PHPUnit\Framework\TestCase;
-use Slim\Psr7\Factory\ServerRequestFactory;
+use Slim\App;
 use function assert;
 
-class StockAssetListTest extends TestCase
+abstract class ApiTestCase extends TestCase
 {
 
-	public function testList(): void
+	protected App $app;
+
+	protected function setUp(): void
 	{
+		parent::setUp();
+
 		$configurator = Bootstrap::boot(true);
+		$configurator->addConfig(__DIR__ . '/api_test.neon');
 		$container = $configurator->createContainer();
 
 		$slimAppFactory = $container->getByType(SlimAppFactory::class);
 		assert($slimAppFactory instanceof SlimAppFactory);
-		$app = $slimAppFactory->create();
-
-		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/stocks');
-		$response = $app->handle($request);
-
-		$this->assertSame(200, $response->getStatusCode());
-		$this->assertJson((string) $response->getBody());
+		$this->app = $slimAppFactory->create();
 	}
 
 }

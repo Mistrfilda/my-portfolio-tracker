@@ -4,10 +4,15 @@ info:
     title: My Portfolio Tracker API
     version: 1.0.0
 
+security:
+    - ApiKey: []
+
 paths:
     /ping:
         get:
             summary: Ping the API
+            security:
+                - ApiKey: []
             responses:
                 '200':
                     description: OK
@@ -22,6 +27,8 @@ paths:
     /stocks:
         get:
             summary: Get list of all stock assets
+            security:
+                - ApiKey: []
             responses:
                 '200':
                     description: List of stock assets
@@ -33,6 +40,11 @@ paths:
                                     $ref: '#/components/schemas/StockAsset'
 
 components:
+    securitySchemes:
+        ApiKey:
+            type: apiKey
+            in: header
+            name: X-Api-Key
     schemas:
         StockAsset:
             type: object
