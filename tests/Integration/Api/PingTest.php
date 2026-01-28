@@ -4,27 +4,18 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Api;
 
-use App\Api\SlimAppFactory;
-use App\Bootstrap;
-use PHPUnit\Framework\TestCase;
 use Slim\Exception\HttpNotFoundException;
+use Slim\Exception\HttpUnauthorizedException;
 use Slim\Psr7\Factory\ServerRequestFactory;
-use function assert;
 
-class PingTest extends TestCase
+class PingTest extends ApiTestCase
 {
 
 	public function testPing(): void
 	{
-		$configurator = Bootstrap::boot(true);
-		$container = $configurator->createContainer();
-
-		$slimAppFactory = $container->getByType(SlimAppFactory::class);
-		assert($slimAppFactory instanceof SlimAppFactory);
-		$app = $slimAppFactory->create();
-
-		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/ping');
-		$response = $app->handle($request);
+		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/ping')
+			->withHeader('X-Api-Key', 'test-api-key');
+		$response = $this->app->handle($request);
 
 		$this->assertSame(200, $response->getStatusCode());
 		$this->assertSame('{"status":"ok"}', (string) $response->getBody());
@@ -32,18 +23,21 @@ class PingTest extends TestCase
 
 	public function testPingInvalidPath(): void
 	{
-		$configurator = Bootstrap::boot(true);
-		$container = $configurator->createContainer();
-
-		$slimAppFactory = $container->getByType(SlimAppFactory::class);
-		assert($slimAppFactory instanceof SlimAppFactory);
-		$app = $slimAppFactory->create();
-
 		// Path not in openapi.yaml
-		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/non-existent');
+		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/non-existent')
+			->withHeader('X-Api-Key', 'test-api-key');
 
 		$this->expectException(HttpNotFoundException::class);
-		$app->handle($request);
+		$this->app->handle($request);
+	}
+
+	public function testPingUnauthorized(): void
+	{
+		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/ping')
+			->withHeader('X-Api-Key', 'invalid-api-key');
+
+		$this->expectException(HttpUnauthorizedException::class);
+		$this->app->handle($request);
 	}
 
 }

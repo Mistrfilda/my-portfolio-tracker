@@ -13,7 +13,10 @@ use Slim\Routing\RouteCollectorProxy;
 class RouterFactory
 {
 
-	public function __construct(private RequestValidationMiddleware $requestValidationMiddleware)
+	public function __construct(
+		private RequestValidationMiddleware $requestValidationMiddleware,
+		private ApiKeyMiddleware $apiKeyMiddleware,
+	)
 	{
 	}
 
@@ -28,6 +31,7 @@ class RouterFactory
 		});
 
 		$v1Group->add($this->requestValidationMiddleware);
+		$v1Group->add($this->apiKeyMiddleware);
 	}
 
 }
