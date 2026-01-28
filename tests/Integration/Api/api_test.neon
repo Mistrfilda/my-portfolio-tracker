@@ -1,0 +1,4 @@
+parameters:
+	api:
+		apiKeys:
+			- 'test-api-key'

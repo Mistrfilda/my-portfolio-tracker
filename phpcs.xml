@@ -455,7 +455,10 @@ BASED ON https://github.com/orisai/coding-standard-php
             <property name="ignoreWithComplexParameter" value="true"/>
         </properties>
     </rule>
-    <rule ref="SlevomatCodingStandard.Functions.StaticClosure"/>
+    <rule ref="SlevomatCodingStandard.Functions.StaticClosure">
+        <exclude-pattern>src/Api/RouterFactory.php</exclude-pattern>
+        <exclude-pattern>src/Api/SlimAppFactory.php</exclude-pattern>
+    </rule>
     <rule ref="SlevomatCodingStandard.Functions.StrictCall"/>
     <rule ref="SlevomatCodingStandard.Functions.UnusedInheritedVariablePassedToClosure"/>
     <rule ref="SlevomatCodingStandard.Functions.UselessParameterDefaultValue"/>

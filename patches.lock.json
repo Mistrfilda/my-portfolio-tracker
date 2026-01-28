@@ -1,0 +1,17 @@
+{
+    "_hash": "3f1ee2841213dbadeb1d5e44b9147fc07af3dc52e70e18021c97fedb48fa4450",
+    "patches": {
+        "react/promise": [
+            {
+                "package": "react/promise",
+                "description": "Fix php 8.4 compability 1",
+                "url": "patches/react-promise.patch",
+                "sha256": "cb340cbeb2d5d18621fcd39d55ae67e3cabb45fd471155aedaee6550c9fa0ea6",
+                "depth": 1,
+                "extra": {
+                    "provenance": "root"
+                }
+            }
+        ]
+    }
+}
