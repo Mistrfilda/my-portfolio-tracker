@@ -83,6 +83,9 @@ parameters:
 	logger:
 		discordWebhookUrl: https://example.com
 
+	api:
+		corsAllowedOrigins: []
+
 application:
 	errorPresenter: Error:Error
 	mapping:
@@ -188,6 +191,15 @@ latteMacros:
 
 services:
 	- App\Router\RouterFactory::createRouter
+
+	# API
+	- App\Api\RouterFactory
+	- App\Api\Controller\PingController
+	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)
+	- App\Api\SlimAppFactory(corsAllowedOrigins: %api.corsAllowedOrigins%, debugMode: %debugMode%)
+	- Slim\CallableResolver(@Psr\Container\ContainerInterface)
+	- Slim\Middleware\ErrorMiddleware(callableResolver: @Slim\Interfaces\CallableResolverInterface, responseFactory: Slim\Psr7\Factory\ResponseFactory(), displayErrorDetails: %debugMode%, logErrors: true, logErrorDetails: true)
+	- App\Utils\Nette\NettePsrContainerAdapter
 
 	latte.latteFactory:
 		setup:
