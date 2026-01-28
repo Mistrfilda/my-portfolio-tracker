@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "7126831d63ee9ff398cfd643973a9dcc",
+    "content-hash": "cbda546fe75d4b895e4ff96e7f247318",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -405,6 +405,81 @@
                 }
             ],
             "time": "2026-01-02T13:53:23+00:00"
+        },
+        {
+            "name": "contributte/psr11-container-interface",
+            "version": "v0.6.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/contributte/psr11-container-interface.git",
+                "reference": "b3d4847e17b7466c3c3b919a06769ce88d5f5e3b"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/contributte/psr11-container-interface/zipball/b3d4847e17b7466c3c3b919a06769ce88d5f5e3b",
+                "reference": "b3d4847e17b7466c3c3b919a06769ce88d5f5e3b",
+                "shasum": ""
+            },
+            "require": {
+                "nette/di": "^3.0.8",
+                "php": ">=7.2",
+                "psr/container": "^2.0"
+            },
+            "provide": {
+                "psr/container-implementation": "1.0"
+            },
+            "require-dev": {
+                "ninjify/nunjuck": "^0.4",
+                "ninjify/qa": "^0.12",
+                "phpstan/phpstan": "^1.0",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-nette": "^1.0",
+                "phpstan/phpstan-strict-rules": "^1.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.6.x-dev"
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Contributte\\Psr11\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Milan Felix Šulc",
+                    "homepage": "https://f3l1x.io"
+                }
+            ],
+            "description": "Wraps nette/di container into PSR-11 implementation.",
+            "homepage": "https://github.com/contributte/psr11-container-interface",
+            "keywords": [
+                "PSR-11",
+                "dependency",
+                "inject",
+                "nette"
+            ],
+            "support": {
+                "issues": "https://github.com/contributte/psr11-container-interface/issues",
+                "source": "https://github.com/contributte/psr11-container-interface/tree/v0.6.0"
+            },
+            "funding": [
+                {
+                    "url": "https://contributte.org/partners.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/f3l1x",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-01-07T20:53:33+00:00"
         },
         {
             "name": "contributte/psr6-caching",

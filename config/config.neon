@@ -112,6 +112,7 @@ extensions:
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
 	rabbitmq: Contributte\RabbitMQ\DI\RabbitMQExtension
+	psr11: Contributte\Psr11\DI\Psr11ContainerExtension
 
 	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
 	custompresenterfactory: App\UI\Extension\PresenterFactory\DI\CustomPresenterFactoryExtension
@@ -195,11 +196,12 @@ services:
 	# API
 	- App\Api\RouterFactory
 	- App\Api\Controller\PingController
+	- App\Stock\Asset\Api\StockAssetSerializer
+	- App\Stock\Asset\Api\StockAssetController
 	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)
 	- App\Api\SlimAppFactory(corsAllowedOrigins: %api.corsAllowedOrigins%, debugMode: %debugMode%)
-	- Slim\CallableResolver(@Psr\Container\ContainerInterface)
+	- Slim\CallableResolver(@psr11.container)
 	- Slim\Middleware\ErrorMiddleware(callableResolver: @Slim\Interfaces\CallableResolverInterface, responseFactory: Slim\Psr7\Factory\ResponseFactory(), displayErrorDetails: %debugMode%, logErrors: true, logErrorDetails: true)
-	- App\Utils\Nette\NettePsrContainerAdapter
 
 	latte.latteFactory:
 		setup:

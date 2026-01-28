@@ -31,6 +31,7 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - Use Czech comments where appropriate
 - Name tests `*Test.php`
 - Configuration in `.neon` files
+- always use Nette\Utils\Json for json serialization and deserialization
 
 ## Important Notes
 - Sensitive data (API keys, passwords) are in `docker/config-docker.local.neon` - DO NOT COMMIT
