@@ -36,6 +36,16 @@ components:
     schemas:
         StockAsset:
             type: object
+            additionalProperties: false
+            required:
+                - id
+                - name
+                - ticker
+                - exchange
+                - currency
+                - price
+                - priceDownloadedAt
+                - assetPriceDownloader
             properties:
                 id:
                     type: string
