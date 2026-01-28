@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Api;
 
 use App\Api\Controller\PingController;
+use App\Stock\Asset\Api\StockAssetController;
 use Psr\Container\ContainerInterface;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -23,6 +24,7 @@ class RouterFactory
 	{
 		$v1Group = $slimApp->group('/api/v1', function (RouteCollectorProxy $v1): void {
 			$v1->get('/ping', PingController::class . ':ping');
+			$v1->get('/stocks', StockAssetController::class . ':list');
 		});
 
 		$v1Group->add($this->requestValidationMiddleware);

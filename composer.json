@@ -27,6 +27,7 @@
 		"contributte/forms-multiplier": "dev-master",
 		"contributte/monolog": "^0.6",
 		"contributte/psr6-caching": "^0.3.0",
+		"contributte/psr11-container-interface": "^0.6",
 		"contributte/rabbitmq": "dev-master",
 		"cuyz/valinor": "^2.0",
 		"cweagans/composer-patches": "~2.0",
@@ -130,6 +131,7 @@
 			"@ormv",
 			"@latte-lint",
 			"@test-unit",
+			"@test-integration",
 			"@composer-dependecy-check"
 		],
 		"stock-assets-downloaders": [
