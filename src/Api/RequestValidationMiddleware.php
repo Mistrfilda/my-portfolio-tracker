@@ -14,6 +14,7 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
 use Slim\Exception\HttpBadRequestException;
+use Slim\Routing\RouteContext;
 
 class RequestValidationMiddleware implements MiddlewareInterface
 {
@@ -38,9 +39,29 @@ class RequestValidationMiddleware implements MiddlewareInterface
 		$response = $handler->handle($request);
 
 		try {
-			$operationAddress = new OperationAddress($request->getUri()->getPath(), strtolower($request->getMethod()));
+			$path = $request->getUri()->getPath();
+			$routeContext = RouteContext::fromRequest($request);
+			$basePath = $routeContext->getBasePath();
+
+			if ($basePath !== '' && str_starts_with($path, $basePath)) {
+				$path = substr($path, strlen($basePath));
+			}
+
+			if ($path === '' || $path === '0') {
+				$path = '/';
+			}
+
+			$operationAddress = new OperationAddress($path, strtolower($request->getMethod()));
 			$responseValidator = $this->validatorBuilder->getResponseValidator();
-			$responseValidator->validate($operationAddress, $response);
+
+			// Ensure response body is at the beginning
+			$response->getBody()->rewind();
+
+			try {
+				$responseValidator->validate($operationAddress, $response);
+			} finally {
+				$response->getBody()->rewind();
+			}
 		} catch (NoResponseCode) {
 			// Ignore if response code is not defined in spec
 		} catch (ValidationFailed $e) {
