@@ -1,6 +1,10 @@
+
 /**
  * Alpine.js drag-to-scroll component
  * Usage: <div x-data="dragScroll()" class="overflow-x-auto">...</div>
+ *
+ * Scrolling activates only when holding Shift key or using middle mouse button.
+ * Without modifier, normal text selection works.
  *
  * Optional parameters:
  * - scrollSpeed: multiplier for scroll speed (default: 2)
@@ -15,9 +19,6 @@ export default function dragScroll(scrollSpeed: number = 2, threshold: number = 
         $el: null as any,
 
         init() {
-            // Set initial cursor
-            this.$el.style.cursor = 'grab';
-
             // Add global mouseup listener to catch mouseup outside element
             const stopDragHandler = () => this.stopDrag();
             document.addEventListener('mouseup', stopDragHandler);
@@ -30,12 +31,19 @@ export default function dragScroll(scrollSpeed: number = 2, threshold: number = 
         },
 
         startDrag(e: MouseEvent) {
+            // Only activate drag scroll when Shift is held or middle mouse button is used
+            const isMiddleButton = e.button === 1;
+            if (!e.shiftKey && !isMiddleButton) {
+                return;
+            }
+
             // Prevent dragging if clicking on interactive elements
             const target = e.target as HTMLElement;
             if (target.tagName === 'A' || target.tagName === 'BUTTON' || target.closest('a, button')) {
                 return;
             }
 
+            e.preventDefault();
             this.isDragging = true;
             this.startX = e.pageX - this.$el.offsetLeft;
             this.scrollLeft = this.$el.scrollLeft;
@@ -45,10 +53,12 @@ export default function dragScroll(scrollSpeed: number = 2, threshold: number = 
         },
 
         stopDrag() {
+            if (!this.isDragging) return;
+
             this.isDragging = false;
             this.hasMoved = false;
-            this.$el.style.cursor = 'grab';
-            this.$el.style.userSelect = 'auto';
+            this.$el.style.cursor = '';
+            this.$el.style.userSelect = '';
         },
 
         drag(e: MouseEvent) {
