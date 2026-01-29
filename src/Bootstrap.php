@@ -11,7 +11,7 @@ use function is_file;
 class Bootstrap
 {
 
-	public static function boot(bool $forceDebugMode = false): Configurator
+	public static function boot(bool $forceDebugMode = false, bool $enableTracy = true): Configurator
 	{
 		$configurator = new Configurator();
 		$appDir = dirname(__DIR__);
@@ -20,9 +20,11 @@ class Bootstrap
 			$configurator->setDebugMode($forceDebugMode);
 		}
 
-		//$configurator->setDebugMode(true);
-		//$configurator->setDebugMode('secret@23.75.345.200'); // enable for your remote IP
-		$configurator->enableTracy($appDir . '/log');
+		if ($enableTracy) {
+			//$configurator->setDebugMode(true);
+			//$configurator->setDebugMode('secret@23.75.345.200'); // enable for your remote IP
+			$configurator->enableTracy($appDir . '/log');
+		}
 
 		$configurator->setTimeZone('Europe/Prague');
 		$configurator->setTempDirectory($appDir . '/temp');

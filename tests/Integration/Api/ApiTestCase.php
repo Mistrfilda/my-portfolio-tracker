@@ -19,7 +19,7 @@ abstract class ApiTestCase extends TestCase
 	{
 		parent::setUp();
 
-		$configurator = Bootstrap::boot(true);
+		$configurator = Bootstrap::boot(true, false);
 		$configurator->addConfig(__DIR__ . '/api_test.neon');
 		$container = $configurator->createContainer();
 

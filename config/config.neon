@@ -564,3 +564,17 @@ services:
 	- App\Crypto\Price\Downloader\Json\CryptoAssetJsonDownloaderCommand
 	- App\Crypto\Price\Downloader\TwelveData\TwelveDataCryptoDownloaderFacade(apiKey: %twelveData.apiKey%)
 	- App\Crypto\Price\Downloader\TwelveData\TwelveDataCryptoDownloaderCommand
+
+	#Home
+	- App\Home\HomeRepository(App\Home\Home)
+	- App\Home\HomeFacade
+	- App\Home\UI\HomeGridFactory
+	- App\Home\UI\HomeFormFactory
+	- App\Home\Device\HomeDeviceRepository(App\Home\Device\HomeDevice)
+	- App\Home\Device\HomeDeviceFacade
+	- App\Home\Device\UI\HomeDeviceGridFactory
+	- App\Home\Device\UI\HomeDeviceFormFactory
+	- App\Home\Device\Record\UI\HomeDeviceRecordGridFactory
+	- App\Home\Device\Record\HomeDeviceRecordRepository(App\Home\Device\Record\HomeDeviceRecord)
+	- App\Home\Device\Record\HomeDeviceRecordFacade
+	- App\Home\Device\Record\Api\HomeDeviceRecordController

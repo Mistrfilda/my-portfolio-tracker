@@ -40,6 +40,7 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - use TABS whenever possible (except OpenAPI spec where spaces are allowed)
 - use Constructor property promotion whenever possible
 - at the end of proccess run composer cs-fix && composer build-all to check if everything is OK
+- if you change anything in Doctrine orm entities, run `bin/console orm:schema-tool:update --dump-sql` to check generated SQL, if it is OK run migrations `bin/console migrations:diff` and then exuce `bin/console migrations:migrate`
 
 ## Testing
 ```bash
