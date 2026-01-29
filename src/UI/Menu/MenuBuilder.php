@@ -87,6 +87,9 @@ class MenuBuilder
 				new MenuItem('CryptoAssetPositionDetail', 'default', SvgIcon::CRYPTO_BITCOIN, 'Přehled pozic'),
 			]),
 			new MenuItem('AppAdmin', 'default', SvgIcon::USERS, 'Uživatelé', ['AppAdminEdit'], true),
+			new MenuGroup('Domov', SvgIcon::HOME, [
+				new MenuItem('Home', 'default', SvgIcon::HOME, 'Domovy', ['HomeEdit', 'HomeDevice', 'HomeDeviceEdit']),
+			]),
 		];
 	}
 

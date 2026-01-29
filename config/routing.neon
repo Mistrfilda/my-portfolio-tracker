@@ -44,3 +44,8 @@ custompresenterfactory:
 		Admin:CryptoAssetDetail: App\Crypto\Asset\UI\Detail\CryptoAssetDetailPresenter
 		Admin:CryptoPosition: App\Crypto\Position\UI\CryptoPositionPresenter
 		Admin:CryptoPositionEdit: App\Crypto\Position\UI\CryptoPositionEditPresenter
+		Admin:Home: App\Home\UI\HomePresenter
+		Admin:HomeEdit: App\Home\UI\HomeEditPresenter
+		Admin:HomeDevice: App\Home\Device\UI\HomeDevicePresenter
+		Admin:HomeDeviceEdit: App\Home\Device\UI\HomeDeviceEditPresenter
+		Admin:HomeDeviceRecord: App\Home\Device\Record\UI\HomeDeviceRecordPresenter

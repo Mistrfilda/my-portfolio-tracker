@@ -38,6 +38,24 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/StockAsset'
+    /home/device/record:
+        post:
+            summary: Create a new home device record
+            security:
+                - ApiKey: []
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            $ref: '#/components/schemas/HomeDeviceRecordCreate'
+            responses:
+                '200':
+                    description: Created home device record
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/HomeDeviceRecord'
 
 components:
     securitySchemes:
@@ -81,6 +99,46 @@ components:
                     format: date-time
                 assetPriceDownloader:
                     type: string
+        HomeDeviceRecordCreate:
+            type: object
+            additionalProperties: false
+            required:
+                - internalId
+            properties:
+                internalId:
+                    type: string
+                value:
+                    type: number
+                    format: float
+                    nullable: true
+                unit:
+                    type: string
+                    nullable: true
+                    enum:
+                        - celsius
+        HomeDeviceRecord:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - deviceInternalId
+                - createdAt
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                deviceInternalId:
+                    type: string
+                value:
+                    type: number
+                    format: float
+                    nullable: true
+                unit:
+                    type: string
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
 
 
 servers:
