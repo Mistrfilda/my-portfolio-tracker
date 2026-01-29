@@ -195,12 +195,12 @@ services:
 	- App\Router\RouterFactory::createRouter
 
 	# API
-	- App\Api\RouterFactory
+	- App\Api\RouterFactory(apiKeyMiddleware: @apiKeyMiddleware)
 	- App\Api\Controller\PingController
 	- App\Stock\Asset\Api\StockAssetSerializer
 	- App\Stock\Asset\Api\StockAssetController
 	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)
-	- App\Api\ApiKeyMiddleware(apiKeys: %api.apiKeys%)
+	apiKeyMiddleware: App\Api\ApiKeyMiddleware(apiKeys: %api.apiKeys%)
 	- App\Api\SlimAppFactory(corsAllowedOrigins: %api.corsAllowedOrigins%, debugMode: %debugMode%)
 	- Slim\CallableResolver(@psr11.container)
 	- Slim\Middleware\ErrorMiddleware(callableResolver: @Slim\Interfaces\CallableResolverInterface, responseFactory: Slim\Psr7\Factory\ResponseFactory(), displayErrorDetails: %debugMode%, logErrors: true, logErrorDetails: true)
