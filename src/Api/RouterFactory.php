@@ -7,6 +7,7 @@ namespace App\Api;
 use App\Api\Controller\PingController;
 use App\Stock\Asset\Api\StockAssetController;
 use Psr\Container\ContainerInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
 
@@ -15,7 +16,7 @@ class RouterFactory
 
 	public function __construct(
 		private RequestValidationMiddleware $requestValidationMiddleware,
-		private ApiKeyMiddleware $apiKeyMiddleware,
+		private MiddlewareInterface $apiKeyMiddleware,
 	)
 	{
 	}

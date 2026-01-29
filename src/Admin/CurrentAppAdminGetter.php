@@ -14,20 +14,31 @@ class CurrentAppAdminGetter
 
 	private AppAdminRepository $appAdminRepository;
 
+	private AppAdmin|null $apiAppAdmin = null;
+
 	public function __construct(User $user, AppAdminRepository $appAdminRepository)
 	{
 		$this->user = $user;
 		$this->appAdminRepository = $appAdminRepository;
 	}
 
+	public function setApiAppAdmin(AppAdmin $appAdmin): void
+	{
+		$this->apiAppAdmin = $appAdmin;
+	}
+
 	public function isLoggedIn(): bool
 	{
-		return $this->user->isLoggedIn();
+		return $this->apiAppAdmin !== null || $this->user->isLoggedIn();
 	}
 
 	public function getAppAdmin(): AppAdmin
 	{
-		if (!$this->isLoggedIn() || $this->user->getIdentity() === null) {
+		if ($this->apiAppAdmin !== null) {
+			return $this->apiAppAdmin;
+		}
+
+		if (!$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
 			throw new AppAdminNotLoggedInException();
 		}
 
@@ -40,7 +51,11 @@ class CurrentAppAdminGetter
 
 	public function getAppAdminOrNull(): AppAdmin|null
 	{
-		if (!$this->isLoggedIn() || $this->user->getIdentity() === null) {
+		if ($this->apiAppAdmin !== null) {
+			return $this->apiAppAdmin;
+		}
+
+		if (!$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
 			return null;
 		}
 
