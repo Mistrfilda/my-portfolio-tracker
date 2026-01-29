@@ -6,6 +6,8 @@ WORKDIR /app
 RUN rm -rf /app/www/build/admin
 RUN mv /app/www/prod-build/build/admin /app/www/build/admin
 
+RUN rm -f /app/www/swagger-ui/openapi.yaml && cp /app/doc/openapi.yaml /app/www/swagger-ui/openapi.yaml
+
 ########################################################################################################################
 
 FROM nginx:latest AS nginx
