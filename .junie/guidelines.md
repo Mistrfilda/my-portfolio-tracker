@@ -13,39 +13,85 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 
 ## Project Structure
 - `src/` - main PHP application code
-  - `Stock/` - stocks, dividends, valuations
-  - `Crypto/` - cryptocurrencies
-  - `Currency/` - currencies (CNB, ECB)
-  - `Asset/` - asset management
-  - `Notification/` - notification system
-  - `RabbitMQ/` - message queue consumers/producers
-  - `Doctrine/` - entities and repositories
+	- `Stock/` - stocks, dividends, valuations
+	- `Crypto/` - cryptocurrencies
+    - `Home` - home devices and sensors
+	- `Currency/` - currencies (CNB, ECB)
+	- `Asset/` - asset management
+	- `Notification/` - notification system
+	- `RabbitMQ/` - message queue consumers/producers
+	- `Doctrine/` - entities and repositories
 - `puppeter/` - Node.js scripts for web scraping
 - `config/` - Nette configuration (.neon files)
 - `docker/` - Docker configuration
 - `tests/` - PHPUnit tests
 - `migrations/` - database migrations
 
-## Coding Standards
-- Follow PSR-12 for PHP
-- Use Czech comments where appropriate
-- Name tests `*Test.php`
-- Configuration in `.neon` files
-- always use Nette\Utils\Json for json serialization and deserialization
+## Build & Configuration
+1. **Prerequisites**: PHP 8.5+, Node.js (v24 recommended), Docker, RabbitMQ, MariaDB/MySQL.
+2. **Environment**:
+	- Configuration is in `config/*.neon`.
+	- Local overrides go into `config/config.local.neon` or `config/config-docker.local.neon`.
+3. **Setup**:
+	- Run `docker-compose up -d` to start infrastructure (Database, RabbitMQ).
+	- Run `composer install` to install PHP dependencies.
+	- Run `npm install` to install Node.js dependencies.
+	- Apply migrations: `bin/console migrations:migrate`.
+	- Declare RabbitMQ queues: `bin/console-rabbit rabbitmq:declareQueuesAndExchanges`.
+4. **Assets**:
+	- Development: `npm run watch-dev`
+	- Production: `npm run build-prod`
 
-## Important Notes
-- Sensitive data (API keys, passwords) are in `docker/config-docker.local.neon` - DO NOT COMMIT
-- Use Docker Compose for local development
-- RabbitMQ for asynchronous task processing
-- use TABS whenever possible (except OpenAPI spec where spaces are allowed)
-- use Constructor property promotion whenever possible
-- at the end of proccess run composer cs-fix && composer build-all to check if everything is OK
-- if you change anything in Doctrine orm entities, run `bin/console orm:schema-tool:update --dump-sql` to check generated SQL, if it is OK run migrations `bin/console migrations:diff` and then exuce `bin/console migrations:migrate`
+## Coding Standards
+- **Indentation**: Use **TABS** whenever possible (except in OpenAPI spec files where spaces are allowed).
+- **PHP Style**: Follow PSR-12.
+- **Modern PHP**: Use Constructor property promotion where applicable.
+- **Naming**: Tests must be named `*Test.php`.
+- **Comments**: Use Czech comments where appropriate.
+- **JSON**: Always use `Nette\Utils\Json` for serialization/deserialization.
+- **Validation**: Use `App\Utils\TypeValidator` for scalar type validation.
+
+## Doctrine & Migrations
+- If you change anything in Doctrine ORM entities:
+	1. Check generated SQL: `bin/console orm:schema-tool:update --dump-sql`.
+	2. If OK, create migration: `bin/console migrations:diff`.
+	3. Apply migration: `bin/console migrations:migrate`.
 
 ## Testing
-```bash
-vendor/bin/phpunit
+- **Execution**:
+	- Run all tests: `vendor/bin/phpunit`
+	- Unit only: `vendor/bin/phpunit tests/Unit`
+	- Integration only: `vendor/bin/phpunit tests/Integration`
+- **Adding Tests**:
+	- Unit tests should extend `PHPUnit\Framework\TestCase`.
+	- Integration/API tests should extend `App\Test\Integration\Api\ApiTestCase`.
+- **Example Test**:
+```php
+<?php
+
+declare(strict_types = 1);
+
+namespace App\Test\Unit\Utils;
+
+use App\Utils\TypeValidator;
+use PHPUnit\Framework\TestCase;
+
+class MyTest extends TestCase
+{
+
+	public function testSomething(): void
+	{
+		$this->assertSame('test', TypeValidator::validateString('test'));
+	}
+
+}
 ```
+
+## Important Notes
+- **Security**: Sensitive data (API keys, passwords) are in `docker/config-docker.local.neon` or `config/config.local.neon`. **DO NOT COMMIT THESE FILES.**
+- **Development Flow**: At the end of process, always run `composer cs-fix && composer build-all` to check if everything is OK.
+- **RabbitMQ**: Used for asynchronous task processing (e.g., price updates, notifications).
+- **Scraping**: Puppeteer scripts in `puppeter/` for Yahoo Finance, PSE.
 
 ## Common Tasks
 - Stock price updates: Yahoo Finance scraper
