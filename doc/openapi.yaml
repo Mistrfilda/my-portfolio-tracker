@@ -56,6 +56,28 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HomeDeviceRecord'
+    /home/device/records:
+        get:
+            summary: Get all devices with their latest measurements
+            security:
+                - ApiKey: []
+            parameters:
+                - name: limit
+                  in: query
+                  required: false
+                  description: Number of records to return per device (default 10)
+                  schema:
+                      type: integer
+                      default: 10
+            responses:
+                '200':
+                    description: List of devices with their measurements
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/HomeDeviceWithRecords'
 
 components:
     securitySchemes:
@@ -139,6 +161,53 @@ components:
                 createdAt:
                     type: string
                     format: date-time
+        HomeDeviceRecordSimple:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - createdAt
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                value:
+                    type: number
+                    format: float
+                    nullable: true
+                unit:
+                    type: string
+                    nullable: true
+                createdAt:
+                    type: string
+                    format: date-time
+        HomeDeviceWithRecords:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - internalId
+                - name
+                - type
+                - records
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                internalId:
+                    type: string
+                name:
+                    type: string
+                type:
+                    type: string
+                latestRecord:
+                    oneOf:
+                        - $ref: '#/components/schemas/HomeDeviceRecordSimple'
+                        - type: 'null'
+                records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/HomeDeviceRecordSimple'
 
 
 servers:

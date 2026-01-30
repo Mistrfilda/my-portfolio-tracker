@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Home\Device\Record\Api;
 
+use App\Home\Device\HomeDeviceRepository;
 use App\Home\Device\Record\HomeDeviceRecordFacade;
+use App\Home\Device\Record\HomeDeviceRecordRepository;
 use App\Home\Device\Record\HomeDeviceRecordUnit;
 use Nette\Utils\Json;
 use Psr\Http\Message\ResponseInterface;
@@ -15,6 +17,8 @@ class HomeDeviceRecordController
 
 	public function __construct(
 		private HomeDeviceRecordFacade $homeDeviceRecordFacade,
+		private HomeDeviceRepository $homeDeviceRepository,
+		private HomeDeviceRecordRepository $homeDeviceRecordRepository,
 	)
 	{
 	}
@@ -50,6 +54,48 @@ class HomeDeviceRecordController
 			'unit' => $record->getUnit()?->value,
 			'createdAt' => $record->getCreatedAt()->format('c'),
 		]));
+
+		return $response->withHeader('Content-Type', 'application/json');
+	}
+
+	public function list(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
+	{
+		$queryParams = $request->getQueryParams();
+		$limitParam = $queryParams['limit'] ?? null;
+		$limit = is_numeric($limitParam) ? (int) $limitParam : 10;
+
+		$devices = $this->homeDeviceRepository->findAll();
+		$result = [];
+
+		foreach ($devices as $device) {
+			$records = $this->homeDeviceRecordRepository->findLatestForDevice($device, $limit);
+
+			$latestRecord = $records[0] ?? null;
+
+			$result[] = [
+				'id' => $device->getId()->toString(),
+				'internalId' => $device->getInternalId(),
+				'name' => $device->getName(),
+				'type' => $device->getType()->value,
+				'latestRecord' => $latestRecord !== null ? [
+					'id' => $latestRecord->getId()->toString(),
+					'value' => $latestRecord->getFloatValue(),
+					'unit' => $latestRecord->getUnit()?->value,
+					'createdAt' => $latestRecord->getCreatedAt()->format('c'),
+				] : null,
+				'records' => array_map(
+					static fn ($record) => [
+						'id' => $record->getId()->toString(),
+						'value' => $record->getFloatValue(),
+						'unit' => $record->getUnit()?->value,
+						'createdAt' => $record->getCreatedAt()->format('c'),
+					],
+					$records,
+				),
+			];
+		}
+
+		$response->getBody()->write(Json::encode($result));
 
 		return $response->withHeader('Content-Type', 'application/json');
 	}

@@ -62,4 +62,15 @@ class HomeDeviceRecordRepository extends BaseRepository
 		return $qb;
 	}
 
+	/**
+	 * @return array<HomeDeviceRecord>
+	 */
+	public function findLatestForDevice(HomeDevice $homeDevice, int $limit): array
+	{
+		$qb = $this->createQueryBuilderForDevice($homeDevice);
+		$qb->setMaxResults($limit);
+
+		return $qb->getQuery()->getResult();
+	}
+
 }
