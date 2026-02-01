@@ -574,6 +574,8 @@ services:
 	- App\Home\Device\HomeDeviceFacade
 	- App\Home\Device\UI\HomeDeviceGridFactory
 	- App\Home\Device\UI\HomeDeviceFormFactory
+	- App\Home\Device\UI\Control\HomeDeviceOverviewControlFactory
+	- App\Home\Device\UI\Control\HomeDeviceTemperatureChartDataProviderFactory
 	- App\Home\Device\Record\UI\HomeDeviceRecordGridFactory
 	- App\Home\Device\Record\HomeDeviceRecordRepository(App\Home\Device\Record\HomeDeviceRecord)
 	- App\Home\Device\Record\HomeDeviceRecordFacade

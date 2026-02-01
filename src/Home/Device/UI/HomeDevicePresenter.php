@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Home\Device\UI;
 
+use App\Home\Device\UI\Control\HomeDeviceOverviewControl;
+use App\Home\Device\UI\Control\HomeDeviceOverviewControlFactory;
 use App\Home\Home;
 use App\Home\HomeRepository;
 use App\UI\Base\BaseSysadminPresenter;
@@ -17,6 +19,7 @@ class HomeDevicePresenter extends BaseSysadminPresenter
 	public function __construct(
 		private readonly HomeRepository $homeRepository,
 		private readonly HomeDeviceGridFactory $homeDeviceGridFactory,
+		private readonly HomeDeviceOverviewControlFactory $homeDeviceOverviewControlFactory,
 	)
 	{
 		parent::__construct();
@@ -36,6 +39,11 @@ class HomeDevicePresenter extends BaseSysadminPresenter
 	protected function createComponentHomeDeviceGrid(): Datagrid
 	{
 		return $this->homeDeviceGridFactory->create($this->home);
+	}
+
+	protected function createComponentHomeDeviceOverview(): HomeDeviceOverviewControl
+	{
+		return $this->homeDeviceOverviewControlFactory->create($this->home);
 	}
 
 }

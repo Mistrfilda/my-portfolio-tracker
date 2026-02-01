@@ -10,6 +10,7 @@ use App\Doctrine\NoEntityFoundException;
 use App\Home\Device\HomeDevice;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -69,6 +70,22 @@ class HomeDeviceRecordRepository extends BaseRepository
 	{
 		$qb = $this->createQueryBuilderForDevice($homeDevice);
 		$qb->setMaxResults($limit);
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<HomeDeviceRecord>
+	 */
+	public function findForDeviceSince(
+		HomeDevice $homeDevice,
+		ImmutableDateTime $since,
+	): array
+	{
+		$qb = $this->createQueryBuilderForDevice($homeDevice);
+		$qb->andWhere($qb->expr()->gte('homeDeviceRecord.createdAt', ':since'));
+		$qb->setParameter('since', $since);
+		$qb->orderBy('homeDeviceRecord.createdAt', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}

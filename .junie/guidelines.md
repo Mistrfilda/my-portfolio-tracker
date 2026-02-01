@@ -12,6 +12,8 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - **Notifications:** Discord webhooks
 
 ## Project Structure
+- `assets` - typescript, javascript and css assets
+  	- `svg` - svg icons folder
 - `src/` - main PHP application code
 	- `Stock/` - stocks, dividends, valuations
 	- `Crypto/` - cryptocurrencies
@@ -87,6 +89,11 @@ class MyTest extends TestCase
 
 }
 ```
+
+## SVG icons
+- Please, do not use `<svg>` tag directly, use nette latte macro renderSvg - example: {renderSvg App\UI\Icon\SvgIcon::INCOME_SIGN->value, ['class' => 'w-5 h-5 text-green-600']}
+- Always use and update `App\UI\Icon\SvgIcon` for SVG icons
+- Always use and update `assets/svg` folder for SVG icons
 
 ## Important Notes
 - **Security**: Sensitive data (API keys, passwords) are in `docker/config-docker.local.neon` or `config/config.local.neon`. **DO NOT COMMIT THESE FILES.**
