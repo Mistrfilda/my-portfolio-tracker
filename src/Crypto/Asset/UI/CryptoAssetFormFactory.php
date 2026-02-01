@@ -40,6 +40,7 @@ class CryptoAssetFormFactory
 			SvgIcon::CRYPTO_BITCOIN->value => SvgIcon::CRYPTO_BITCOIN->value,
 			SvgIcon::CRYPTO_ETHEREUM->value => SvgIcon::CRYPTO_ETHEREUM->value,
 			SvgIcon::CRYPTO_CARDANO->value => SvgIcon::CRYPTO_CARDANO->value,
+			SvgIcon::CRYPTO_SOLANA->value => SvgIcon::CRYPTO_SOLANA->value,
 		])->setRequired()->setPrompt(AdminForm::SELECT_PLACEHOLDER);
 
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {

@@ -113,6 +113,8 @@ enum SvgIcon: string
 
 	case CRYPTO_ETHEREUM = 'crypto-ethereum.svg';
 
+	case CRYPTO_SOLANA = 'crypto-solana.svg';
+
 	case BRIEFCASE = 'briefcase.svg';
 
 	case INCOME_CHART = 'income-chart.svg';
