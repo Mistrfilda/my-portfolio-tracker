@@ -25,6 +25,7 @@ class HomeDeviceRecordFacade
 		string $internalId,
 		string|null $stringValue,
 		float|null $floatValue,
+		bool|null $booleanValue,
 		HomeDeviceRecordUnit|null $unit,
 	): HomeDeviceRecord
 	{
@@ -35,6 +36,7 @@ class HomeDeviceRecordFacade
 			$this->currentAppAdminGetter->getAppAdminOrNull(),
 			$stringValue,
 			$floatValue,
+			$booleanValue,
 			$unit,
 			$this->datetimeFactory->createNow(),
 		);

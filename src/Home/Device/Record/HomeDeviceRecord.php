@@ -37,6 +37,9 @@ class HomeDeviceRecord implements Entity
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
 	private float|null $floatValue;
 
+	#[ORM\Column(type: Types::BOOLEAN, nullable: true)]
+	private bool|null $booleanValue;
+
 	#[ORM\Column(type: Types::STRING, enumType: HomeDeviceRecordUnit::class, nullable: true)]
 	private HomeDeviceRecordUnit|null $unit;
 
@@ -45,6 +48,7 @@ class HomeDeviceRecord implements Entity
 		AppAdmin|null $createdBy,
 		string|null $stringValue,
 		float|null $floatValue,
+		bool|null $booleanValue,
 		HomeDeviceRecordUnit|null $unit,
 		ImmutableDateTime $now,
 	)
@@ -54,6 +58,7 @@ class HomeDeviceRecord implements Entity
 		$this->createdBy = $createdBy;
 		$this->stringValue = $stringValue;
 		$this->floatValue = $floatValue;
+		$this->booleanValue = $booleanValue;
 		$this->unit = $unit;
 		$this->createdAt = $now;
 	}
@@ -76,6 +81,11 @@ class HomeDeviceRecord implements Entity
 	public function getFloatValue(): float|null
 	{
 		return $this->floatValue;
+	}
+
+	public function getBooleanValue(): bool|null
+	{
+		return $this->booleanValue;
 	}
 
 	public function getUnit(): HomeDeviceRecordUnit|null

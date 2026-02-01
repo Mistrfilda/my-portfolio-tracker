@@ -53,9 +53,10 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 
 ## Doctrine & Migrations
 - If you change anything in Doctrine ORM entities:
-	1. Check generated SQL: `bin/console orm:schema-tool:update --dump-sql`.
-	2. If OK, create migration: `bin/console migrations:diff`.
-	3. Apply migration: `bin/console migrations:migrate`.
+	1. Clear cache with: `composer clear`
+	2. Check generated SQL: `bin/console orm:schema-tool:update --dump-sql`.
+	3. If OK, create migration: `bin/console migrations:diff`.
+	4. Apply migration: `bin/console migrations:migrate`.
 
 ## Testing
 - **Execution**:

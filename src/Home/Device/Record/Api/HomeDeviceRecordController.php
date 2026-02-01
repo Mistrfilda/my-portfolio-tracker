@@ -32,25 +32,37 @@ class HomeDeviceRecordController
 		assert(is_string($internalId));
 
 		$value = $body['value'] ?? null;
-		assert($value === null || is_numeric($value));
+		assert($value === null || is_numeric($value) || is_bool($value) || is_string($value));
 
 		$unitString = $body['unit'] ?? null;
 		assert($unitString === null || is_string($unitString));
 
 		$unit = $unitString !== null ? HomeDeviceRecordUnit::from($unitString) : null;
-		$floatValue = $value !== null ? (float) $value : null;
+
+		$floatValue = null;
+		$booleanValue = null;
+		$stringValue = null;
+
+		if (is_numeric($value)) {
+			$floatValue = (float) $value;
+		} elseif (is_bool($value)) {
+			$booleanValue = $value;
+		} elseif (is_string($value)) {
+			$stringValue = $value;
+		}
 
 		$record = $this->homeDeviceRecordFacade->createByInternalId(
 			$internalId,
-			null,
+			$stringValue,
 			$floatValue,
+			$booleanValue,
 			$unit,
 		);
 
 		$response->getBody()->write(Json::encode([
 			'id' => $record->getId()->toString(),
 			'deviceInternalId' => $record->getHomeDevice()->getInternalId(),
-			'value' => $record->getFloatValue(),
+			'value' => $record->getBooleanValue() ?? $record->getFloatValue() ?? $record->getStringValue(),
 			'unit' => $record->getUnit()?->value,
 			'createdAt' => $record->getCreatedAt()->format('c'),
 		]));
@@ -79,14 +91,14 @@ class HomeDeviceRecordController
 				'type' => $device->getType()->value,
 				'latestRecord' => $latestRecord !== null ? [
 					'id' => $latestRecord->getId()->toString(),
-					'value' => $latestRecord->getFloatValue(),
+					'value' => $latestRecord->getBooleanValue() ?? $latestRecord->getFloatValue() ?? $latestRecord->getStringValue(),
 					'unit' => $latestRecord->getUnit()?->value,
 					'createdAt' => $latestRecord->getCreatedAt()->format('c'),
 				] : null,
 				'records' => array_map(
 					static fn ($record) => [
 						'id' => $record->getId()->toString(),
-						'value' => $record->getFloatValue(),
+						'value' => $record->getBooleanValue() ?? $record->getFloatValue() ?? $record->getStringValue(),
 						'unit' => $record->getUnit()?->value,
 						'createdAt' => $record->getCreatedAt()->format('c'),
 					],

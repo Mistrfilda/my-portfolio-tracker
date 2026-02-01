@@ -8,11 +8,13 @@ enum HomeDeviceType: string
 {
 
 	case TEMPERATURE = 'temperature';
+	case SENSOR = 'sensor';
 
 	public function format(): string
 	{
 		return match ($this) {
 			self::TEMPERATURE => 'Teplotní senzor',
+			self::SENSOR => 'Senzor (on/off)',
 		};
 	}
 

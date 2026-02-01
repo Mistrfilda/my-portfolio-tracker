@@ -130,8 +130,11 @@ components:
                 internalId:
                     type: string
                 value:
-                    type: number
-                    format: float
+                    oneOf:
+                        - type: number
+                          format: float
+                        - type: boolean
+                        - type: string
                     nullable: true
                 unit:
                     type: string
@@ -152,8 +155,11 @@ components:
                 deviceInternalId:
                     type: string
                 value:
-                    type: number
-                    format: float
+                    oneOf:
+                        - type: number
+                          format: float
+                        - type: boolean
+                        - type: string
                     nullable: true
                 unit:
                     type: string
@@ -172,8 +178,11 @@ components:
                     type: string
                     format: uuid
                 value:
-                    type: number
-                    format: float
+                    oneOf:
+                        - type: number
+                          format: float
+                        - type: boolean
+                        - type: string
                     nullable: true
                 unit:
                     type: string

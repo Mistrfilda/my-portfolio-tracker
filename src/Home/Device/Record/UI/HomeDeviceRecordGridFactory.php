@@ -34,9 +34,23 @@ class HomeDeviceRecordGridFactory
 		$grid->addColumnDatetime('createdAt', 'Čas měření')->setSortable();
 
 		$grid->addColumnText(
-			'floatValue',
+			'value',
 			'Hodnota',
-			static fn (HomeDeviceRecord $record): string => $record->getFloatValue() !== null ? (string) $record->getFloatValue() : '-',
+			static function (HomeDeviceRecord $record): string {
+				if ($record->getBooleanValue() !== null) {
+					return $record->getBooleanValue() ? 'Ano' : 'Ne';
+				}
+
+				if ($record->getFloatValue() !== null) {
+					return (string) $record->getFloatValue();
+				}
+
+				if ($record->getStringValue() !== null) {
+					return $record->getStringValue();
+				}
+
+				return '-';
+			},
 		);
 
 		$grid->addColumnText(
@@ -44,8 +58,6 @@ class HomeDeviceRecordGridFactory
 			'Jednotka',
 			static fn (HomeDeviceRecord $record): string => $record->getUnit()?->format() ?? '-',
 		);
-
-		$grid->addColumnText('stringValue', 'Textová hodnota');
 
 		$grid->addColumnText(
 			'createdBy',
