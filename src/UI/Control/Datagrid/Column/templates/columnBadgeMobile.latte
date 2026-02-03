@@ -1,0 +1,21 @@
+{varType string $value}
+{varType App\UI\Control\Datagrid\Column\ColumnBadge $column}
+{varType App\Doctrine\Entity $item}
+
+{parameters
+    string $value,
+    App\UI\Control\Datagrid\Column\ColumnBadge $column,
+    App\Doctrine\Entity $item
+}
+
+{var $columnValue = $value}
+{if $column->isNull($value)}
+    <span class="text-gray-400">{$value}</span>
+{else}
+    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-semibold {$column->getColorClasses($item)}">
+        {if $column->hasSvgIconCallback()}
+            {renderSvg $column->getSvgIconFromCallback($item)->value , ['class' => 'h-3 w-3']}
+        {/if}
+        {$columnValue}
+    </span>
+{/if}

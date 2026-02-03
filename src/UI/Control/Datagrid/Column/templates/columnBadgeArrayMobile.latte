@@ -1,0 +1,19 @@
+{varType string $value}
+{varType App\UI\Control\Datagrid\Column\ColumnBadgeArray $column}
+{varType App\Doctrine\Entity $item}
+
+{parameters
+    string $value,
+    App\UI\Control\Datagrid\Column\ColumnBadgeArray $column,
+    App\Doctrine\Entity $item
+}
+
+{if $column->isNull($value)}
+    {$value}
+{else}
+    {foreach $column->splitItems($value) as $label}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {$column->getColorClasses($item)}">
+            {$label}
+        </span>
+    {/foreach}
+{/if}

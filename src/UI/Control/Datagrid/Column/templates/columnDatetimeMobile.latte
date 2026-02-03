@@ -1,0 +1,20 @@
+{varType string $value}
+{varType App\UI\Control\Datagrid\Column\ColumnDatetime $column}
+{varType App\Doctrine\Entity $item}
+
+{parameters
+    string $value,
+    App\UI\Control\Datagrid\Column\ColumnDatetime $column,
+    App\Doctrine\Entity $item
+}
+
+{* Rozdělit datetime na datum a čas - předpokládáme formát "YYYY-MM-DD HH:MM:SS" *}
+{var $parts = explode(' ', $value)}
+{if count($parts) >= 2}
+<span class="flex flex-col text-right">
+    <span>{$parts[0]}</span>
+    <span class="text-xs text-gray-500">{$parts[1]}</span>
+</span>
+{else}
+{$value}
+{/if}
