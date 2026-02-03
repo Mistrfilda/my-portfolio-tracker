@@ -16,6 +16,8 @@ class ColumnDatetime extends ColumnText
 
 	public const TEMPLATE_FILE = __DIR__ . '/templates/columnBadge.latte';
 
+	public const MOBILE_TEMPLATE_FILE = __DIR__ . '/templates/columnDatetimeMobile.latte';
+
 	private string $datetimeFormat = self::DEFAULT_FORMAT;
 
 	public function __construct(
@@ -34,6 +36,11 @@ class ColumnDatetime extends ColumnText
 		$this->datetimeFormat = $datetimeFormat;
 
 		return $this;
+	}
+
+	public function getMobileTemplate(): string
+	{
+		return self::MOBILE_TEMPLATE_FILE;
 	}
 
 	public function processValue(

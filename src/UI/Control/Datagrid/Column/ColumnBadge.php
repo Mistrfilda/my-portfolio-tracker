@@ -16,6 +16,8 @@ class ColumnBadge extends ColumnText
 
 	public const TEMPLATE_FILE = __DIR__ . '/templates/columnBadge.latte';
 
+	public const MOBILE_TEMPLATE_FILE = __DIR__ . '/templates/columnBadgeMobile.latte';
+
 	/** @var callable(Entity $entity): string|null */
 	protected $colorCallback;
 
@@ -45,6 +47,11 @@ class ColumnBadge extends ColumnText
 	public function getTemplate(): string
 	{
 		return self::TEMPLATE_FILE;
+	}
+
+	public function getMobileTemplate(): string
+	{
+		return self::MOBILE_TEMPLATE_FILE;
 	}
 
 	public function getColorCallback(): callable|null

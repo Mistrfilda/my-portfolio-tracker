@@ -20,6 +20,8 @@ interface IColumn
 
 	public function getTemplate(): string;
 
+	public function getMobileTemplate(): string;
+
 	public function getGetterMethod(): callable|null;
 
 	public function processValue(

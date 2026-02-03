@@ -14,6 +14,8 @@ class ColumnBadgeArray extends ColumnText
 
 	public const TEMPLATE_FILE = __DIR__ . '/templates/columnBadgeArray.latte';
 
+	public const MOBILE_TEMPLATE_FILE = __DIR__ . '/templates/columnBadgeArrayMobile.latte';
+
 	public const REQUIRED_DELIMITER = ';';
 
 	/** @var callable|null */
@@ -40,6 +42,11 @@ class ColumnBadgeArray extends ColumnText
 	public function getTemplate(): string
 	{
 		return self::TEMPLATE_FILE;
+	}
+
+	public function getMobileTemplate(): string
+	{
+		return self::MOBILE_TEMPLATE_FILE;
 	}
 
 	public function getColorCallback(): callable|null

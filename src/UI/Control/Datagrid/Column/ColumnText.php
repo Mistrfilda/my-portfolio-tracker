@@ -17,6 +17,8 @@ class ColumnText implements IColumn
 
 	public const TEMPLATE_FILE = __DIR__ . '/templates/columnText.latte';
 
+	public const MOBILE_TEMPLATE_FILE = __DIR__ . '/templates/columnTextMobile.latte';
+
 	/** @var callable|null */
 	protected $getterMethod;
 
@@ -78,6 +80,11 @@ class ColumnText implements IColumn
 	public function getTemplate(): string
 	{
 		return self::TEMPLATE_FILE;
+	}
+
+	public function getMobileTemplate(): string
+	{
+		return self::MOBILE_TEMPLATE_FILE;
 	}
 
 	public function getReferencedColumn(): string|null

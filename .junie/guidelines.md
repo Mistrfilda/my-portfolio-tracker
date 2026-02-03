@@ -52,6 +52,7 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - **Comments**: Use Czech comments where appropriate.
 - **JSON**: Always use `Nette\Utils\Json` for serialization/deserialization.
 - **Validation**: Use `App\Utils\TypeValidator` for scalar type validation.
+- **Nette controls and presenter** - When using nette controls and presenter, always use Template classes for parameters, base template classes are `src/UI/Base/BaseControlTemplate.php`  (for controls), `src/UI/Base/BasePresenterTemplate.php` (for presenters).
 
 ## Doctrine & Migrations
 - If you change anything in Doctrine ORM entities:
@@ -102,6 +103,6 @@ class MyTest extends TestCase
 - **Scraping**: Puppeteer scripts in `puppeter/` for Yahoo Finance, PSE.
 
 ## Common Tasks
-- Stock price updates: Yahoo Finance scraper
+- Stock price updates: Finance scraper
 - Dividends: automatic downloading and notifications
 - Exchange rates: CNB and ECB
