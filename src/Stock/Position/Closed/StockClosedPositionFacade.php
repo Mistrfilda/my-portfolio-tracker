@@ -11,6 +11,8 @@ use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Position\StockPositionRepository;
@@ -34,6 +36,7 @@ class StockClosedPositionFacade
 		private readonly CurrencyConversionFacade $currencyConversionFacade,
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
+		private readonly JobRequestFacade $jobRequestFacade,
 	)
 	{
 	}
@@ -71,6 +74,8 @@ class StockClosedPositionFacade
 				$stockPosition->getId()->toString(),
 			),
 		);
+
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
 
 		return $stockPosition;
 	}

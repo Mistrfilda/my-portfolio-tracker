@@ -69,6 +69,8 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - **Adding Tests**:
 	- Unit tests should extend `PHPUnit\Framework\TestCase`.
 	- Integration/API tests should extend `App\Test\Integration\Api\ApiTestCase`.
+    - Never use Rabbitmq queues in tests.
+    - Prefer unit tests over integration tests.
 - **Example Test**:
 ```php
 <?php

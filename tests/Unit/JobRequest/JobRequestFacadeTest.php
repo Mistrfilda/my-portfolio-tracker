@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
+use App\Goal\PortfolioGoalUpdateFacade;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
 use App\JobRequest\RabbitMQ\JobRequestProducer;
@@ -22,12 +23,14 @@ class JobRequestFacadeTest extends UpdatedTestCase
 		$jobRequestProducerMock = Mockery::mock(JobRequestProducer::class);
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
+		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
 
 		$jobRequestFacade = new JobRequestFacade(
 			$expenseTagFacadeMock,
 			$jobRequestProducerMock,
 			$datetimeFactoryMock,
 			$stockAssetDividendForecastRecordFacadeMock,
+			$portfolioGoalUpdateFacadeMock,
 		);
 
 		$type = JobRequestTypeEnum::EXPENSE_TAG_PROCESS;

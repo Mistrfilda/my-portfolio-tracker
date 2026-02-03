@@ -10,6 +10,8 @@ use App\Asset\Price\AssetPriceFacade;
 use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Price\PortuAssetPriceRecord;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
@@ -31,6 +33,7 @@ class PortuPositionFacade implements AssetPriceFacade
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly JobRequestFacade $jobRequestFacade,
 	)
 	{
 	}
@@ -195,6 +198,8 @@ class PortuPositionFacade implements AssetPriceFacade
 
 		$this->entityManager->flush();
 		$this->entityManager->refresh($portuAssetPriceRecord);
+
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
 
 		return $portuAssetPriceRecord;
 	}

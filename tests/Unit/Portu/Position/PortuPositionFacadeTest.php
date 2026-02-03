@@ -9,6 +9,7 @@ use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
 use App\Portu\Asset\PortuAsset;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Position\PortuPosition;
@@ -38,6 +39,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 		$loggerMock->shouldIgnoreMissing();
 		$currentAppAdminGetterMock = Mockery::mock(CurrentAppAdminGetter::class);
+		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
 
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
@@ -48,6 +50,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$datetimeFactoryMock,
 			$loggerMock,
 			$currentAppAdminGetterMock,
+			$jobRequestFacadeMock,
 		);
 
 		$portuAssetId = Uuid::uuid4();
@@ -126,6 +129,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 		$loggerMock->shouldIgnoreMissing();
 		$currentAppAdminGetterMock = Mockery::mock(CurrentAppAdminGetter::class);
+		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
 
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
@@ -136,6 +140,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$datetimeFactoryMock,
 			$loggerMock,
 			$currentAppAdminGetterMock,
+			$jobRequestFacadeMock,
 		);
 
 		$portuPositionId = Uuid::uuid4();
@@ -225,6 +230,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 		$loggerMock->shouldIgnoreMissing();
 		$currentAppAdminGetterMock = Mockery::mock(CurrentAppAdminGetter::class);
+		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
+		$jobRequestFacadeMock->shouldIgnoreMissing();
 
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
@@ -235,6 +242,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$datetimeFactoryMock,
 			$loggerMock,
 			$currentAppAdminGetterMock,
+			$jobRequestFacadeMock,
 		);
 
 		$portuPositionId = Uuid::uuid4();
@@ -313,6 +321,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 		$loggerMock->shouldIgnoreMissing();
 		$currentAppAdminGetterMock = Mockery::mock(CurrentAppAdminGetter::class);
+		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
+		$jobRequestFacadeMock->shouldIgnoreMissing();
 
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
@@ -323,6 +333,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$datetimeFactoryMock,
 			$loggerMock,
 			$currentAppAdminGetterMock,
+			$jobRequestFacadeMock,
 		);
 
 		$portuPositionId = Uuid::uuid4();

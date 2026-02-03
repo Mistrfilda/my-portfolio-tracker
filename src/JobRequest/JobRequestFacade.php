@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
+use App\Goal\PortfolioGoalUpdateFacade;
 use App\JobRequest\RabbitMQ\JobRequestMessage;
 use App\JobRequest\RabbitMQ\JobRequestProducer;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
@@ -20,6 +21,7 @@ class JobRequestFacade
 		private JobRequestProducer $jobRequestProducer,
 		private DatetimeFactory $datetimeFactory,
 		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
+		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
 	)
 	{
 	}
@@ -40,6 +42,10 @@ class JobRequestFacade
 				break;
 			case JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL:
 				$this->stockAssetDividendForecastFacade->recalculateAll();
+				break;
+			case JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE:
+				$this->portfolioGoalUpdateFacade->updateAllActive();
+				break;
 		}
 	}
 

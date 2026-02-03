@@ -13,6 +13,8 @@ use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
@@ -35,6 +37,7 @@ class StockPositionFacade implements AssetPriceFacade
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly JobRequestFacade $jobRequestFacade,
 	)
 	{
 	}
@@ -72,6 +75,8 @@ class StockPositionFacade implements AssetPriceFacade
 				$stockPosition->getId()->toString(),
 			),
 		);
+
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
 
 		return $stockPosition;
 	}

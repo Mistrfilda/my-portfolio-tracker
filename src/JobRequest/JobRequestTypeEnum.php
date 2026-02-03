@@ -13,4 +13,6 @@ enum JobRequestTypeEnum: string
 
 	case STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL = 'stock_asset_dividend_forecast_recalculate_all';
 
+	case PORTFOLIO_GOAL_UPDATE = 'portfolio_goal_update';
+
 }
