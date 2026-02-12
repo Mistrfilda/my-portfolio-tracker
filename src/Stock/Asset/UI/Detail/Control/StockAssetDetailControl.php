@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\UI\Detail\Control;
 
+use App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControl;
+use App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlFactory;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Dividend\UI\Detail\StockDividendDetailControl;
@@ -42,6 +44,7 @@ class StockAssetDetailControl extends BaseControl
 		private ChartControlFactory $chartControlFactory,
 		private StockDividendDetailControlFactory $stockDividendDetailControlFactory,
 		private StockValuationDetailControlFactory $stockValuationDetailControlFactory,
+		private StockAssetAiAnalysisControlFactory $stockAssetAiAnalysisControlFactory,
 	)
 	{
 	}
@@ -84,6 +87,11 @@ class StockAssetDetailControl extends BaseControl
 	protected function createComponentStockValuationDetailControl(): StockValuationDetailControl
 	{
 		return $this->stockValuationDetailControlFactory->create($this->id);
+	}
+
+	protected function createComponentStockAssetAiAnalysisControl(): StockAssetAiAnalysisControl
+	{
+		return $this->stockAssetAiAnalysisControlFactory->create($this->id);
 	}
 
 }

@@ -330,6 +330,15 @@ services:
 	- App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlFactory
 	- App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory
 
+	#Stock AI analysis
+	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
+	- App\Stock\AiAnalysis\StockAiAnalysisFacade
+	- App\Stock\AiAnalysis\StockAiAnalysisRunRepository(App\Stock\AiAnalysis\StockAiAnalysisRun)
+	- App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository(App\Stock\AiAnalysis\StockAiAnalysisStockResult)
+	- App\Stock\AiAnalysis\UI\StockAiAnalysisGridFactory
+	- App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlFactory
+	- App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter
+
 	#Portu asset
 	- App\Portu\Asset\PortuAssetRepository(App\Portu\Asset\PortuAsset)
 	- App\Portu\Asset\PortuAssetFacade

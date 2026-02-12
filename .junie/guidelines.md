@@ -53,6 +53,8 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 - **JSON**: Always use `Nette\Utils\Json` for serialization/deserialization.
 - **Validation**: Use `App\Utils\TypeValidator` for scalar type validation.
 - **Nette controls and presenter** - When using nette controls and presenter, always use Template classes for parameters, base template classes are `src/UI/Base/BaseControlTemplate.php`  (for controls), `src/UI/Base/BasePresenterTemplate.php` (for presenters).
+- **Exceptions**: 
+  - always use English language in exception messages.
 
 ## Doctrine & Migrations
 - If you change anything in Doctrine ORM entities:
@@ -60,6 +62,7 @@ Investment portfolio tracking application built on PHP (Nette framework) with Do
 	2. Check generated SQL: `bin/console orm:schema-tool:update --dump-sql`.
 	3. If OK, create migration: `bin/console migrations:diff`.
 	4. Apply migration: `bin/console migrations:migrate`.
+- Always get repository from DI container and constructor, never use entity manager directly to get repository.
 
 ## Testing
 - **Execution**:
@@ -103,6 +106,9 @@ class MyTest extends TestCase
 - **Development Flow**: At the end of process, always run `composer cs-fix && composer build-all` to check if everything is OK.
 - **RabbitMQ**: Used for asynchronous task processing (e.g., price updates, notifications).
 - **Scraping**: Puppeteer scripts in `puppeter/` for Yahoo Finance, PSE.
+
+## Nette presenters + controls
+- ** Register presenters in routing.neon ** and `MenuBuilder.php` when needed.
 
 ## Common Tasks
 - Stock price updates: Finance scraper

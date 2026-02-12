@@ -1,0 +1,35 @@
+{templateType App\Stock\AiAnalysis\UI\StockAiAnalysisTemplate}
+
+{block #content}
+	<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6 mb-8">
+		<h2 class="text-lg font-medium text-gray-900 mb-4">Minulé analýzy</h2>
+		{control aiAnalysisGrid}
+	</div>
+
+	<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
+		<h2 class="text-lg font-medium text-gray-900 mb-4">Sestavení promptu pro AI analýzu</h2>
+
+		<form n:name="promptForm" class="space-y-4">
+			<div class="flex items-center space-x-3">
+				<input n:name="includesPortfolio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+				<label n:name="includesPortfolio" class="text-sm font-medium text-gray-700">Akciové pozice (otevřené)</label>
+			</div>
+
+			<div class="flex items-center space-x-3">
+				<input n:name="includesWatchlist" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+				<label n:name="includesWatchlist" class="text-sm font-medium text-gray-700">Akcie na watchlistu</label>
+			</div>
+
+			<div class="flex items-center space-x-3">
+				<input n:name="includesMarketOverview" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+				<label n:name="includesMarketOverview" class="text-sm font-medium text-gray-700">Obecná situace na trhu</label>
+			</div>
+
+			<div class="pt-4">
+				<button n:name="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+					Sestavit prompt
+				</button>
+			</div>
+		</form>
+	</div>
+{/block}

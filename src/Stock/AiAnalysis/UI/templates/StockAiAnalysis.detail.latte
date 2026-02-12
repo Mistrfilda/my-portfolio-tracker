@@ -1,0 +1,265 @@
+{templateType App\Stock\AiAnalysis\UI\StockAiAnalysisTemplate}
+
+{block #content}
+	<div class="mb-6">
+		<a n:href="default" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+			← Zpět na přehled analýz
+		</a>
+	</div>
+
+	{if $run !== null}
+		{* Informace o analýze *}
+		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+			<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+				<div class="flex items-center justify-between">
+					<h2 class="text-lg font-semibold text-gray-900">Informace o analýze</h2>
+					<span class="text-sm text-gray-500">{$run->getCreatedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</span>
+				</div>
+			</div>
+			<div class="px-6 py-4">
+				<div class="flex flex-wrap gap-3">
+					<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {if $run->includesPortfolio()}bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200{else}bg-gray-100 text-gray-500 ring-1 ring-inset ring-gray-200{/if}">
+						Portfolio: {if $run->includesPortfolio()}Ano{else}Ne{/if}
+					</span>
+					<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {if $run->includesWatchlist()}bg-purple-100 text-purple-800 ring-1 ring-inset ring-purple-200{else}bg-gray-100 text-gray-500 ring-1 ring-inset ring-gray-200{/if}">
+						Watchlist: {if $run->includesWatchlist()}Ano{else}Ne{/if}
+					</span>
+					<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {if $run->includesMarketOverview()}bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-200{else}bg-gray-100 text-gray-500 ring-1 ring-inset ring-gray-200{/if}">
+						Trhy: {if $run->includesMarketOverview()}Ano{else}Ne{/if}
+					</span>
+					{if $run->getProcessedAt()}
+						<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-green-100 text-green-800 ring-1 ring-inset ring-green-200">
+							✓ Zpracováno {$run->getProcessedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}
+						</span>
+					{else}
+						<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-200">
+							⏳ Čeká na zpracování
+						</span>
+					{/if}
+				</div>
+			</div>
+		</div>
+
+		{* Vygenerovaný prompt *}
+		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+			<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+				<h2 class="text-lg font-semibold text-gray-900">Vygenerovaný prompt</h2>
+			</div>
+			<div class="px-6 py-4">
+				<div class="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+					<pre class="text-sm text-gray-800 whitespace-pre-wrap font-mono">{$run->getGeneratedPrompt()}</pre>
+				</div>
+				<div class="mt-4">
+					<button onclick="navigator.clipboard.writeText(document.getElementById('prompt-text').textContent); this.textContent='✓ Zkopírováno!'; setTimeout(() => this.textContent='Kopírovat do schránky', 2000)" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-xs text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden transition-colors">
+						Kopírovat do schránky
+					</button>
+				</div>
+				<pre id="prompt-text" class="hidden">{$run->getGeneratedPrompt()}</pre>
+			</div>
+		</div>
+
+		{* Nahrání odpovědi *}
+		{if !$run->getProcessedAt()}
+			<div class="bg-white shadow-sm rounded-lg border border-blue-200 overflow-hidden mb-6">
+				<div class="px-6 py-4 border-b border-blue-200 bg-blue-50">
+					<h2 class="text-lg font-semibold text-blue-900">Nahrání odpovědi z AI</h2>
+				</div>
+				<div class="px-6 py-4">
+					<form n:name="responseForm" class="space-y-4">
+						<div>
+							<label n:name="rawResponse" class="block text-sm font-medium text-gray-700 mb-1">JSON odpověď</label>
+							<textarea n:name="rawResponse" rows="10" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md font-mono"></textarea>
+						</div>
+						<div>
+							<button n:name="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+								Zpracovat odpověď
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		{/if}
+
+		{* Výsledky analýzy *}
+		{if $run->getProcessedAt()}
+			{* Přehled trhu *}
+			{if $run->getMarketOverviewSummary()}
+				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+					<div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-blue-50">
+						<div class="flex items-center justify-between">
+							<h2 class="text-lg font-semibold text-gray-900">🌍 Přehled trhu</h2>
+							{if $run->getMarketOverviewSentiment()}
+								{if $run->getMarketOverviewSentiment()->value === 'bullish'}
+									<span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold bg-green-100 text-green-800 ring-1 ring-inset ring-green-300">
+										📈 Bullish
+									</span>
+								{elseif $run->getMarketOverviewSentiment()->value === 'bearish'}
+									<span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold bg-red-100 text-red-800 ring-1 ring-inset ring-red-300">
+										📉 Bearish
+									</span>
+								{else}
+									<span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold bg-gray-100 text-gray-800 ring-1 ring-inset ring-gray-300">
+										➡️ Neutrální
+									</span>
+								{/if}
+							{/if}
+						</div>
+					</div>
+					<div class="px-6 py-4">
+						<p class="text-sm text-gray-700 leading-relaxed">{$run->getMarketOverviewSummary()}</p>
+					</div>
+				</div>
+			{/if}
+
+			{var $portfolioResults = []}
+			{var $watchlistResults = []}
+			{foreach $run->getResults() as $res}
+				{if $res->getType()->value === 'portfolio'}
+					{do $portfolioResults[] = $res}
+				{else}
+					{do $watchlistResults[] = $res}
+				{/if}
+			{/foreach}
+
+			{* Portfolio výsledky *}
+			{if count($portfolioResults) > 0}
+				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+					<div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-cyan-50">
+						<h2 class="text-lg font-semibold text-gray-900">💼 Portfolio</h2>
+						<p class="text-sm text-gray-500 mt-1">Analýza otevřených pozic</p>
+					</div>
+					<div class="divide-y divide-gray-100">
+						{foreach $portfolioResults as $result}
+							<div class="px-6 py-5 hover:bg-gray-50 transition-colors">
+								<div class="flex items-center justify-between mb-3">
+									<h3 class="text-base font-semibold text-gray-900">
+										{$result->getStockAsset()->getName()}
+										<span class="ml-2 text-sm font-medium text-gray-500">({$result->getStockAsset()->getTicker()})</span>
+									</h3>
+									{if $result->getActionSuggestion()}
+										{if $result->getActionSuggestion()->value === 'add_more' || $result->getActionSuggestion()->value === 'consider_buying'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-green-100 text-green-800 ring-1 ring-inset ring-green-300">
+												{if $result->getActionSuggestion()->value === 'add_more'}📈 Přikoupit{else}🛒 Zvážit nákup{/if}
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'consider_selling'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-red-100 text-red-800 ring-1 ring-inset ring-red-300">
+												📉 Zvážit prodej
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'hold'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-300">
+												✊ Držet
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'watch_closely'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-300">
+												👁️ Sledovat
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'wait'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-300">
+												⏳ Vyčkat
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'not_interesting'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-500 ring-1 ring-inset ring-gray-300">
+												❌ Nezajímavé
+											</span>
+										{/if}
+									{/if}
+								</div>
+
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+									{if $result->getPositiveNews()}
+										<div class="rounded-lg bg-green-50 border border-green-200 p-3">
+											<div class="text-xs font-semibold text-green-800 uppercase tracking-wide mb-1">✅ Pozitiva</div>
+											<p class="text-sm text-green-700 leading-relaxed">{$result->getPositiveNews()}</p>
+										</div>
+									{/if}
+
+									{if $result->getNegativeNews()}
+										<div class="rounded-lg bg-red-50 border border-red-200 p-3">
+											<div class="text-xs font-semibold text-red-800 uppercase tracking-wide mb-1">⚠️ Negativa</div>
+											<p class="text-sm text-red-700 leading-relaxed">{$result->getNegativeNews()}</p>
+										</div>
+									{/if}
+
+									{if $result->getInterestingNews()}
+										<div class="rounded-lg bg-amber-50 border border-amber-200 p-3">
+											<div class="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">💡 Zajímavosti</div>
+											<p class="text-sm text-amber-700 leading-relaxed">{$result->getInterestingNews()}</p>
+										</div>
+									{/if}
+
+									{if $result->getAiOpinion()}
+										<div class="rounded-lg bg-indigo-50 border border-indigo-200 p-3">
+											<div class="text-xs font-semibold text-indigo-800 uppercase tracking-wide mb-1">🤖 Názor AI</div>
+											<p class="text-sm text-indigo-700 leading-relaxed">{$result->getAiOpinion()}</p>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			{/if}
+
+			{* Watchlist výsledky *}
+			{if count($watchlistResults) > 0}
+				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+					<div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-pink-50">
+						<h2 class="text-lg font-semibold text-gray-900">👀 Watchlist</h2>
+						<p class="text-sm text-gray-500 mt-1">Sledované akcie</p>
+					</div>
+					<div class="divide-y divide-gray-100">
+						{foreach $watchlistResults as $result}
+							<div class="px-6 py-5 hover:bg-gray-50 transition-colors">
+								<div class="flex items-center justify-between mb-3">
+									<h3 class="text-base font-semibold text-gray-900">
+										{$result->getStockAsset()->getName()}
+										<span class="ml-2 text-sm font-medium text-gray-500">({$result->getStockAsset()->getTicker()})</span>
+									</h3>
+									{if $result->getActionSuggestion()}
+										{if $result->getActionSuggestion()->value === 'consider_buying'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-green-100 text-green-800 ring-1 ring-inset ring-green-300">
+												🛒 Zvážit nákup
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'watch_closely'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-300">
+												👁️ Sledovat
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'wait'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-700 ring-1 ring-inset ring-gray-300">
+												⏳ Vyčkat
+											</span>
+										{elseif $result->getActionSuggestion()->value === 'not_interesting'}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-500 ring-1 ring-inset ring-gray-300">
+												❌ Nezajímavé
+											</span>
+										{else}
+											<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-300">
+												{$result->getActionSuggestion()->value}
+											</span>
+										{/if}
+									{/if}
+								</div>
+
+								<div class="space-y-3">
+									{if $result->getNews()}
+										<div class="rounded-lg bg-blue-50 border border-blue-200 p-3">
+											<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">📰 Novinky</div>
+											<p class="text-sm text-blue-700 leading-relaxed">{$result->getNews()}</p>
+										</div>
+									{/if}
+
+									{if $result->getReasoning()}
+										<div class="rounded-lg bg-indigo-50 border border-indigo-200 p-3">
+											<div class="text-xs font-semibold text-indigo-800 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
+											<p class="text-sm text-indigo-700 leading-relaxed">{$result->getReasoning()}</p>
+										</div>
+									{/if}
+								</div>
+							</div>
+						{/foreach}
+					</div>
+				</div>
+			{/if}
+		{/if}
+	{/if}
+{/block}
