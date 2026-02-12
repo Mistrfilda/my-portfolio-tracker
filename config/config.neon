@@ -539,6 +539,7 @@ services:
 
 	#Job request
 	- App\JobRequest\JobRequestFacade
+	- App\JobRequest\JobRequestProcessor
 
 	#Crypto
 	- App\Crypto\Asset\CryptoAssetRepository(App\Crypto\Asset\CryptoAsset)

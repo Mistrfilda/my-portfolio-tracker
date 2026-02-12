@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\JobRequest\RabbitMQ;
 
-use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestProcessor;
 use App\RabbitMQ\BaseConsumer;
 use Tracy\Debugger;
 
@@ -14,14 +14,14 @@ use Tracy\Debugger;
 class JobRequestConsumer extends BaseConsumer
 {
 
-	public function __construct(private JobRequestFacade $jobRequestFacade)
+	public function __construct(private JobRequestProcessor $jobRequestProcessor)
 	{
 	}
 
 	protected function processMessage(object $messageObject): void
 	{
 		Debugger::log(json_encode($messageObject));
-		$this->jobRequestFacade->process($messageObject->getJobRequestType(), $messageObject->getAdditionalData());
+		$this->jobRequestProcessor->process($messageObject->getJobRequestType(), $messageObject->getAdditionalData());
 	}
 
 	protected function getMessageClass(): string

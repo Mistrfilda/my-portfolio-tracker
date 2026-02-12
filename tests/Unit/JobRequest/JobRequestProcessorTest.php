@@ -6,29 +6,23 @@ namespace App\Test\Unit\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
-use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestProcessor;
 use App\JobRequest\JobRequestTypeEnum;
-use App\JobRequest\RabbitMQ\JobRequestProducer;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
-use Mistrfilda\Datetime\DatetimeFactory;
 use Mockery;
 
-class JobRequestFacadeTest extends UpdatedTestCase
+class JobRequestProcessorTest extends UpdatedTestCase
 {
 
 	public function testProcess(): void
 	{
 		$expenseTagFacadeMock = Mockery::mock(ExpenseTagFacade::class);
-		$jobRequestProducerMock = Mockery::mock(JobRequestProducer::class);
-		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
 		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
 
-		$jobRequestFacade = new JobRequestFacade(
+		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
-			$jobRequestProducerMock,
-			$datetimeFactoryMock,
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 		);
@@ -40,7 +34,7 @@ class JobRequestFacadeTest extends UpdatedTestCase
 			->shouldReceive('processExpenses')
 			->once();
 
-		$jobRequestFacade->process($type, $additionalData);
+		$jobRequestProcessor->process($type, $additionalData);
 
 		$this->assertTrue(true);
 	}
