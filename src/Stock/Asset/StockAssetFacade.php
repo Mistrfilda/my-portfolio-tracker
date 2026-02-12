@@ -42,6 +42,7 @@ class StockAssetFacade
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		bool $watchlist,
 		string|null $industryId,
 	): StockAsset
 	{
@@ -62,6 +63,7 @@ class StockAssetFacade
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
 			shouldDownloadValuation: $shouldDownloadValuation,
+			watchlist: $watchlist,
 			industry: $industryId !== null ? $this->stockAssetIndustryRepository->getById(
 				Uuid::fromString($industryId),
 			) : null,
@@ -95,6 +97,7 @@ class StockAssetFacade
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		bool $watchlist,
 		string|null $industryId,
 	): StockAsset
 	{
@@ -112,6 +115,7 @@ class StockAssetFacade
 			brokerDividendCurrency: $brokerDividendCurrency,
 			shouldDownloadPrice: $shouldDownloadPrice,
 			shouldDownloadValuation: $shouldDownloadValuation,
+			watchlist: $watchlist,
 			industry: $industryId !== null ? $this->stockAssetIndustryRepository->getById(
 				Uuid::fromString($industryId),
 			) : null,

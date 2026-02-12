@@ -94,6 +94,9 @@ class StockAssetFormFactory
 		$form->addCheckbox('shouldDownloadValuation', 'Aktualizovat valuaci')
 			->setDefaultValue(false);
 
+		$form->addCheckbox('watchlist', 'Watchlist')
+			->setDefaultValue(false);
+
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
@@ -116,6 +119,7 @@ class StockAssetFormFactory
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
 					TypeValidator::validateBool($values->shouldDownloadValuation),
+					TypeValidator::validateBool($values->watchlist),
 					TypeValidator::validateNullableString($values->industry),
 				);
 			} else {
@@ -135,6 +139,7 @@ class StockAssetFormFactory
 					) : null,
 					TypeValidator::validateBool($values->shouldDownloadPrice),
 					TypeValidator::validateBool($values->shouldDownloadValuation),
+					TypeValidator::validateBool($values->watchlist),
 					TypeValidator::validateNullableString($values->industry),
 				);
 			}
@@ -165,6 +170,7 @@ class StockAssetFormFactory
 			'brokerDividendCurrency' => $stockAsset->getBrokerDividendCurrency()?->value,
 			'shouldDownloadPrice' => $stockAsset->shouldBeUpdated(),
 			'shouldDownloadValuation' => $stockAsset->shouldDownloadValuation(),
+			'watchlist' => $stockAsset->isWatchlist(),
 			'industry' => $stockAsset->getIndustry()?->getId(),
 		]);
 	}

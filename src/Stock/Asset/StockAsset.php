@@ -100,6 +100,9 @@ class StockAsset implements Entity, Asset
 	#[ORM\JoinColumn(nullable: true)]
 	private StockAssetIndustry|null $industry;
 
+	#[ORM\Column(type: Types::BOOLEAN)]
+	private bool $watchlist;
+
 	public function __construct(
 		string $name,
 		StockAssetPriceDownloaderEnum $assetPriceDownloader,
@@ -113,6 +116,7 @@ class StockAsset implements Entity, Asset
 		CurrencyEnum|null $brokerDividendCurrency,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		bool $watchlist,
 		StockAssetIndustry|null $industry = null,
 	)
 	{
@@ -128,6 +132,7 @@ class StockAsset implements Entity, Asset
 		$this->brokerDividendCurrency = $brokerDividendCurrency;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
 		$this->shouldDownloadValuation = $shouldDownloadValuation;
+		$this->watchlist = $watchlist;
 		$this->industry = $industry;
 
 		$this->createdAt = $now;
@@ -155,6 +160,7 @@ class StockAsset implements Entity, Asset
 		ImmutableDateTime $now,
 		bool $shouldDownloadPrice,
 		bool $shouldDownloadValuation,
+		bool $watchlist,
 		StockAssetIndustry|null $industry = null,
 	): void
 	{
@@ -170,6 +176,7 @@ class StockAsset implements Entity, Asset
 		$this->updatedAt = $now;
 		$this->shouldDownloadPrice = $shouldDownloadPrice;
 		$this->shouldDownloadValuation = $shouldDownloadValuation;
+		$this->watchlist = $watchlist;
 		$this->industry = $industry;
 	}
 
@@ -392,6 +399,11 @@ class StockAsset implements Entity, Asset
 	public function getIndustry(): StockAssetIndustry|null
 	{
 		return $this->industry;
+	}
+
+	public function isWatchlist(): bool
+	{
+		return $this->watchlist;
 	}
 
 }

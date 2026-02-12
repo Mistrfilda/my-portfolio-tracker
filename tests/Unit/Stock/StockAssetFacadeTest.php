@@ -80,6 +80,7 @@ class StockAssetFacadeTest extends UpdatedTestCase
 			$brokerDividendCurrency,
 			true,
 			true,
+			false,
 			null,
 		);
 
@@ -96,6 +97,7 @@ class StockAssetFacadeTest extends UpdatedTestCase
 		self::assertSame($dividendTax, $stockAsset->getDividendTax());
 		self::assertNotNull($stockAsset->getBrokerDividendCurrency());
 		self::assertSame($brokerDividendCurrency, $stockAsset->getBrokerDividendCurrency());
+		self::assertFalse($stockAsset->isWatchlist());
 	}
 
 }
