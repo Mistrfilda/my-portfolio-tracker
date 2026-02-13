@@ -13,9 +13,12 @@ use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Json;
+use RuntimeException;
 
 class StockAiAnalysisPromptGenerator
 {
+
+	private const string PROMPT_DIR = __DIR__ . '/prompt';
 
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
@@ -34,75 +37,34 @@ class StockAiAnalysisPromptGenerator
 	): string
 	{
 		$now = $this->datetimeFactory->createNow();
-		$prompt = 'Jsi zkušený finanční analytik se specializací na akciové trhy. Dnešní datum je ' . $now->format(
-			'd. m. Y',
-		) . ". Odpovídej prosím v českém jazyce.\n\n";
+
+		$parts = [];
+		$parts[] = sprintf($this->loadPrompt('system'), $now->format('d. m. Y'));
 
 		if ($includesMarketOverview) {
-			$prompt .= 'Analyzuj aktuální situaci na trhu (sentiment, klíčové události, makro trendy) ' .
-				"a uveď ji v sekci marketOverview. Shrnutí by mělo mít 3–5 vět.\n\n";
+			$parts[] = $this->loadPrompt('market_overview');
 		}
 
 		$portfolioData = [];
 		if ($includesPortfolio) {
 			$portfolioData = $this->getPortfolioData();
-			$prompt .= "Analyzuj mé aktuální akciové pozice. Pro každou akcii v seznamu portfolioAnalysis uveď:\n";
-			$prompt .= "a) Pozitivní zprávy (3–4 věty)\n";
-			$prompt .= "b) Negativní zprávy (3–4 věty)\n";
-			$prompt .= "c) Zajímavé novinky (3–4 věty)\n";
-			$prompt .= "d) Tvůj obecný názor\n";
-			$prompt .= "e) Doporučení (hold, consider_selling, add_more, watch_closely)\n\n";
+			$parts[] = $this->loadPrompt('portfolio');
 		}
 
 		$watchlistData = [];
 		if ($includesWatchlist) {
 			$watchlistData = $this->getWatchlistData();
-			$prompt .= "Analyzuj akcie na mém watchlistu. Pro každou akcii v sekci watchlistAnalysis uveď:\n";
-			$prompt .= "a) Aktuální zprávy a novinky\n";
-			$prompt .= "b) Zda dává smysl ji nyní nakoupit a proč / proč ne\n";
-			$prompt .= "c) Doporučení (consider_buying, wait, not_interesting)\n\n";
+			$parts[] = $this->loadPrompt('watchlist');
 		}
 
-		$prompt .= "Výstup musí být validní JSON v následujícím formátu:\n";
-		$prompt .= "{\n";
-		if ($includesMarketOverview) {
-			$prompt .= "  \"marketOverview\": {\n";
-			$prompt .= "    \"summary\": \"string\",\n";
-			$prompt .= "    \"sentiment\": \"bullish | bearish | neutral\"\n";
-			$prompt .= "  },\n";
-		}
+		$parts[] = $this->loadPrompt('output_format');
+		$parts[] = Json::encode(
+			$this->buildJsonSchema($includesPortfolio, $includesWatchlist, $includesMarketOverview),
+			pretty: true,
+		);
 
-		if ($includesPortfolio) {
-			$prompt .= "  \"portfolioAnalysis\": [\n";
-			$prompt .= "    {\n";
-			$prompt .= "      \"stockAssetId\": \"uuid\",\n";
-			$prompt .= "      \"stockAssetName\": \"string\",\n";
-			$prompt .= "      \"stockAssetTicker\": \"string\",\n";
-			$prompt .= "      \"positiveNews\": \"string\",\n";
-			$prompt .= "      \"negativeNews\": \"string\",\n";
-			$prompt .= "      \"interestingNews\": \"string\",\n";
-			$prompt .= "      \"aiOpinion\": \"string\",\n";
-			$prompt .= "      \"actionSuggestion\": \"hold | consider_selling | add_more | watch_closely\"\n";
-			$prompt .= "    }\n";
-			$prompt .= "  ],\n";
-		}
+		$parts[] = 'Data k analýze:';
 
-		if ($includesWatchlist) {
-			$prompt .= "  \"watchlistAnalysis\": [\n";
-			$prompt .= "    {\n";
-			$prompt .= "      \"stockAssetId\": \"uuid\",\n";
-			$prompt .= "      \"stockAssetName\": \"string\",\n";
-			$prompt .= "      \"stockAssetTicker\": \"string\",\n";
-			$prompt .= "      \"news\": \"string\",\n";
-			$prompt .= "      \"buyRecommendation\": \"consider_buying | wait | not_interesting\",\n";
-			$prompt .= "      \"reasoning\": \"string\"\n";
-			$prompt .= "    }\n";
-			$prompt .= "  ]\n";
-		}
-
-		$prompt .= "}\n\n";
-
-		$prompt .= "Data k analýze:\n";
 		$data = [];
 		if ($includesPortfolio) {
 			$data['portfolio'] = $portfolioData;
@@ -112,7 +74,70 @@ class StockAiAnalysisPromptGenerator
 			$data['watchlist'] = $watchlistData;
 		}
 
-		return $prompt . Json::encode($data, pretty: true);
+		$parts[] = Json::encode($data, pretty: true);
+
+		return implode("\n\n", $parts);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function buildJsonSchema(
+		bool $includesPortfolio,
+		bool $includesWatchlist,
+		bool $includesMarketOverview,
+	): array
+	{
+		$schema = [];
+
+		if ($includesMarketOverview) {
+			$schema['marketOverview'] = [
+				'summary' => 'string',
+				'sentiment' => 'bullish | bearish | neutral',
+			];
+		}
+
+		if ($includesPortfolio) {
+			$schema['portfolioAnalysis'] = [
+				[
+					'stockAssetId' => 'uuid',
+					'stockAssetName' => 'string',
+					'stockAssetTicker' => 'string',
+					'positiveNews' => 'string',
+					'negativeNews' => 'string',
+					'interestingNews' => 'string',
+					'aiOpinion' => 'string',
+					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
+				],
+			];
+		}
+
+		if ($includesWatchlist) {
+			$schema['watchlistAnalysis'] = [
+				[
+					'stockAssetId' => 'uuid',
+					'stockAssetName' => 'string',
+					'stockAssetTicker' => 'string',
+					'news' => 'string',
+					'buyRecommendation' => 'consider_buying | wait | not_interesting',
+					'reasoning' => 'string',
+				],
+			];
+		}
+
+		return $schema;
+	}
+
+	private function loadPrompt(string $name): string
+	{
+		$path = self::PROMPT_DIR . '/' . $name . '.txt';
+		$content = file_get_contents($path);
+
+		if ($content === false) {
+			throw new RuntimeException(sprintf('Prompt file not found: %s', $path));
+		}
+
+		return trim($content);
 	}
 
 	/**

@@ -1,0 +1,6 @@
+Analyzuj mé aktuální akciové pozice. Pro každou akcii v seznamu portfolioAnalysis uveď:
+a) Pozitivní zprávy (3–4 věty)
+b) Negativní zprávy (3–4 věty)
+c) Zajímavé novinky (3–4 věty)
+d) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont
+e) Doporučení (hold, consider_selling, add_more, watch_closely)

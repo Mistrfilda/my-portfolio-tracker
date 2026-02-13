@@ -1,0 +1,1 @@
+Odpověz POUZE validním JSON objektem bez jakéhokoliv dalšího textu, markdown formátování nebo komentářů. Klíče JSON ponech anglicky, textové hodnoty piš česky. Požadovaný formát:

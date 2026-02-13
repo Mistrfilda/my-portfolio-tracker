@@ -1,0 +1,1 @@
+Analyzuj aktuální situaci na trhu se zaměřením primárně na americký akciový trh (S&P 500, NASDAQ). Zohledni sentiment, klíčové události a makro trendy. Pokud je relevantní událost i na evropských trzích, zmíň ji. Shrnutí by mělo mít 3–5 vět.
