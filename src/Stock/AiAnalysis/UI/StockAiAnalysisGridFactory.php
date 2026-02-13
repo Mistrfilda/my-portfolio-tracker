@@ -36,21 +36,32 @@ class StockAiAnalysisGridFactory
 		$grid->addColumnDatetime('createdAt', 'Vytvořeno')->setSortable();
 
 		$grid->addColumnText(
-			'includesPortfolio',
-			'Portfolio',
-			static fn (StockAiAnalysisRun $run): string => $run->includesPortfolio() ? 'Ano' : 'Ne',
-		);
+			'scope',
+			'Rozsah analýzy',
+			static function (StockAiAnalysisRun $run): string {
+				if ($run->getStockTicker() !== null) {
+					return sprintf('Akcie: %s (%s)', $run->getStockTicker(), (string) $run->getStockName());
+				}
 
-		$grid->addColumnText(
-			'includesWatchlist',
-			'Watchlist',
-			static fn (StockAiAnalysisRun $run): string => $run->includesWatchlist() ? 'Ano' : 'Ne',
-		);
+				$parts = [];
+				if ($run->includesPortfolio()) {
+					$parts[] = 'Portfolio';
+				}
 
-		$grid->addColumnText(
-			'includesMarketOverview',
-			'Trhy',
-			static fn (StockAiAnalysisRun $run): string => $run->includesMarketOverview() ? 'Ano' : 'Ne',
+				if ($run->includesWatchlist()) {
+					$parts[] = 'Watchlist';
+				}
+
+				if ($run->includesMarketOverview()) {
+					$parts[] = 'Trhy';
+				}
+
+				if ($parts === []) {
+					return '---';
+				}
+
+				return implode(', ', $parts);
+			},
 		);
 
 		$grid->addColumnText(

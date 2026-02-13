@@ -61,7 +61,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$now = new ImmutableDateTime();
 
 		$this->promptGenerator->shouldReceive('generate')
-			->with(true, true, false)
+			->with(true, true, false, null, null)
 			->once()
 			->andReturn('Generated prompt text');
 
@@ -278,6 +278,48 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$this->facade->processResponse($run->getId()->toString(), $response);
 
 		self::assertCount(2, $run->getResults());
+	}
+
+	public function testProcessResponseWithSingleStockAnalysis(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun('prompt', false, false, false, $now, 'AAPL', 'Apple Inc.');
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$this->entityManager->shouldReceive('persist')
+			->once();
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$response = Json::encode([
+			'stockAnalysis' => [
+				'businessSummary' => 'Summary',
+				'recommendation' => 'consider_buying',
+				'financialHealth' => 'Strong',
+				'valuationAssessment' => 'Undervalued',
+			],
+		]);
+
+		$this->facade->processResponse($run->getId()->toString(), $response);
+
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertSame(StockAiAnalysisResultTypeEnum::SINGLE_STOCK, $result->getType());
+		self::assertSame('AAPL', $result->getStockTicker());
+		self::assertSame('Apple Inc.', $result->getStockName());
+		self::assertSame('Summary', $result->getBusinessSummary());
+		self::assertSame(StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING, $result->getActionSuggestion());
+		self::assertSame('Strong', $result->getFinancialHealth());
+		self::assertSame('Undervalued', $result->getValuationAssessment());
 	}
 
 }

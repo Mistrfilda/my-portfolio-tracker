@@ -32,15 +32,25 @@ class StockAiAnalysisFacade
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		string|null $stockTicker = null,
+		string|null $stockName = null,
 	): StockAiAnalysisRun
 	{
-		$prompt = $this->promptGenerator->generate($includesPortfolio, $includesWatchlist, $includesMarketOverview);
+		$prompt = $this->promptGenerator->generate(
+			$includesPortfolio,
+			$includesWatchlist,
+			$includesMarketOverview,
+			$stockTicker,
+			$stockName,
+		);
 		$run = new StockAiAnalysisRun(
 			$prompt,
 			$includesPortfolio,
 			$includesWatchlist,
 			$includesMarketOverview,
 			$this->datetimeFactory->createNow(),
+			$stockTicker,
+			$stockName,
 		);
 
 		$this->entityManager->persist($run);
@@ -100,6 +110,10 @@ class StockAiAnalysisFacade
 			}
 		}
 
+		if (isset($data['stockAnalysis']) && is_array($data['stockAnalysis'])) {
+			$this->processSingleStockAnalysis($run, $data['stockAnalysis'], $now);
+		}
+
 		$this->entityManager->flush();
 	}
 
@@ -146,6 +160,63 @@ class StockAiAnalysisFacade
 			$actionSuggestion,
 			TypeValidator::validateNullableString($data['reasoning'] ?? null),
 			TypeValidator::validateNullableString($data['news'] ?? null),
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			$now,
+		);
+
+		$this->entityManager->persist($result);
+		$run->addResult($result);
+	}
+
+	/**
+	 * @param array<mixed> $data
+	 */
+	private function processSingleStockAnalysis(
+		StockAiAnalysisRun $run,
+		array $data,
+		ImmutableDateTime $now,
+	): void
+	{
+		$stockAsset = null;
+		if ($run->getStockTicker() !== null) {
+			$stockAsset = $this->stockAssetRepository->findByTicker($run->getStockTicker());
+		}
+
+		$actionSuggestionValue = TypeValidator::validateNullableString($data['recommendation'] ?? null);
+		$actionSuggestion = null;
+
+		if ($actionSuggestionValue !== null) {
+			$actionSuggestion = StockAiAnalysisActionSuggestionEnum::tryFrom($actionSuggestionValue);
+		}
+
+		$result = new StockAiAnalysisStockResult(
+			$run,
+			$stockAsset,
+			StockAiAnalysisResultTypeEnum::SINGLE_STOCK,
+			null,
+			null,
+			null,
+			null,
+			$actionSuggestion,
+			null,
+			null,
+			$run->getStockTicker(),
+			$run->getStockName(),
+			TypeValidator::validateNullableString($data['businessSummary'] ?? null),
+			TypeValidator::validateNullableString($data['moatAnalysis'] ?? null),
+			TypeValidator::validateNullableString($data['financialHealth'] ?? null),
+			TypeValidator::validateNullableString($data['growthCatalysts'] ?? null),
+			TypeValidator::validateNullableString($data['valuationAssessment'] ?? null),
+			TypeValidator::validateNullableString($data['conclusion'] ?? null),
+			TypeValidator::validateNullableString($data['risks'] ?? null),
 			$now,
 		);
 

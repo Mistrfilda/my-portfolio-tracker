@@ -48,6 +48,12 @@ class StockAiAnalysisRun implements Entity
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $processedAt = null;
 
+	#[ORM\Column(type: Types::STRING, nullable: true)]
+	private string|null $stockTicker = null;
+
+	#[ORM\Column(type: Types::STRING, nullable: true)]
+	private string|null $stockName = null;
+
 	/** @var Collection<int, StockAiAnalysisStockResult> */
 	#[ORM\OneToMany(
 		targetEntity: StockAiAnalysisStockResult::class,
@@ -62,6 +68,8 @@ class StockAiAnalysisRun implements Entity
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
 		ImmutableDateTime $now,
+		string|null $stockTicker = null,
+		string|null $stockName = null,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -69,6 +77,8 @@ class StockAiAnalysisRun implements Entity
 		$this->includesPortfolio = $includesPortfolio;
 		$this->includesWatchlist = $includesWatchlist;
 		$this->includesMarketOverview = $includesMarketOverview;
+		$this->stockTicker = $stockTicker;
+		$this->stockName = $stockName;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->results = new ArrayCollection();
@@ -134,6 +144,16 @@ class StockAiAnalysisRun implements Entity
 	public function getResults(): Collection
 	{
 		return $this->results;
+	}
+
+	public function getStockTicker(): string|null
+	{
+		return $this->stockTicker;
+	}
+
+	public function getStockName(): string|null
+	{
+		return $this->stockName;
 	}
 
 	public function addResult(StockAiAnalysisStockResult $result): void

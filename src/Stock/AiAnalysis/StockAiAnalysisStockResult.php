@@ -28,11 +28,17 @@ class StockAiAnalysisStockResult implements Entity
 	private StockAiAnalysisRun $stockAiAnalysisRun;
 
 	#[ORM\ManyToOne(targetEntity: StockAsset::class)]
-	#[ORM\JoinColumn(nullable: false)]
-	private StockAsset $stockAsset;
+	#[ORM\JoinColumn(nullable: true)]
+	private StockAsset|null $stockAsset;
 
 	#[ORM\Column(type: Types::STRING, enumType: StockAiAnalysisResultTypeEnum::class)]
 	private StockAiAnalysisResultTypeEnum $type;
+
+	#[ORM\Column(type: Types::STRING, nullable: true)]
+	private string|null $stockTicker = null;
+
+	#[ORM\Column(type: Types::STRING, nullable: true)]
+	private string|null $stockName = null;
 
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $positiveNews = null;
@@ -55,9 +61,30 @@ class StockAiAnalysisStockResult implements Entity
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $news = null;
 
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $businessSummary = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $moatAnalysis = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $financialHealth = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $growthCatalysts = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $valuationAssessment = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $conclusion = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $risks = null;
+
 	public function __construct(
 		StockAiAnalysisRun $stockAiAnalysisRun,
-		StockAsset $stockAsset,
+		StockAsset|null $stockAsset,
 		StockAiAnalysisResultTypeEnum $type,
 		string|null $positiveNews,
 		string|null $negativeNews,
@@ -66,6 +93,15 @@ class StockAiAnalysisStockResult implements Entity
 		StockAiAnalysisActionSuggestionEnum|null $actionSuggestion,
 		string|null $reasoning,
 		string|null $news,
+		string|null $stockTicker,
+		string|null $stockName,
+		string|null $businessSummary,
+		string|null $moatAnalysis,
+		string|null $financialHealth,
+		string|null $growthCatalysts,
+		string|null $valuationAssessment,
+		string|null $conclusion,
+		string|null $risks,
 		ImmutableDateTime $now,
 	)
 	{
@@ -80,6 +116,15 @@ class StockAiAnalysisStockResult implements Entity
 		$this->actionSuggestion = $actionSuggestion;
 		$this->reasoning = $reasoning;
 		$this->news = $news;
+		$this->stockTicker = $stockTicker;
+		$this->stockName = $stockName;
+		$this->businessSummary = $businessSummary;
+		$this->moatAnalysis = $moatAnalysis;
+		$this->financialHealth = $financialHealth;
+		$this->growthCatalysts = $growthCatalysts;
+		$this->valuationAssessment = $valuationAssessment;
+		$this->conclusion = $conclusion;
+		$this->risks = $risks;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 	}
@@ -89,7 +134,7 @@ class StockAiAnalysisStockResult implements Entity
 		return $this->stockAiAnalysisRun;
 	}
 
-	public function getStockAsset(): StockAsset
+	public function getStockAsset(): StockAsset|null
 	{
 		return $this->stockAsset;
 	}
@@ -132,6 +177,51 @@ class StockAiAnalysisStockResult implements Entity
 	public function getNews(): string|null
 	{
 		return $this->news;
+	}
+
+	public function getStockTicker(): string|null
+	{
+		return $this->stockTicker;
+	}
+
+	public function getStockName(): string|null
+	{
+		return $this->stockName;
+	}
+
+	public function getBusinessSummary(): string|null
+	{
+		return $this->businessSummary;
+	}
+
+	public function getMoatAnalysis(): string|null
+	{
+		return $this->moatAnalysis;
+	}
+
+	public function getFinancialHealth(): string|null
+	{
+		return $this->financialHealth;
+	}
+
+	public function getGrowthCatalysts(): string|null
+	{
+		return $this->growthCatalysts;
+	}
+
+	public function getValuationAssessment(): string|null
+	{
+		return $this->valuationAssessment;
+	}
+
+	public function getConclusion(): string|null
+	{
+		return $this->conclusion;
+	}
+
+	public function getRisks(): string|null
+	{
+		return $this->risks;
 	}
 
 }

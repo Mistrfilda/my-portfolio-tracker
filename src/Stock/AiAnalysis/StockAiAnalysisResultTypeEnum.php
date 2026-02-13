@@ -9,5 +9,6 @@ enum StockAiAnalysisResultTypeEnum: string
 
 	case PORTFOLIO = 'portfolio';
 	case WATCHLIST = 'watchlist';
+	case SINGLE_STOCK = 'single_stock';
 
 }

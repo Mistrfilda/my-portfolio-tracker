@@ -34,32 +34,43 @@ class StockAiAnalysisPromptGenerator
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		string|null $stockTicker = null,
+		string|null $stockName = null,
 	): string
 	{
 		$now = $this->datetimeFactory->createNow();
 
 		$parts = [];
-		$parts[] = sprintf($this->loadPrompt('system'), $now->format('d. m. Y'));
+		$parts[] = sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
 
 		if ($includesMarketOverview) {
-			$parts[] = $this->loadPrompt('market_overview');
+			$parts[] = $this->loadPrompt('common/market_overview');
 		}
 
 		$portfolioData = [];
 		if ($includesPortfolio) {
 			$portfolioData = $this->getPortfolioData();
-			$parts[] = $this->loadPrompt('portfolio');
+			$parts[] = $this->loadPrompt('portfolio/portfolio');
 		}
 
 		$watchlistData = [];
 		if ($includesWatchlist) {
 			$watchlistData = $this->getWatchlistData();
-			$parts[] = $this->loadPrompt('watchlist');
+			$parts[] = $this->loadPrompt('portfolio/watchlist');
 		}
 
-		$parts[] = $this->loadPrompt('output_format');
+		if ($stockTicker !== null && $stockName !== null) {
+			$parts[] = sprintf($this->loadPrompt('stock/stock_analysis'), $stockName, $stockTicker);
+		}
+
+		$parts[] = $this->loadPrompt('common/output_format');
 		$parts[] = Json::encode(
-			$this->buildJsonSchema($includesPortfolio, $includesWatchlist, $includesMarketOverview),
+			$this->buildJsonSchema(
+				$includesPortfolio,
+				$includesWatchlist,
+				$includesMarketOverview,
+				$stockTicker !== null && $stockName !== null,
+			),
 			pretty: true,
 		);
 
@@ -74,7 +85,9 @@ class StockAiAnalysisPromptGenerator
 			$data['watchlist'] = $watchlistData;
 		}
 
-		$parts[] = Json::encode($data, pretty: true);
+		if ($data !== []) {
+			$parts[] = Json::encode($data, pretty: true);
+		}
 
 		return implode("\n\n", $parts);
 	}
@@ -86,6 +99,7 @@ class StockAiAnalysisPromptGenerator
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		bool $includesStockAnalysis,
 	): array
 	{
 		$schema = [];
@@ -94,6 +108,19 @@ class StockAiAnalysisPromptGenerator
 			$schema['marketOverview'] = [
 				'summary' => 'string',
 				'sentiment' => 'bullish | bearish | neutral',
+			];
+		}
+
+		if ($includesStockAnalysis) {
+			$schema['stockAnalysis'] = [
+				'businessSummary' => 'string',
+				'moatAnalysis' => 'string',
+				'financialHealth' => 'string',
+				'growthCatalysts' => 'string',
+				'risks' => 'string',
+				'valuationAssessment' => 'string',
+				'conclusion' => 'string',
+				'recommendation' => 'consider_buying | hold | consider_selling',
 			];
 		}
 

@@ -1,0 +1,19 @@
+Analyzuj detailně společnost %s (%s).
+Tvým cílem je poskytnout komplexní investiční analýzu pro dlouhodobého investora.
+
+Zaměř se na následující oblasti:
+1. Business Overview: Co společnost dělá, jak vydělává peníze, v jakých segmentech operuje.
+2. Konkurenční výhoda (Moat): Má společnost trvalou konkurenční výhodu? (Network effect, Brand, Switching costs, atd.)
+3. Finanční zdraví a růst: Trendy v tržbách, ziscích, maržích. Zadlužení. Cash flow.
+4. Rizika: Hlavní rizika pro byznys model (konkurence, regulace, makroekonomika).
+5. Valuace: Jak si stojí valuace historicky a vůči konkurentům (P/E, P/S, FCF yield).
+
+Do výstupu 'stockAnalysis' zahrň:
+- businessSummary: Shrnutí byznys modelu (3-5 vět).
+- moatAnalysis: Analýza konkurenční výhody.
+- financialHealth: Zhodnocení finanční kondice.
+- growthCatalysts: Hlavní katalyzátory budoucího růstu.
+- risks: Hlavní rizika.
+- valuationAssessment: Zhodnocení aktuální ceny (podhodnocená/férová/předražená).
+- conclusion: Závěrečný verdikt a investiční teze.
+- recommendation: (consider_buying, hold, consider_selling)
