@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Valuation\UI\Control\Detail;
 
 use App\Asset\Price\AssetPrice;
+use App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
@@ -22,6 +23,7 @@ class StockValuationDetailControl extends BaseControl
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationDataRepository $stockValuationDataRepository,
 		private StockIndustryComparisonFacade $stockIndustryComparisonFacade,
+		private StockAiAnalysisStockResultRepository $stockAiAnalysisStockResultRepository,
 	)
 	{
 	}
@@ -47,6 +49,9 @@ class StockValuationDetailControl extends BaseControl
 				StockValuationTypeEnum::ANALYST_PRICE_TARGET_HIGH,
 			],
 		);
+
+		$aiResults = $this->stockAiAnalysisStockResultRepository->findLatestForStockAsset($stockAsset, 1);
+		$template->aiResult = count($aiResults) > 0 ? $aiResults[0] : null;
 
 		$averagePrice = 0;
 		$calculatedModelsCount = 0;

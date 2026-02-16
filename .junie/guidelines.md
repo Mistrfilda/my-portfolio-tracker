@@ -117,6 +117,7 @@ All shared UI infrastructure for the Nette application.
 - **JSON**: Always use `Nette\Utils\Json` for serialization/deserialization.
 - **Validation**: Use `App\Utils\TypeValidator` for scalar type validation.
 - **Nette controls and presenter** - When using nette controls and presenter, always use Template classes for parameters, base template classes are `src/UI/Base/BaseControlTemplate.php`  (for controls), `src/UI/Base/BasePresenterTemplate.php` (for presenters).
+  - Always add public properties to the Template class when assigning variables to `$this->template` in Presenters or Controls. Dynamic properties are deprecated.
 - **Exceptions**: 
   - always use English language in exception messages.
 
@@ -166,6 +167,7 @@ class MyTest extends TestCase
 - Always use and update `assets/svg` folder for SVG icons
 
 ## Important Notes
+- **Junie and reading files** - Always use junie functions for reading files, avoid using cat to read files.
 - **Security**: Sensitive data (API keys, passwords) are in `docker/config-docker.local.neon` or `config/config.local.neon`. **DO NOT COMMIT THESE FILES.**
 - **Development Flow**: At the end of process, always run `composer cs-fix && composer build-all` to check if everything is OK.
 - **RabbitMQ**: Used for asynchronous task processing (e.g., price updates, notifications).

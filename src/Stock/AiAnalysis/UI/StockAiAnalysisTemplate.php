@@ -22,4 +22,6 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 	/** @var array<int, StockAiAnalysisStockResult> */
 	public array $singleStockResults = [];
 
+	public string $stockAssetsDataJson;
+
 }

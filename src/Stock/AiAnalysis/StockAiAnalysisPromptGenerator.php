@@ -121,6 +121,8 @@ class StockAiAnalysisPromptGenerator
 				'valuationAssessment' => 'string',
 				'conclusion' => 'string',
 				'recommendation' => 'consider_buying | hold | consider_selling',
+				'fairPrice' => 'float',
+				'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 			];
 		}
 

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -82,6 +83,12 @@ class StockAiAnalysisStockResult implements Entity
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $risks = null;
 
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $fairPrice = null;
+
+	#[ORM\Column(type: Types::STRING, nullable: true, enumType: CurrencyEnum::class)]
+	private CurrencyEnum|null $fairPriceCurrency = null;
+
 	public function __construct(
 		StockAiAnalysisRun $stockAiAnalysisRun,
 		StockAsset|null $stockAsset,
@@ -102,6 +109,8 @@ class StockAiAnalysisStockResult implements Entity
 		string|null $valuationAssessment,
 		string|null $conclusion,
 		string|null $risks,
+		float|null $fairPrice,
+		CurrencyEnum|null $fairPriceCurrency,
 		ImmutableDateTime $now,
 	)
 	{
@@ -125,6 +134,8 @@ class StockAiAnalysisStockResult implements Entity
 		$this->valuationAssessment = $valuationAssessment;
 		$this->conclusion = $conclusion;
 		$this->risks = $risks;
+		$this->fairPrice = $fairPrice;
+		$this->fairPriceCurrency = $fairPriceCurrency;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 	}
@@ -222,6 +233,16 @@ class StockAiAnalysisStockResult implements Entity
 	public function getRisks(): string|null
 	{
 		return $this->risks;
+	}
+
+	public function getFairPrice(): float|null
+	{
+		return $this->fairPrice;
+	}
+
+	public function getFairPriceCurrency(): CurrencyEnum|null
+	{
+		return $this->fairPriceCurrency;
 	}
 
 }

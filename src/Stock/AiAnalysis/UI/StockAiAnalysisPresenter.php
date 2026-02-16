@@ -9,11 +9,13 @@ use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
+use App\Stock\Asset\StockAssetRepository;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\Utils\TypeValidator;
 use Nette\Application\AbortException;
 use Nette\Application\UI\Form;
+use Nette\Utils\Json;
 use Throwable;
 
 /**
@@ -27,20 +29,27 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 	public function __construct(
 		private readonly StockAiAnalysisFacade $stockAiAnalysisFacade,
 		private readonly StockAiAnalysisGridFactory $stockAiAnalysisGridFactory,
+		private readonly StockAssetRepository $stockAssetRepository,
 	)
 	{
 		parent::__construct();
-	}
-
-	public function actionDefault(): void
-	{
-		// Výchozí akce - zobrazení gridu a formuláře
 	}
 
 	public function renderDefault(): void
 	{
 		$this->template->heading = 'AI analýzy';
 		$this->template->run = null;
+
+		$assets = $this->stockAssetRepository->findAll();
+		$stockAssetsData = [];
+		foreach ($assets as $asset) {
+			$stockAssetsData[$asset->getId()->toString()] = [
+				'ticker' => $asset->getTicker(),
+				'name' => $asset->getName(),
+			];
+		}
+
+		$this->template->stockAssetsDataJson = Json::encode($stockAssetsData);
 	}
 
 	public function actionDetail(string $id): void
@@ -141,6 +150,17 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 	protected function createComponentSingleStockAnalysisForm(): Form
 	{
 		$form = new Form();
+
+		$assets = $this->stockAssetRepository->findAll();
+		$assetPairs = [];
+		foreach ($assets as $asset) {
+			$assetPairs[$asset->getId()->toString()] = sprintf('%s (%s)', $asset->getName(), $asset->getTicker());
+		}
+
+		$form->addSelect('existingAsset', 'Existující akcie', $assetPairs)
+			->setPrompt('Vyberte existující akcii...')
+			->setRequired(false);
+
 		$form->addText('stockTicker', 'Ticker akcie')
 			->setRequired('Zadejte ticker akcie')
 			->setHtmlAttribute('placeholder', 'např. AAPL');

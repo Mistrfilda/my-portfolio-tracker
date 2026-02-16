@@ -7,6 +7,7 @@ Zaměř se na následující oblasti:
 3. Finanční zdraví a růst: Trendy v tržbách, ziscích, maržích. Zadlužení. Cash flow.
 4. Rizika: Hlavní rizika pro byznys model (konkurence, regulace, makroekonomika).
 5. Valuace: Jak si stojí valuace historicky a vůči konkurentům (P/E, P/S, FCF yield).
+6. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Buď konzervativní.
 
 Do výstupu 'stockAnalysis' zahrň:
 - businessSummary: Shrnutí byznys modelu (3-5 vět).
@@ -17,3 +18,5 @@ Do výstupu 'stockAnalysis' zahrň:
 - valuationAssessment: Zhodnocení aktuální ceny (podhodnocená/férová/předražená).
 - conclusion: Závěrečný verdikt a investiční teze.
 - recommendation: (consider_buying, hold, consider_selling)
+- fairPrice: Tvůj odhad férové ceny (číslo, float).
+- fairPriceCurrency: Měna férové ceny (např. USD).

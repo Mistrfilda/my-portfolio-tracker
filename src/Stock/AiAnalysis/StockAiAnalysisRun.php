@@ -8,6 +8,7 @@ use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
+use App\Stock\Asset\StockAsset;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -54,6 +55,9 @@ class StockAiAnalysisRun implements Entity
 	#[ORM\Column(type: Types::STRING, nullable: true)]
 	private string|null $stockName = null;
 
+	#[ORM\ManyToOne(targetEntity: StockAsset::class)]
+	private StockAsset|null $stockAsset;
+
 	/** @var Collection<int, StockAiAnalysisStockResult> */
 	#[ORM\OneToMany(
 		targetEntity: StockAiAnalysisStockResult::class,
@@ -70,6 +74,7 @@ class StockAiAnalysisRun implements Entity
 		ImmutableDateTime $now,
 		string|null $stockTicker = null,
 		string|null $stockName = null,
+		StockAsset|null $stockAsset = null,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -79,6 +84,7 @@ class StockAiAnalysisRun implements Entity
 		$this->includesMarketOverview = $includesMarketOverview;
 		$this->stockTicker = $stockTicker;
 		$this->stockName = $stockName;
+		$this->stockAsset = $stockAsset;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->results = new ArrayCollection();
@@ -154,6 +160,11 @@ class StockAiAnalysisRun implements Entity
 	public function getStockName(): string|null
 	{
 		return $this->stockName;
+	}
+
+	public function getStockAsset(): StockAsset|null
+	{
+		return $this->stockAsset;
 	}
 
 	public function addResult(StockAiAnalysisStockResult $result): void

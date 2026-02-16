@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
 use App\Stock\Asset\StockAssetRepository;
 use App\Utils\TypeValidator;
@@ -36,6 +37,11 @@ class StockAiAnalysisFacade
 		string|null $stockName = null,
 	): StockAiAnalysisRun
 	{
+		$stockAsset = null;
+		if ($stockTicker !== null) {
+			$stockAsset = $this->stockAssetRepository->findByTicker($stockTicker);
+		}
+
 		$prompt = $this->promptGenerator->generate(
 			$includesPortfolio,
 			$includesWatchlist,
@@ -51,6 +57,7 @@ class StockAiAnalysisFacade
 			$this->datetimeFactory->createNow(),
 			$stockTicker,
 			$stockName,
+			$stockAsset,
 		);
 
 		$this->entityManager->persist($run);
@@ -169,6 +176,8 @@ class StockAiAnalysisFacade
 			null,
 			null,
 			null,
+			null,
+			null,
 			$now,
 		);
 
@@ -185,8 +194,8 @@ class StockAiAnalysisFacade
 		ImmutableDateTime $now,
 	): void
 	{
-		$stockAsset = null;
-		if ($run->getStockTicker() !== null) {
+		$stockAsset = $run->getStockAsset();
+		if ($stockAsset === null && $run->getStockTicker() !== null) {
 			$stockAsset = $this->stockAssetRepository->findByTicker($run->getStockTicker());
 		}
 
@@ -195,6 +204,17 @@ class StockAiAnalysisFacade
 
 		if ($actionSuggestionValue !== null) {
 			$actionSuggestion = StockAiAnalysisActionSuggestionEnum::tryFrom($actionSuggestionValue);
+		}
+
+		$fairPrice = null;
+		if (isset($data['fairPrice']) && (is_float($data['fairPrice']) || is_int($data['fairPrice']))) {
+			$fairPrice = (float) $data['fairPrice'];
+		}
+
+		$fairPriceCurrency = null;
+		$fairPriceCurrencyValue = TypeValidator::validateNullableString($data['fairPriceCurrency'] ?? null);
+		if ($fairPriceCurrencyValue !== null) {
+			$fairPriceCurrency = CurrencyEnum::tryFrom($fairPriceCurrencyValue);
 		}
 
 		$result = new StockAiAnalysisStockResult(
@@ -217,6 +237,8 @@ class StockAiAnalysisFacade
 			TypeValidator::validateNullableString($data['valuationAssessment'] ?? null),
 			TypeValidator::validateNullableString($data['conclusion'] ?? null),
 			TypeValidator::validateNullableString($data['risks'] ?? null),
+			$fairPrice,
+			$fairPriceCurrency,
 			$now,
 		);
 

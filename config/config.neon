@@ -337,6 +337,7 @@ services:
 	- App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository(App\Stock\AiAnalysis\StockAiAnalysisStockResult)
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisGridFactory
 	- App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlFactory
+	- App\Stock\AiAnalysis\UI\Control\StockAiValuationComparisonControlFactory
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter
 
 	#Portu asset

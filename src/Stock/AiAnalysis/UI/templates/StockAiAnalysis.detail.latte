@@ -295,10 +295,20 @@
 									</div>
 
  								{* Valuation *}
- 								{if $result->getValuationAssessment()}
+ 								{if $result->getValuationAssessment() || $result->getFairPrice()}
  									<div class="rounded-lg bg-gray-50 border-l-3 border-l-blue-500 border border-gray-200 p-4">
  										<h4 class="text-sm font-semibold text-gray-900 mb-2">📊 Ocenění</h4>
- 										<p class="text-sm text-gray-700 leading-relaxed">{$result->getValuationAssessment()}</p>
+ 										{if $result->getValuationAssessment()}
+ 											<p class="text-sm text-gray-700 leading-relaxed">{$result->getValuationAssessment()}</p>
+ 										{/if}
+ 										{if $result->getFairPrice()}
+ 											<div class="mt-3 pt-2 border-t border-blue-200 flex items-center">
+ 												<span class="text-sm font-medium text-gray-700 mr-2">Odhadovaná férová cena:</span>
+ 												<span class="text-base font-bold text-blue-800">
+ 													{$result->getFairPrice()|currency:$result->getFairPriceCurrency()}
+ 												</span>
+ 											</div>
+ 										{/if}
  									</div>
  								{/if}
 

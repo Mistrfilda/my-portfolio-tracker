@@ -90,7 +90,7 @@ class StockAiAnalysisGridFactory
 				new DatagridActionParameter('id', 'id'),
 			],
 			SvgIcon::EYE,
-			TailwindColorConstant::INDIGO,
+			TailwindColorConstant::BLUE,
 		);
 
 		return $grid;

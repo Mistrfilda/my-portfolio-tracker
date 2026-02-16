@@ -1,7 +1,7 @@
 {templateType App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlTemplate}
 
 <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-	<div class="px-4 py-5 sm:px-6 bg-gradient-to-r from-indigo-50 to-blue-50 border-b border-gray-200">
+	<div class="px-4 py-5 sm:px-6 bg-gradient-to-r from-blue-50 to-blue-50 border-b border-gray-200">
 		<h3 class="text-lg leading-6 font-semibold text-gray-900">🤖 AI analýza</h3>
 		<p class="mt-1 max-w-2xl text-sm text-gray-500">Posledních 5 záznamů (pokud existují)</p>
 	</div>
@@ -64,14 +64,14 @@
 											</div>
 										{/if}
 										{if $res->getConclusion()}
-											<div class="rounded-md bg-indigo-50 border border-indigo-200 p-2.5">
-												<div class="text-xs font-semibold text-indigo-800 uppercase tracking-wide mb-1">💡 Závěr</div>
-												<p class="text-sm text-indigo-700 leading-relaxed">{$res->getConclusion()}</p>
+											<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
+												<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">💡 Závěr</div>
+												<p class="text-sm text-blue-700 leading-relaxed">{$res->getConclusion()}</p>
 											</div>
 										{/if}
 									</div>
 									<div class="text-right mt-2">
-										<a href="{plink :Admin:Stock:AiAnalysis:detail $res->getStockAiAnalysisRun()->getId()->toString()}" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-500">
+										<a href="{plink :Admin:StockAiAnalysis:detail $res->getStockAiAnalysisRun()->getId()->toString()}" class="inline-flex items-center text-xs font-medium text-blue-600 hover:text-blue-500">
 											Zobrazit celou analýzu
 											<span aria-hidden="true" class="ml-1">→</span>
 										</a>
@@ -139,9 +139,9 @@
 										</div>
 									{/if}
 									{if $res->getAiOpinion()}
-										<div class="rounded-md bg-indigo-50 border border-indigo-200 p-2.5">
-											<div class="text-xs font-semibold text-indigo-800 uppercase tracking-wide mb-1">🤖 Názor AI</div>
-											<p class="text-sm text-indigo-700 leading-relaxed">{$res->getAiOpinion()}</p>
+										<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
+											<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">🤖 Názor AI</div>
+											<p class="text-sm text-blue-700 leading-relaxed">{$res->getAiOpinion()}</p>
 										</div>
 									{/if}
 									{if $res->getNews()}
@@ -151,9 +151,9 @@
 										</div>
 									{/if}
 									{if $res->getReasoning()}
-										<div class="rounded-md bg-indigo-50 border border-indigo-200 p-2.5">
-											<div class="text-xs font-semibold text-indigo-800 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
-											<p class="text-sm text-indigo-700 leading-relaxed">{$res->getReasoning()}</p>
+										<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
+											<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
+											<p class="text-sm text-blue-700 leading-relaxed">{$res->getReasoning()}</p>
 										</div>
 									{/if}
 								</div>
