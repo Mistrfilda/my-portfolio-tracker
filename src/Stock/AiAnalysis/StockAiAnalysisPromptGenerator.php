@@ -137,6 +137,8 @@ class StockAiAnalysisPromptGenerator
 					'interestingNews' => 'string',
 					'aiOpinion' => 'string',
 					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
+					'fairPrice' => 'float',
+					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 				],
 			];
 		}
@@ -150,6 +152,8 @@ class StockAiAnalysisPromptGenerator
 					'news' => 'string',
 					'buyRecommendation' => 'consider_buying | wait | not_interesting',
 					'reasoning' => 'string',
+					'fairPrice' => 'float',
+					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 				],
 			];
 		}

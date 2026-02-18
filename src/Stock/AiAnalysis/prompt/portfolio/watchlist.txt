@@ -2,3 +2,4 @@ Analyzuj akcie na mém watchlistu. Při analýze zohledni mé aktuální portfol
 a) Aktuální zprávy a novinky
 b) Zda dává smysl ji nyní nakoupit a proč / proč ne
 c) Doporučení (consider_buying, wait, not_interesting)
+d) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy a dostupných dat odhadni přibližnou férovou hodnotu akcie

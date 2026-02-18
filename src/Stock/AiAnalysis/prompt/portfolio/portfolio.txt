@@ -4,3 +4,4 @@ b) Negativní zprávy (3–4 věty)
 c) Zajímavé novinky (3–4 věty)
 d) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont
 e) Doporučení (hold, consider_selling, add_more, watch_closely)
+f) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy a dostupných dat odhadni přibližnou férovou hodnotu akcie

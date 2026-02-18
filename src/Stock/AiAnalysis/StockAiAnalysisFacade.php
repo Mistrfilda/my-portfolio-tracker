@@ -156,6 +156,17 @@ class StockAiAnalysisFacade
 			$actionSuggestion = StockAiAnalysisActionSuggestionEnum::tryFrom($actionSuggestionValue);
 		}
 
+		$fairPrice = null;
+		if (isset($data['fairPrice']) && (is_float($data['fairPrice']) || is_int($data['fairPrice']))) {
+			$fairPrice = (float) $data['fairPrice'];
+		}
+
+		$fairPriceCurrency = null;
+		$fairPriceCurrencyValue = TypeValidator::validateNullableString($data['fairPriceCurrency'] ?? null);
+		if ($fairPriceCurrencyValue !== null) {
+			$fairPriceCurrency = CurrencyEnum::tryFrom($fairPriceCurrencyValue);
+		}
+
 		$result = new StockAiAnalysisStockResult(
 			$run,
 			$stockAsset,
@@ -176,8 +187,8 @@ class StockAiAnalysisFacade
 			null,
 			null,
 			null,
-			null,
-			null,
+			$fairPrice,
+			$fairPriceCurrency,
 			$now,
 		);
 

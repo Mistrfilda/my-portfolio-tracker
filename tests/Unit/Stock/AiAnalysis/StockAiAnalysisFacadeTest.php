@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
@@ -150,6 +151,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 					'actionSuggestion' => 'hold',
 					'reasoning' => 'Dobrá fundamentální analýza',
 					'news' => 'Novinky o firmě',
+					'fairPrice' => 150.50,
+					'fairPriceCurrency' => 'USD',
 				],
 			],
 		]);
@@ -167,6 +170,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(StockAiAnalysisActionSuggestionEnum::HOLD, $result->getActionSuggestion());
 		self::assertSame('Dobrá fundamentální analýza', $result->getReasoning());
 		self::assertSame('Novinky o firmě', $result->getNews());
+		self::assertSame(150.50, $result->getFairPrice());
+		self::assertSame(CurrencyEnum::USD, $result->getFairPriceCurrency());
 	}
 
 	public function testProcessResponseWithWatchlistAnalysis(): void
@@ -205,6 +210,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 					'buyRecommendation' => 'consider_buying',
 					'reasoning' => 'Nízké ocenění',
 					'news' => null,
+					'fairPrice' => 200.0,
+					'fairPriceCurrency' => 'EUR',
 				],
 			],
 		]);
@@ -218,6 +225,52 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame('Dobrý výhled', $result->getPositiveNews());
 		self::assertNull($result->getNegativeNews());
 		self::assertSame(StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING, $result->getActionSuggestion());
+		self::assertSame(200.0, $result->getFairPrice());
+		self::assertSame(CurrencyEnum::EUR, $result->getFairPriceCurrency());
+	}
+
+	public function testProcessResponsePortfolioWithoutFairPrice(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$stockAssetId = Uuid::uuid4();
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$this->stockAssetRepository->shouldReceive('getById')
+			->once()
+			->andReturn($stockAsset);
+
+		$this->entityManager->shouldReceive('persist')
+			->once();
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$response = Json::encode([
+			'portfolioAnalysis' => [
+				[
+					'stockAssetId' => $stockAssetId->toString(),
+					'positiveNews' => 'Rostoucí tržby',
+					'actionSuggestion' => 'hold',
+				],
+			],
+		]);
+
+		$this->facade->processResponse($run->getId()->toString(), $response);
+
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertNull($result->getFairPrice());
+		self::assertNull($result->getFairPriceCurrency());
 	}
 
 	public function testProcessResponseInvalidJson(): void
