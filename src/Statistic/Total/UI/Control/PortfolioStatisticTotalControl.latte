@@ -104,6 +104,24 @@
                     </dt>
                     <dd>{include #box, amount: $value->getTimeWeightedReturn(), suffix: '%'}</dd>
                 </div>
+                {if $value->getAnnualizedTwr() !== null}
+                    <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
+                        <dt class="text-gray-900 font-semibold">
+                            Annualizovaný TWR
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Přepočteno na roční bázi</span>
+                        </dt>
+                        <dd>{include #box, amount: $value->getAnnualizedTwr(), suffix: '%'}</dd>
+                    </div>
+                {/if}
+                {if $value->getMoneyWeightedReturn() !== null}
+                    <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
+                        <dt class="text-gray-900 font-semibold">
+                            MWR (Modified Dietz)
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Výnos s ohledem na timing vkladů</span>
+                        </dt>
+                        <dd>{include #box, amount: $value->getMoneyWeightedReturn(), suffix: '%'}</dd>
+                    </div>
+                {/if}
             </div>
         </dl>
     </li>
