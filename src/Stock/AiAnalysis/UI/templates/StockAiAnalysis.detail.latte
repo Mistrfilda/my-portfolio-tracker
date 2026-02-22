@@ -144,6 +144,18 @@
 			{/if}
 
 
+ 		{* Zhodnocení portfolia *}
+			{if $run->getPortfolioEvaluationSummary()}
+				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+					<div class="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-emerald-50 to-teal-50">
+						<h2 class="text-lg font-semibold text-gray-900">📋 Zhodnocení portfolia</h2>
+					</div>
+					<div class="px-6 py-4">
+						<p class="text-sm text-gray-700 leading-relaxed whitespace-pre-line">{$run->getPortfolioEvaluationSummary()}</p>
+					</div>
+				</div>
+			{/if}
+
  		{* Rychlý souhrn *}
 			{if count($portfolioResults) > 0 || count($watchlistResults) > 0}
 				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">

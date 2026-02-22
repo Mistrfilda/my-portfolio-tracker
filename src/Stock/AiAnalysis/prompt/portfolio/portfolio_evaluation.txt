@@ -1,0 +1,6 @@
+Zhodnoť mé aktuální portfolio jako celek. Zaměř se na:
+a) Aktuální stav portfolia – celkové rozložení, diverzifikace, silné a slabé stránky
+b) Co je potřeba sledovat v nejbližší době – nadcházející výsledky, dividendy, makroekonomické události
+c) Očekávané události – earnings reporty, ex-dividend data, důležité makroekonomické milníky relevantní pro mé pozice
+d) Celkové doporučení – co bys v portfoliu eventuálně upravil nebo na co si dát pozor
+Výsledek zapiš do klíče portfolioEvaluation jako objekt s polem summary (jeden souhrnný text).

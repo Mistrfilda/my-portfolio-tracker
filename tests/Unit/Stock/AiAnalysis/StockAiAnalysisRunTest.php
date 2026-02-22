@@ -38,12 +38,14 @@ class StockAiAnalysisRunTest extends TestCase
 			'{"test": "response"}',
 			'Trh je stabilní',
 			StockAiAnalysisMarketSentimentEnum::BULLISH,
+			'Portfolio je diverzifikované',
 			$processedAt,
 		);
 
 		self::assertSame('{"test": "response"}', $run->getRawResponse());
 		self::assertSame('Trh je stabilní', $run->getMarketOverviewSummary());
 		self::assertSame(StockAiAnalysisMarketSentimentEnum::BULLISH, $run->getMarketOverviewSentiment());
+		self::assertSame('Portfolio je diverzifikované', $run->getPortfolioEvaluationSummary());
 		self::assertSame($processedAt, $run->getProcessedAt());
 	}
 
@@ -53,11 +55,12 @@ class StockAiAnalysisRunTest extends TestCase
 		$run = new StockAiAnalysisRun('Test prompt', true, false, false, $now);
 
 		$processedAt = new ImmutableDateTime();
-		$run->setResponse('{"test": "response"}', null, null, $processedAt);
+		$run->setResponse('{"test": "response"}', null, null, null, $processedAt);
 
 		self::assertSame('{"test": "response"}', $run->getRawResponse());
 		self::assertNull($run->getMarketOverviewSummary());
 		self::assertNull($run->getMarketOverviewSentiment());
+		self::assertNull($run->getPortfolioEvaluationSummary());
 		self::assertSame($processedAt, $run->getProcessedAt());
 	}
 
