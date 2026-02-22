@@ -51,6 +51,7 @@ class StockAiAnalysisPromptGenerator
 		if ($includesPortfolio) {
 			$portfolioData = $this->getPortfolioData();
 			$parts[] = $this->loadPrompt('portfolio/portfolio');
+			$parts[] = $this->loadPrompt('portfolio/portfolio_evaluation');
 		}
 
 		$watchlistData = [];
@@ -108,6 +109,12 @@ class StockAiAnalysisPromptGenerator
 			$schema['marketOverview'] = [
 				'summary' => 'string',
 				'sentiment' => 'bullish | bearish | neutral',
+			];
+		}
+
+		if ($includesPortfolio) {
+			$schema['portfolioEvaluation'] = [
+				'summary' => 'string',
 			];
 		}
 

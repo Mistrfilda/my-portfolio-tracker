@@ -99,7 +99,20 @@ class StockAiAnalysisFacade
 			}
 		}
 
-		$run->setResponse($rawResponse, $marketOverviewSummary, $marketOverviewSentiment, $now);
+		$portfolioEvaluationSummary = null;
+		if (isset($data['portfolioEvaluation']) && is_array($data['portfolioEvaluation'])) {
+			$portfolioEvaluationSummary = TypeValidator::validateNullableString(
+				$data['portfolioEvaluation']['summary'] ?? null,
+			);
+		}
+
+		$run->setResponse(
+			$rawResponse,
+			$marketOverviewSummary,
+			$marketOverviewSentiment,
+			$portfolioEvaluationSummary,
+			$now,
+		);
 
 		if (isset($data['portfolioAnalysis']) && is_array($data['portfolioAnalysis'])) {
 			foreach ($data['portfolioAnalysis'] as $analysis) {

@@ -46,6 +46,9 @@ class StockAiAnalysisRun implements Entity
 	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisMarketSentimentEnum::class)]
 	private StockAiAnalysisMarketSentimentEnum|null $marketOverviewSentiment = null;
 
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $portfolioEvaluationSummary = null;
+
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $processedAt = null;
 
@@ -94,12 +97,14 @@ class StockAiAnalysisRun implements Entity
 		string $rawResponse,
 		string|null $marketOverviewSummary,
 		StockAiAnalysisMarketSentimentEnum|null $marketOverviewSentiment,
+		string|null $portfolioEvaluationSummary,
 		ImmutableDateTime $now,
 	): void
 	{
 		$this->rawResponse = $rawResponse;
 		$this->marketOverviewSummary = $marketOverviewSummary;
 		$this->marketOverviewSentiment = $marketOverviewSentiment;
+		$this->portfolioEvaluationSummary = $portfolioEvaluationSummary;
 		$this->processedAt = $now;
 		$this->updatedAt = $now;
 	}
@@ -137,6 +142,11 @@ class StockAiAnalysisRun implements Entity
 	public function getMarketOverviewSentiment(): StockAiAnalysisMarketSentimentEnum|null
 	{
 		return $this->marketOverviewSentiment;
+	}
+
+	public function getPortfolioEvaluationSummary(): string|null
+	{
+		return $this->portfolioEvaluationSummary;
 	}
 
 	public function getProcessedAt(): ImmutableDateTime|null
