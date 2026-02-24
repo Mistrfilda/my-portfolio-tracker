@@ -69,8 +69,8 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Celkový zisk od začátku portfolia
-	 * Prostě: aktuální hodnota - celkem investováno
+	 * Total profit since the beginning of the portfolio.
+	 * Simply: current value - total invested.
 	 */
 	public function getTotalProfit(): float
 	{
@@ -78,9 +78,9 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Zisk za konkrétní období (např. za rok)
-	 * Odpovídá na otázku: "Kolik jsem vydělal v tomto období?"
-	 * Bere v úvahu, že během období mohly přibýt nové investice
+	 * Profit for a specific period (e.g. a year).
+	 * Answers the question: "How much did I earn in this period?"
+	 * Takes into account that new investments may have been added during the period.
 	 */
 	public function getPeriodProfit(): float
 	{
@@ -90,7 +90,7 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Alias pro getPeriodProfit() - stejná logika
+	 * Alias for getPeriodProfit() - same logic.
 	 */
 	public function getDiffAmount(): float
 	{
@@ -98,8 +98,8 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Celková procentuální výkonnost od začátku
-	 * Počítá: (celkový zisk / celkem investováno) * 100
+	 * Total percentage performance since the beginning.
+	 * Formula: (total profit / total invested) * 100
 	 */
 	public function getTotalPerformancePercentage(): float
 	{
@@ -111,10 +111,10 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Time-Weighted Return - výkonnost bez vlivu cash flow
-	 * Nejpřesnější metrika pro porovnání výkonnosti
+	 * Time-Weighted Return - performance excluding the impact of cash flows.
+	 * Most accurate metric for comparing performance.
 	 *
-	 * Vzorec: ((valueAtEnd / (valueAtStart + newInvestments)) - 1) * 100
+	 * Formula: ((valueAtEnd / (valueAtStart + newInvestments)) - 1) * 100
 	 */
 	public function getTimeWeightedReturn(): float
 	{
@@ -129,10 +129,10 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Annualizovaný TWR - přepočítá TWR na roční bázi
-	 * Zobrazuje se pouze pro periody > 180 dní (jinak dává nesmyslně vysoké hodnoty)
+	 * Annualized TWR - converts TWR to an annual basis.
+	 * Displayed only for periods > 180 days (otherwise produces unreasonably high values).
 	 *
-	 * Vzorec: ((1 + TWR/100) ^ (365/days)) - 1) * 100
+	 * Formula: ((1 + TWR/100) ^ (365/days)) - 1) * 100
 	 */
 	public function getAnnualizedTwr(): float|null
 	{
@@ -142,12 +142,12 @@ class PortfolioStatisticTotalValue
 
 		$days = $this->getDaysInPeriod();
 
-		// Annualizace dává smysl pouze pro periody delší než 180 dní
+		// Annualization only makes sense for periods longer than 180 days
 		if ($days <= 180) {
 			return null;
 		}
 
-		// Pro přesně roční periodu (365/366 dní) annualizace = TWR
+		// For exactly one-year period (365/366 days) annualization = TWR
 		if ($days === 365 || $days === 366) {
 			return $this->getTimeWeightedReturn();
 		}
@@ -158,15 +158,15 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Money-Weighted Return (Modified Dietz method) - výnos zohledňující timing vkladů
-	 * Odpovídá na otázku: "Kolik mi moje peníze s mým timingem vydělávají?"
+	 * Money-Weighted Return (Modified Dietz method) - return accounting for the timing of deposits.
+	 * Answers the question: "How much are my money earning given my timing?"
 	 *
-	 * Modified Dietz: každý cash flow je vážen podle toho, jak dlouho byl v portfoliu
+	 * Modified Dietz: each cash flow is weighted by how long it was in the portfolio.
 	 * MWR = (valueAtEnd - valueAtStart - ΣCF_i) / (valueAtStart + Σ(CF_i × W_i))
-	 * kde W_i = (T - t_i) / T  (podíl zbývajícího období po vkladu)
+	 * where W_i = (T - t_i) / T  (fraction of remaining period after deposit)
 	 *
-	 * Pokud nejsou k dispozici detailní data, padne zpět na Simple Dietz.
-	 * Pro roky (> 180 dní) vrací annualizovanou hodnotu.
+	 * Falls back to Simple Dietz if detailed data is not available.
+	 * Returns annualized value for periods > 180 days.
 	 */
 	public function getMoneyWeightedReturn(): float|null
 	{
@@ -184,7 +184,7 @@ class PortfolioStatisticTotalValue
 		if ($this->cashFlowData !== null && count($this->cashFlowData) >= 2) {
 			$denominator = $this->computeModifiedDietzDenominator($days);
 		} else {
-			// Fallback: Simple Dietz — předpokládá cash flow v půlce období
+			// Fallback: Simple Dietz — assumes cash flow at mid-period
 			$denominator = $this->valueAtStart + ($totalCashFlow / 2);
 		}
 
@@ -192,12 +192,12 @@ class PortfolioStatisticTotalValue
 			return null;
 		}
 
-		// Čistý výnos za období
+		// Net gain for the period
 		$gain = $this->valueAtEnd - $this->valueAtStart - $totalCashFlow;
 
 		$mwr = $gain / $denominator * 100;
 
-		// Pro delší periody (> 180 dní) annualizovat
+		// Annualize for longer periods (> 180 days)
 		if ($days > 180) {
 			return (((1 + $mwr / 100) ** (365 / $days)) - 1) * 100;
 		}
@@ -206,9 +206,9 @@ class PortfolioStatisticTotalValue
 	}
 
 	/**
-	 * Vypočítá jmenovatel Modified Dietz: valueAtStart + Σ(ΔCF_i × W_i)
-	 * kde ΔCF_i = změna investované částky v daný den
-	 *     W_i   = (daysTotal - daysSinceStart) / daysTotal
+	 * Computes the Modified Dietz denominator: valueAtStart + Σ(ΔCF_i × W_i)
+	 * where ΔCF_i = change in invested amount on a given day
+	 *       W_i   = (daysTotal - daysSinceStart) / daysTotal
 	 */
 	private function computeModifiedDietzDenominator(int $totalDays): float
 	{
@@ -263,6 +263,109 @@ class PortfolioStatisticTotalValue
 	public function getPeriodProfitWithClosedPositionsAndDividends(): float
 	{
 		return $this->getPeriodProfit() + $this->getClosedPositionsProfitInPeriod() + $this->getDividendsInPeriod();
+	}
+
+	/**
+	 * XIRR (Money-Weighted Return) - exact return accounting for timing and size of deposits.
+	 * Returns annualized XIRR adjusted for the given period using the formula:
+	 * (1 + xirr) ^ (days / 365) - 1
+	 *
+	 * For "all time" periods, XIRR is returned directly.
+	 * For shorter periods, XIRR is adjusted to the period return.
+	 *
+	 * Cash flows are built from cashFlowData (investment deltas as negative values)
+	 * and the final record (valueAtEnd as a positive value).
+	 */
+	public function getXirr(): float|null
+	{
+		if ($this->startDate === null || $this->endDate === null) {
+			return null;
+		}
+
+		if ($this->cashFlowData === null || count($this->cashFlowData) < 1) {
+			return null;
+		}
+
+		$xirrCashFlows = $this->buildXirrCashFlows();
+		if ($xirrCashFlows === null) {
+			return null;
+		}
+
+		$annualizedXirr = XirrCalculator::calculate($xirrCashFlows);
+		if ($annualizedXirr === null) {
+			return null;
+		}
+
+		$days = $this->getDaysInPeriod();
+
+		// Adjust for period: (1 + xirr) ^ (days / 365) - 1
+		$periodReturn = XirrCalculator::adjustForPeriod($annualizedXirr, $days);
+
+		return $periodReturn * 100;
+	}
+
+	/**
+	 * Builds the cash flow array for XIRR calculation.
+	 * First entry = negative market value of portfolio at start of period (valueAtStart).
+	 * Each change in invested amount during the period = negative cash flow (new investment).
+	 * Last entry = positive market value of portfolio at end of period (valueAtEnd).
+	 *
+	 * @return array<array{date: ImmutableDateTime, amount: float}>|null
+	 */
+	private function buildXirrCashFlows(): array|null
+	{
+		if ($this->cashFlowData === null || count($this->cashFlowData) < 1) {
+			return null;
+		}
+
+		if ($this->startDate === null || $this->endDate === null) {
+			return null;
+		}
+
+		$cashFlows = [];
+
+		// Initial cash flow = negative market value of portfolio at start of period
+		// (as if we "bought" the portfolio at its current market value)
+		if ($this->valueAtStart > 0) {
+			$cashFlows[] = [
+				'date' => $this->startDate,
+				'amount' => -$this->valueAtStart,
+			];
+		}
+
+		// Add new investments during the period as negative cash flows (invested amount deltas)
+		$prevAmount = null;
+		foreach ($this->cashFlowData as $entry) {
+			if ($prevAmount === null) {
+				$prevAmount = $entry['amount'];
+				continue;
+			}
+
+			$delta = $entry['amount'] - $prevAmount;
+			if (abs($delta) > 0.01) {
+				$cashFlows[] = [
+					'date' => $entry['date'],
+					'amount' => -$delta,
+				];
+			}
+
+			$prevAmount = $entry['amount'];
+		}
+
+		// Final cash flow = positive market value of portfolio at end of period
+		// (as if we "sold" the portfolio at its current market value)
+		if ($this->valueAtEnd > 0) {
+			$cashFlows[] = [
+				'date' => $this->endDate,
+				'amount' => $this->valueAtEnd,
+			];
+		}
+
+		if (count($cashFlows) < 2) {
+			return null;
+		}
+
+		return $cashFlows;
 	}
 
 	private function getDaysInPeriod(): int

@@ -24,8 +24,8 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 	}
 
 	/**
-	 * Vrátí lightweight seznam (createdAt, investedCzk) pro výpočet Modified Dietz.
-	 * Nenačítá celé entity — pracuje jen se skalárními hodnotami.
+	 * Returns a lightweight list (createdAt, investedCzk) for Modified Dietz calculation.
+	 * Does not load full entities — works only with scalar values.
 	 *
 	 * @return array<array{date: ImmutableDateTime, amount: float}>
 	 */
