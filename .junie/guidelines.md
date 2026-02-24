@@ -120,6 +120,7 @@ All shared UI infrastructure for the Nette application.
   - Always add public properties to the Template class when assigning variables to `$this->template` in Presenters or Controls. Dynamic properties are deprecated.
 - **Exceptions**: 
   - always use English language in exception messages.
+- **Comments**: Use only english language in comments.
 
 ## Doctrine & Migrations
 - If you change anything in Doctrine ORM entities:

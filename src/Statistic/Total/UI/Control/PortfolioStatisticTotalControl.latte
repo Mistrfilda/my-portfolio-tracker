@@ -122,6 +122,15 @@
                         <dd>{include #box, amount: $value->getMoneyWeightedReturn(), suffix: '%'}</dd>
                     </div>
                 {/if}
+                {if $value->getXirr() !== null}
+                    <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
+                        <dt class="text-gray-900 font-semibold">
+                            XIRR
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Přesný výnos za období</span>
+                        </dt>
+                        <dd>{include #box, amount: $value->getXirr(), suffix: '%'}</dd>
+                    </div>
+                {/if}
             </div>
         </dl>
     </li>

@@ -588,6 +588,115 @@ class PortfolioStatisticTotalValueTest extends TestCase
 		self::assertSame(115_000.0, $value->getValueAtEnd());
 	}
 
+	// -------------------------------------------------------------------------
+	// XIRR
+	// -------------------------------------------------------------------------
+
+	public function testGetXirrMonthlyPeriodCloseToMwr(): void
+	{
+		// Měsíční období: XIRR by měl být blízko TWR/MWR
+		// Investováno 100k, žádné nové investice, hodnota vzrostla na 105k → 5% za měsíc
+		$cashFlowData = [
+			['date' => new ImmutableDateTime('2024-06-01'), 'amount' => 100_000.0],
+			['date' => new ImmutableDateTime('2024-06-30'), 'amount' => 100_000.0],
+		];
+
+		$value = $this->createValue(
+			investedAtStart: 100_000,
+			investedAtEnd: 100_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 105_000,
+			startDate: new ImmutableDateTime('2024-06-01'),
+			endDate: new ImmutableDateTime('2024-06-30'),
+			cashFlowData: $cashFlowData,
+		);
+
+		$xirr = $value->getXirr();
+		self::assertNotNull($xirr);
+		// Pro měsíční období bez nových vkladů by XIRR měl být blízko 5%
+		self::assertGreaterThan(4.5, $xirr);
+		self::assertLessThan(5.5, $xirr);
+	}
+
+	public function testGetXirrMonthlyWithNewInvestment(): void
+	{
+		// Měsíční období s novým vkladem uprostřed
+		// Start: value 1_949_196, invested 1_761_535
+		// Mid-month: invested goes to 1_834_959
+		// End: value 2_032_078, invested 1_834_959
+		$cashFlowData = [
+			['date' => new ImmutableDateTime('2024-06-01'), 'amount' => 1_761_535.0],
+			['date' => new ImmutableDateTime('2024-06-15'), 'amount' => 1_834_959.0],
+			['date' => new ImmutableDateTime('2024-06-30'), 'amount' => 1_834_959.0],
+		];
+
+		$value = $this->createValue(
+			investedAtStart: 1_761_535,
+			investedAtEnd: 1_834_959,
+			valueAtStart: 1_949_196,
+			valueAtEnd: 2_032_078,
+			startDate: new ImmutableDateTime('2024-06-01'),
+			endDate: new ImmutableDateTime('2024-06-30'),
+			cashFlowData: $cashFlowData,
+		);
+
+		$xirr = $value->getXirr();
+		self::assertNotNull($xirr);
+		// XIRR by měl být blízko TWR (0.47%) a MWR (0.48%), ne 10%+
+		self::assertGreaterThan(-2.0, $xirr);
+		self::assertLessThan(3.0, $xirr);
+	}
+
+	public function testGetXirrNegativeReturn(): void
+	{
+		// Měsíční období se ztrátou
+		$cashFlowData = [
+			['date' => new ImmutableDateTime('2024-05-01'), 'amount' => 1_761_535.0],
+			['date' => new ImmutableDateTime('2024-05-31'), 'amount' => 1_761_535.0],
+		];
+
+		$value = $this->createValue(
+			investedAtStart: 1_761_535,
+			investedAtEnd: 1_761_535,
+			valueAtStart: 1_991_426,
+			valueAtEnd: 1_949_196,
+			startDate: new ImmutableDateTime('2024-05-01'),
+			endDate: new ImmutableDateTime('2024-05-31'),
+			cashFlowData: $cashFlowData,
+		);
+
+		$xirr = $value->getXirr();
+		self::assertNotNull($xirr);
+		// Záporný výnos — hodnota klesla
+		self::assertLessThan(0.0, $xirr);
+	}
+
+	public function testGetXirrNullWithoutDates(): void
+	{
+		$value = $this->createValue(
+			investedAtStart: 100_000,
+			investedAtEnd: 100_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 110_000,
+		);
+
+		self::assertNull($value->getXirr());
+	}
+
+	public function testGetXirrNullWithoutCashFlowData(): void
+	{
+		$value = $this->createValue(
+			investedAtStart: 100_000,
+			investedAtEnd: 100_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 110_000,
+			startDate: new ImmutableDateTime('2024-01-01'),
+			endDate: new ImmutableDateTime('2024-01-31'),
+		);
+
+		self::assertNull($value->getXirr());
+	}
+
 	public function testGetClosedPositionsProfitAndDividends(): void
 	{
 		$value = $this->createValue(
