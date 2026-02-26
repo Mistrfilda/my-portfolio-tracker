@@ -52,7 +52,7 @@
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
         >
-            <dl class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            <dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                 {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
                     {varType App\Dashboard\DashboardValue $dashboardValue}
                     <div class="bg-white p-3 shadow-sm rounded-lg overflow-hidden flex items-center gap-3">
@@ -62,10 +62,10 @@
                             {/if}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <dt class="text-xs font-medium text-gray-500 truncate">{$dashboardValue->getLabel()}</dt>
+                            <dt class="text-xs font-medium text-gray-500">{$dashboardValue->getLabel()}</dt>
                             <dd class="text-lg font-bold text-gray-900">{$dashboardValue->getValue()}</dd>
                             {if $dashboardValue->getDescription() !== null}
-                                <dd class="text-[10px] text-gray-400 truncate">{$dashboardValue->getDescription()}</dd>
+                                <dd class="text-[10px] text-gray-400">{$dashboardValue->getDescription()}</dd>
                             {/if}
                         </div>
                     </div>
