@@ -25,12 +25,16 @@ class StockAssetClosedPositionListControl extends BaseControl
 
 			$bPriceDiff = $b->getTotalAmountPriceDiffInBrokerCurrencyWithDividends() ?? $b->getTotalAmountPriceDiffInBrokerCurrency();
 
-			return $bPriceDiff <=> $aPriceDiff;
+			return $bPriceDiff->getPriceDifference() <=> $aPriceDiff->getPriceDifference();
 		});
 
-		$this->template->positions = $positions;
-		$this->getTemplate()->setFile(__DIR__ . '/StockAssetClosedPositionListControl.latte');
-		$this->getTemplate()->render();
+		$totalPriceDiffInCzk = $this->stockClosedPositionFacade->getAllStockClosedPositionsSummaryPrice();
+
+		$template = $this->getTemplate();
+		$template->positions = $positions;
+		$template->totalPriceDiffInCzk = $totalPriceDiffInCzk;
+		$template->setFile(__DIR__ . '/StockAssetClosedPositionListControl.latte');
+		$template->render();
 	}
 
 }

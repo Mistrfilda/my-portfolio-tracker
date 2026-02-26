@@ -1,7 +1,7 @@
 {templateType App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlTemplate}
 
 <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden">
-	<div class="px-4 py-5 sm:px-6 bg-gradient-to-r from-blue-50 to-blue-50 border-b border-gray-200">
+	<div class="px-4 py-5 sm:px-6 bg-gray-50 border-b border-gray-200">
 		<h3 class="text-lg leading-6 font-semibold text-gray-900">🤖 AI analýza</h3>
 		<p class="mt-1 max-w-2xl text-sm text-gray-500">Posledních 5 záznamů (pokud existují)</p>
 	</div>
@@ -13,10 +13,10 @@
 				{foreach $results as $res}
 					{if $res->getType()->value === 'single_stock'}
 						<div class="rounded-lg border border-gray-200 overflow-hidden hover:shadow-sm transition-shadow">
-							<div class="px-4 py-3 bg-orange-50 border-b border-gray-200">
+							<div class="px-4 py-3 bg-gray-50 border-b border-gray-200">
 								<div class="flex items-center justify-between">
 									<div class="flex items-center gap-2">
-										<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-orange-100 text-orange-800 ring-1 ring-inset ring-orange-200">
+										<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 ring-1 ring-inset ring-gray-200">
 											📊 Detailní analýza
 										</span>
 										{if $res->getActionSuggestion()}
@@ -58,15 +58,15 @@
 
 									<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
 										{if $res->getValuationAssessment()}
-											<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
-												<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">📊 Ocenění</div>
-												<p class="text-sm text-blue-700 leading-relaxed">{$res->getValuationAssessment()}</p>
+											<div class="rounded-lg bg-gray-50 border-l-3 border-l-blue-500 border border-gray-200 p-2.5">
+												<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">📊 Ocenění</div>
+												<p class="text-sm text-gray-600 leading-relaxed">{$res->getValuationAssessment()}</p>
 											</div>
 										{/if}
 										{if $res->getConclusion()}
-											<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
-												<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">💡 Závěr</div>
-												<p class="text-sm text-blue-700 leading-relaxed">{$res->getConclusion()}</p>
+											<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
+												<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💡 Závěr</div>
+												<p class="text-sm text-gray-600 leading-relaxed">{$res->getConclusion()}</p>
 											</div>
 										{/if}
 									</div>
@@ -121,50 +121,50 @@
 							<div class="px-4 py-3">
 								<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
 									{if $res->getPositiveNews()}
-										<div class="rounded-md bg-green-50 border border-green-200 p-2.5">
-											<div class="text-xs font-semibold text-green-800 uppercase tracking-wide mb-1">✅ Pozitiva</div>
-											<p class="text-sm text-green-700 leading-relaxed">{$res->getPositiveNews()}</p>
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-green-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">✅ Pozitiva</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getPositiveNews()}</p>
 										</div>
 									{/if}
 									{if $res->getNegativeNews()}
-										<div class="rounded-md bg-red-50 border border-red-200 p-2.5">
-											<div class="text-xs font-semibold text-red-800 uppercase tracking-wide mb-1">⚠️ Negativa</div>
-											<p class="text-sm text-red-700 leading-relaxed">{$res->getNegativeNews()}</p>
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-red-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">⚠️ Negativa</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getNegativeNews()}</p>
 										</div>
 									{/if}
 									{if $res->getInterestingNews()}
-										<div class="rounded-md bg-amber-50 border border-amber-200 p-2.5">
-											<div class="text-xs font-semibold text-amber-800 uppercase tracking-wide mb-1">💡 Zajímavosti</div>
-											<p class="text-sm text-amber-700 leading-relaxed">{$res->getInterestingNews()}</p>
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-amber-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💡 Zajímavosti</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getInterestingNews()}</p>
 										</div>
 									{/if}
 									{if $res->getAiOpinion()}
-										<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
-											<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">🤖 Názor AI</div>
-											<p class="text-sm text-blue-700 leading-relaxed">{$res->getAiOpinion()}</p>
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">🤖 Názor AI</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getAiOpinion()}</p>
 										</div>
 									{/if}
 									{if $res->getNews()}
-										<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
-											<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">📰 Novinky</div>
-											<p class="text-sm text-blue-700 leading-relaxed">{$res->getNews()}</p>
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-blue-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">📰 Novinky</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getNews()}</p>
 										</div>
 									{/if}
- 								{if $res->getReasoning()}
- 									<div class="rounded-md bg-blue-50 border border-blue-200 p-2.5">
- 										<div class="text-xs font-semibold text-blue-800 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
- 										<p class="text-sm text-blue-700 leading-relaxed">{$res->getReasoning()}</p>
- 									</div>
- 								{/if}
- 							</div>
- 							{if $res->getFairPrice()}
- 								<div class="mt-2 rounded-md bg-blue-50 border border-blue-200 p-2.5 flex items-center">
- 									<span class="text-xs font-semibold text-blue-800 uppercase tracking-wide mr-2">💰 Férová cena:</span>
- 									<span class="text-sm font-bold text-blue-800">
- 										{$res->getFairPrice()|currency:$res->getFairPriceCurrency()}
- 									</span>
- 								</div>
- 							{/if}
+									{if $res->getReasoning()}
+										<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
+											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
+											<p class="text-sm text-gray-600 leading-relaxed">{$res->getReasoning()}</p>
+										</div>
+									{/if}
+								</div>
+								{if $res->getFairPrice()}
+									<div class="mt-2 rounded-lg bg-blue-50 border border-blue-200 p-2.5 flex items-center">
+										<span class="text-sm font-medium text-gray-700 mr-2">💰 Férová cena:</span>
+										<span class="text-base font-bold text-blue-800">
+											{$res->getFairPrice()|currency:$res->getFairPriceCurrency()}
+										</span>
+									</div>
+								{/if}
 							</div>
 						</div>
 					{/if}
