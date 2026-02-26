@@ -1,7 +1,10 @@
 Analyzuj mé aktuální akciové pozice. Pro každou akcii v seznamu portfolioAnalysis uveď:
-a) Pozitivní zprávy (3–4 věty)
-b) Negativní zprávy (3–4 věty)
-c) Zajímavé novinky (3–4 věty)
-d) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont
-e) Doporučení (hold, consider_selling, add_more, watch_closely)
-f) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy a dostupných dat odhadni přibližnou férovou hodnotu akcie
+a) Pozitivní zprávy (3–4 věty) – co se děje dobře, nadcházející katalyzátory
+b) Negativní zprávy (3–4 věty) – rizika, problémy, varovné signály
+c) Zajímavé novinky (3–4 věty) – akvizice, nové produkty, změny managementu
+d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date). Pokud přesné datum neznáš, uveď alespoň přibližný měsíc/kvartál.
+e) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont (3–5 vět)
+f) Doporučení (hold, consider_selling, add_more, watch_closely)
+g) Míra jistoty doporučení (confidenceLevel: low, medium, high)
+h) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy odhadni přibližnou intrinsic value akcie.
+Buď konzervativní. Při analýze zohledni i pozici akcie v rámci celého portfolia (podíl, sektorová diverzifikace).

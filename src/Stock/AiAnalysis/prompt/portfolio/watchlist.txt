@@ -1,5 +1,10 @@
-Analyzuj akcie na mém watchlistu. Při analýze zohledni mé aktuální portfolio výše – například zda by nákup nezdvojil expozici do stejného sektoru. Pro každou akcii v sekci watchlistAnalysis uveď:
-a) Aktuální zprávy a novinky
-b) Zda dává smysl ji nyní nakoupit a proč / proč ne
-c) Doporučení (consider_buying, wait, not_interesting)
-d) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy a dostupných dat odhadni přibližnou férovou hodnotu akcie
+Analyzuj akcie na mém watchlistu. Při analýze zohledni mé aktuální portfolio z předchozí sekce – zejména:
+1) Zda by nákup nezdvojil nebo nepříliš nezvýšil expozici do stejného sektoru
+2) Zda akcie doplňuje portfolio z hlediska diverzifikace (sektor, geografie, typ – růst vs. dividenda)
+3) Pro každou akcii v sekci watchlistAnalysis uveď:
+a) Aktuální zprávy a novinky (3–4 věty)
+b) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date). Pokud přesné datum neznáš, uveď alespoň přibližný měsíc/kvartál.
+c) Zda dává smysl ji nyní nakoupit a proč / proč ne (3–5 vět)
+d) Doporučení (consider_buying, wait, not_interesting)
+e) Míra jistoty doporučení (confidenceLevel: low, medium, high)
+f) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy odhadni přibližnou férovou hodnotu akcie

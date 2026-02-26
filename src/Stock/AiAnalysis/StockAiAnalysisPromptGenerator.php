@@ -9,6 +9,7 @@ use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Position\StockPositionFacade;
+use App\Stock\Valuation\Data\StockValuationData;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -80,6 +81,23 @@ class StockAiAnalysisPromptGenerator
 		$data = [];
 		if ($includesPortfolio) {
 			$data['portfolio'] = $portfolioData;
+
+			/** @var array<string, float> $sectorAllocation */
+			$sectorAllocation = [];
+			foreach ($portfolioData as $item) {
+				assert(is_array($item));
+				$sector = is_string($item['sector'] ?? null) ? $item['sector'] : 'Unknown';
+				$portfolioPercentage = is_float(
+					$item['portfolioPercentage'] ?? null,
+				)
+					? $item['portfolioPercentage']
+					: 0.0;
+				$sectorAllocation[$sector] = ($sectorAllocation[$sector] ?? 0) + $portfolioPercentage;
+			}
+
+			arsort($sectorAllocation);
+			$data['sectorAllocation'] = $sectorAllocation;
+			$data['totalPositions'] = count($portfolioData);
 		}
 
 		if ($includesWatchlist) {
@@ -123,11 +141,13 @@ class StockAiAnalysisPromptGenerator
 				'businessSummary' => 'string',
 				'moatAnalysis' => 'string',
 				'financialHealth' => 'string',
+				'earningsCommentary' => 'string',
 				'growthCatalysts' => 'string',
 				'risks' => 'string',
 				'valuationAssessment' => 'string',
 				'conclusion' => 'string',
 				'recommendation' => 'consider_buying | hold | consider_selling',
+				'confidenceLevel' => 'low | medium | high',
 				'fairPrice' => 'float',
 				'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 			];
@@ -143,7 +163,9 @@ class StockAiAnalysisPromptGenerator
 					'negativeNews' => 'string',
 					'interestingNews' => 'string',
 					'aiOpinion' => 'string',
+					'earningsCommentary' => 'string',
 					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
+					'confidenceLevel' => 'low | medium | high',
 					'fairPrice' => 'float',
 					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 				],
@@ -157,8 +179,10 @@ class StockAiAnalysisPromptGenerator
 					'stockAssetName' => 'string',
 					'stockAssetTicker' => 'string',
 					'news' => 'string',
+					'earningsCommentary' => 'string',
 					'buyRecommendation' => 'consider_buying | wait | not_interesting',
 					'reasoning' => 'string',
+					'confidenceLevel' => 'low | medium | high',
 					'fairPrice' => 'float',
 					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
 				],
@@ -225,18 +249,31 @@ class StockAiAnalysisPromptGenerator
 				'portfolioPercentage' => round($portfolioPercentage, 2),
 				'profitLossPercent' => round($dto->getCurrentPriceDiff()->getPercentageDifference(), 2),
 				'firstPurchaseDate' => $firstPurchaseDate?->format('Y-m-d'),
-				'dividendYield' => isset($valuations[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value])
-					? $valuations[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value]->getFloatValue()
-					: null,
-				'trailingPE' => isset($valuations[StockValuationTypeEnum::TRAILING_PE->value])
-					? $valuations[StockValuationTypeEnum::TRAILING_PE->value]->getFloatValue()
-					: null,
-				'forwardPE' => isset($valuations[StockValuationTypeEnum::FORWARD_PE->value])
-					? $valuations[StockValuationTypeEnum::FORWARD_PE->value]->getFloatValue()
-					: null,
-				'priceToBook' => isset($valuations[StockValuationTypeEnum::PRICE_BOOK->value])
-					? $valuations[StockValuationTypeEnum::PRICE_BOOK->value]->getFloatValue()
-					: null,
+				'dividendYield' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD,
+				),
+				'trailingPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::TRAILING_PE),
+				'forwardPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::FORWARD_PE),
+				'priceToBook' => $this->getValuationValue($valuations, StockValuationTypeEnum::PRICE_BOOK),
+				'pegRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PEG_RATIO),
+				'profitMargin' => $this->getValuationValue($valuations, StockValuationTypeEnum::PROFIT_MARGIN),
+				'returnOnEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::RETURN_ON_EQUITY),
+				'debtToEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::TOTAL_DEBT_EQUITY),
+				'52WeekHigh' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_HIGH),
+				'52WeekLow' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_LOW),
+				'analystTargetPrice' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
+				),
+				'quarterlyEarningsGrowth' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
+				),
+				'quarterlyRevenueGrowth' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
+				),
 			];
 		}
 
@@ -264,34 +301,44 @@ class StockAiAnalysisPromptGenerator
 				'currency' => $asset->getCurrency()->value,
 				'sector' => $asset->getIndustry()?->getName(),
 				'currentPrice' => $asset->getAssetCurrentPrice()->getPrice(),
-				'trailingPE' => isset($valuations[StockValuationTypeEnum::TRAILING_PE->value])
-					? $valuations[StockValuationTypeEnum::TRAILING_PE->value]->getFloatValue()
-					: null,
-				'forwardPE' => isset($valuations[StockValuationTypeEnum::FORWARD_PE->value])
-					? $valuations[StockValuationTypeEnum::FORWARD_PE->value]->getFloatValue()
-					: null,
-				'priceToBook' => isset($valuations[StockValuationTypeEnum::PRICE_BOOK->value])
-					? $valuations[StockValuationTypeEnum::PRICE_BOOK->value]->getFloatValue()
-					: null,
-				'pegRatio' => isset($valuations[StockValuationTypeEnum::PEG_RATIO->value])
-					? $valuations[StockValuationTypeEnum::PEG_RATIO->value]->getFloatValue()
-					: null,
-				'dividendYield' => isset($valuations[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value])
-					? $valuations[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value]->getFloatValue()
-					: null,
-				'marketCap' => isset($valuations[StockValuationTypeEnum::MARKET_CAP->value])
-					? $valuations[StockValuationTypeEnum::MARKET_CAP->value]->getFloatValue()
-					: null,
-				'52WeekHigh' => isset($valuations[StockValuationTypeEnum::WEEK_52_HIGH->value])
-					? $valuations[StockValuationTypeEnum::WEEK_52_HIGH->value]->getFloatValue()
-					: null,
-				'52WeekLow' => isset($valuations[StockValuationTypeEnum::WEEK_52_LOW->value])
-					? $valuations[StockValuationTypeEnum::WEEK_52_LOW->value]->getFloatValue()
-					: null,
+				'trailingPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::TRAILING_PE),
+				'forwardPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::FORWARD_PE),
+				'priceToBook' => $this->getValuationValue($valuations, StockValuationTypeEnum::PRICE_BOOK),
+				'pegRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PEG_RATIO),
+				'dividendYield' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD,
+				),
+				'marketCap' => $this->getValuationValue($valuations, StockValuationTypeEnum::MARKET_CAP),
+				'52WeekHigh' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_HIGH),
+				'52WeekLow' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_LOW),
+				'profitMargin' => $this->getValuationValue($valuations, StockValuationTypeEnum::PROFIT_MARGIN),
+				'returnOnEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::RETURN_ON_EQUITY),
+				'debtToEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::TOTAL_DEBT_EQUITY),
+				'revenueGrowth' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
+				),
+				'analystTargetPrice' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
+				),
+				'quarterlyEarningsGrowth' => $this->getValuationValue(
+					$valuations,
+					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
+				),
 			];
 		}
 
 		return $data;
+	}
+
+	/**
+	 * @param array<string, StockValuationData> $valuations
+	 */
+	private function getValuationValue(array $valuations, StockValuationTypeEnum $type): float|null
+	{
+		return isset($valuations[$type->value]) ? $valuations[$type->value]->getFloatValue() : null;
 	}
 
 }

@@ -180,6 +180,12 @@ class StockAiAnalysisFacade
 			$fairPriceCurrency = CurrencyEnum::tryFrom($fairPriceCurrencyValue);
 		}
 
+		$confidenceLevel = null;
+		$confidenceLevelValue = TypeValidator::validateNullableString($data['confidenceLevel'] ?? null);
+		if ($confidenceLevelValue !== null) {
+			$confidenceLevel = StockAiAnalysisConfidenceLevelEnum::tryFrom($confidenceLevelValue);
+		}
+
 		$result = new StockAiAnalysisStockResult(
 			$run,
 			$stockAsset,
@@ -191,6 +197,8 @@ class StockAiAnalysisFacade
 			$actionSuggestion,
 			TypeValidator::validateNullableString($data['reasoning'] ?? null),
 			TypeValidator::validateNullableString($data['news'] ?? null),
+			TypeValidator::validateNullableString($data['stockAssetTicker'] ?? null),
+			TypeValidator::validateNullableString($data['stockAssetName'] ?? null),
 			null,
 			null,
 			null,
@@ -198,8 +206,8 @@ class StockAiAnalysisFacade
 			null,
 			null,
 			null,
-			null,
-			null,
+			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
+			$confidenceLevel,
 			$fairPrice,
 			$fairPriceCurrency,
 			$now,
@@ -241,6 +249,12 @@ class StockAiAnalysisFacade
 			$fairPriceCurrency = CurrencyEnum::tryFrom($fairPriceCurrencyValue);
 		}
 
+		$confidenceLevel = null;
+		$confidenceLevelValue = TypeValidator::validateNullableString($data['confidenceLevel'] ?? null);
+		if ($confidenceLevelValue !== null) {
+			$confidenceLevel = StockAiAnalysisConfidenceLevelEnum::tryFrom($confidenceLevelValue);
+		}
+
 		$result = new StockAiAnalysisStockResult(
 			$run,
 			$stockAsset,
@@ -261,6 +275,8 @@ class StockAiAnalysisFacade
 			TypeValidator::validateNullableString($data['valuationAssessment'] ?? null),
 			TypeValidator::validateNullableString($data['conclusion'] ?? null),
 			TypeValidator::validateNullableString($data['risks'] ?? null),
+			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
+			$confidenceLevel,
 			$fairPrice,
 			$fairPriceCurrency,
 			$now,

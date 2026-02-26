@@ -2,21 +2,25 @@ Analyzuj detailně společnost %s (%s).
 Tvým cílem je poskytnout komplexní investiční analýzu pro dlouhodobého investora.
 
 Zaměř se na následující oblasti:
-1. Business Overview: Co společnost dělá, jak vydělává peníze, v jakých segmentech operuje.
-2. Konkurenční výhoda (Moat): Má společnost trvalou konkurenční výhodu? (Network effect, Brand, Switching costs, atd.)
-3. Finanční zdraví a růst: Trendy v tržbách, ziscích, maržích. Zadlužení. Cash flow.
-4. Rizika: Hlavní rizika pro byznys model (konkurence, regulace, makroekonomika).
-5. Valuace: Jak si stojí valuace historicky a vůči konkurentům (P/E, P/S, FCF yield).
-6. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Buď konzervativní.
+1. Business Overview: Co společnost dělá, jak vydělává peníze, v jakých segmentech operuje. Jaký je její podíl na trhu.
+2. Konkurenční výhoda (Moat): Má společnost trvalou konkurenční výhodu? (Network effect, Brand, Switching costs, Cost advantages, Economies of scale) Jak silná je tato výhoda?
+3. Finanční zdraví a růst: Trendy v tržbách, ziscích, maržích za posledních 3-5 let. Zadlužení. Free cash flow. Konzistence výsledků.
+4. Poslední výsledky a očekávání: Jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání)? Jaké jsou trendy? Kdy se očekávají další výsledky?
+5. Katalyzátory růstu: Co může akcelerovat růst v následujících 1-3 letech?
+6. Rizika: Hlavní rizika pro byznys model (konkurence, regulace, makroekonomika, technologická disrupce). Seřaď od nejpravděpodobnějšího.
+7. Valuace: Jak si stojí valuace historicky a vůči hlavním konkurentům (P/E, P/S, EV/EBITDA, FCF yield). Je akcie levná/drahá vůči svému historickému průměru?
+8. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Použij konzervativní předpoklady.
 
 Do výstupu 'stockAnalysis' zahrň:
 - businessSummary: Shrnutí byznys modelu (3-5 vět).
-- moatAnalysis: Analýza konkurenční výhody.
-- financialHealth: Zhodnocení finanční kondice.
-- growthCatalysts: Hlavní katalyzátory budoucího růstu.
-- risks: Hlavní rizika.
-- valuationAssessment: Zhodnocení aktuální ceny (podhodnocená/férová/předražená).
-- conclusion: Závěrečný verdikt a investiční teze.
+- moatAnalysis: Analýza konkurenční výhody (4-6 vět).
+- financialHealth: Zhodnocení finanční kondice (4-6 vět).
+- earningsCommentary: Komentář k posledním výsledkům a očekávaným dalším výsledkům (3-5 vět).
+- growthCatalysts: Hlavní katalyzátory budoucího růstu (3-5 vět).
+- risks: Hlavní rizika seřazená dle pravděpodobnosti (4-6 vět).
+- valuationAssessment: Zhodnocení aktuální ceny – podhodnocená/férová/předražená s vysvětlením proč (3-5 vět).
+- conclusion: Závěrečný verdikt a investiční teze (3-5 vět).
 - recommendation: (consider_buying, hold, consider_selling)
+- confidenceLevel: Míra jistoty doporučení (low, medium, high)
 - fairPrice: Tvůj odhad férové ceny (číslo, float).
 - fairPriceCurrency: Měna férové ceny (např. USD).
