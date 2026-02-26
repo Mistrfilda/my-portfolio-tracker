@@ -5,6 +5,9 @@ declare(strict_types = 1);
 namespace App\Goal;
 
 use App\Goal\Resolver\PortfolioGoalResolver;
+use App\Notification\NotificationChannelEnum;
+use App\Notification\NotificationFacade;
+use App\Notification\NotificationTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -21,6 +24,7 @@ class PortfolioGoalUpdateFacade
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
 		private PortfolioGoalFacade $portfolioGoalFacade,
+		private NotificationFacade $notificationFacade,
 	)
 	{
 	}
@@ -42,6 +46,8 @@ class PortfolioGoalUpdateFacade
 					$value,
 					$this->datetimeFactory->createNow(),
 				);
+
+				$this->checkGoalNotification($portfolioGoal);
 
 				$this->entityManager->flush();
 			}
@@ -98,6 +104,36 @@ class PortfolioGoalUpdateFacade
 		}
 
 		$this->entityManager->flush();
+	}
+
+	private function checkGoalNotification(PortfolioGoal $portfolioGoal): void
+	{
+		$currentPercentage = $portfolioGoal->getCompletionPercentage();
+		$lastNotifiedPercentage = $portfolioGoal->getLastNotifiedPercentage();
+
+		if ($lastNotifiedPercentage === null) {
+			$portfolioGoal->setLastNotifiedPercentage($currentPercentage);
+			return;
+		}
+
+		$threshold = $portfolioGoal->getRepeatable() === null ? 1 : 3;
+
+		$currentStep = floor($currentPercentage / $threshold);
+		$lastStep = floor($lastNotifiedPercentage / $threshold);
+
+		if ($currentStep > $lastStep) {
+			$this->notificationFacade->create(
+				NotificationTypeEnum::GOALS_UPDATES,
+				[NotificationChannelEnum::DISCORD],
+				sprintf(
+					"**Milník cíle portfolia dosažen!**\nCíl: **%s**\nAktuální progress: **%s %%**",
+					$portfolioGoal->getType()->format(),
+					round($currentPercentage, 2),
+				),
+			);
+
+			$portfolioGoal->setLastNotifiedPercentage($currentPercentage);
+		}
 	}
 
 }

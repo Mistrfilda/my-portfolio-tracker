@@ -26,6 +26,7 @@ class NotificationDiscordSenderFacade implements NotificationChannelSenderFacade
 	{
 		$webhookUrl = $this->discordChannelService->getWebhookUrl($notification);
 
+		dump($webhookUrl);
 		if ($webhookUrl === null) {
 			return;
 		}

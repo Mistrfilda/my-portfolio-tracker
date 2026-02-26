@@ -66,6 +66,7 @@ parameters:
 				trend_alert_1_days: null
 				trend_alert_7_days: null
 				trend_alert_30_days: null
+				goals_update: null
 				default: null
 
 	monitoring:

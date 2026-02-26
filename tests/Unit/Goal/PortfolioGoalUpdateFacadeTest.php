@@ -8,8 +8,10 @@ use App\Goal\PortfolioGoal;
 use App\Goal\PortfolioGoalFacade;
 use App\Goal\PortfolioGoalRepeatableEnum;
 use App\Goal\PortfolioGoalRepository;
+use App\Goal\PortfolioGoalTypeEnum;
 use App\Goal\PortfolioGoalUpdateFacade;
 use App\Goal\Resolver\PortfolioGoalResolver;
+use App\Notification\NotificationFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -32,12 +34,15 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 
 	private PortfolioGoalFacade $portfolioGoalFacade;
 
+	private NotificationFacade $notificationFacade;
+
 	protected function setUp(): void
 	{
 		$this->portfolioGoalRepository = $this->createMock(PortfolioGoalRepository::class);
 		$this->entityManager = $this->createMock(EntityManagerInterface::class);
 		$this->datetimeFactory = $this->createMock(DatetimeFactory::class);
 		$this->portfolioGoalFacade = $this->createMock(PortfolioGoalFacade::class);
+		$this->notificationFacade = $this->createMock(NotificationFacade::class);
 
 		$resolver = $this->createMock(PortfolioGoalResolver::class);
 		$resolver->method('canResolveType')->willReturn(true);
@@ -49,6 +54,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			$this->entityManager,
 			$this->datetimeFactory,
 			$this->portfolioGoalFacade,
+			$this->notificationFacade,
 		);
 	}
 
@@ -101,6 +107,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			$this->entityManager,
 			$this->datetimeFactory,
 			$this->portfolioGoalFacade,
+			$this->notificationFacade,
 		);
 
 		$this->portfolioGoalRepository
@@ -250,6 +257,60 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			->method('flush');
 
 		$this->portfolioGoalUpdateFacade->updateGoal($portfolioGoalId);
+	}
+
+	public function testUpdateGoalSendsNotificationWhenThresholdCrossed(): void
+	{
+		$portfolioGoalId = Uuid::uuid4();
+		$now = new ImmutableDateTime();
+
+		$portfolioGoal = new PortfolioGoal(
+			$now->modify('-1 month'),
+			$now->modify('+1 month'),
+			PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT,
+			200.0,
+			null, // yearly (1% threshold)
+			$now,
+		);
+		$portfolioGoal->start(100.0, 100.0, $now); // percentage 0%
+
+		$this->portfolioGoalRepository
+			->method('getById')
+			->with($portfolioGoalId)
+			->willReturn($portfolioGoal);
+
+		$this->datetimeFactory
+			->method('createNow')
+			->willReturn($now);
+
+		// First update: to 100.5 (0.5% - no notification for 1% threshold)
+		$resolver = $this->createMock(PortfolioGoalResolver::class);
+		$resolver->method('canResolveType')->willReturn(true);
+
+		$value = 100.5;
+		$resolver->method('resolve')->willReturnCallback(static function () use (&$value) {
+			return $value;
+		});
+
+		$this->portfolioGoalUpdateFacade = new PortfolioGoalUpdateFacade(
+			[$resolver],
+			$this->portfolioGoalRepository,
+			$this->entityManager,
+			$this->datetimeFactory,
+			$this->portfolioGoalFacade,
+			$this->notificationFacade,
+		);
+
+		$this->notificationFacade->expects($this->exactly(1))->method('create');
+		$this->portfolioGoalUpdateFacade->updateGoal($portfolioGoalId);
+
+		$this->assertEquals(0.0, $portfolioGoal->getLastNotifiedPercentage());
+
+		// Second update: to 101.0 (1% -> notify!)
+		$value = 101.0;
+		$this->portfolioGoalUpdateFacade->updateGoal($portfolioGoalId);
+		$this->assertEquals(1.0, (float) $value - 100);
+		$this->assertEquals(1.0, $portfolioGoal->getLastNotifiedPercentage());
 	}
 
 }

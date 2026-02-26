@@ -51,6 +51,9 @@ class PortfolioGoal implements Entity
 	#[ORM\Column(type: Types::JSON)]
 	private array $statistics;
 
+	#[ORM\Column(type: Types::FLOAT, nullable: true)]
+	private float|null $lastNotifiedPercentage;
+
 	#[ORM\Column(type: Types::STRING, enumType: PortfolioGoalRepeatableEnum::class, nullable: true)]
 	private PortfolioGoalRepeatableEnum|null $repeatable;
 
@@ -73,6 +76,7 @@ class PortfolioGoal implements Entity
 		$this->valueAtStart = 0;
 		$this->currentValue = 0;
 		$this->valueAtEnd = 0;
+		$this->lastNotifiedPercentage = null;
 		$this->statistics = [];
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
@@ -102,6 +106,7 @@ class PortfolioGoal implements Entity
 		$this->valueAtStart = $valueAtStart;
 		$this->currentValue = $currentValue;
 		$this->valueAtEnd = $currentValue;
+		$this->lastNotifiedPercentage = $this->getCompletionPercentage();
 		$this->statistics[$now->format('Y-m-d')] = $currentValue;
 		$this->active = true;
 		$this->updatedAt = $now;
@@ -132,7 +137,12 @@ class PortfolioGoal implements Entity
 
 	public function getCompletionPercentage(): float
 	{
-		return ($this->currentValue - $this->valueAtStart) / ($this->goal - $this->valueAtStart) * 100;
+		$totalGoal = $this->goal - $this->valueAtStart;
+		if ($totalGoal <= 0) {
+			return 0;
+		}
+
+		return ($this->currentValue - $this->valueAtStart) / $totalGoal * 100;
 	}
 
 	public function getRemainingAmount(): float
@@ -206,6 +216,16 @@ class PortfolioGoal implements Entity
 	public function setGoal(float $goal): void
 	{
 		$this->goal = $goal;
+	}
+
+	public function getLastNotifiedPercentage(): float|null
+	{
+		return $this->lastNotifiedPercentage;
+	}
+
+	public function setLastNotifiedPercentage(float $lastNotifiedPercentage): void
+	{
+		$this->lastNotifiedPercentage = $lastNotifiedPercentage;
 	}
 
 	public function getRepeatable(): PortfolioGoalRepeatableEnum|null

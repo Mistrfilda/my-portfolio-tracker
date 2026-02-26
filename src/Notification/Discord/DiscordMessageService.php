@@ -39,13 +39,14 @@ class DiscordMessageService
 			NotificationTypeEnum::NEW_DIVIDEND => 'Nová dividenda',
 			NotificationTypeEnum::PRICE_ALERT_UP => '📈 Price alert up',
 			NotificationTypeEnum::PRICE_ALERT_DOWN => '📉 Price alert down',
+			NotificationTypeEnum::GOALS_UPDATES => 'Aktualizace cíle portfolia',
 		};
 	}
 
 	private function getColor(NotificationTypeEnum $type): int
 	{
 		return match ($type) {
-			NotificationTypeEnum::NEW_DIVIDEND, NotificationTypeEnum::PRICE_ALERT_UP => 3066993,
+			NotificationTypeEnum::NEW_DIVIDEND, NotificationTypeEnum::PRICE_ALERT_UP, NotificationTypeEnum::GOALS_UPDATES => 3066993,
 			NotificationTypeEnum::PRICE_ALERT_DOWN => 15158332,
 		};
 	}
