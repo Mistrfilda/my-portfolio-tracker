@@ -4,7 +4,8 @@ Analyzuj akcie na mém watchlistu. Při analýze zohledni mé aktuální portfol
 3) Pro každou akcii v sekci watchlistAnalysis uveď:
 a) Aktuální zprávy a novinky (3–4 věty)
 b) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date). Pokud přesné datum neznáš, uveď alespoň přibližný měsíc/kvartál.
-c) Zda dává smysl ji nyní nakoupit a proč / proč ne (3–5 vět)
-d) Doporučení (consider_buying, wait, not_interesting)
-e) Míra jistoty doporučení (confidenceLevel: low, medium, high)
-f) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy odhadni přibližnou férovou hodnotu akcie
+c) Analýza dividendy (dividendAnalysis, 3–5 vět) – zhodnoť dividendovou politiku společnosti. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Má společnost historii pravidelného zvyšování dividendy? Očekává se zvýšení nebo hrozí snížení/zrušení dividendy? Pokud společnost dividendu nevyplácí, uveď to.
+d) Zda dává smysl ji nyní nakoupit a proč / proč ne (3–5 vět)
+e) Doporučení (consider_buying, wait, not_interesting)
+f) Míra jistoty doporučení (confidenceLevel: low, medium, high)
+g) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy odhadni přibližnou férovou hodnotu akcie

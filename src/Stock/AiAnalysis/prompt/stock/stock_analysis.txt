@@ -8,8 +8,9 @@ Zaměř se na následující oblasti:
 4. Poslední výsledky a očekávání: Jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání)? Jaké jsou trendy? Kdy se očekávají další výsledky?
 5. Katalyzátory růstu: Co může akcelerovat růst v následujících 1-3 letech?
 6. Rizika: Hlavní rizika pro byznys model (konkurence, regulace, makroekonomika, technologická disrupce). Seřaď od nejpravděpodobnějšího.
-7. Valuace: Jak si stojí valuace historicky a vůči hlavním konkurentům (P/E, P/S, EV/EBITDA, FCF yield). Je akcie levná/drahá vůči svému historickému průměru?
-8. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Použij konzervativní předpoklady.
+7. Dividendová analýza: Zhodnoť dividendovou politiku. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Je společnost dividend aristocrat/king? Očekává se zvýšení nebo hrozí snížení/zrušení? Pokud společnost dividendu nevyplácí, uveď to a zmiň případné plány.
+8. Valuace: Jak si stojí valuace historicky a vůči hlavním konkurentům (P/E, P/S, EV/EBITDA, FCF yield). Je akcie levná/drahá vůči svému historickému průměru?
+9. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Použij konzervativní předpoklady.
 
 Do výstupu 'stockAnalysis' zahrň:
 - businessSummary: Shrnutí byznys modelu (3-5 vět).
@@ -18,6 +19,7 @@ Do výstupu 'stockAnalysis' zahrň:
 - earningsCommentary: Komentář k posledním výsledkům a očekávaným dalším výsledkům (3-5 vět).
 - growthCatalysts: Hlavní katalyzátory budoucího růstu (3-5 vět).
 - risks: Hlavní rizika seřazená dle pravděpodobnosti (4-6 vět).
+- dividendAnalysis: Zhodnocení dividendové politiky – stabilita, bezpečnost, payout ratio, historie zvyšování, očekávaný vývoj (3-5 vět). Pokud společnost dividendu nevyplácí, uveď to.
 - valuationAssessment: Zhodnocení aktuální ceny – podhodnocená/férová/předražená s vysvětlením proč (3-5 vět).
 - conclusion: Závěrečný verdikt a investiční teze (3-5 vět).
 - recommendation: (consider_buying, hold, consider_selling)

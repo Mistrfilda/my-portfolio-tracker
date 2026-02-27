@@ -138,25 +138,49 @@
 											<p class="text-sm text-gray-600 leading-relaxed">{$res->getInterestingNews()}</p>
 										</div>
 									{/if}
-									{if $res->getAiOpinion()}
-										<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
-											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">🤖 Názor AI</div>
-											<p class="text-sm text-gray-600 leading-relaxed">{$res->getAiOpinion()}</p>
-										</div>
-									{/if}
-									{if $res->getNews()}
+  							{if $res->getAiOpinion()}
+  								<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
+  									<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">🤖 Názor AI</div>
+  									<p class="text-sm text-gray-600 leading-relaxed">{$res->getAiOpinion()}</p>
+  								</div>
+  							{/if}
+  							{if $res->getEarningsCommentary()}
+  								<div class="rounded-lg bg-gray-50 border-l-3 border-l-amber-500 border border-gray-200 p-2.5">
+  									<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">📋 Poslední výsledky</div>
+  									<p class="text-sm text-gray-600 leading-relaxed">{$res->getEarningsCommentary()}</p>
+  								</div>
+  							{/if}
+  							{if $res->getDividendAnalysis()}
+  								<div class="rounded-lg bg-gray-50 border-l-3 border-l-emerald-500 border border-gray-200 p-2.5">
+  									<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💵 Dividendová analýza</div>
+  									<p class="text-sm text-gray-600 leading-relaxed">{$res->getDividendAnalysis()}</p>
+  								</div>
+  							{/if}
+  							{if $res->getNews()}
 										<div class="rounded-lg bg-gray-50 border-l-3 border-l-blue-500 border border-gray-200 p-2.5">
 											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">📰 Novinky</div>
 											<p class="text-sm text-gray-600 leading-relaxed">{$res->getNews()}</p>
 										</div>
 									{/if}
-									{if $res->getReasoning()}
-										<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
-											<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
-											<p class="text-sm text-gray-600 leading-relaxed">{$res->getReasoning()}</p>
-										</div>
-									{/if}
-								</div>
+  							{if $res->getReasoning()}
+  								<div class="rounded-lg bg-gray-50 border-l-3 border-l-indigo-500 border border-gray-200 p-2.5">
+  									<div class="text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">💭 Zdůvodnění</div>
+  									<p class="text-sm text-gray-600 leading-relaxed">{$res->getReasoning()}</p>
+  								</div>
+  							{/if}
+  							</div>
+								{if $res->getConfidenceLevel()}
+									<div class="mt-2 flex items-center">
+										<span class="text-sm font-medium text-gray-700 mr-2">Míra jistoty:</span>
+										{if $res->getConfidenceLevel()->value === 'high'}
+											<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800 ring-1 ring-inset ring-green-300">Vysoká</span>
+										{elseif $res->getConfidenceLevel()->value === 'medium'}
+											<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-amber-100 text-amber-800 ring-1 ring-inset ring-amber-300">Střední</span>
+										{else}
+											<span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800 ring-1 ring-inset ring-red-300">Nízká</span>
+										{/if}
+									</div>
+								{/if}
 								{if $res->getFairPrice()}
 									<div class="mt-2 rounded-lg bg-blue-50 border border-blue-200 p-2.5 flex items-center">
 										<span class="text-sm font-medium text-gray-700 mr-2">💰 Férová cena:</span>

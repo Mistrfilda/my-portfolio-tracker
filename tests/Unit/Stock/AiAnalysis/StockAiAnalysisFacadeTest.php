@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
+use App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
@@ -151,6 +152,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 					'actionSuggestion' => 'hold',
 					'reasoning' => 'Dobrá fundamentální analýza',
 					'news' => 'Novinky o firmě',
+					'earningsCommentary' => 'Výsledky překonaly očekávání',
+					'dividendAnalysis' => 'Stabilní dividenda s 10letou historií zvyšování',
+					'confidenceLevel' => 'high',
 					'fairPrice' => 150.50,
 					'fairPriceCurrency' => 'USD',
 				],
@@ -170,6 +174,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(StockAiAnalysisActionSuggestionEnum::HOLD, $result->getActionSuggestion());
 		self::assertSame('Dobrá fundamentální analýza', $result->getReasoning());
 		self::assertSame('Novinky o firmě', $result->getNews());
+		self::assertSame('Výsledky překonaly očekávání', $result->getEarningsCommentary());
+		self::assertSame('Stabilní dividenda s 10letou historií zvyšování', $result->getDividendAnalysis());
+		self::assertSame(StockAiAnalysisConfidenceLevelEnum::HIGH, $result->getConfidenceLevel());
 		self::assertSame(150.50, $result->getFairPrice());
 		self::assertSame(CurrencyEnum::USD, $result->getFairPriceCurrency());
 	}
@@ -358,6 +365,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 				'recommendation' => 'consider_buying',
 				'financialHealth' => 'Strong',
 				'valuationAssessment' => 'Undervalued',
+				'dividendAnalysis' => 'Company pays steady quarterly dividend',
+				'earningsCommentary' => 'Beat estimates by 5%',
+				'confidenceLevel' => 'medium',
 			],
 		]);
 
@@ -373,6 +383,57 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING, $result->getActionSuggestion());
 		self::assertSame('Strong', $result->getFinancialHealth());
 		self::assertSame('Undervalued', $result->getValuationAssessment());
+		self::assertSame('Company pays steady quarterly dividend', $result->getDividendAnalysis());
+		self::assertSame('Beat estimates by 5%', $result->getEarningsCommentary());
+		self::assertSame(
+			StockAiAnalysisConfidenceLevelEnum::MEDIUM,
+			$result->getConfidenceLevel(),
+		);
+	}
+
+	public function testProcessResponsePortfolioWithDividendAnalysisNull(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$stockAssetId = Uuid::uuid4();
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$this->stockAssetRepository->shouldReceive('getById')
+			->once()
+			->andReturn($stockAsset);
+
+		$this->entityManager->shouldReceive('persist')
+			->once();
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$response = Json::encode([
+			'portfolioAnalysis' => [
+				[
+					'stockAssetId' => $stockAssetId->toString(),
+					'positiveNews' => 'Rostoucí tržby',
+					'actionSuggestion' => 'hold',
+				],
+			],
+		]);
+
+		$this->facade->processResponse($run->getId()->toString(), $response);
+
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertNull($result->getDividendAnalysis());
+		self::assertNull($result->getEarningsCommentary());
+		self::assertNull($result->getConfidenceLevel());
 	}
 
 }
