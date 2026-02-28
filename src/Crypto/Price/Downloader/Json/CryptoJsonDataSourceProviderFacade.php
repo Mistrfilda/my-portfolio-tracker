@@ -18,7 +18,7 @@ class CryptoJsonDataSourceProviderFacade
 	public function __construct(
 		private string $cryptoTableUrl,
 		private JsonDataFolderService $jsonDataFolderService,
-		private Datetimefactory $datetimefactory,
+		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -48,7 +48,7 @@ class CryptoJsonDataSourceProviderFacade
 		return sprintf(
 			'%s%s-%s',
 			$this->jsonDataFolderService->getParsedResultsFolder(),
-			$this->datetimefactory->createNow()->getTimestamp(),
+			$this->datetimeFactory->createNow()->getTimestamp(),
 			self::CRYPTO_DATA_FILE,
 		);
 

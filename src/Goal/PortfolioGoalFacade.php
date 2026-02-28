@@ -15,7 +15,7 @@ class PortfolioGoalFacade
 	public function __construct(
 		private PortfolioGoalRepository $portfolioGoalRepository,
 		private EntityManagerInterface $entityManager,
-		private Datetimefactory $datetimefactory,
+		private DatetimeFactory $datetimefactory,
 	)
 	{
 	}

@@ -63,7 +63,6 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 				continue;
 			}
 
-			assert(is_int($parsedLine[3]) || is_string($parsedLine[3]));
 			if (array_key_exists($parsedLine[3], self::RATES_TO_BE_DOWNLOADED) === false) {
 				continue;
 			}
