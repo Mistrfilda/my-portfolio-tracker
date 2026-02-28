@@ -85,6 +85,7 @@
 		"phpstan/phpstan-nette": "^2.0",
 		"phpstan/phpstan-phpunit": "^2.0",
 		"phpstan/phpstan-strict-rules": "^2.0",
+		"phpunit/phpcov": "^11.0",
 		"phpunit/phpunit": "^12.0",
 		"roave/security-advisories": "dev-master",
 		"shipmonk/composer-dependency-analyser": "^1.8",
@@ -118,8 +119,18 @@
 		"cs-fix": "vendor/bin/phpcbf --standard=phpcs.xml src tests",
 		"fix": "@cs-fix",
 		"test-unit": "vendor/bin/phpunit --testsuite unit --colors=always",
-		"test-unit-coverage": "vendor/bin/phpunit --testsuite unit --colors=always --coverage-html temp/coverage",
-		"test-integration": "vendor/bin/phpunit --testsuite integration --colors=always",
+		"test-unit-coverage": "vendor/bin/phpunit --testsuite unit --colors=always --coverage-html temp/coverage/unit",
+		"test-integration": "vendor/bin/phpunit --testsuite integration --colors=always ",
+		"test-integration-coverage": "vendor/bin/phpunit --testsuite integration --colors=always --coverage-html temp/coverage/integration",
+		"test-coverage-php-unit": "vendor/bin/phpunit --testsuite unit --colors=always --coverage-php temp/coverage-php/unit.cov",
+		"test-coverage-php-integration": "vendor/bin/phpunit --testsuite integration --colors=always --coverage-php temp/coverage-php/integration.cov",
+		"test-coverage-merged": [
+			"rm -rf temp/coverage-php temp/coverage/merged",
+			"mkdir -p temp/coverage-php temp/coverage/merged",
+			"@test-coverage-php-unit",
+			"@test-coverage-php-integration",
+			"vendor/bin/phpcov merge --html temp/coverage/merged temp/coverage-php"
+		],
 		"latte-lint": "./tools/custom-latte-lint src/",
 		"build-all-local": [
 			"@comload",
