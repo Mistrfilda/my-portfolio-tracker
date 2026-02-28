@@ -55,7 +55,7 @@ class StockPosition implements AssetPosition, Entity
 	private AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency;
 
 	#[ORM\OneToOne(targetEntity: StockClosedPosition::class, inversedBy: 'stockPosition')]
-	private StockClosedPosition|null $stockClosedPosition;
+	private StockClosedPosition|null $stockClosedPosition = null;
 
 	public function __construct(
 		AppAdmin $appAdmin,
