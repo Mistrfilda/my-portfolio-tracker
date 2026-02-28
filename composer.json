@@ -120,7 +120,7 @@
 		"fix": "@cs-fix",
 		"test-unit": "vendor/bin/phpunit --testsuite unit --colors=always",
 		"test-unit-coverage": "vendor/bin/phpunit --testsuite unit --colors=always --coverage-html temp/coverage/unit",
-		"test-integration": "vendor/bin/phpunit --testsuite integration --colors=always ",
+		"test-integration": "vendor/bin/phpunit --testsuite integration --colors=always",
 		"test-integration-coverage": "vendor/bin/phpunit --testsuite integration --colors=always --coverage-html temp/coverage/integration",
 		"test-coverage-php-unit": "vendor/bin/phpunit --testsuite unit --colors=always --coverage-php temp/coverage-php/unit.cov",
 		"test-coverage-php-integration": "vendor/bin/phpunit --testsuite integration --colors=always --coverage-php temp/coverage-php/integration.cov",

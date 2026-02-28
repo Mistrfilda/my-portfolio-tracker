@@ -4,15 +4,20 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Bootstrap;
 use Doctrine\DBAL\Connection;
 use Doctrine\Migrations\DependencyFactory;
 use Doctrine\Migrations\MigratorConfiguration;
+use Mistrfilda\Datetime\DatetimeFactory;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Bootstrap\Configurator;
 use Nette\DI\Container;
 use PHPUnit\Framework\TestCase;
 use const PHP_EOL;
 
+#[AllowMockObjectsWithoutExpectations]
 abstract class IntegrationTestCase extends TestCase
 {
 
@@ -38,6 +43,26 @@ abstract class IntegrationTestCase extends TestCase
 	protected function configureContainer(Configurator $configurator): void
 	{
 		// Override in subclasses to add additional configuration
+	}
+
+	protected function mockCurrentAppAdmin(string $name = 'Test Admin'): AppAdmin
+	{
+		$currentAppAdminGetter = $this->getService(CurrentAppAdminGetter::class);
+		$appAdmin = $this->createMock(AppAdmin::class);
+		$appAdmin->method('getName')->willReturn($name);
+		$currentAppAdminGetter->setApiAppAdmin($appAdmin);
+
+		return $appAdmin;
+	}
+
+	protected function getDatetimeFactory(): DatetimeFactory
+	{
+		return $this->getService(DatetimeFactory::class);
+	}
+
+	protected function createDatetime(string $datetime = 'now'): ImmutableDateTime
+	{
+		return new ImmutableDateTime($datetime);
 	}
 
 	/**
