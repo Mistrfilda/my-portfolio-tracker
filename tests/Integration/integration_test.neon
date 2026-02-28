@@ -1,0 +1,12 @@
+parameters:
+	database:
+		dbname: my-portfolio-app-tracker-tests
+
+monolog:
+	hook:
+		fromTracy: false
+		toTracy: false
+	channel:
+		default:
+			handlers!:
+				- Monolog\Handler\NullHandler()

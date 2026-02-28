@@ -47,10 +47,6 @@ class KbCashFacade implements BankExpenseFacade
 			KbSourceEnum::PDF => $parsedContents = $this->kbPdfExpenseParser->parse($fileContents),
 		};
 
-		if ($parsedContents === null) {
-			return false;
-		}
-
 		foreach ($parsedContents->getProcessedTransactions() as $transaction) {
 			$id = $this->computeIdForTransaction($transaction);
 
