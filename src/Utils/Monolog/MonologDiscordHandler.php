@@ -18,6 +18,8 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 
 	private Client $client;
 
+	private string $projectRoot;
+
 	public function __construct(
 		private string $webhookUrl,
 		Level $level = Level::Error,
@@ -25,6 +27,7 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 	{
 		parent::__construct($level);
 		$this->client = new Client();
+		$this->projectRoot = dirname(__DIR__, 3) . '/';
 	}
 
 	protected function write(LogRecord $record): void
@@ -35,7 +38,7 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 					'embeds' => [
 						[
 							'title' => $this->getTitle($record->level),
-							'description' => $this->formatMessage($record),
+							'description' => $this->formatDescription($record),
 							'color' => $this->getColor($record->level),
 							'timestamp' => $record->datetime->format('c'),
 							'fields' => $this->getFields($record),
@@ -76,15 +79,115 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 		};
 	}
 
-	private function formatMessage(LogRecord $record): string
+	private function formatDescription(LogRecord $record): string
 	{
-		$message = $record->message;
+		/** @var array<string, mixed> $context */
+		$context = $record->context;
+		$exception = $context['exception'] ?? null;
 
+		if ($exception instanceof Throwable) {
+			return $this->formatExceptionDescription($record->message, $exception);
+		}
+
+		$message = $record->message;
 		if (strlen($message) > 4000) {
 			$message = substr($message, 0, 4000) . '...';
 		}
 
 		return '```' . "\n" . $message . "\n" . '```';
+	}
+
+	private function formatExceptionDescription(string $logMessage, Throwable $exception): string
+	{
+		$parts = [];
+
+		// Exception class name as the main headline
+		$parts[] = '**Exception:** `' . $exception::class . '`';
+
+		// Exception message in a code block
+		$exceptionMessage = $exception->getMessage();
+		if ($exceptionMessage !== '') {
+			$parts[] = '```' . "\n" . $this->truncate($exceptionMessage, 1500) . "\n" . '```';
+		}
+
+		// Where it was thrown
+		$originFile = $this->shortenPath($exception->getFile());
+		$parts[] = '📍 **Thrown at:** `' . $originFile . ':' . $exception->getLine() . '`';
+
+		// Project-only stack trace
+		$projectTrace = $this->getProjectStackTrace($exception);
+		if ($projectTrace !== '') {
+			$parts[] = '📂 **Stack trace (project):**';
+			$parts[] = '```' . "\n" . $projectTrace . "\n" . '```';
+		}
+
+		// Previous exception
+		$previous = $exception->getPrevious();
+		if ($previous instanceof Throwable) {
+			$parts[] = '⬅️ **Caused by:** `' . $previous::class . '`';
+			$previousMessage = $previous->getMessage();
+			if ($previousMessage !== '') {
+				$parts[] = '```' . "\n" . $this->truncate($previousMessage, 500) . "\n" . '```';
+			}
+		}
+
+		if ($logMessage !== '' && $logMessage !== $exceptionMessage && !str_contains($logMessage, $exceptionMessage)) {
+			$parts[] = '💬 **Log message:** ' . $this->truncate($logMessage, 300);
+		}
+
+		$result = implode("\n", $parts);
+
+		return strlen($result) > 4000 ? substr($result, 0, 4000) . '...' : $result;
+	}
+
+	private function getProjectStackTrace(Throwable $exception): string
+	{
+		$trace = $exception->getTrace();
+		$lines = [];
+		$count = 0;
+
+		foreach ($trace as $frame) {
+			if ($count >= 8) {
+				break;
+			}
+
+			$file = $frame['file'] ?? null;
+			if (!is_string($file)) {
+				continue;
+			}
+
+			// Skip vendor files
+			if (str_contains($file, '/vendor/')) {
+				continue;
+			}
+
+			$shortFile = $this->shortenPath($file);
+			$line = $frame['line'] ?? '?';
+			$class = isset($frame['class']) && is_string($frame['class']) ? $frame['class'] : '';
+			$type = isset($frame['type']) && is_string($frame['type']) ? $frame['type'] : '';
+			$function = isset($frame['function']) && is_string($frame['function']) ? $frame['function'] : '';
+
+			$call = $class !== '' ? $class . $type . $function . '()' : $function . '()';
+			$lines[] = $shortFile . ':' . $line . ' → ' . $call;
+			$count++;
+		}
+
+		return implode("\n", $lines);
+	}
+
+	private function shortenPath(string $path): string
+	{
+		if (str_starts_with($path, $this->projectRoot)) {
+			return substr($path, strlen($this->projectRoot));
+		}
+
+		// For vendor or other paths, try to show from vendor/ onwards
+		$vendorPos = strpos($path, '/vendor/');
+		if ($vendorPos !== false) {
+			return substr($path, $vendorPos + 1);
+		}
+
+		return basename($path);
 	}
 
 	/**
@@ -107,26 +210,6 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 
 		/** @var array<string, mixed> $extra */
 		$extra = $record->extra;
-		if (count($extra) > 0) {
-			$fields = array_merge($fields, $this->formatExtraFields($extra));
-		}
-
-		/** @var array<string, mixed> $context */
-		$context = $record->context;
-		if (count($context) > 0) {
-			$fields = array_merge($fields, $this->formatContextFields($context));
-		}
-
-		return $fields;
-	}
-
-	/**
-	 * @param array<string, mixed> $extra
-	 * @return array<int, array{name: string, value: string, inline?: bool}>
-	 */
-	private function formatExtraFields(array $extra): array
-	{
-		$fields = [];
 
 		if (isset($extra['url'])) {
 			$httpInfo = [];
@@ -142,49 +225,10 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 				$httpInfo[] = '**IP:** ' . $extra['ip'];
 			}
 
-			if (isset($extra['server']) && is_string($extra['server'])) {
-				$httpInfo[] = '**Server:** ' . $extra['server'];
-			}
-
 			if (count($httpInfo) > 0) {
 				$fields[] = [
 					'name' => '🌐 HTTP Request',
 					'value' => implode("\n", $httpInfo),
-				];
-			}
-		}
-
-		if (isset($extra['file']) && isset($extra['line'])) {
-			$file = is_string($extra['file']) ? $extra['file'] : '';
-			$line = is_int($extra['line'])
-				? (string) $extra['line']
-				: (is_string($extra['line']) ? $extra['line'] : '');
-
-			if ($file !== '' && $line !== '') {
-				$fields[] = [
-					'name' => '📍 Location',
-					'value' => '```' . "\n" . $file . ':' . $line . "\n" . '```',
-				];
-			}
-		}
-
-		if (isset($extra['class']) || isset($extra['function'])) {
-			$location = '';
-			if (isset($extra['class']) && is_string($extra['class'])) {
-				$location .= $extra['class'];
-				if (isset($extra['callType']) && is_string($extra['callType'])) {
-					$location .= $extra['callType'];
-				}
-			}
-
-			if (isset($extra['function']) && is_string($extra['function'])) {
-				$location .= $extra['function'] . '()';
-			}
-
-			if ($location !== '') {
-				$fields[] = [
-					'name' => '🎯 Call',
-					'value' => '`' . $location . '`',
 				];
 			}
 		}
@@ -197,47 +241,15 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 			];
 		}
 
-		return $fields;
-	}
-
-	/**
-	 * @param array<string, mixed> $context
-	 * @return array<int, array{name: string, value: string, inline?: bool}>
-	 */
-	private function formatContextFields(array $context): array
-	{
-		$fields = [];
-
-		if (isset($context['exception'])) {
-			$exception = $context['exception'];
-			if ($exception instanceof Throwable) {
-				$exceptionInfo = sprintf(
-					"**%s**\n```\n%s\n```\n**File:** %s:%d",
-					$exception::class,
-					$this->truncate($exception->getMessage(), 500),
-					basename($exception->getFile()),
-					$exception->getLine(),
-				);
-
-				$fields[] = [
-					'name' => '🔥 Exception',
-					'value' => $exceptionInfo,
-				];
-			} elseif (is_string($exception)) {
-				$fields[] = [
-					'name' => '🔥 Exception',
-					'value' => '```' . "\n" . $this->truncate($exception, 1000) . "\n" . '```',
-				];
-			}
-		}
-
+		/** @var array<string, mixed> $context */
+		$context = $record->context;
 		$otherContext = array_diff_key($context, ['exception' => true]);
 		if (count($otherContext) > 0) {
 			$contextString = json_encode($otherContext, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-			if ($contextString !== false && strlen($contextString) < 1024) {
+			if ($contextString !== false && $contextString !== '{}') {
 				$fields[] = [
 					'name' => '📋 Context',
-					'value' => '```json' . "\n" . $contextString . "\n" . '```',
+					'value' => '```json' . "\n" . $this->truncate($contextString, 900) . "\n" . '```',
 				];
 			}
 		}
