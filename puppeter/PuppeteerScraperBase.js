@@ -13,21 +13,16 @@ export class PuppeteerScraperBase {
 			// devtools: true,
 			headless: true,
 			slowMo: 100,
-			browser: "firefox",
-			executablePath: "/usr/bin/firefox",
+			browser: "chrome",
+			executablePath: "/usr/bin/chromium",
 			args: [
 				'--no-sandbox',
 				'--disable-setuid-sandbox',
 				'--disable-gpu',
 				'--disable-dev-shm-usage',
-				'--single-process',
 				'--disable-background-timer-throttling',
 				'--disable-extensions',
 				'--disable-sync',
-				'--memory-pressure-off',
-				'--max-old-space-size=512',
-				'--disable-web-security',
-				'--disable-features=site-per-process',
 			],
 		};
 	}
@@ -115,7 +110,6 @@ export class PuppeteerScraperBase {
 							result.push(processedData);
 						}
 
-						// Volej callback pro průběžné ukládání
 						if (onProgressCallback && (index + 1) % SAVE_PROGRESS_AFTER === 0) {
 							await onProgressCallback(result);
 						}
@@ -132,7 +126,6 @@ export class PuppeteerScraperBase {
 				await this.delay(5000);
 			}
 
-			// Ulož progress na konci (pro případ, že poslední dávka nedosáhla SAVE_PROGRESS_AFTER)
 			if (onProgressCallback && result.length > 0) {
 				await onProgressCallback(result);
 			}

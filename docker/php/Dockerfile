@@ -42,16 +42,21 @@ RUN chown -R www-data:www-data /var/temp
 
 WORKDIR /var/puppeter
 
-#FIREFOX instalation
-RUN install -d -m 0755 /etc/apt/keyrings
-RUN wget -q https://packages.mozilla.org/apt/repo-signing-key.gpg -O- | tee /etc/apt/keyrings/packages.mozilla.org.asc > /dev/null
-RUN echo "deb [signed-by=/etc/apt/keyrings/packages.mozilla.org.asc] https://packages.mozilla.org/apt mozilla main" | tee -a /etc/apt/sources.list.d/mozilla.list > /dev/null
-RUN echo ' \
-    Package: * \
-    Pin: origin packages.mozilla.org \
-    Pin-Priority: 1000 \
-    ' | tee /etc/apt/preferences.d/mozilla
-RUN apt-get update && apt-get install -y firefox-esr
+RUN apt-get update && apt-get install -y \
+    chromium \
+    libnss3 \
+    libnspr4 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libgbm1 \
+    libgtk-3-0 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libxkbcommon0 \
+    fonts-liberation \
+    xdg-utils \
+    && apt-get clean
 
 RUN npm install
 
