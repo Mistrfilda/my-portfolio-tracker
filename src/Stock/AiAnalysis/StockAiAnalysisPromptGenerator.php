@@ -6,9 +6,11 @@ namespace App\Stock\AiAnalysis;
 
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Position\StockPositionFacade;
+use App\Stock\Price\StockAssetPriceRecordRepository;
 use App\Stock\Valuation\Data\StockValuationData;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\StockValuationTypeEnum;
@@ -26,6 +28,7 @@ class StockAiAnalysisPromptGenerator
 		private StockValuationDataRepository $stockValuationDataRepository,
 		private AssetPriceSummaryFacade $assetPriceSummaryFacade,
 		private StockPositionFacade $stockPositionFacade,
+		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
 	)
 	{
@@ -133,6 +136,7 @@ class StockAiAnalysisPromptGenerator
 		if ($includesPortfolio) {
 			$schema['portfolioEvaluation'] = [
 				'summary' => 'string',
+				'performance7DaysSummary' => 'string',
 			];
 		}
 
@@ -166,6 +170,7 @@ class StockAiAnalysisPromptGenerator
 					'aiOpinion' => 'string',
 					'earningsCommentary' => 'string',
 					'dividendAnalysis' => 'string',
+					'performance7DaysComment' => 'string',
 					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
 					'confidenceLevel' => 'low | medium | high',
 					'fairPrice' => 'float',
@@ -183,6 +188,7 @@ class StockAiAnalysisPromptGenerator
 					'news' => 'string',
 					'earningsCommentary' => 'string',
 					'dividendAnalysis' => 'string',
+					'performance7DaysComment' => 'string',
 					'buyRecommendation' => 'consider_buying | wait | not_interesting',
 					'reasoning' => 'string',
 					'confidenceLevel' => 'low | medium | high',
@@ -282,6 +288,7 @@ class StockAiAnalysisPromptGenerator
 					$valuations,
 					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
 				),
+				'performance7Days' => $this->getPerformance7Days($asset),
 			];
 		}
 
@@ -340,6 +347,7 @@ class StockAiAnalysisPromptGenerator
 					$valuations,
 					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
 				),
+				'performance7Days' => $this->getPerformance7Days($asset),
 			];
 		}
 
@@ -352,6 +360,30 @@ class StockAiAnalysisPromptGenerator
 	private function getValuationValue(array $valuations, StockValuationTypeEnum $type): float|null
 	{
 		return isset($valuations[$type->value]) ? $valuations[$type->value]->getFloatValue() : null;
+	}
+
+	private function getPerformance7Days(StockAsset $asset): float|null
+	{
+		$now = $this->datetimeFactory->createNow();
+		$sevenDaysAgo = $now->deductDaysFromDatetime(7);
+
+		$priceRecords = $this->stockAssetPriceRecordRepository->findByStockAssetSinceDate(
+			$asset,
+			$sevenDaysAgo,
+		);
+
+		if (count($priceRecords) < 2) {
+			return null;
+		}
+
+		$oldestPrice = $priceRecords[0]->getPrice();
+		$newestPrice = $priceRecords[count($priceRecords) - 1]->getPrice();
+
+		if ($oldestPrice <= 0) {
+			return null;
+		}
+
+		return round(($newestPrice - $oldestPrice) / $oldestPrice * 100, 2);
 	}
 
 }

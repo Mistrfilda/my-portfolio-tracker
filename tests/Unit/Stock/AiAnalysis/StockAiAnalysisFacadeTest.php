@@ -154,6 +154,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 					'news' => 'Novinky o firmě',
 					'earningsCommentary' => 'Výsledky překonaly očekávání',
 					'dividendAnalysis' => 'Stabilní dividenda s 10letou historií zvyšování',
+					'performance7DaysComment' => 'Akcie vzrostla o 3% díky silným výsledkům',
 					'confidenceLevel' => 'high',
 					'fairPrice' => 150.50,
 					'fairPriceCurrency' => 'USD',
@@ -176,6 +177,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame('Novinky o firmě', $result->getNews());
 		self::assertSame('Výsledky překonaly očekávání', $result->getEarningsCommentary());
 		self::assertSame('Stabilní dividenda s 10letou historií zvyšování', $result->getDividendAnalysis());
+		self::assertSame('Akcie vzrostla o 3% díky silným výsledkům', $result->getPerformance7DaysComment());
 		self::assertSame(StockAiAnalysisConfidenceLevelEnum::HIGH, $result->getConfidenceLevel());
 		self::assertSame(150.50, $result->getFairPrice());
 		self::assertSame(CurrencyEnum::USD, $result->getFairPriceCurrency());
@@ -432,8 +434,41 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$result = $run->getResults()->first();
 		self::assertNotFalse($result);
 		self::assertNull($result->getDividendAnalysis());
+		self::assertNull($result->getPerformance7DaysComment());
 		self::assertNull($result->getEarningsCommentary());
 		self::assertNull($result->getConfidenceLevel());
+	}
+
+	public function testProcessResponseWithPortfolioEvaluation7DaysSummary(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$response = Json::encode([
+			'portfolioEvaluation' => [
+				'summary' => 'Portfolio je diverzifikované',
+				'performance7DaysSummary' => 'Portfolio vzrostlo o 2.5% za posledních 7 dní',
+			],
+		]);
+
+		$this->facade->processResponse($run->getId()->toString(), $response);
+
+		self::assertSame('Portfolio je diverzifikované', $run->getPortfolioEvaluationSummary());
+		self::assertSame(
+			'Portfolio vzrostlo o 2.5% za posledních 7 dní',
+			$run->getPortfolioPerformance7DaysSummary(),
+		);
 	}
 
 }

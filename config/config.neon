@@ -182,8 +182,8 @@ monolog:
 				- Monolog\Processor\IntrospectionProcessor()
 
 console:
-    url: %console.url%
-    catchExceptions: false
+	url: %console.url%
+	catchExceptions: false
 
 webpackassets:
 	assetsDirs:

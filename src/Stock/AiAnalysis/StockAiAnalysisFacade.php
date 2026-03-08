@@ -100,9 +100,13 @@ class StockAiAnalysisFacade
 		}
 
 		$portfolioEvaluationSummary = null;
+		$portfolioPerformance7DaysSummary = null;
 		if (isset($data['portfolioEvaluation']) && is_array($data['portfolioEvaluation'])) {
 			$portfolioEvaluationSummary = TypeValidator::validateNullableString(
 				$data['portfolioEvaluation']['summary'] ?? null,
+			);
+			$portfolioPerformance7DaysSummary = TypeValidator::validateNullableString(
+				$data['portfolioEvaluation']['performance7DaysSummary'] ?? null,
 			);
 		}
 
@@ -111,6 +115,7 @@ class StockAiAnalysisFacade
 			$marketOverviewSummary,
 			$marketOverviewSentiment,
 			$portfolioEvaluationSummary,
+			$portfolioPerformance7DaysSummary,
 			$now,
 		);
 
@@ -208,6 +213,7 @@ class StockAiAnalysisFacade
 			null,
 			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
 			TypeValidator::validateNullableString($data['dividendAnalysis'] ?? null),
+			TypeValidator::validateNullableString($data['performance7DaysComment'] ?? null),
 			$confidenceLevel,
 			$fairPrice,
 			$fairPriceCurrency,
@@ -278,6 +284,7 @@ class StockAiAnalysisFacade
 			TypeValidator::validateNullableString($data['risks'] ?? null),
 			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
 			TypeValidator::validateNullableString($data['dividendAnalysis'] ?? null),
+			null,
 			$confidenceLevel,
 			$fairPrice,
 			$fairPriceCurrency,
