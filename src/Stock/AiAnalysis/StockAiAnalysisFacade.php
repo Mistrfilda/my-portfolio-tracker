@@ -33,6 +33,7 @@ class StockAiAnalysisFacade
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType = null,
 		string|null $stockTicker = null,
 		string|null $stockName = null,
 	): StockAiAnalysisRun
@@ -46,6 +47,7 @@ class StockAiAnalysisFacade
 			$includesPortfolio,
 			$includesWatchlist,
 			$includesMarketOverview,
+			$portfolioPromptType,
 			$stockTicker,
 			$stockName,
 		);
@@ -54,6 +56,7 @@ class StockAiAnalysisFacade
 			$includesPortfolio,
 			$includesWatchlist,
 			$includesMarketOverview,
+			$portfolioPromptType,
 			$this->datetimeFactory->createNow(),
 			$stockTicker,
 			$stockName,
@@ -110,12 +113,47 @@ class StockAiAnalysisFacade
 			);
 		}
 
+		$dailyBriefSummary = null;
+		$dailyBriefMarketPulse = null;
+		$dailyBriefPortfolioImpactSummary = null;
+		$dailyBriefWatchlistSummary = null;
+		$dailyBriefImportantAlerts = null;
+		$dailyBriefNextDaysChecklist = null;
+		$dailyBriefActionNeeded = null;
+		if (isset($data['dailyBrief']) && is_array($data['dailyBrief'])) {
+			$dailyBriefSummary = TypeValidator::validateNullableString($data['dailyBrief']['summary'] ?? null);
+			$dailyBriefMarketPulse = TypeValidator::validateNullableString($data['dailyBrief']['marketPulse'] ?? null);
+			$dailyBriefPortfolioImpactSummary = TypeValidator::validateNullableString(
+				$data['dailyBrief']['portfolioImpactSummary'] ?? null,
+			);
+			$dailyBriefWatchlistSummary = TypeValidator::validateNullableString(
+				$data['dailyBrief']['watchlistSummary'] ?? null,
+			);
+			$dailyBriefImportantAlerts = TypeValidator::validateNullableString(
+				$data['dailyBrief']['importantAlerts'] ?? null,
+			);
+			$dailyBriefNextDaysChecklist = TypeValidator::validateNullableString(
+				$data['dailyBrief']['nextDaysChecklist'] ?? null,
+			);
+			$actionNeededValue = TypeValidator::validateNullableString($data['dailyBrief']['actionNeeded'] ?? null);
+			if ($actionNeededValue !== null) {
+				$dailyBriefActionNeeded = StockAiAnalysisDailyBriefActionNeededEnum::tryFrom($actionNeededValue);
+			}
+		}
+
 		$run->setResponse(
 			$rawResponse,
 			$marketOverviewSummary,
 			$marketOverviewSentiment,
 			$portfolioEvaluationSummary,
 			$portfolioPerformance7DaysSummary,
+			$dailyBriefSummary,
+			$dailyBriefMarketPulse,
+			$dailyBriefPortfolioImpactSummary,
+			$dailyBriefWatchlistSummary,
+			$dailyBriefImportantAlerts,
+			$dailyBriefNextDaysChecklist,
+			$dailyBriefActionNeeded,
 			$now,
 		);
 
@@ -214,6 +252,7 @@ class StockAiAnalysisFacade
 			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
 			TypeValidator::validateNullableString($data['dividendAnalysis'] ?? null),
 			TypeValidator::validateNullableString($data['performance7DaysComment'] ?? null),
+			TypeValidator::validateNullableString($data['performance1DayComment'] ?? null),
 			$confidenceLevel,
 			$fairPrice,
 			$fairPriceCurrency,
@@ -284,6 +323,7 @@ class StockAiAnalysisFacade
 			TypeValidator::validateNullableString($data['risks'] ?? null),
 			TypeValidator::validateNullableString($data['earningsCommentary'] ?? null),
 			TypeValidator::validateNullableString($data['dividendAnalysis'] ?? null),
+			null,
 			null,
 			$confidenceLevel,
 			$fairPrice,

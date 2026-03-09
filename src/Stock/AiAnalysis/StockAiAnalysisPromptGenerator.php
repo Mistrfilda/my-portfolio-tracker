@@ -38,6 +38,7 @@ class StockAiAnalysisPromptGenerator
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType = null,
 		string|null $stockTicker = null,
 		string|null $stockName = null,
 	): string
@@ -54,14 +55,25 @@ class StockAiAnalysisPromptGenerator
 		$portfolioData = [];
 		if ($includesPortfolio) {
 			$portfolioData = $this->getPortfolioData();
-			$parts[] = $this->loadPrompt('portfolio/portfolio');
-			$parts[] = $this->loadPrompt('portfolio/portfolio_evaluation');
+
+			if ($portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
+				$parts[] = $this->loadPrompt('portfolio/daily_portfolio');
+				$parts[] = $this->loadPrompt('portfolio/daily_brief');
+			} else {
+				$parts[] = $this->loadPrompt('portfolio/portfolio');
+				$parts[] = $this->loadPrompt('portfolio/portfolio_evaluation');
+			}
 		}
 
 		$watchlistData = [];
 		if ($includesWatchlist) {
 			$watchlistData = $this->getWatchlistData();
-			$parts[] = $this->loadPrompt('portfolio/watchlist');
+
+			if ($portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
+				$parts[] = $this->loadPrompt('portfolio/daily_watchlist');
+			} else {
+				$parts[] = $this->loadPrompt('portfolio/watchlist');
+			}
 		}
 
 		if ($stockTicker !== null && $stockName !== null) {
@@ -74,6 +86,7 @@ class StockAiAnalysisPromptGenerator
 				$includesPortfolio,
 				$includesWatchlist,
 				$includesMarketOverview,
+				$portfolioPromptType,
 				$stockTicker !== null && $stockName !== null,
 			),
 			pretty: true,
@@ -121,6 +134,7 @@ class StockAiAnalysisPromptGenerator
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
 		bool $includesStockAnalysis,
 	): array
 	{
@@ -133,7 +147,19 @@ class StockAiAnalysisPromptGenerator
 			];
 		}
 
-		if ($includesPortfolio) {
+		if ($includesPortfolio && $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
+			$schema['dailyBrief'] = [
+				'summary' => 'string',
+				'marketPulse' => 'string',
+				'portfolioImpactSummary' => 'string',
+				'watchlistSummary' => 'string',
+				'importantAlerts' => 'string',
+				'nextDaysChecklist' => 'string',
+				'actionNeeded' => 'none | monitor | review_positions | review_watchlist',
+			];
+		}
+
+		if ($includesPortfolio && $portfolioPromptType !== StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
 			$schema['portfolioEvaluation'] = [
 				'summary' => 'string',
 				'performance7DaysSummary' => 'string',
@@ -159,6 +185,10 @@ class StockAiAnalysisPromptGenerator
 		}
 
 		if ($includesPortfolio) {
+			$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+				? 'performance1DayComment'
+				: 'performance7DaysComment';
+
 			$schema['portfolioAnalysis'] = [
 				[
 					'stockAssetId' => 'uuid',
@@ -170,7 +200,7 @@ class StockAiAnalysisPromptGenerator
 					'aiOpinion' => 'string',
 					'earningsCommentary' => 'string',
 					'dividendAnalysis' => 'string',
-					'performance7DaysComment' => 'string',
+					$performanceCommentField => 'string',
 					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
 					'confidenceLevel' => 'low | medium | high',
 					'fairPrice' => 'float',
@@ -180,6 +210,10 @@ class StockAiAnalysisPromptGenerator
 		}
 
 		if ($includesWatchlist) {
+			$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+				? 'performance1DayComment'
+				: 'performance7DaysComment';
+
 			$schema['watchlistAnalysis'] = [
 				[
 					'stockAssetId' => 'uuid',
@@ -188,7 +222,7 @@ class StockAiAnalysisPromptGenerator
 					'news' => 'string',
 					'earningsCommentary' => 'string',
 					'dividendAnalysis' => 'string',
-					'performance7DaysComment' => 'string',
+					$performanceCommentField => 'string',
 					'buyRecommendation' => 'consider_buying | wait | not_interesting',
 					'reasoning' => 'string',
 					'confidenceLevel' => 'low | medium | high',
@@ -288,6 +322,7 @@ class StockAiAnalysisPromptGenerator
 					$valuations,
 					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
 				),
+				'performance1Day' => $this->getPerformance1Day($asset),
 				'performance7Days' => $this->getPerformance7Days($asset),
 			];
 		}
@@ -347,6 +382,7 @@ class StockAiAnalysisPromptGenerator
 					$valuations,
 					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
 				),
+				'performance1Day' => $this->getPerformance1Day($asset),
 				'performance7Days' => $this->getPerformance7Days($asset),
 			];
 		}
@@ -362,14 +398,24 @@ class StockAiAnalysisPromptGenerator
 		return isset($valuations[$type->value]) ? $valuations[$type->value]->getFloatValue() : null;
 	}
 
+	private function getPerformance1Day(StockAsset $asset): float|null
+	{
+		return $this->getPerformanceDays($asset, 1);
+	}
+
 	private function getPerformance7Days(StockAsset $asset): float|null
 	{
+		return $this->getPerformanceDays($asset, 7);
+	}
+
+	private function getPerformanceDays(StockAsset $asset, int $days): float|null
+	{
 		$now = $this->datetimeFactory->createNow();
-		$sevenDaysAgo = $now->deductDaysFromDatetime(7);
+		$sinceDate = $now->deductDaysFromDatetime($days);
 
 		$priceRecords = $this->stockAssetPriceRecordRepository->findByStockAssetSinceDate(
 			$asset,
-			$sevenDaysAgo,
+			$sinceDate,
 		);
 
 		if (count($priceRecords) < 2) {

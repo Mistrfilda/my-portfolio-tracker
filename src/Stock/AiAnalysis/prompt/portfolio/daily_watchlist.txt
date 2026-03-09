@@ -1,0 +1,10 @@
+Analyzuj akcie na mém watchlistu z pohledu posledních 24 hodin. U každé akcie máš k dispozici pole performance1Day a performance7Days. Pro denní briefing preferuj performance1Day, performance7Days použij jen jako doplňkový kontext.
+Pro každou akcii v seznamu watchlistAnalysis vyhledej aktuální informace na webu a uveď:
+a) Aktuální zprávy a novinky (2–3 věty)
+b) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 2–4 věty)
+c) Analýzu dividendy (dividendAnalysis, 2–4 věty) – jen pokud je v krátkodobém horizontu relevantní
+d) Krátké zhodnocení výkonnosti za poslední 1 den (performance1DayComment, 2–3 věty)
+e) Zda titul po posledním dni dává větší smysl sledovat / nakoupit / ignorovat a proč (reasoning, 2–4 věty)
+f) Doporučení (consider_buying, wait, not_interesting)
+g) Míra jistoty doporučení (confidenceLevel: low, medium, high)
+h) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency)

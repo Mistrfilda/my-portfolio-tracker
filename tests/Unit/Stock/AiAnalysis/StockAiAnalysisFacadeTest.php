@@ -7,8 +7,10 @@ namespace App\Test\Unit\Stock\AiAnalysis;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum;
+use App\Stock\AiAnalysis\StockAiAnalysisDailyBriefActionNeededEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
+use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
@@ -63,7 +65,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$now = new ImmutableDateTime();
 
 		$this->promptGenerator->shouldReceive('generate')
-			->with(true, true, false, null, null)
+			->with(true, true, false, null, null, null)
 			->once()
 			->andReturn('Generated prompt text');
 
@@ -83,12 +85,51 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertTrue($run->includesPortfolio());
 		self::assertTrue($run->includesWatchlist());
 		self::assertFalse($run->includesMarketOverview());
+		self::assertNull($run->getPortfolioPromptType());
+	}
+
+	public function testCreateRunWithDailyBriefPromptType(): void
+	{
+		$now = new ImmutableDateTime();
+
+		$this->promptGenerator->shouldReceive('generate')
+			->with(
+				true,
+				true,
+				true,
+				StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
+				null,
+				null,
+			)
+			->once()
+			->andReturn('Generated daily brief prompt');
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$this->entityManager->shouldReceive('persist')
+			->once();
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$run = $this->facade->createRun(
+			true,
+			true,
+			true,
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
+		);
+
+		self::assertSame('Generated daily brief prompt', $run->getGeneratedPrompt());
+		self::assertSame(StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF, $run->getPortfolioPromptType());
+		self::assertTrue($run->isDailyBrief());
 	}
 
 	public function testProcessResponseWithMarketOverview(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, true, true, $now);
+		$run = new StockAiAnalysisRun('prompt', true, true, true, null, $now);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -119,7 +160,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithPortfolioAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -183,10 +224,86 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(CurrencyEnum::USD, $result->getFairPriceCurrency());
 	}
 
+	public function testProcessResponseWithDailyBrief(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun(
+			'prompt',
+			true,
+			true,
+			true,
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
+			$now,
+		);
+		$stockAssetId = Uuid::uuid4();
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$this->stockAssetRepository->shouldReceive('getById')
+			->once()
+			->andReturn($stockAsset);
+
+		$this->entityManager->shouldReceive('persist')
+			->once();
+
+		$this->entityManager->shouldReceive('flush')
+			->once();
+
+		$response = Json::encode([
+			'dailyBrief' => [
+				'summary' => 'Trh byl dnes nervózní, ale bez strukturální změny.',
+				'marketPulse' => 'Technologie reagovaly na pohyb výnosů dluhopisů.',
+				'portfolioImpactSummary' => 'Největší pohyb byl u růstových titulů.',
+				'watchlistSummary' => 'Na watchlistu stojí za pozornost dvě akcie po výsledcích.',
+				'importantAlerts' => 'Sleduj blížící se CPI a earnings velkých techů.',
+				'nextDaysChecklist' => 'Zkontroluj výsledky a ponech si hotovost na případný dip.',
+				'actionNeeded' => 'monitor',
+			],
+			'portfolioAnalysis' => [
+				[
+					'stockAssetId' => $stockAssetId->toString(),
+					'positiveNews' => 'Silná reakce po výsledcích.',
+					'actionSuggestion' => 'watch_closely',
+					'performance1DayComment' => 'Akcie během dne výrazně kolísala kvůli reakci na guidance.',
+				],
+			],
+		]);
+
+		$this->facade->processResponse($run->getId()->toString(), $response);
+
+		self::assertSame('Trh byl dnes nervózní, ale bez strukturální změny.', $run->getDailyBriefSummary());
+		self::assertSame('Technologie reagovaly na pohyb výnosů dluhopisů.', $run->getDailyBriefMarketPulse());
+		self::assertSame('Největší pohyb byl u růstových titulů.', $run->getDailyBriefPortfolioImpactSummary());
+		self::assertSame(
+			'Na watchlistu stojí za pozornost dvě akcie po výsledcích.',
+			$run->getDailyBriefWatchlistSummary(),
+		);
+		self::assertSame('Sleduj blížící se CPI a earnings velkých techů.', $run->getDailyBriefImportantAlerts());
+		self::assertSame(
+			'Zkontroluj výsledky a ponech si hotovost na případný dip.',
+			$run->getDailyBriefNextDaysChecklist(),
+		);
+		self::assertSame(StockAiAnalysisDailyBriefActionNeededEnum::MONITOR, $run->getDailyBriefActionNeeded());
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertSame(
+			'Akcie během dne výrazně kolísala kvůli reakci na guidance.',
+			$result->getPerformance1DayComment(),
+		);
+	}
+
 	public function testProcessResponseWithWatchlistAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', false, true, false, $now);
+		$run = new StockAiAnalysisRun('prompt', false, true, false, null, $now);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -241,7 +358,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponsePortfolioWithoutFairPrice(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -285,7 +402,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseInvalidJson(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, true, true, $now);
+		$run = new StockAiAnalysisRun('prompt', true, true, true, null, $now);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -299,7 +416,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithMultiplePortfolioStocks(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -345,7 +462,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithSingleStockAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', false, false, false, $now, 'AAPL', 'Apple Inc.');
+		$run = new StockAiAnalysisRun('prompt', false, false, false, null, $now, 'AAPL', 'Apple Inc.');
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -396,7 +513,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponsePortfolioWithDividendAnalysisNull(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -442,7 +559,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithPortfolioEvaluation7DaysSummary(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, $now);
+		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()

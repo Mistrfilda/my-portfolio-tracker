@@ -6,6 +6,7 @@ namespace App\Stock\AiAnalysis\UI;
 
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
@@ -50,6 +51,12 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		}
 
 		$this->template->stockAssetsDataJson = Json::encode($stockAssetsData);
+		$this->template->portfolioPromptTypes = [
+			StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION->value =>
+				StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION->getLabel(),
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->value =>
+				StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->getLabel(),
+		];
 	}
 
 	public function actionDetail(string $id): void
@@ -122,6 +129,14 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 	protected function createComponentPortfolioAnalysisForm(): Form
 	{
 		$form = new Form();
+		$form->addSelect('portfolioPromptType', 'Typ portfolio promptu', [
+			StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION->value =>
+				StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION->getLabel(),
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->value =>
+				StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->getLabel(),
+		])
+			->setDefaultValue(StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION->value)
+			->setRequired('Vyberte typ portfolio promptu.');
 		$form->addCheckbox('includesPortfolio', 'Akciové pozice (otevřené)')
 			->setDefaultValue(true);
 		$form->addCheckbox('includesWatchlist', 'Akcie na watchlistu')
@@ -132,15 +147,25 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$form->addSubmit('submit', 'Sestavit prompt pro portfolio');
 
 		$form->onSuccess[] = function (Form $form, $values): void {
+			$portfolioPromptType = StockAiAnalysisPortfolioPromptTypeEnum::from(
+				TypeValidator::validateString($form->getValues()->portfolioPromptType),
+			);
+
 			$run = $this->stockAiAnalysisFacade->createRun(
 				TypeValidator::validateBool($form->getValues()->includesPortfolio),
 				TypeValidator::validateBool($form->getValues()->includesWatchlist),
 				TypeValidator::validateBool($form->getValues()->includesMarketOverview),
+				$portfolioPromptType,
 				null,
 				null,
 			);
 
-			$this->flashMessage('Prompt pro portfolio byl úspěšně vygenerován.', 'success');
+			$this->flashMessage(
+				$portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+					? 'Denní briefing prompt byl úspěšně vygenerován.'
+					: 'Prompt pro portfolio byl úspěšně vygenerován.',
+				'success',
+			);
 			$this->redirect('detail', ['id' => $run->getId()->toString()]);
 		};
 
@@ -176,6 +201,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 				false,
 				false,
 				false,
+				null,
 				TypeValidator::validateString($form->getValues()->stockTicker),
 				TypeValidator::validateString($form->getValues()->stockName),
 			);

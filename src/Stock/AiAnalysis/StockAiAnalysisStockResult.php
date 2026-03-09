@@ -92,6 +92,9 @@ class StockAiAnalysisStockResult implements Entity
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $performance7DaysComment = null;
 
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $performance1DayComment = null;
+
 	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisConfidenceLevelEnum::class)]
 	private StockAiAnalysisConfidenceLevelEnum|null $confidenceLevel = null;
 
@@ -124,6 +127,7 @@ class StockAiAnalysisStockResult implements Entity
 		string|null $earningsCommentary,
 		string|null $dividendAnalysis,
 		string|null $performance7DaysComment,
+		string|null $performance1DayComment,
 		StockAiAnalysisConfidenceLevelEnum|null $confidenceLevel,
 		float|null $fairPrice,
 		CurrencyEnum|null $fairPriceCurrency,
@@ -153,6 +157,7 @@ class StockAiAnalysisStockResult implements Entity
 		$this->earningsCommentary = $earningsCommentary;
 		$this->dividendAnalysis = $dividendAnalysis;
 		$this->performance7DaysComment = $performance7DaysComment;
+		$this->performance1DayComment = $performance1DayComment;
 		$this->confidenceLevel = $confidenceLevel;
 		$this->fairPrice = $fairPrice;
 		$this->fairPriceCurrency = $fairPriceCurrency;
@@ -268,6 +273,11 @@ class StockAiAnalysisStockResult implements Entity
 	public function getPerformance7DaysComment(): string|null
 	{
 		return $this->performance7DaysComment;
+	}
+
+	public function getPerformance1DayComment(): string|null
+	{
+		return $this->performance1DayComment;
 	}
 
 	public function getConfidenceLevel(): StockAiAnalysisConfidenceLevelEnum|null

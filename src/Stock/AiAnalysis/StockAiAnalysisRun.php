@@ -40,6 +40,9 @@ class StockAiAnalysisRun implements Entity
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $includesMarketOverview;
 
+	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisPortfolioPromptTypeEnum::class)]
+	private StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType = null;
+
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $marketOverviewSummary = null;
 
@@ -51,6 +54,27 @@ class StockAiAnalysisRun implements Entity
 
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $portfolioPerformance7DaysSummary = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefSummary = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefMarketPulse = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefPortfolioImpactSummary = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefWatchlistSummary = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefImportantAlerts = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $dailyBriefNextDaysChecklist = null;
+
+	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisDailyBriefActionNeededEnum::class)]
+	private StockAiAnalysisDailyBriefActionNeededEnum|null $dailyBriefActionNeeded = null;
 
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $processedAt = null;
@@ -77,6 +101,7 @@ class StockAiAnalysisRun implements Entity
 		bool $includesPortfolio,
 		bool $includesWatchlist,
 		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
 		ImmutableDateTime $now,
 		string|null $stockTicker = null,
 		string|null $stockName = null,
@@ -88,6 +113,7 @@ class StockAiAnalysisRun implements Entity
 		$this->includesPortfolio = $includesPortfolio;
 		$this->includesWatchlist = $includesWatchlist;
 		$this->includesMarketOverview = $includesMarketOverview;
+		$this->portfolioPromptType = $portfolioPromptType;
 		$this->stockTicker = $stockTicker;
 		$this->stockName = $stockName;
 		$this->stockAsset = $stockAsset;
@@ -102,6 +128,13 @@ class StockAiAnalysisRun implements Entity
 		StockAiAnalysisMarketSentimentEnum|null $marketOverviewSentiment,
 		string|null $portfolioEvaluationSummary,
 		string|null $portfolioPerformance7DaysSummary,
+		string|null $dailyBriefSummary,
+		string|null $dailyBriefMarketPulse,
+		string|null $dailyBriefPortfolioImpactSummary,
+		string|null $dailyBriefWatchlistSummary,
+		string|null $dailyBriefImportantAlerts,
+		string|null $dailyBriefNextDaysChecklist,
+		StockAiAnalysisDailyBriefActionNeededEnum|null $dailyBriefActionNeeded,
 		ImmutableDateTime $now,
 	): void
 	{
@@ -110,6 +143,13 @@ class StockAiAnalysisRun implements Entity
 		$this->marketOverviewSentiment = $marketOverviewSentiment;
 		$this->portfolioEvaluationSummary = $portfolioEvaluationSummary;
 		$this->portfolioPerformance7DaysSummary = $portfolioPerformance7DaysSummary;
+		$this->dailyBriefSummary = $dailyBriefSummary;
+		$this->dailyBriefMarketPulse = $dailyBriefMarketPulse;
+		$this->dailyBriefPortfolioImpactSummary = $dailyBriefPortfolioImpactSummary;
+		$this->dailyBriefWatchlistSummary = $dailyBriefWatchlistSummary;
+		$this->dailyBriefImportantAlerts = $dailyBriefImportantAlerts;
+		$this->dailyBriefNextDaysChecklist = $dailyBriefNextDaysChecklist;
+		$this->dailyBriefActionNeeded = $dailyBriefActionNeeded;
 		$this->processedAt = $now;
 		$this->updatedAt = $now;
 	}
@@ -139,6 +179,16 @@ class StockAiAnalysisRun implements Entity
 		return $this->includesMarketOverview;
 	}
 
+	public function getPortfolioPromptType(): StockAiAnalysisPortfolioPromptTypeEnum|null
+	{
+		return $this->portfolioPromptType;
+	}
+
+	public function isDailyBrief(): bool
+	{
+		return $this->portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF;
+	}
+
 	public function getMarketOverviewSummary(): string|null
 	{
 		return $this->marketOverviewSummary;
@@ -157,6 +207,41 @@ class StockAiAnalysisRun implements Entity
 	public function getPortfolioPerformance7DaysSummary(): string|null
 	{
 		return $this->portfolioPerformance7DaysSummary;
+	}
+
+	public function getDailyBriefSummary(): string|null
+	{
+		return $this->dailyBriefSummary;
+	}
+
+	public function getDailyBriefMarketPulse(): string|null
+	{
+		return $this->dailyBriefMarketPulse;
+	}
+
+	public function getDailyBriefPortfolioImpactSummary(): string|null
+	{
+		return $this->dailyBriefPortfolioImpactSummary;
+	}
+
+	public function getDailyBriefWatchlistSummary(): string|null
+	{
+		return $this->dailyBriefWatchlistSummary;
+	}
+
+	public function getDailyBriefImportantAlerts(): string|null
+	{
+		return $this->dailyBriefImportantAlerts;
+	}
+
+	public function getDailyBriefNextDaysChecklist(): string|null
+	{
+		return $this->dailyBriefNextDaysChecklist;
+	}
+
+	public function getDailyBriefActionNeeded(): StockAiAnalysisDailyBriefActionNeededEnum|null
+	{
+		return $this->dailyBriefActionNeeded;
 	}
 
 	public function getProcessedAt(): ImmutableDateTime|null

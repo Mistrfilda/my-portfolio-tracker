@@ -11,6 +11,12 @@
 			<h2 class="text-lg font-medium text-gray-900 mb-4">Analýza portfolia</h2>
 
 			<form n:name="portfolioAnalysisForm" class="space-y-4">
+				<div>
+					<label n:name="portfolioPromptType" class="block text-sm font-medium text-gray-700 mb-1">Typ promptu</label>
+					<select n:name="portfolioPromptType" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></select>
+					<p class="mt-1 text-xs text-gray-500">Denní briefing využij pro rychlý přehled za posledních 24 hodin, klasické zhodnocení pro strategičtější pohled.</p>
+				</div>
+
 				<div class="flex items-center space-x-3">
 					<input n:name="includesPortfolio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
 					<label n:name="includesPortfolio" class="text-sm font-medium text-gray-700">Akciové pozice (otevřené)</label>
