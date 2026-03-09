@@ -1,8 +1,8 @@
 Zhodnoť mé aktuální portfolio jako celek. Zaměř se na:
 a) Aktuální stav portfolia – celkové rozložení, diverzifikace, silné a slabé stránky
-b) Výkonnost portfolia za posledních 7 dní (performance7DaysSummary, 3–5 vět) – na základě dat performance7Days u jednotlivých akcií zhodnoť, jak si portfolio vedlo za posledních 7 dní. Které akcie táhly výkon nahoru a které dolů? Odpovídá pohyb celkovému tržnímu sentimentu?
-c) Sektorová koncentrace – pokud je některý sektor nadměrně zastoupen (>30 %), upozorni na to a navrhni, do jakých sektorů případně doplnit expozici
+b) Výkonnost portfolia za posledních 7 dní (performance7DaysSummary, 3–5 vět) – zhodnoť, jak si portfolio vedlo. Odpovídá pohyb celkovému tržnímu sentimentu?
+c) Sektorová koncentrace – upozorni na sektory >30 % a navrhni doplnění.
 d) Co je potřeba sledovat v nejbližší době – nadcházející výsledky, dividendy, makroekonomické události
-e) Očekávané události – earnings reporty, ex-dividend data, důležité makroekonomické milníky relevantní pro mé pozice
+e) Očekávané události – earnings reporty, ex-dividend data, makro milníky
 f) Celkové doporučení – co bys v portfoliu eventuálně upravil nebo na co si dát pozor
-Výsledek zapiš do klíče portfolioEvaluation jako objekt s poli summary (jeden souhrnný text) a performance7DaysSummary (zhodnocení výkonnosti za 7 dní).
+Výsledek zapiš do klíče portfolioEvaluation jako objekt s poli summary a performance7DaysSummary.

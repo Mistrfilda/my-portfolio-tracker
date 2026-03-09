@@ -1,13 +1,12 @@
-Analyzuj mé aktuální akciové pozice. U každé akcie máš k dispozici pole performance7Days, které obsahuje procentuální změnu ceny za posledních 7 dní. Využij tuto informaci ve své analýze.
-Pro každou akcii v seznamu portfolioAnalysis uveď:
+Analyzuj mé aktuální akciové pozice. U každé akcie máš k dispozici pole performance7Days. Využij tuto informaci ve své analýze.
+Pro každou akcii v seznamu portfolioAnalysis vyhledej aktuální informace na webu a uveď:
 a) Pozitivní zprávy (3–4 věty) – co se děje dobře, nadcházející katalyzátory
 b) Negativní zprávy (3–4 věty) – rizika, problémy, varovné signály
 c) Zajímavé novinky (3–4 věty) – akvizice, nové produkty, změny managementu
-d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date). Pokud přesné datum neznáš, uveď alespoň přibližný měsíc/kvartál.
-e) Analýza dividendy (dividendAnalysis, 3–5 vět) – zhodnoť dividendovou politiku společnosti. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Má společnost historii pravidelného zvyšování dividendy (dividend aristocrat/king)? Očekává se v blízké budoucnosti zvýšení nebo naopak hrozí snížení/zrušení dividendy? Pokud společnost dividendu nevyplácí, uveď to a zmiň případné plány na zavedení.
+d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date).
+e) Analýza dividendy (dividendAnalysis, 3–5 vět) – zhodnoť dividendovou politiku společnosti. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Má společnost historii pravidelného zvyšování dividendy? Pokud společnost dividendu nevyplácí, uveď to a zmiň případné plány na zavedení.
 f) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont (3–5 vět)
-g) Krátké zhodnocení výkonnosti za posledních 7 dní (performance7DaysComment, 2–3 věty) – okomentuj procentuální změnu ceny za posledních 7 dní, co stojí za pohybem, a zda je to v souladu s trendem nebo jde o výjimku
+g) Krátké zhodnocení výkonnosti za posledních 7 dní (performance7DaysComment, 2–3 věty) – okomentuj procentuální změnu ceny, co stojí za pohybem.
 h) Doporučení (hold, consider_selling, add_more, watch_closely)
 i) Míra jistoty doporučení (confidenceLevel: low, medium, high)
-j) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě fundamentální analýzy odhadni přibližnou intrinsic value akcie.
-Buď konzervativní. Při analýze zohledni i pozici akcie v rámci celého portfolia (podíl, sektorová diverzifikace).
+j) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě dodaných dat (P/E, PEG, P/B, růst) a případného srovnání s cílovou cenou analytiků (analystTargetPrice) odhadni konzervativní intrinsic value.
