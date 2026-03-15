@@ -244,6 +244,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(1);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$this->stockAssetDividendForecastRepository
 			->shouldReceive('getById')
@@ -298,22 +299,32 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(15.0);
 
 		// Existující záznam s custom dividendou
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(2.5);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(null);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
+		// custom net = 2.5, no custom gross => gross = 2.5 / (1 - 0.15) = 2.941176...
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			[1],
 			1.0,
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			[1, 4, 7, 10],
 			10,
 			1.0,
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			1.0,
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			7.5,
+			Mockery::on(static fn ($val) => abs($val - 8.8235) < 0.01),
 			2.5,
+			null,
+			0.0,
 			0.0,
 		);
 
@@ -378,21 +389,31 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(5.0);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
+		// No tax => gross = net
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			[1],
+			1.0,
 			1.0,
 			[1, 4, 7, 10],
 			10,
 			1.0,
 			1.0,
+			1.0,
+			1.0,
+			8.0,
 			8.0,
 			null,
+			null,
+			0.0,
 			0.0,
 		);
 
@@ -455,24 +476,35 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(15.0);
 
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(2.0);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(3.0);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
-		// Očekávaná speciální dividenda je 3.0, už obdržená je 1.0, takže zbývá 2.0
-		// expectedDividendPerStock = (3 zbývající regular dividendy * 2.0 custom) + 2.0 zbývající special = 8.0
+		// custom net = 2.0, no custom gross => gross = 2.0 / 0.85 = 2.3529...
+		// remaining special net = 3.0 - 1.0 = 2.0, remaining special gross = 3.0/0.85 - 1.0 = 2.5294...
+		// expectedNet = 3 * 2.0 + 2.0 = 8.0
+		// expectedGross = 3 * 2.3529 + 2.5294 = 9.5882
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			[1],
 			1.0,
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			[1, 4, 7, 10],
 			10,
 			1.0,
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			1.0,
-			8.0, // Změněno z 9.0 na 8.0 (3*2 + (3-1))
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
+			Mockery::on(static fn ($val) => abs($val - 8.0) < 0.001),
+			Mockery::on(static fn ($val) => abs($val - 9.5882) < 0.01),
 			2.0,
-			1.0, // Změněno z 0.0 na 1.0 - obdržená speciální dividenda
+			null,
+			1.0,
+			1.0,
 		);
 
 		$this->stockAssetDividendForecastRepository
@@ -523,15 +555,25 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	{
 		$recordId = Uuid::uuid4();
 		$customDividend = 1.5;
+		$customGrossDividend = 1.8;
 		$specialDividend = 2.0;
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
 		$forecast->shouldReceive('recalculatingPending')->once();
 
 		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
+		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(15.0);
+
+		$record->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$record->shouldReceive('setCustomValues')
 			->once()
-			->with($customDividend, $specialDividend);
+			->with(
+				$customDividend,
+				$customGrossDividend,
+				$specialDividend,
+				Mockery::on(static fn ($val) => abs($val - 2.3529) < 0.01),
+			);
 		$record->shouldReceive('getStockAssetDividendForecast')
 			->once()
 			->andReturn($forecast);
@@ -544,7 +586,52 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 
 		$this->entityManager->shouldReceive('flush')->once();
 
-		$this->facade->updateCustomValuesForRecord($recordId, $customDividend, $specialDividend);
+		$this->facade->updateCustomValuesForRecord(
+			$recordId,
+			$customDividend,
+			$customGrossDividend,
+			$specialDividend,
+			null,
+		);
+
+		$this->assertTrue(true);
+	}
+
+	public function testUpdateCustomValuesForRecordWithGrossOnly(): void
+	{
+		$recordId = Uuid::uuid4();
+		$customGrossDividend = 2.0;
+
+		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(15.0);
+
+		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('recalculatingPending')->once();
+
+		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
+		$record->shouldReceive('getStockAsset')->andReturn($stockAsset);
+		// Net should be auto-calculated: 2.0 * (1 - 0.15) = 1.7
+		$record->shouldReceive('setCustomValues')
+			->once()
+			->with(
+				Mockery::on(static fn ($val) => abs($val - 1.7) < 0.001),
+				$customGrossDividend,
+				null,
+				null,
+			);
+		$record->shouldReceive('getStockAssetDividendForecast')
+			->once()
+			->andReturn($forecast);
+
+		$this->stockAssetDividendForecastRecordRepository
+			->shouldReceive('getById')
+			->with($recordId)
+			->once()
+			->andReturn($record);
+
+		$this->entityManager->shouldReceive('flush')->once();
+
+		$this->facade->updateCustomValuesForRecord($recordId, null, $customGrossDividend, null, null);
 
 		$this->assertTrue(true);
 	}
@@ -557,9 +644,13 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$forecast->shouldReceive('recalculatingPending')->once();
 
 		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
+		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
+
+		$record->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$record->shouldReceive('setCustomValues')
 			->once()
-			->with(null, null);
+			->with(null, null, null, null);
 		$record->shouldReceive('getStockAssetDividendForecast')
 			->once()
 			->andReturn($forecast);
@@ -572,7 +663,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 
 		$this->entityManager->shouldReceive('flush')->once();
 
-		$this->facade->updateCustomValuesForRecord($recordId, null, null);
+		$this->facade->updateCustomValuesForRecord($recordId, null, null, null, null);
 
 		$this->assertTrue(true);
 	}
@@ -581,17 +672,21 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		int $month,
 		float $amount,
 		StockAssetDividendTypeEnum $type,
+		float|null $grossAmount = null,
 	): StockAssetDividend|MockInterface
 	{
 		$exDate = Mockery::mock(ImmutableDateTime::class);
 		$exDate->shouldReceive('getMonth')->andReturn($month);
 
 		$summaryPrice = new SummaryPrice(CurrencyEnum::USD, $amount);
+		$grossSummaryPrice = new SummaryPrice(CurrencyEnum::USD, $grossAmount ?? $amount);
 
 		$dividend = Mockery::mock(StockAssetDividend::class);
 		$dividend->shouldReceive('getExDate')->andReturn($exDate);
 		$dividend->shouldReceive('getDividendType')->andReturn($type);
-		$dividend->shouldReceive('getSummaryPrice')->andReturn($summaryPrice);
+		$dividend->shouldReceive('getSummaryPrice')->with()->andReturn($summaryPrice);
+		$dividend->shouldReceive('getSummaryPrice')->with(true)->andReturn($summaryPrice);
+		$dividend->shouldReceive('getSummaryPrice')->with(false)->andReturn($grossSummaryPrice);
 
 		return $dividend;
 	}
@@ -612,25 +707,34 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		// Očekávaná speciální dividenda je 3.0, ale obdržená je 5.0
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(3.0);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
 		// Speciální dividenda se nepřičte, protože obdržená (5.0) > očekávaná (3.0)
 		// expectedDividendPerStock = 3 zbývající regular * 1.0 = 3.0 (bez speciální)
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			[1],
 			1.0,
+			1.0,
 			[1, 4, 7, 10],
 			10,
 			1.0,
 			1.0,
-			3.0, // Pouze regular dividendy, speciální už překročena
+			1.0,
+			1.0,
+			3.0,
+			3.0,
 			null,
-			5.0, // Obdržená speciální dividenda
+			null,
+			5.0,
+			5.0,
 		);
 
 		$this->stockAssetDividendForecastRepository
@@ -693,6 +797,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$this->stockAssetDividendForecastRepository
 			->shouldReceive('getById')
@@ -806,22 +911,31 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(null);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
-		// Použij Mockery::on() pro flexibilní validaci
+		// No tax => gross = net, trend +15%
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			Mockery::on(static fn ($val) => $val === [1]),
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
 			Mockery::on(static fn ($val) => $val === [1, 4, 7, 10]),
 			10,
 			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
+			Mockery::on(static fn ($val) => abs($val - 1.0) < 0.001),
+			Mockery::on(static fn ($val) => abs($val - 1.15) < 0.001),
 			Mockery::on(static fn ($val) => abs($val - 1.15) < 0.001),
 			Mockery::on(static fn ($val) => abs($val - 3.45) < 0.001),
+			Mockery::on(static fn ($val) => abs($val - 3.45) < 0.001),
 			null,
+			null,
+			Mockery::on(static fn ($val) => abs($val - 0.0) < 0.001),
 			Mockery::on(static fn ($val) => abs($val - 0.0) < 0.001),
 		);
 
@@ -885,23 +999,31 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
 		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
 		$stockAsset->shouldReceive('getTotalPiecesHeld')->andReturn(10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
 		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(null);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
 
-		// original = 1.0, adjusted = 1.0 * 0.85 = 0.85
-		// expectedDividendPerStock = 3 * 0.85 = 2.55
+		// No tax => gross = net, trend -15%
 		$existingRecord->shouldReceive('recalculate')->once()->with(
 			[1],
+			1.0,
 			1.0,
 			[1, 4, 7, 10],
 			10,
 			1.0,
-			0.85, // adjusted price s -15% trendem
-			2.55, // 3 zbývající * 0.85
+			1.0,
+			0.85,
+			0.85,
+			2.55,
+			2.55,
 			null,
+			null,
+			0.0,
 			0.0,
 		);
 

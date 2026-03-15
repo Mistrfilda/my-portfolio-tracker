@@ -29,12 +29,20 @@ class StockAssetDividendForecastItemValuesFormFactory
 		$form = $this->formFactory->create();
 		$form->addFloat(
 			'customDividendUsedForCalculation',
-			'Specifikovat vlastní dividendu',
+			'Specifikovat vlastní dividendu (čistá)',
 		)->setValue($record->getCustomDividendUsedForCalculation())->setNullable();
 		$form->addFloat(
+			'customGrossDividendUsedForCalculation',
+			'Specifikovat vlastní dividendu (hrubá)',
+		)->setValue($record->getCustomGrossDividendUsedForCalculation())->setNullable();
+		$form->addFloat(
 			'expectedSpecialDividendThisYearPerStock',
-			'Specifikovat speciální dividendu pro tento rok',
+			'Specifikovat speciální dividendu pro tento rok (čistá)',
 		)->setValue($record->getExpectedSpecialDividendThisYearPerStock())->setNullable();
+		$form->addFloat(
+			'expectedSpecialDividendThisYearPerStockBeforeTax',
+			'Specifikovat speciální dividendu pro tento rok (hrubá)',
+		)->setValue($record->getExpectedSpecialDividendThisYearPerStockBeforeTax())->setNullable();
 
 		$form->onSuccess[] = function (Form $form) use ($record, $onSuccess): void {
 			$values = $form->getValues();
@@ -42,7 +50,9 @@ class StockAssetDividendForecastItemValuesFormFactory
 			$this->stockAssetDividendForecastFacade->updateCustomValuesForRecord(
 				$record->getId(),
 				TypeValidator::validateNullableFloat($values->customDividendUsedForCalculation),
+				TypeValidator::validateNullableFloat($values->customGrossDividendUsedForCalculation),
 				TypeValidator::validateNullableFloat($values->expectedSpecialDividendThisYearPerStock),
+				TypeValidator::validateNullableFloat($values->expectedSpecialDividendThisYearPerStockBeforeTax),
 			);
 
 			$onSuccess($record->getStockAssetDividendForecast()->getId()->toString());

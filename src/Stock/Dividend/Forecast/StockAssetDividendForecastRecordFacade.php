@@ -72,6 +72,7 @@ class StockAssetDividendForecastRecordFacade
 			$existingRecord = $existingRecordsByStockAsset[$stockAsset->getId()->toString()] ?? null;
 			$customDividendUsedForCalculation = $existingRecord?->getCustomDividendUsedForCalculation();
 			$expectedSpecialDividendThisYearPerStock = $existingRecord?->getExpectedSpecialDividendThisYearPerStock();
+			$expectedSpecialDividendThisYearPerStockBeforeTax = $existingRecord?->getExpectedSpecialDividendThisYearPerStockBeforeTax();
 
 			$previousDividends = $this->stockAssetDividendRepository->findByStockAssetForYear(
 				$stockAsset,
@@ -82,6 +83,7 @@ class StockAssetDividendForecastRecordFacade
 			$previousYearTotalPrice = new SummaryPrice($stockAsset->getCurrency());
 
 			$specialDividendsTotalPrice = new SummaryPrice($stockAsset->getCurrency());
+			$specialDividendsTotalPriceBeforeTax = new SummaryPrice($stockAsset->getCurrency());
 
 			foreach ($previousDividends as $previousYearDividend) {
 				if ($previousYearDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR) {
@@ -89,8 +91,13 @@ class StockAssetDividendForecastRecordFacade
 					$previousYearTotalPrice->addSummaryPrice($previousYearDividend->getSummaryPrice());
 				} else {
 					$specialDividendsTotalPrice->addSummaryPrice($previousYearDividend->getSummaryPrice());
+					$specialDividendsTotalPriceBeforeTax->addSummaryPrice(
+						$previousYearDividend->getSummaryPrice(false),
+					);
 				}
 			}
+
+			$dividendTax = $stockAsset->getDividendTax();
 
 			$stockAssetForecastYearReceivedDividends = $this->stockAssetDividendRepository->findByStockAssetForYear(
 				$stockAsset,
@@ -100,7 +107,9 @@ class StockAssetDividendForecastRecordFacade
 			$lastDividendForYear = null;
 			$receivedDividendsForYear = [];
 			$receivedTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
+			$receivedTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
 			$specialDividendsTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
+			$specialDividendsTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
 
 			foreach ($stockAssetForecastYearReceivedDividends as $stockAssetForecastYearReceivedDividend) {
 				if ($stockAssetForecastYearReceivedDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR) {
@@ -110,9 +119,15 @@ class StockAssetDividendForecastRecordFacade
 					$receivedTotalPriceForYear->addSummaryPrice(
 						$stockAssetForecastYearReceivedDividend->getSummaryPrice(),
 					);
+					$receivedTotalPriceForYearBeforeTax->addSummaryPrice(
+						$stockAssetForecastYearReceivedDividend->getSummaryPrice(false),
+					);
 				} else {
 					$specialDividendsTotalPriceForYear->addSummaryPrice(
 						$stockAssetForecastYearReceivedDividend->getSummaryPrice(),
+					);
+					$specialDividendsTotalPriceForYearBeforeTax->addSummaryPrice(
+						$stockAssetForecastYearReceivedDividend->getSummaryPrice(false),
 					);
 				}
 			}
@@ -131,21 +146,32 @@ class StockAssetDividendForecastRecordFacade
 			}
 
 			$adjustedPrice = $usedDividendForCalculation->getSummaryPrice()->getPrice();
+			$adjustedPriceBeforeTax = $usedDividendForCalculation->getSummaryPrice(false)->getPrice();
 			if ($stockAssetForecast->getTrend()->getTrendNumber() !== 0) {
 				$trendPercentage = $stockAssetForecast->getTrend()->getTrendNumber();
 				$multiplier = 1 + ($trendPercentage / 100);
 				$adjustedPrice *= $multiplier;
+				$adjustedPriceBeforeTax *= $multiplier;
 			}
 
 			$dividendForCalculation = $customDividendUsedForCalculation ?? $adjustedPrice;
+			$customGrossDividendUsedForCalculation = $existingRecord?->getCustomGrossDividendUsedForCalculation();
+			$dividendForCalculationBeforeTax = $customGrossDividendUsedForCalculation ?? $adjustedPriceBeforeTax;
+			if ($customDividendUsedForCalculation !== null && $customGrossDividendUsedForCalculation === null) {
+				$dividendForCalculationBeforeTax = $dividendTax !== null
+					? $customDividendUsedForCalculation / (1 - ($dividendTax * 0.01))
+					: $customDividendUsedForCalculation;
+			}
 
 			$dividendUsuallyPaidAtMonths = array_keys($previousYearDividendsByMonth);
 			$receivedDividendMonths = array_keys($receivedDividendsForYear);
 
 			$expectedDividendPerStock = 0;
+			$expectedDividendPerStockBeforeTax = 0;
 			$expectedDividendsCount = count($dividendUsuallyPaidAtMonths) - count($receivedDividendMonths);
 			if ($expectedDividendsCount > 0) {
 				$expectedDividendPerStock = $dividendForCalculation * $expectedDividendsCount;
+				$expectedDividendPerStockBeforeTax = $dividendForCalculationBeforeTax * $expectedDividendsCount;
 			}
 
 			if ($expectedSpecialDividendThisYearPerStock !== null) {
@@ -154,26 +180,50 @@ class StockAssetDividendForecastRecordFacade
 				if ($remainingSpecialDividend > 0) {
 					$expectedDividendPerStock += $remainingSpecialDividend;
 				}
+
+				$expectedSpecialBeforeTax = $expectedSpecialDividendThisYearPerStockBeforeTax;
+				if ($expectedSpecialBeforeTax === null) {
+					$expectedSpecialBeforeTax = $dividendTax !== null
+						? $expectedSpecialDividendThisYearPerStock / (1 - ($dividendTax * 0.01))
+						: $expectedSpecialDividendThisYearPerStock;
+				}
+
+				$alreadyReceivedSpecialDividendPerStockBeforeTax = $specialDividendsTotalPriceForYearBeforeTax->getPrice();
+				$remainingSpecialDividendBeforeTax = $expectedSpecialBeforeTax - $alreadyReceivedSpecialDividendPerStockBeforeTax;
+				if ($remainingSpecialDividendBeforeTax > 0) {
+					$expectedDividendPerStockBeforeTax += $remainingSpecialDividendBeforeTax;
+				}
 			}
 
 			$brokerCurrency = $stockAsset->getCurrency();
 			$alreadyReceivedConverted = $receivedTotalPriceForYear->getPrice();
+			$alreadyReceivedConvertedBeforeTax = $receivedTotalPriceForYearBeforeTax->getPrice();
 			$originalDividendConverted = $usedDividendForCalculation->getSummaryPrice()->getPrice();
+			$originalDividendConvertedBeforeTax = $usedDividendForCalculation->getSummaryPrice(false)->getPrice();
 			$adjustedPriceConverted = $adjustedPrice;
+			$adjustedPriceConvertedBeforeTax = $adjustedPriceBeforeTax;
 			$expectedDividendPerStockConverted = $expectedDividendPerStock;
+			$expectedDividendPerStockConvertedBeforeTax = $expectedDividendPerStockBeforeTax;
 			$specialDividendsConverted = $specialDividendsTotalPriceForYear->getPrice();
+			$specialDividendsConvertedBeforeTax = $specialDividendsTotalPriceForYearBeforeTax->getPrice();
 
 			if ($existingRecord !== null) {
 				$existingRecord->recalculate(
 					$receivedDividendMonths,
 					$alreadyReceivedConverted,
+					$alreadyReceivedConvertedBeforeTax,
 					$dividendUsuallyPaidAtMonths,
 					$stockAsset->getTotalPiecesHeld(),
 					$originalDividendConverted,
+					$originalDividendConvertedBeforeTax,
 					$adjustedPriceConverted,
+					$adjustedPriceConvertedBeforeTax,
 					$expectedDividendPerStockConverted,
+					$expectedDividendPerStockConvertedBeforeTax,
 					$customDividendUsedForCalculation,
+					$customGrossDividendUsedForCalculation,
 					$specialDividendsConverted,
+					$specialDividendsConvertedBeforeTax,
 				);
 			} else {
 				$forecastRecords = new StockAssetDividendForecastRecord(
@@ -183,12 +233,18 @@ class StockAssetDividendForecastRecordFacade
 					$dividendUsuallyPaidAtMonths,
 					$receivedDividendMonths,
 					$alreadyReceivedConverted,
+					$alreadyReceivedConvertedBeforeTax,
 					$stockAsset->getTotalPiecesHeld(),
 					$originalDividendConverted,
+					$originalDividendConvertedBeforeTax,
 					$adjustedPriceConverted,
+					$adjustedPriceConvertedBeforeTax,
 					$expectedDividendPerStockConverted,
+					$expectedDividendPerStockConvertedBeforeTax,
+					null,
 					null,
 					$specialDividendsConverted,
+					$specialDividendsConvertedBeforeTax,
 					$this->datetimeFactory->createNow(),
 				);
 				$this->entityManager->persist($forecastRecords);
@@ -208,11 +264,44 @@ class StockAssetDividendForecastRecordFacade
 	public function updateCustomValuesForRecord(
 		UuidInterface $id,
 		float|null $customDividendUsedForCalculation,
+		float|null $customGrossDividendUsedForCalculation,
 		float|null $expectedSpecialDividendThisYearPerStock,
+		float|null $expectedSpecialDividendThisYearPerStockBeforeTax,
 	): void
 	{
 		$record = $this->stockAssetDividendForecastRecordRepository->getById($id);
-		$record->setCustomValues($customDividendUsedForCalculation, $expectedSpecialDividendThisYearPerStock);
+		$dividendTax = $record->getStockAsset()->getDividendTax();
+
+		if ($customGrossDividendUsedForCalculation !== null && $customDividendUsedForCalculation === null) {
+			$customDividendUsedForCalculation = $dividendTax !== null
+				? $customGrossDividendUsedForCalculation * (1 - ($dividendTax * 0.01))
+				: $customGrossDividendUsedForCalculation;
+		}
+
+		if (
+			$expectedSpecialDividendThisYearPerStockBeforeTax !== null
+			&& $expectedSpecialDividendThisYearPerStock === null
+		) {
+			$expectedSpecialDividendThisYearPerStock = $dividendTax !== null
+				? $expectedSpecialDividendThisYearPerStockBeforeTax * (1 - ($dividendTax * 0.01))
+				: $expectedSpecialDividendThisYearPerStockBeforeTax;
+		}
+
+		if (
+			$expectedSpecialDividendThisYearPerStock !== null
+			&& $expectedSpecialDividendThisYearPerStockBeforeTax === null
+		) {
+			$expectedSpecialDividendThisYearPerStockBeforeTax = $dividendTax !== null
+				? $expectedSpecialDividendThisYearPerStock / (1 - ($dividendTax * 0.01))
+				: $expectedSpecialDividendThisYearPerStock;
+		}
+
+		$record->setCustomValues(
+			$customDividendUsedForCalculation,
+			$customGrossDividendUsedForCalculation,
+			$expectedSpecialDividendThisYearPerStock,
+			$expectedSpecialDividendThisYearPerStockBeforeTax,
+		);
 		$record->getStockAssetDividendForecast()->recalculatingPending();
 		$this->entityManager->flush();
 	}

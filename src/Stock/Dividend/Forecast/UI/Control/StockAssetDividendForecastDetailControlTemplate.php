@@ -18,7 +18,17 @@ class StockAssetDividendForecastDetailControlTemplate extends BaseControlTemplat
 	/** @var array<StockAssetDividendForecastRecord> */
 	public array $records;
 
-	/** @var array<string, array{currency: CurrencyEnum, alreadyReceived: float, totalYear: float, remaining: float}> */
+	/**
+	 * @var array<string, array{
+	 *     currency: CurrencyEnum,
+	 *     alreadyReceived: float,
+	 *     totalYear: float,
+	 *     remaining: float,
+	 *     alreadyReceivedBeforeTax: float,
+	 *     totalYearBeforeTax: float,
+	 *     remainingBeforeTax: float,
+	 * }>
+	 */
 	public array $totalsByCurrency;
 
 	public SummaryPrice $czkTotalAlreadyReceived;
@@ -26,5 +36,11 @@ class StockAssetDividendForecastDetailControlTemplate extends BaseControlTemplat
 	public SummaryPrice $czkTotalRemaining;
 
 	public SummaryPrice $czkTotalYear;
+
+	public SummaryPrice $czkTotalAlreadyReceivedBeforeTax;
+
+	public SummaryPrice $czkTotalRemainingBeforeTax;
+
+	public SummaryPrice $czkTotalYearBeforeTax;
 
 }

@@ -57,6 +57,9 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 		$czkTotalAlreadyReceived = new SummaryPrice(CurrencyEnum::CZK);
 		$czkTotalRemaining = new SummaryPrice(CurrencyEnum::CZK);
 		$czkTotalYear = new SummaryPrice(CurrencyEnum::CZK);
+		$czkTotalAlreadyReceivedBeforeTax = new SummaryPrice(CurrencyEnum::CZK);
+		$czkTotalRemainingBeforeTax = new SummaryPrice(CurrencyEnum::CZK);
+		$czkTotalYearBeforeTax = new SummaryPrice(CurrencyEnum::CZK);
 
 		foreach ($this->stockAssetDividendForecast->getRecords() as $record) {
 			$currency = $record->getCurrency()->value;
@@ -67,11 +70,15 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 					'alreadyReceived' => 0.0,
 					'totalYear' => 0.0,
 					'remaining' => 0.0,
+					'alreadyReceivedBeforeTax' => 0.0,
+					'totalYearBeforeTax' => 0.0,
+					'remainingBeforeTax' => 0.0,
 				];
 			}
 
 			// Get actual received from dividend records for this stock asset
 			$actualReceivedForStock = 0.0;
+			$actualReceivedForStockBeforeTax = 0.0;
 			foreach ($record->getStockAsset()->getDividends() as $dividend) {
 				if ($dividend->getExDate()->getYear() !== $forYear) {
 					continue;
@@ -79,9 +86,11 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 
 				foreach ($dividend->getRecords() as $dividendRecord) {
 					$actualReceivedForStock += $dividendRecord->getSummaryPrice()->getPrice();
+					$actualReceivedForStockBeforeTax += $dividendRecord->getSummaryPrice(false)->getPrice();
 
 					// Add to CZK total - use ex-date for conversion
 					$amountToConvert = $dividendRecord->getSummaryPrice();
+					$amountToConvertBeforeTax = $dividendRecord->getSummaryPrice(false);
 					$currencyToConvert = $dividendRecord->getCurrency();
 
 					if ($currencyToConvert !== CurrencyEnum::CZK) {
@@ -91,18 +100,30 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 							$dividend->getExDate(),
 						);
 						$czkTotalAlreadyReceived->addSummaryPrice($converted);
+						$convertedBeforeTax = $this->currencyConversionFacade->getConvertedSummaryPrice(
+							$amountToConvertBeforeTax,
+							CurrencyEnum::CZK,
+							$dividend->getExDate(),
+						);
+						$czkTotalAlreadyReceivedBeforeTax->addSummaryPrice($convertedBeforeTax);
 					} else {
 						$czkTotalAlreadyReceived->addFlat($amountToConvert->getPrice(), 0);
+						$czkTotalAlreadyReceivedBeforeTax->addFlat($amountToConvertBeforeTax->getPrice(), 0);
 					}
 				}
 			}
 
 			$remainingForStock = $record->getRemainingDividendTotal();
+			$remainingForStockBeforeTax = $record->getRemainingDividendTotalBeforeTax();
 			$totalYearForStock = $actualReceivedForStock + $remainingForStock;
+			$totalYearForStockBeforeTax = $actualReceivedForStockBeforeTax + $remainingForStockBeforeTax;
 
 			$totalsByCurrency[$currency]['alreadyReceived'] += $actualReceivedForStock;
 			$totalsByCurrency[$currency]['totalYear'] += $totalYearForStock;
 			$totalsByCurrency[$currency]['remaining'] += $remainingForStock;
+			$totalsByCurrency[$currency]['alreadyReceivedBeforeTax'] += $actualReceivedForStockBeforeTax;
+			$totalsByCurrency[$currency]['totalYearBeforeTax'] += $totalYearForStockBeforeTax;
+			$totalsByCurrency[$currency]['remainingBeforeTax'] += $remainingForStockBeforeTax;
 
 			if ($remainingForStock > 0) {
 				if ($record->getCurrency() !== CurrencyEnum::CZK) {
@@ -115,15 +136,32 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 					$czkTotalRemaining->addFlat($remainingForStock, 0);
 				}
 			}
+
+			if ($remainingForStockBeforeTax > 0) {
+				if ($record->getCurrency() !== CurrencyEnum::CZK) {
+					$convertedRemainingBeforeTax = $this->currencyConversionFacade->getConvertedSummaryPrice(
+						new SummaryPrice($record->getCurrency(), $remainingForStockBeforeTax),
+						CurrencyEnum::CZK,
+					);
+					$czkTotalRemainingBeforeTax->addSummaryPrice($convertedRemainingBeforeTax);
+				} else {
+					$czkTotalRemainingBeforeTax->addFlat($remainingForStockBeforeTax, 0);
+				}
+			}
 		}
 
 		$czkTotalYear->addSummaryPrice($czkTotalAlreadyReceived);
 		$czkTotalYear->addSummaryPrice($czkTotalRemaining);
+		$czkTotalYearBeforeTax->addSummaryPrice($czkTotalAlreadyReceivedBeforeTax);
+		$czkTotalYearBeforeTax->addSummaryPrice($czkTotalRemainingBeforeTax);
 
 		$this->template->totalsByCurrency = $totalsByCurrency;
 		$this->template->czkTotalAlreadyReceived = $czkTotalAlreadyReceived;
 		$this->template->czkTotalRemaining = $czkTotalRemaining;
 		$this->template->czkTotalYear = $czkTotalYear;
+		$this->template->czkTotalAlreadyReceivedBeforeTax = $czkTotalAlreadyReceivedBeforeTax;
+		$this->template->czkTotalRemainingBeforeTax = $czkTotalRemainingBeforeTax;
+		$this->template->czkTotalYearBeforeTax = $czkTotalYearBeforeTax;
 
 		$this->template->setFile(__DIR__ . '/StockAssetDividendForecastDetailControl.latte');
 		$this->template->render();
