@@ -97,7 +97,7 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 			(object) [
 				'id' => $sampleUuid,
 				'currency' => 'USD',
-				'textContent' => 'Dividend Jan 1, 2020 2.50',
+				'textContent' => 'Date Dividend Jan 1, 2020 2.50 Dividend',
 				'html' => '<p>Some HTML content</p>',
 			],
 		];
@@ -146,7 +146,7 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 			(object) [
 				'id' => $sampleUuid,
 				'currency' => 'USD',
-				'textContent' => 'Date Dividend May 15, 2025 16 Dividend Feb 20, 2025 16 Dividend Nov 14, 2024 15.000001',
+				'textContent' => 'Date Dividend May 15, 2025 16 Dividend Feb 20, 2025 16 Dividend Nov 14, 2024 15.000001 Dividend',
 				'html' => '<p>Some HTML content</p>',
 			],
 		];

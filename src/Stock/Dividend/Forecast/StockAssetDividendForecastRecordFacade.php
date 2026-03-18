@@ -257,6 +257,7 @@ class StockAssetDividendForecastRecordFacade
 			$this->entityManager->remove($recordToDelete);
 		}
 
+		$this->entityManager->refresh($stockAssetForecast);
 		$stockAssetForecast->recalculated($this->datetimeFactory->createNow());
 		$this->entityManager->flush();
 	}
