@@ -60,7 +60,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->stockAssetDividendForecastRecordRepository = Mockery::mock(
 			StockAssetDividendForecastRecordRepository::class,
 		);
-		$this->entityManager = Mockery::mock(EntityManagerInterface::class);
+		$this->entityManager = Mockery::mock(EntityManagerInterface::class)->makePartial();
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$this->logger = Mockery::mock(LoggerInterface::class);
 
