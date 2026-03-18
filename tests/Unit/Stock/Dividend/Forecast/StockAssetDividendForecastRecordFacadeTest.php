@@ -60,7 +60,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->stockAssetDividendForecastRecordRepository = Mockery::mock(
 			StockAssetDividendForecastRecordRepository::class,
 		);
-		$this->entityManager = Mockery::mock(EntityManagerInterface::class)->makePartial();
+		$this->entityManager = Mockery::mock(EntityManagerInterface::class);
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$this->logger = Mockery::mock(LoggerInterface::class);
 
@@ -80,6 +80,8 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->datetimeFactory
 			->shouldReceive('createNow')
 			->andReturn($this->now);
+
+		$this->entityManager->shouldReceive('refresh');
 	}
 
 	public function testRecalculateWithNoStockAssets(): void
