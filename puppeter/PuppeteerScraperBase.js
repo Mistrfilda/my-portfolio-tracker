@@ -7,6 +7,7 @@ export class PuppeteerScraperBase {
 	constructor() {
 		const __filename = fileURLToPath(import.meta.url);
 		this.__dirname = path.dirname(__filename);
+		this.debugHtml = process.argv.includes('--debughtml');
 
 		this.browserConfig = {
 			// headless: false,
@@ -105,10 +106,12 @@ export class PuppeteerScraperBase {
 						await this.setupPage(page);
 						await this.handleCookieConsent(page, index % RESTART_BROWSER_AFTER === 0);
 
-						const processedData = await this.processEntry(page, entry, index);
-						if (processedData) {
-							result.push(processedData);
-						}
+ 					const processedData = await this.processEntry(page, entry, index);
+ 					if (processedData) {
+ 						result.push(processedData);
+ 					} else if (this.debugHtml) {
+ 						await this.saveDebugHtml(page, entry);
+ 					}
 
 						if (onProgressCallback && (index + 1) % SAVE_PROGRESS_AFTER === 0) {
 							await onProgressCallback(result);
@@ -153,6 +156,24 @@ export class PuppeteerScraperBase {
 
 	async delay(ms) {
 		return new Promise(resolve => setTimeout(resolve, ms));
+	}
+
+	async saveDebugHtml(page, entry) {
+		try {
+			const debugDir = path.join(this.__dirname, 'files/debug');
+			await fs.promises.mkdir(debugDir, { recursive: true });
+
+			const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+			const safeName = (entry.name || entry.id || 'unknown').replace(/[^a-zA-Z0-9_-]/g, '_');
+			const fileName = `${safeName}_${timestamp}.html`;
+			const filePath = path.join(debugDir, fileName);
+
+			const html = await page.content();
+			await fs.promises.writeFile(filePath, html, 'utf8');
+			console.log(`Debug HTML saved to: ${filePath}`);
+		} catch (error) {
+			console.error(`Failed to save debug HTML for ${entry.name || entry.id}:`, error.message);
+		}
 	}
 
 	async processEntry(page, entry, index) {
