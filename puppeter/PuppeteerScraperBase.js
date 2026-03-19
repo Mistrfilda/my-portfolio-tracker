@@ -102,7 +102,7 @@ export class PuppeteerScraperBase {
 					await page.setDefaultNavigationTimeout(30000);
 
 					try {
-						await page.goto(url, { timeout: 30000, waitUntil: 'domcontentloaded' });
+ 					await page.goto(url, { timeout: 30000, waitUntil: 'networkidle2' });
 						await this.setupPage(page);
 						await this.handleCookieConsent(page, index % RESTART_BROWSER_AFTER === 0);
 
