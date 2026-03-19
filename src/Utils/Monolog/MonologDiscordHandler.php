@@ -12,6 +12,7 @@ use Monolog\LogRecord;
 use Throwable;
 use const JSON_PRETTY_PRINT;
 use const JSON_UNESCAPED_UNICODE;
+use const PHP_SAPI;
 
 class MonologDiscordHandler extends AbstractProcessingHandler
 {
@@ -89,12 +90,24 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 			return $this->formatExceptionDescription($record->message, $exception);
 		}
 
+		$parts = [];
+
 		$message = $record->message;
-		if (strlen($message) > 4000) {
-			$message = substr($message, 0, 4000) . '...';
+		if (strlen($message) > 3000) {
+			$message = substr($message, 0, 3000) . '...';
 		}
 
-		return '```' . "\n" . $message . "\n" . '```';
+		$parts[] = '```' . "\n" . $message . "\n" . '```';
+
+		// Add introspection info for better error location
+		$introspection = $this->getIntrospectionInfo($record);
+		if ($introspection !== null) {
+			$parts[] = '📍 **Logged at:** `' . $introspection . '`';
+		}
+
+		$result = implode("\n", $parts);
+
+		return strlen($result) > 4000 ? substr($result, 0, 4000) . '...' : $result;
 	}
 
 	private function formatExceptionDescription(string $logMessage, Throwable $exception): string
@@ -119,6 +132,13 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 		if ($projectTrace !== '') {
 			$parts[] = '📂 **Stack trace (project):**';
 			$parts[] = '```' . "\n" . $projectTrace . "\n" . '```';
+		} else {
+			// Fallback: show condensed full trace when no project frames found (common in CLI)
+			$fullTrace = $this->getCondensedStackTrace($exception);
+			if ($fullTrace !== '') {
+				$parts[] = '📂 **Stack trace:**';
+				$parts[] = '```' . "\n" . $fullTrace . "\n" . '```';
+			}
 		}
 
 		// Previous exception
@@ -173,6 +193,69 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 		}
 
 		return implode("\n", $lines);
+	}
+
+	/**
+	 * Condensed stack trace including vendor frames (fallback when no project frames found)
+	 */
+	private function getCondensedStackTrace(Throwable $exception): string
+	{
+		$trace = $exception->getTrace();
+		$lines = [];
+		$count = 0;
+
+		foreach ($trace as $frame) {
+			if ($count >= 8) {
+				break;
+			}
+
+			$file = $frame['file'] ?? null;
+			if (!is_string($file)) {
+				continue;
+			}
+
+			$shortFile = $this->shortenPath($file);
+			$line = $frame['line'] ?? '?';
+			$class = isset($frame['class']) && is_string($frame['class']) ? $frame['class'] : '';
+			$type = isset($frame['type']) && is_string($frame['type']) ? $frame['type'] : '';
+			$function = isset($frame['function']) && is_string($frame['function']) ? $frame['function'] : '';
+
+			$call = $class !== '' ? $class . $type . $function . '()' : $function . '()';
+			$lines[] = $shortFile . ':' . $line . ' → ' . $call;
+			$count++;
+		}
+
+		return implode("\n", $lines);
+	}
+
+	/**
+	 * Get introspection info from IntrospectionProcessor extra data
+	 */
+	private function getIntrospectionInfo(LogRecord $record): string|null
+	{
+		/** @var array<string, mixed> $extra */
+		$extra = $record->extra;
+
+		$file = $extra['file'] ?? null;
+		$line = $extra['line'] ?? null;
+
+		if (!is_string($file)) {
+			return null;
+		}
+
+		$shortFile = $this->shortenPath($file);
+		$location = $shortFile . (is_int($line) ? ':' . $line : '');
+
+		$class = $extra['class'] ?? null;
+		$function = $extra['function'] ?? null;
+
+		if (is_string($class) && is_string($function)) {
+			$location .= ' → ' . $class . '::' . $function . '()';
+		} elseif (is_string($function)) {
+			$location .= ' → ' . $function . '()';
+		}
+
+		return $location;
 	}
 
 	private function shortenPath(string $path): string
@@ -231,6 +314,14 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 					'value' => implode("\n", $httpInfo),
 				];
 			}
+		} elseif ($this->isCliMode()) {
+			$cliInfo = $this->getCliInfo();
+			if ($cliInfo !== null) {
+				$fields[] = [
+					'name' => '🖥️ CLI Command',
+					'value' => '```' . "\n" . $cliInfo . "\n" . '```',
+				];
+			}
 		}
 
 		if (isset($extra['memory_peak_usage']) && is_string($extra['memory_peak_usage'])) {
@@ -255,6 +346,25 @@ class MonologDiscordHandler extends AbstractProcessingHandler
 		}
 
 		return $fields;
+	}
+
+	private function isCliMode(): bool
+	{
+		return PHP_SAPI === 'cli';
+	}
+
+	private function getCliInfo(): string|null
+	{
+		/** @var array<int, string>|null $argv */
+		$argv = $_SERVER['argv'] ?? null;
+
+		if ($argv === null || count($argv) === 0) {
+			return null;
+		}
+
+		$command = implode(' ', $argv);
+
+		return $this->truncate($command, 900);
 	}
 
 	private function truncate(string $text, int $length): string

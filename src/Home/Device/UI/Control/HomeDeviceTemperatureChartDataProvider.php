@@ -29,6 +29,7 @@ class HomeDeviceTemperatureChartDataProvider implements ChartDataProvider
 		$since = $this->datetimeFactory->createNow()->deductHoursFromDatetime(24);
 		$records = $this->homeDeviceRecordRepository->findForDeviceSince($this->homeDevice, $since);
 
+		$unit = null;
 		foreach ($records as $record) {
 			if ($record->getFloatValue() !== null) {
 				$chartData->add(
@@ -36,11 +37,11 @@ class HomeDeviceTemperatureChartDataProvider implements ChartDataProvider
 					$record->getFloatValue(),
 				);
 			}
+
+			$unit = $record->getUnit();
 		}
 
-		$unit = $this->homeDevice->getRecords()->first();
-		$suffix = $unit !== false && $unit->getUnit() !== null ? $unit->getUnit()->format() : '°C';
-
+		$suffix = $unit?->format() ?? '°C';
 		return new ChartDataSet([$chartData], tooltipSuffix: $suffix);
 	}
 
