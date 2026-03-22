@@ -55,7 +55,7 @@ class StockAssetIndustryDownloadFacade
 		@$domDocument->loadHTML($parsedJson[0]['html']);
 		$domXpath = new DOMXPath($domDocument);
 
-		$tableNodes = $domXpath->query('//div[2]/div/table[3]');
+		$tableNodes = $domXpath->query('//div[5]/div/table[3]');
 		if ($tableNodes === false || $tableNodes->length === 0) {
 			return;
 		}
