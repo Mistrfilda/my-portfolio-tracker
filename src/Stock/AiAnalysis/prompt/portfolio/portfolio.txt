@@ -1,7 +1,7 @@
 Analyzuj mé aktuální akciové pozice. U každé akcie máš k dispozici pole performance7Days. Využij tuto informaci ve své analýze.
 Pro každou akcii v seznamu portfolioAnalysis vyhledej aktuální informace na webu a uveď:
 a) Pozitivní zprávy (3–4 věty) – co se děje dobře, nadcházející katalyzátory
-b) Negativní zprávy (3–4 věty) – rizika, problémy, varovné signály
+b) Negativní zprávy (3–4 věty) – rizika, problémy, varovné signály. Zohledni i aktuální geopolitická rizika (konflikty, sankce, obchodní války, tarify), která mohou ovlivnit konkrétní akcii, její sektor nebo dodavatelský řetězec.
 c) Zajímavé novinky (3–4 věty) – akvizice, nové produkty, změny managementu
 d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět) – jak dopadly poslední kvartální výsledky (tržby, zisk, překonání/nesplnění očekávání), jaké jsou trendy, a kdy se očekávají další výsledky (earnings date).
 e) Analýza dividendy (dividendAnalysis, 3–5 vět) – zhodnoť dividendovou politiku společnosti. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Má společnost historii pravidelného zvyšování dividendy? Pokud společnost dividendu nevyplácí, uveď to a zmiň případné plány na zavedení.

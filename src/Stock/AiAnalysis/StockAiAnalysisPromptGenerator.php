@@ -144,6 +144,7 @@ class StockAiAnalysisPromptGenerator
 			$schema['marketOverview'] = [
 				'summary' => 'string',
 				'sentiment' => 'bullish | bearish | neutral',
+				'geopoliticalContext' => 'string',
 			];
 		}
 

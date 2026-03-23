@@ -26,6 +26,7 @@ class StockAiAnalysisRunTest extends TestCase
 		self::assertNull($run->getRawResponse());
 		self::assertNull($run->getMarketOverviewSummary());
 		self::assertNull($run->getMarketOverviewSentiment());
+		self::assertNull($run->getMarketOverviewGeopoliticalContext());
 		self::assertNull($run->getProcessedAt());
 		self::assertCount(0, $run->getResults());
 	}
@@ -47,6 +48,7 @@ class StockAiAnalysisRunTest extends TestCase
 			'{"test": "response"}',
 			'Trh je stabilní',
 			StockAiAnalysisMarketSentimentEnum::BULLISH,
+			'Napětí na Blízkém východě ovlivňuje ceny ropy',
 			'Portfolio je diverzifikované',
 			'Portfolio za 7 dní vzrostlo',
 			'Denní briefing shrnutí',
@@ -62,6 +64,10 @@ class StockAiAnalysisRunTest extends TestCase
 		self::assertSame('{"test": "response"}', $run->getRawResponse());
 		self::assertSame('Trh je stabilní', $run->getMarketOverviewSummary());
 		self::assertSame(StockAiAnalysisMarketSentimentEnum::BULLISH, $run->getMarketOverviewSentiment());
+		self::assertSame(
+			'Napětí na Blízkém východě ovlivňuje ceny ropy',
+			$run->getMarketOverviewGeopoliticalContext(),
+		);
 		self::assertSame('Portfolio je diverzifikované', $run->getPortfolioEvaluationSummary());
 		self::assertSame('Portfolio za 7 dní vzrostlo', $run->getPortfolioPerformance7DaysSummary());
 		self::assertSame(StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF, $run->getPortfolioPromptType());
@@ -97,12 +103,14 @@ class StockAiAnalysisRunTest extends TestCase
 			null,
 			null,
 			null,
+			null,
 			$processedAt,
 		);
 
 		self::assertSame('{"test": "response"}', $run->getRawResponse());
 		self::assertNull($run->getMarketOverviewSummary());
 		self::assertNull($run->getMarketOverviewSentiment());
+		self::assertNull($run->getMarketOverviewGeopoliticalContext());
 		self::assertNull($run->getPortfolioEvaluationSummary());
 		self::assertNull($run->getPortfolioPerformance7DaysSummary());
 		self::assertNull($run->getDailyBriefSummary());

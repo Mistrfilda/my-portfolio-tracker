@@ -92,6 +92,7 @@ class StockAiAnalysisFacade
 
 		$marketOverviewSummary = null;
 		$marketOverviewSentiment = null;
+		$marketOverviewGeopoliticalContext = null;
 
 		if (isset($data['marketOverview']) && is_array($data['marketOverview'])) {
 			$marketOverview = $data['marketOverview'];
@@ -100,6 +101,10 @@ class StockAiAnalysisFacade
 			if ($sentimentValue !== null) {
 				$marketOverviewSentiment = StockAiAnalysisMarketSentimentEnum::tryFrom($sentimentValue);
 			}
+
+			$marketOverviewGeopoliticalContext = TypeValidator::validateNullableString(
+				$marketOverview['geopoliticalContext'] ?? null,
+			);
 		}
 
 		$portfolioEvaluationSummary = null;
@@ -145,6 +150,7 @@ class StockAiAnalysisFacade
 			$rawResponse,
 			$marketOverviewSummary,
 			$marketOverviewSentiment,
+			$marketOverviewGeopoliticalContext,
 			$portfolioEvaluationSummary,
 			$portfolioPerformance7DaysSummary,
 			$dailyBriefSummary,

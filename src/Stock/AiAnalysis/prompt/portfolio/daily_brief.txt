@@ -4,7 +4,7 @@ Zaměř se na:
 a) Co se za poslední 1 den změnilo na trhu a proč
 b) Jaký byl dopad na moje portfolio a které pozice vyžadují zvýšenou pozornost
 c) Které akcie z watchlistu stojí po posledním dni za sledování nebo revizi
-d) Jaké nejdůležitější události, rizika a katalyzátory mám sledovat v dalších 1–3 dnech
+d) Jaké nejdůležitější události, rizika a katalyzátory mám sledovat v dalších 1–3 dnech (včetně geopolitických událostí – konflikty, sankce, tarify, obchodní omezení)
 e) Zda je potřeba něco aktivně řešit, nebo spíš jen monitorovat situaci
 
 Výsledek zapiš do klíče dailyBrief jako objekt s poli:
@@ -12,6 +12,6 @@ Výsledek zapiš do klíče dailyBrief jako objekt s poli:
 - marketPulse: co dnes nejvíc hýbalo trhem a sentimentem (2–4 věty)
 - portfolioImpactSummary: dopad na portfolio a nejdůležitější změny mezi pozicemi (3–5 vět)
 - watchlistSummary: co je po posledním dni zajímavé na watchlistu (2–4 věty)
-- importantAlerts: hlavní upozornění, rizika nebo události k hlídání (2–4 věty)
+- importantAlerts: hlavní upozornění, rizika nebo události k hlídání, včetně geopolitických rizik s dopadem na portfolio (2–4 věty)
 - nextDaysChecklist: konkrétní checklist pro následující 1–3 dny (2–5 vět)
 - actionNeeded: (none, monitor, review_positions, review_watchlist)

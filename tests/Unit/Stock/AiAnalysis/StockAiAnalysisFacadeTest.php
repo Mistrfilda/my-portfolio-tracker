@@ -146,6 +146,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			'marketOverview' => [
 				'summary' => 'Trhy jsou stabilní',
 				'sentiment' => 'bullish',
+				'geopoliticalContext' => 'Napětí na Blízkém východě tlačí ceny ropy nahoru',
 			],
 		]);
 
@@ -154,6 +155,10 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame($response, $run->getRawResponse());
 		self::assertSame('Trhy jsou stabilní', $run->getMarketOverviewSummary());
 		self::assertSame(StockAiAnalysisMarketSentimentEnum::BULLISH, $run->getMarketOverviewSentiment());
+		self::assertSame(
+			'Napětí na Blízkém východě tlačí ceny ropy nahoru',
+			$run->getMarketOverviewGeopoliticalContext(),
+		);
 		self::assertSame($now, $run->getProcessedAt());
 	}
 

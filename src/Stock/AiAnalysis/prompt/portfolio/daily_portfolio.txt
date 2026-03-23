@@ -1,7 +1,7 @@
 Analyzuj mé aktuální akciové pozice v krátkodobém horizontu. U každé akcie máš k dispozici pole performance1Day a performance7Days. Pro denní briefing preferuj performance1Day, performance7Days použij jen jako doplňkový kontext.
 Pro každou akcii v seznamu portfolioAnalysis vyhledej aktuální informace na webu a uveď:
 a) Pozitivní zprávy (2–3 věty) – co podpořilo titul nebo může krátkodobě pomoci
-b) Negativní zprávy (2–3 věty) – rizika, problémy, varovné signály nebo slabý vývoj
+b) Negativní zprávy (2–3 věty) – rizika, problémy, varovné signály nebo slabý vývoj. Zahrň i relevantní geopolitické faktory (konflikty, sankce, tarify), pokud ovlivňují danou akcii nebo sektor.
 c) Zajímavé novinky (2–3 věty) – nové produkty, guidance, změny managementu, regulatorní dopady
 d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 2–4 věty)
 e) Analýza dividendy (dividendAnalysis, 2–4 věty) – jen pokud je v krátkodobém horizontu relevantní

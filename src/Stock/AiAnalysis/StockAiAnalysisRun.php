@@ -50,6 +50,9 @@ class StockAiAnalysisRun implements Entity
 	private StockAiAnalysisMarketSentimentEnum|null $marketOverviewSentiment = null;
 
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $marketOverviewGeopoliticalContext = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $portfolioEvaluationSummary = null;
 
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -126,6 +129,7 @@ class StockAiAnalysisRun implements Entity
 		string $rawResponse,
 		string|null $marketOverviewSummary,
 		StockAiAnalysisMarketSentimentEnum|null $marketOverviewSentiment,
+		string|null $marketOverviewGeopoliticalContext,
 		string|null $portfolioEvaluationSummary,
 		string|null $portfolioPerformance7DaysSummary,
 		string|null $dailyBriefSummary,
@@ -141,6 +145,7 @@ class StockAiAnalysisRun implements Entity
 		$this->rawResponse = $rawResponse;
 		$this->marketOverviewSummary = $marketOverviewSummary;
 		$this->marketOverviewSentiment = $marketOverviewSentiment;
+		$this->marketOverviewGeopoliticalContext = $marketOverviewGeopoliticalContext;
 		$this->portfolioEvaluationSummary = $portfolioEvaluationSummary;
 		$this->portfolioPerformance7DaysSummary = $portfolioPerformance7DaysSummary;
 		$this->dailyBriefSummary = $dailyBriefSummary;
@@ -197,6 +202,11 @@ class StockAiAnalysisRun implements Entity
 	public function getMarketOverviewSentiment(): StockAiAnalysisMarketSentimentEnum|null
 	{
 		return $this->marketOverviewSentiment;
+	}
+
+	public function getMarketOverviewGeopoliticalContext(): string|null
+	{
+		return $this->marketOverviewGeopoliticalContext;
 	}
 
 	public function getPortfolioEvaluationSummary(): string|null

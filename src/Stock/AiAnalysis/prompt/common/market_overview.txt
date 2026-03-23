@@ -1,6 +1,14 @@
 Analyzuj aktuální situaci na trhu se zaměřením primárně na americký akciový trh (S&P 500, NASDAQ). Zohledni aktuální data z webu:
 - Aktuální sentiment a směr trhu
 - Klíčové makroekonomické ukazatele (inflace, úrokové sazby, nezaměstnanost)
-- Důležité nadcházející události (FOMC zasedání, earnings season, geopolitika)
+- Důležité nadcházející události (FOMC zasedání, earnings season)
 - Sektorové rotace – které sektory jsou aktuálně silné/slabé
 Pokud je relevantní událost i na evropských trzích, zmíň ji. Shrnutí by mělo mít 4–6 vět.
+
+Věnuj zvláštní pozornost aktuální geopolitické situaci a jejímu dopadu na trhy. Aktivně vyhledej na webu nejnovější geopolitické události a zohledni:
+- Aktuální vojenské konflikty, napětí mezi státy, sankce a jejich dopad na trhy (energie, komodity, dodavatelské řetězce)
+- Obchodní války, celní tarify a obchodní omezení (např. USA–Čína, EU tarify)
+- Politická nestabilita, volby, změny vlád s dopadem na ekonomiku
+- Energetická bezpečnost a dopady na ceny ropy, plynu a dalších komodit
+- Dopady na konkrétní sektory a regiony – které sektory/akcie jsou geopolitickými událostmi nejvíce ohroženy nebo naopak z nich profitují
+Geopolitický kontext zapiš do klíče geopoliticalContext (3–5 vět) v rámci marketOverview.
