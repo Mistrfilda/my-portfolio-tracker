@@ -94,7 +94,7 @@ All shared UI infrastructure for the Nette application.
 - **Tailwind/** — `TailwindColorConstant` — shared color constants
 
 ## Build & Configuration
-1. **Prerequisites**: PHP 8.5+, Node.js (v24 recommended), Docker, RabbitMQ, MariaDB/MySQL.
+1. **Prerequisites**: PHP 8.5+, Node.js (v24 recommended) with npm, Docker, RabbitMQ, MariaDB/MySQL.
 2. **Environment**:
 	- Configuration is in `config/*.neon`.
 	- Local overrides go into `config/config.local.neon` or `config/config-docker.local.neon`.
@@ -113,7 +113,6 @@ All shared UI infrastructure for the Nette application.
 - **PHP Style**: Follow PSR-12.
 - **Modern PHP**: Use Constructor property promotion where applicable.
 - **Naming**: Tests must be named `*Test.php`.
-- **Comments**: Use Czech comments where appropriate.
 - **JSON**: Always use `Nette\Utils\Json` for serialization/deserialization.
 - **Validation**: Use `App\Utils\TypeValidator` for scalar type validation.
 - **Nette controls and presenter** - When using nette controls and presenter, always use Template classes for parameters, base template classes are `src/UI/Base/BaseControlTemplate.php`  (for controls), `src/UI/Base/BasePresenterTemplate.php` (for presenters).
