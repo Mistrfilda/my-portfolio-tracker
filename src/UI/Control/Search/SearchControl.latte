@@ -1,7 +1,7 @@
 {templateType App\UI\Control\Search\SearchControlTemplate}
 <button
-        @keyup.ctrl.k.window.prevent="$el.click()"
-        @keyup.meta.k.window.prevent="$el.click()"
+        @keyup.ctrl.enter.window.prevent="$el.click()"
+        @keyup.meta.enter.window.prevent="$el.click()"
         command="show-modal"
         commandfor="dialog"
         class="rounded-md bg-white/80 px-2.5 py-1.5 text-sm font-semibold text-gray-900 hover:bg-white/90">
