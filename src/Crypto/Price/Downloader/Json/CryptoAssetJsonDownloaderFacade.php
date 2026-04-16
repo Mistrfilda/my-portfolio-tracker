@@ -69,6 +69,10 @@ class CryptoAssetJsonDownloaderFacade
 					continue;
 				}
 
+				if (array_key_exists(1, $tickerMatch) === false) {
+					continue;
+				}
+
 				$fullTicker = $tickerMatch[1];
 				if (preg_match(
 					'/data-symbol="' . preg_quote(
@@ -78,6 +82,10 @@ class CryptoAssetJsonDownloaderFacade
 					$rowHtml,
 					$priceMatch,
 				) === false) {
+					continue;
+				}
+
+				if (array_key_exists(1, $priceMatch) === false) {
 					continue;
 				}
 

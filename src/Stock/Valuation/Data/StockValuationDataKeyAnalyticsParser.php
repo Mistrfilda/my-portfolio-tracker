@@ -169,6 +169,10 @@ class StockValuationDataKeyAnalyticsParser
 		if ($nodes !== null && $nodes->length > 0) {
 			$text = $nodes->item(0)?->textContent;
 			if (preg_match('/\(([^)]+)\)/', $text ?? '', $matches) !== false) {
+				if (array_key_exists(1, $matches) === false) {
+					return null;
+				}
+
 				return $matches[1];
 			}
 		}

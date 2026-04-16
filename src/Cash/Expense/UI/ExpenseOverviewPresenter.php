@@ -108,7 +108,7 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 	protected function createComponentExpanseOverviewCategoryControl(): ExpenseOverviewCategoryControl
 	{
 		return $this->expanseOverviewCategoryControlFactory->create(
-			$this->selectedYear ?? self::DEFAULT_YEAR,
+			$this->selectedYear,
 			$this->selectedMonth,
 		);
 	}
@@ -116,7 +116,7 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 	protected function createComponentChartOverview(): ChartControl
 	{
 		$dataProvider = clone $this->expenseOverviewCategoryChartDataProvider;
-		$dataProvider->setYear($this->selectedYear ?? self::DEFAULT_YEAR);
+		$dataProvider->setYear($this->selectedYear);
 		$dataProvider->setMonth($this->selectedMonth);
 		return $this->chartControlFactory->create(ChartType::DOUGHNUT, $dataProvider, true);
 	}
