@@ -6,6 +6,7 @@ namespace App\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
+use App\PortfolioReport\PortfolioReportFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Utils\TypeValidator;
 use Ramsey\Uuid\Uuid;
@@ -17,6 +18,7 @@ class JobRequestProcessor
 		private ExpenseTagFacade $expenseTagFacade,
 		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
 		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
+		private PortfolioReportFacade $portfolioReportFacade,
 	)
 	{
 	}
@@ -40,6 +42,11 @@ class JobRequestProcessor
 				break;
 			case JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE:
 				$this->portfolioGoalUpdateFacade->updateAllActive();
+				break;
+			case JobRequestTypeEnum::PORTFOLIO_REPORT_GENERATE:
+				$this->portfolioReportFacade->generate(
+					TypeValidator::validateString($additionalData['id'] ?? null),
+				);
 				break;
 		}
 	}

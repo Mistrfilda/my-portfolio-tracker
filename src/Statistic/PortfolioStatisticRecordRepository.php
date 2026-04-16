@@ -134,4 +134,38 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	public function findLatestByCreatedAtAtOrBefore(ImmutableDateTime $date): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->lte('portfolioStatisticRecord.createdAt', ':date'));
+		$qb->setParameter('date', $date);
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'DESC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		if ($result === null) {
+			return null;
+		}
+
+		assert($result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
+	public function findEarliestByCreatedAtAtOrAfter(ImmutableDateTime $date): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->gte('portfolioStatisticRecord.createdAt', ':date'));
+		$qb->setParameter('date', $date);
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'ASC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		if ($result === null) {
+			return null;
+		}
+
+		assert($result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
 }

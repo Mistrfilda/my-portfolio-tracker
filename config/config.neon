@@ -517,6 +517,14 @@ services:
 	- App\Goal\Resolver\PortfolioGoalTotalDividendAmountResolver
 	- App\Goal\Resolver\PortfolioGoalMonthlyIncomeResolver
 
+	#Portfolio report
+	- App\PortfolioReport\PortfolioReportRepository(App\PortfolioReport\PortfolioReport)
+	- App\PortfolioReport\PortfolioReportPeriodResolver
+	- App\PortfolioReport\PortfolioReportPromptGenerator
+	- App\PortfolioReport\PortfolioReportGenerator
+	- App\PortfolioReport\PortfolioReportFacade
+	- App\PortfolioReport\PortfolioReportGenerateCommand
+
 	#Stock valuation
 	- App\Stock\Valuation\Command\ValuationJsonDataSourceProviderCommand
 	- App\Stock\Valuation\Data\StockValuationDataFacade

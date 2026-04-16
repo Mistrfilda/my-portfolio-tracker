@@ -89,6 +89,47 @@ class StockAssetPriceRecordRepository extends BaseRepository
 		return $this->doctrineRepository->findAll();
 	}
 
+	public function findClosestByStockAssetAndDate(
+		StockAsset $stockAsset,
+		ImmutableDateTime $date,
+	): StockAssetPriceRecord|null
+	{
+		$latestBeforeOrAt = $this->doctrineRepository->createQueryBuilder('stockAssetPriceRecord')
+			->andWhere(
+				'stockAssetPriceRecord.stockAsset = :stockAsset',
+				'stockAssetPriceRecord.date <= :date',
+			)
+			->setParameter('stockAsset', $stockAsset)
+			->setParameter('date', $date)
+			->orderBy('stockAssetPriceRecord.date', OrderBy::DESC->value)
+			->setMaxResults(1)
+			->getQuery()
+			->getOneOrNullResult();
+
+		if ($latestBeforeOrAt instanceof StockAssetPriceRecord) {
+			return $latestBeforeOrAt;
+		}
+
+		$result = $this->doctrineRepository->createQueryBuilder('stockAssetPriceRecord')
+			->andWhere(
+				'stockAssetPriceRecord.stockAsset = :stockAsset',
+				'stockAssetPriceRecord.date >= :date',
+			)
+			->setParameter('stockAsset', $stockAsset)
+			->setParameter('date', $date)
+			->orderBy('stockAssetPriceRecord.date', OrderBy::ASC->value)
+			->setMaxResults(1)
+			->getQuery()
+			->getOneOrNullResult();
+
+		if ($result === null) {
+			return null;
+		}
+
+		assert($result instanceof StockAssetPriceRecord);
+		return $result;
+	}
+
 	/**
 	 * @param array<int> $ids
 	 * @return array<StockAssetPriceRecord>

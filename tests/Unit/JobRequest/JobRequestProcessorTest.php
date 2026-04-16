@@ -8,33 +8,40 @@ use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
 use App\JobRequest\JobRequestProcessor;
 use App\JobRequest\JobRequestTypeEnum;
+use App\PortfolioReport\PortfolioReportFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
-use Mockery;
 
 class JobRequestProcessorTest extends UpdatedTestCase
 {
 
-	public function testProcess(): void
+	private JobRequestProcessor $jobRequestProcessor;
+
+	private PortfolioReportFacade $portfolioReportFacade;
+
+	protected function setUp(): void
 	{
-		$expenseTagFacadeMock = Mockery::mock(ExpenseTagFacade::class);
-		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
-		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
+		parent::setUp();
+		$this->portfolioReportFacade = self::createMockWithIgnoreMethods(PortfolioReportFacade::class);
 
-		$jobRequestProcessor = new JobRequestProcessor(
-			$expenseTagFacadeMock,
-			$stockAssetDividendForecastRecordFacadeMock,
-			$portfolioGoalUpdateFacadeMock,
+		$this->jobRequestProcessor = new JobRequestProcessor(
+			self::createMockWithIgnoreMethods(ExpenseTagFacade::class),
+			self::createMockWithIgnoreMethods(StockAssetDividendForecastRecordFacade::class),
+			self::createMockWithIgnoreMethods(PortfolioGoalUpdateFacade::class),
+			$this->portfolioReportFacade,
 		);
+	}
 
-		$type = JobRequestTypeEnum::EXPENSE_TAG_PROCESS;
-		$additionalData = ['key' => 'value', 'number' => 123];
+	public function testProcessPortfolioReportGenerateDispatchesToPortfolioReportFacade(): void
+	{
+		$this->portfolioReportFacade->shouldReceive('generate')
+			->once()
+			->with('c9b0ff8b-f8cc-4a4c-8bb3-f1ff8ce2ee07');
 
-		$expenseTagFacadeMock
-			->shouldReceive('processExpenses')
-			->once();
-
-		$jobRequestProcessor->process($type, $additionalData);
+		$this->jobRequestProcessor->process(
+			JobRequestTypeEnum::PORTFOLIO_REPORT_GENERATE,
+			['id' => 'c9b0ff8b-f8cc-4a4c-8bb3-f1ff8ce2ee07'],
+		);
 
 		$this->assertTrue(true);
 	}

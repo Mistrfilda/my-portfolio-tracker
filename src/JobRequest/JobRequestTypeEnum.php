@@ -15,4 +15,6 @@ enum JobRequestTypeEnum: string
 
 	case PORTFOLIO_GOAL_UPDATE = 'portfolio_goal_update';
 
+	case PORTFOLIO_REPORT_GENERATE = 'portfolio_report_generate';
+
 }
