@@ -1,6 +1,11 @@
 {templateType App\UI\Control\Search\SearchControlTemplate}
 <button
-        @keydown.window.prevent="if (($event.metaKey || $event.ctrlKey) && $event.key === 'Enter') $el.click()"
+        @keydown.window="
+    if (($event.metaKey || $event.ctrlKey) && $event.key === 'Enter') {
+        $event.preventDefault();
+        $el.click();
+    }
+"
         command="show-modal"
         commandfor="dialog"
         class="rounded-md bg-white/80 px-2.5 py-1.5 text-sm font-semibold text-gray-900 hover:bg-white/90">
