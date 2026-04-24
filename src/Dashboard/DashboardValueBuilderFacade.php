@@ -12,6 +12,8 @@ use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\PortolioStatisticType;
+use App\Stock\Asset\StockAsset;
+use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\Closed\StockClosedPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
@@ -19,6 +21,8 @@ use App\UI\Filter\PercentageFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
+use Mistrfilda\Datetime\DatetimeFactory;
+use Nette\Application\LinkGenerator;
 
 class DashboardValueBuilderFacade implements DashboardValueBuilder
 {
@@ -33,6 +37,9 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly StockClosedPositionFacade $stockClosedPositionFacade,
 		private readonly CryptoPositionFacade $cryptoPositionFacade,
 		private readonly CryptoAssetRepository $cryptoAssetRepository,
+		private readonly StockAssetRepository $stockAssetRepository,
+		private readonly LinkGenerator $linkGenerator,
+		private readonly DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -432,7 +439,114 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					$closedSummaryPrice->getTrend()->getSvgIcon(),
 				),
 			],
+			tables: $this->buildStockDailyPerformanceTables(),
 		);
+	}
+
+	/**
+	 * @return array<DashboardValueTable>
+	 */
+	private function buildStockDailyPerformanceTables(): array
+	{
+		$comparisonDate = $this->datetimeFactory->createNow()->deductDaysFromDatetime(1);
+		$dailyPerformance = [];
+
+		foreach ($this->stockAssetRepository->getAllActiveAssets() as $asset) {
+			assert($asset instanceof StockAsset);
+			if ($asset->hasOpenPositions() === false) {
+				continue;
+			}
+
+			$dailyPerformance[] = [
+				'stockAsset' => $asset,
+				'trend' => $asset->getTrend($comparisonDate),
+			];
+		}
+
+		if (count($dailyPerformance) === 0) {
+			return [];
+		}
+
+		usort(
+			$dailyPerformance,
+			static fn (array $left, array $right): int => $right['trend'] <=> $left['trend'],
+		);
+
+		return [
+			$this->createStockDailyPerformanceTable(
+				'Top 4 akcie dne',
+				'Nejlepší výkon vůči poslednímu obchodnímu dni',
+				array_slice($dailyPerformance, 0, 4),
+			),
+			$this->createStockDailyPerformanceTable(
+				'Nejhorší 4 akcie dne',
+				'Nejhorší výkon vůči poslednímu obchodnímu dni',
+				array_slice(array_reverse($dailyPerformance), 0, 4),
+			),
+		];
+	}
+
+	/**
+	 * @param array<int, array{stockAsset: StockAsset, trend: float}> $dailyPerformance
+	 */
+	private function createStockDailyPerformanceTable(
+		string $label,
+		string $value,
+		array $dailyPerformance,
+	): DashboardValueTable
+	{
+		$table = new DashboardValueTable(
+			$label,
+			$value,
+			TailwindColorConstant::GRAY,
+			[
+				'stockAssetName' => 'Společnost',
+				'ticker' => 'Ticker',
+				'trend' => 'Změna',
+			],
+		);
+
+		foreach ($dailyPerformance as $performance) {
+			$stockAsset = $performance['stockAsset'];
+			$trend = $performance['trend'];
+
+			$table->addData([
+				'rowColor' => $this->getStockPerformanceRowColor($trend),
+				'stockAssetName' => $stockAsset->getName(),
+				'ticker' => $stockAsset->getTicker(),
+				'trend' => $this->formatStockTrend($trend),
+				'link' => $this->linkGenerator->link(
+					'Admin:StockAssetDetail:detail',
+					['id' => $stockAsset->getId()->toString()],
+				),
+			]);
+		}
+
+		return $table;
+	}
+
+	private function formatStockTrend(float $trend): string
+	{
+		$formattedTrend = PercentageFilter::format($trend);
+
+		if ($trend > 0) {
+			return '+' . $formattedTrend;
+		}
+
+		return $formattedTrend;
+	}
+
+	private function getStockPerformanceRowColor(float $trend): string
+	{
+		if ($trend > 0) {
+			return TailwindColorConstant::GREEN;
+		}
+
+		if ($trend < 0) {
+			return TailwindColorConstant::RED;
+		}
+
+		return TailwindColorConstant::GRAY;
 	}
 
 	private function getPortuValues(): DashboardValueGroup
