@@ -70,13 +70,6 @@ Deferred job execution via RabbitMQ for long-running tasks.
 - **JobRequestFacade** — creates job requests
 - **RabbitMQ/** — `JobRequestConsumer`, `JobRequestProducer`, `JobRequestMessage`
 
-### src/RabbitMQ — Base RabbitMQ Abstractions
-Base classes for all RabbitMQ consumers and producers in the system.
-- **BaseConsumer** (abstract) — base class for all consumers
-- **BaseProducer** (abstract) — base class for all producers
-- **RabbitMQMessage** (interface) — message contract
-- **RabbitMQDatabaseMessage** (interface) — message with database entity reference
-- Individual modules (Stock, JobRequest, etc.) have their own RabbitMQ/ subfolders with specific consumer/producer/message implementations extending these base classes.
 
 ### src/UI — Shared UI Components & Framework
 All shared UI infrastructure for the Nette application.
@@ -121,50 +114,15 @@ All shared UI infrastructure for the Nette application.
   - always use English language in exception messages.
 - **Comments**: Use only english language in comments.
 
-## Doctrine & Migrations
-- If you change anything in Doctrine ORM entities:
-	1. Clear cache with: `composer clear`
-	2. Check generated SQL: `bin/console orm:schema-tool:update --dump-sql`.
-	3. If OK, create migration: `bin/console migrations:diff`.
-	4. Apply migration: `bin/console migrations:migrate`.
-- Always get repository from DI container and constructor, never use entity manager directly to get repository.
 
 ## Testing
-- **Execution**:
-	- Run all tests: `vendor/bin/phpunit`
-	- Unit only: `vendor/bin/phpunit tests/Unit`
-	- Integration only: `vendor/bin/phpunit tests/Integration`
-- **Adding Tests**:
-	- Unit tests should extend `PHPUnit\Framework\TestCase`.
-	- Integration/API tests should extend `App\Test\Integration\Api\ApiTestCase`.
-    - Never use Rabbitmq queues in tests.
-    - Prefer unit tests over integration tests.
-- **Example Test**:
-```php
-<?php
-
-declare(strict_types = 1);
-
-namespace App\Test\Unit\Utils;
-
-use App\Utils\TypeValidator;
-use PHPUnit\Framework\TestCase;
-
-class MyTest extends TestCase
-{
-
-	public function testSomething(): void
-	{
-		$this->assertSame('test', TypeValidator::validateString('test'));
-	}
-
-}
-```
+- Run: `vendor/bin/phpunit` (all), `vendor/bin/phpunit tests/Unit`, `vendor/bin/phpunit tests/Integration`.
+- Prefer unit tests; never use real RabbitMQ queues in tests.
+- For layout, base classes, naming and an example see the `testing-conventions` skill.
 
 ## SVG icons
-- Please, do not use `<svg>` tag directly, use nette latte macro renderSvg - example: {renderSvg App\UI\Icon\SvgIcon::INCOME_SIGN->value, ['class' => 'w-5 h-5 text-green-600']}
-- Always use and update `App\UI\Icon\SvgIcon` for SVG icons
-- Always use and update `assets/svg` folder for SVG icons
+- Never use `<svg>` directly; render via `{renderSvg}` macro and the `App\UI\Icon\SvgIcon` enum.
+- For full rules (workflow, file naming, attributes) see the `ui-svg-icons` skill.
 
 ## Important Notes
 - **Junie and reading files** - Always use junie functions for reading files, avoid using cat to read files.
@@ -174,7 +132,43 @@ class MyTest extends TestCase
 - **Scraping**: Puppeteer scripts in `puppeter/` for Yahoo Finance, PSE.
 
 ## Nette presenters + controls
-- ** Register presenters in routing.neon ** and `MenuBuilder.php` when needed.
+- Register presenters in `config/routing.neon` and `MenuBuilder.php` when needed.
+- For presenter/module/architecture design see the `nette-architecture` skill.
+- For Latte templates see the `latte-templates` skill; for forms see `nette-forms`.
+
+## Agent Skills
+Domain-specific guidance lives in `.junie/skills/`. Always read the relevant `SKILL.md` before starting a related task.
+
+Framework / generic:
+- `nette-architecture` — presenters, modules, directory structure.
+- `nette-configuration` — Nette DI, services, autowiring.
+- `nette-forms` — Nette Forms (controls, validation, rendering).
+- `nette-utils` — Nette Utils helpers (Arrays, Strings, Json, Finder, …).
+- `latte-templates` — Latte syntax, tags, filters, n:attributes.
+- `neon-format` — NEON syntax for `.neon` config files.
+- `tracy-debugging` — Tracy output interpretation when fetching local URLs or debugging PHP errors.
+- `rabbitmq-base` — base consumer/producer/message abstractions in `src/RabbitMQ/`.
+- `doctrine-migrations` — required workflow for Doctrine entity/schema changes and migrations.
+
+Project domain:
+- `asset-price-system` — base asset contracts in `src/Asset/` (price embeddable, summary price, price diff, renderer).
+- `asset-price-downloaders` — Json / TwelveData / PSE / Web / Puppeteer downloaders and their `config.neon` parameters.
+- `stock-valuation-models` — 12+ valuation models under `src/Stock/Valuation/Model/Price/` and the JSON data pipeline.
+- `currency-conversion` — `CurrencyEnum`, CNB/ECB downloaders, `CurrencyConversionFacade`, GBp→GBP handling.
+- `job-request` — generic async jobs via `JobRequestFacade` / `JobRequestProcessor`.
+- `notifications-discord` — `NotificationFacade`, Discord channel & webhook mapping.
+- `puppeteer-scraping` — Node.js scrapers in `puppeter/` and their JSON handoff to PHP.
+- `api-slim` — REST API layer (`src/Api/`), OpenAPI spec, `ApiKeyMiddleware`, CORS.
+
+Project UI:
+- `ui-base-presenters-templates` — base presenters/controls + mandatory Template classes.
+- `ui-datagrid` — custom datagrid in `src/UI/Control/Datagrid/`.
+- `ui-forms-admin` — `AdminFormFactory` and custom inputs/containers in `src/UI/Control/Form/`.
+- `ui-latte-filters` — catalog of project Latte filters (currency, price, percentage, dates, …).
+- `ui-svg-icons` — `renderSvg` macro + `App\UI\Icon\SvgIcon` workflow.
+
+Project testing:
+- `testing-conventions` — PHPUnit layout, base classes, naming, unit-first rule.
 
 ## Common Tasks
 - Stock price updates: Finance scraper
