@@ -166,6 +166,7 @@ Project UI:
 - `ui-forms-admin` — `AdminFormFactory` and custom inputs/containers in `src/UI/Control/Form/`.
 - `ui-latte-filters` — catalog of project Latte filters (currency, price, percentage, dates, …).
 - `ui-svg-icons` — `renderSvg` macro + `App\UI\Icon\SvgIcon` workflow.
+- `alpine-tailwind` — Alpine.js 3 component registration (`AppAlpine.ts`) + Tailwind 4 conventions and PHP↔CSS color sync.
 
 Project testing:
 - `testing-conventions` — PHPUnit layout, base classes, naming, unit-first rule.
