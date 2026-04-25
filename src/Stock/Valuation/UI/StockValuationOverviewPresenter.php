@@ -5,13 +5,9 @@ declare(strict_types = 1);
 namespace App\Stock\Valuation\UI;
 
 use App\Asset\Price\AssetPrice;
-use App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
-use App\Stock\Valuation\Data\StockValuationData;
-use App\Stock\Valuation\Data\StockValuationDataRepository;
-use App\Stock\Valuation\StockValuationFacade;
-use App\Stock\Valuation\StockValuationTypeEnum;
+use App\Stock\Valuation\StockValuationPriceProvider;
 use App\UI\Base\BaseAdminPresenter;
 
 /**
@@ -22,9 +18,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
-		private StockValuationFacade $stockValuationFacade,
-		private StockValuationDataRepository $stockValuationDataRepository,
-		private StockAiAnalysisStockResultRepository $stockAiAnalysisStockResultRepository,
+		private StockValuationPriceProvider $stockValuationPriceProvider,
 	)
 	{
 		parent::__construct();
@@ -46,84 +40,22 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 				[
 					$this->createOverviewValue(
 						'Price from all models',
-						$this->getAverageModelPrice($stockAsset),
+						$this->stockValuationPriceProvider->getAverageModelPrice($stockAsset),
 						$stockAsset,
 					),
-					$this->createOverviewValue('Analytics price', $this->getAnalyticsPrice($stockAsset), $stockAsset),
+					$this->createOverviewValue(
+						'Analytics price',
+						$this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset),
+						$stockAsset,
+					),
 					$this->createOverviewValue(
 						'AI analysis price',
-						$this->getAiAnalysisPrice($stockAsset),
+						$this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset),
 						$stockAsset,
 					),
 				],
 			);
 		}
-	}
-
-	private function getAverageModelPrice(StockAsset $stockAsset): AssetPrice|null
-	{
-		$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset($stockAsset);
-		$averagePrice = 0.0;
-		$calculatedModelsCount = 0;
-
-		foreach ($modelResponses as $modelResponse) {
-			$assetPrice = $modelResponse->getAssetPrice();
-			if ($assetPrice === null) {
-				continue;
-			}
-
-			$averagePrice += $assetPrice->getPrice();
-			$calculatedModelsCount++;
-		}
-
-		if ($calculatedModelsCount === 0) {
-			return null;
-		}
-
-		return new AssetPrice(
-			$stockAsset,
-			$averagePrice / $calculatedModelsCount,
-			$stockAsset->getCurrency(),
-		);
-	}
-
-	private function getAnalyticsPrice(StockAsset $stockAsset): AssetPrice|null
-	{
-		$analyticsPrice = $this->stockValuationDataRepository->findTypesLatestForStockAsset(
-			$stockAsset,
-			[StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE],
-		)[StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE->value] ?? null;
-
-		if (!($analyticsPrice instanceof StockValuationData) || $analyticsPrice->getFloatValue() === null) {
-			return null;
-		}
-
-		return new AssetPrice(
-			$stockAsset,
-			$analyticsPrice->getFloatValue(),
-			$analyticsPrice->getCurrency(),
-		);
-	}
-
-	private function getAiAnalysisPrice(StockAsset $stockAsset): AssetPrice|null
-	{
-		$aiResults = $this->stockAiAnalysisStockResultRepository->findLatestForStockAsset($stockAsset, 1);
-		$aiResult = $aiResults[0] ?? null;
-
-		if ($aiResult?->getFairPrice() === null) {
-			return null;
-		}
-
-		$fairPriceCurrency = $aiResult->getFairPriceCurrency();
-		if ($fairPriceCurrency === null) {
-			return null;
-		}
-
-		return new AssetPrice(
-			$stockAsset,
-			$aiResult->getFairPrice(),
-			$fairPriceCurrency,
-		);
 	}
 
 	private function createOverviewValue(

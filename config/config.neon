@@ -522,6 +522,7 @@ services:
 	- App\Stock\Valuation\Command\ValuationJsonDataSourceProviderCommand
 	- App\Stock\Valuation\Data\StockValuationDataFacade
 	- App\Stock\Valuation\StockValuationFacade(typed(App\Stock\Valuation\Model\StockValuationModel))
+	- App\Stock\Valuation\StockValuationPriceProvider
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand
 	- App\Stock\Valuation\UI\StockValuationSortService

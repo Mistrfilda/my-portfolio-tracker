@@ -134,6 +134,9 @@ components:
                 - oneDayChange
                 - sevenDayChange
                 - thirtyDayChange
+                - priceFromAllModels
+                - analyticsPrice
+                - aiAnalysisPrice
                 - priceDownloadedAt
                 - assetPriceDownloader
             properties:
@@ -168,10 +171,29 @@ components:
                 thirtyDayChange:
                     type: number
                     format: float
+                priceFromAllModels:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                analyticsPrice:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                aiAnalysisPrice:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
                 priceDownloadedAt:
                     type: string
                     format: date-time
                 assetPriceDownloader:
+                    type: string
+        StockAssetValuationPrice:
+            type: object
+            additionalProperties: false
+            nullable: true
+            required:
+                - price
+                - currency
+            properties:
+                price:
+                    type: number
+                    format: float
+                currency:
                     type: string
         DashboardValue:
             type: object
