@@ -39,3 +39,4 @@ Every presenter and control in this project MUST extend a project base class and
 - Page title is set via `BasePresenterParameters`; override per action when needed.
 - All comments and exception messages in English; tabs for indentation.
 - For Latte filter usage (`currency`, `summaryPriceFormat`, …) see `ui-latte-filters`.
+- When creating new presenter, register route in `config/routing.neon`.

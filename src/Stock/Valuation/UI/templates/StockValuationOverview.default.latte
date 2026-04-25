@@ -1,0 +1,65 @@
+{templateType App\Stock\Valuation\UI\StockValuationOverviewTemplate}
+
+{block #content}
+	<div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+		<div class="border-b border-gray-200 px-4 py-5 sm:px-6">
+			<h2 class="text-base font-semibold text-gray-900">All stock valuation prices</h2>
+			<p class="mt-1 text-sm text-gray-500">
+				Comparison of the current stock price against price from all models, analytics price, and AI analysis price.
+			</p>
+		</div>
+
+		<div class="overflow-x-auto">
+			<table class="min-w-full divide-y divide-gray-300">
+				<thead>
+					<tr>
+						<th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
+							Stock
+						</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+							Current price
+						</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+							Price from all models
+						</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+							Analytics price
+						</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+							AI analysis price
+						</th>
+					</tr>
+				</thead>
+				<tbody class="divide-y divide-gray-200 bg-white">
+					{foreach $rows as $row}
+						<tr>
+							<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
+								<div class="font-medium text-gray-900">{$row->getStockAsset()->getName()}</div>
+								<div class="text-gray-500">{$row->getStockAsset()->getTicker()}</div>
+							</td>
+							<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
+								{$row->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
+							</td>
+							{foreach $row->getValues() as $value}
+								<td class="px-3 py-4 text-sm text-gray-900 align-top">
+									{if $value->getAssetPrice() !== null}
+										<div class="font-medium text-gray-900">{$value->getAssetPrice()|assetPriceFormat}</div>
+										<div class="mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {$value->getBadgeClasses()}">
+											{if $value->getDiffPercentage() !== null}
+												{if $value->isPositive()}+{/if}{$value->getDiffPercentage()|number:2}%
+											{else}
+												N/A
+											{/if}
+										</div>
+									{else}
+										<span class="text-gray-400">N/A</span>
+									{/if}
+								</td>
+							{/foreach}
+						</tr>
+					{/foreach}
+				</tbody>
+			</table>
+		</div>
+	</div>
+{/block}
