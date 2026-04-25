@@ -68,6 +68,34 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/StockAsset'
+    /stocks/{id}:
+        get:
+            summary: Get single stock asset detail
+            tags:
+                - Stocks
+            security:
+                - ApiKey: []
+            parameters:
+                - name: id
+                  in: path
+                  required: true
+                  description: Stock asset UUID
+                  schema:
+                      type: string
+                      format: uuid
+            responses:
+                '200':
+                    description: Stock asset detail
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/StockAssetDetail'
+                '404':
+                    description: Stock asset not found
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
     /home/device/record:
         post:
             summary: Create a new home device record
@@ -194,6 +222,244 @@ components:
                     type: number
                     format: float
                 currency:
+                    type: string
+        StockAssetDetail:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - name
+                - ticker
+                - exchange
+                - currency
+                - price
+                - trend
+                - oneDayChange
+                - sevenDayChange
+                - thirtyDayChange
+                - priceFromAllModels
+                - analyticsPrice
+                - aiAnalysisPrice
+                - priceDownloadedAt
+                - assetPriceDownloader
+                - openPositions
+                - dividends
+                - valuationModels
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                name:
+                    type: string
+                ticker:
+                    type: string
+                isin:
+                    type: string
+                    nullable: true
+                exchange:
+                    type: string
+                currency:
+                    type: string
+                price:
+                    type: number
+                    format: float
+                trend:
+                    type: string
+                    enum:
+                        - increasing
+                        - decreasing
+                oneDayChange:
+                    type: number
+                    format: float
+                sevenDayChange:
+                    type: number
+                    format: float
+                thirtyDayChange:
+                    type: number
+                    format: float
+                priceFromAllModels:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                analyticsPrice:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                aiAnalysisPrice:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                priceDownloadedAt:
+                    type: string
+                    format: date-time
+                assetPriceDownloader:
+                    type: string
+                openPositions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockAssetOpenPosition'
+                dividends:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockAssetDividendDetail'
+                valuationModels:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockAssetValuationModel'
+        StockAssetOpenPosition:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - orderPiecesCount
+                - pricePerPiece
+                - totalInvestedAmount
+                - currentTotalAmount
+                - totalInvestedAmountInBrokerCurrency
+                - orderDate
+                - differentBrokerAmount
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                orderPiecesCount:
+                    type: integer
+                pricePerPiece:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                totalInvestedAmount:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                currentTotalAmount:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                totalInvestedAmountInBrokerCurrency:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                orderDate:
+                    type: string
+                    format: date-time
+                differentBrokerAmount:
+                    type: boolean
+        StockAssetDividendDetail:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - exDate
+                - paymentDate
+                - declarationDate
+                - amount
+                - currency
+                - dividendType
+                - paidAmount
+                - records
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                exDate:
+                    type: string
+                    format: date-time
+                paymentDate:
+                    type: string
+                    format: date-time
+                    nullable: true
+                declarationDate:
+                    type: string
+                    format: date-time
+                    nullable: true
+                amount:
+                    type: number
+                    format: float
+                currency:
+                    type: string
+                dividendType:
+                    type: string
+                paidAmount:
+                    $ref: '#/components/schemas/StockAssetPaidAmount'
+                records:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockAssetDividendRecord'
+        StockAssetPaidAmount:
+            type: object
+            additionalProperties: false
+            nullable: true
+            required:
+                - amount
+                - currency
+            properties:
+                amount:
+                    type: number
+                    format: float
+                currency:
+                    type: string
+        StockAssetDividendRecord:
+            type: object
+            additionalProperties: false
+            required:
+                - id
+                - totalPiecesHeldAtExDate
+                - totalAmount
+                - currency
+                - totalAmountInBrokerCurrency
+                - brokerCurrency
+                - reinvested
+            properties:
+                id:
+                    type: string
+                    format: uuid
+                totalPiecesHeldAtExDate:
+                    type: integer
+                totalAmount:
+                    type: number
+                    format: float
+                currency:
+                    type: string
+                totalAmountInBrokerCurrency:
+                    type: number
+                    format: float
+                    nullable: true
+                brokerCurrency:
+                    type: string
+                    nullable: true
+                reinvested:
+                    type: boolean
+        StockAssetValuationModel:
+            type: object
+            additionalProperties: false
+            required:
+                - className
+                - label
+                - assetPrice
+                - calculatedPercentage
+                - calculatedValue
+                - state
+                - color
+                - isCalculated
+                - description
+            properties:
+                className:
+                    type: string
+                label:
+                    type: string
+                assetPrice:
+                    $ref: '#/components/schemas/StockAssetValuationPrice'
+                calculatedPercentage:
+                    type: number
+                    format: float
+                    nullable: true
+                calculatedValue:
+                    type: number
+                    format: float
+                    nullable: true
+                state:
+                    type: string
+                color:
+                    type: string
+                isCalculated:
+                    type: boolean
+                description:
+                    type: string
+                    nullable: true
+        ErrorResponse:
+            type: object
+            additionalProperties: false
+            required:
+                - error
+            properties:
+                error:
                     type: string
         DashboardValue:
             type: object

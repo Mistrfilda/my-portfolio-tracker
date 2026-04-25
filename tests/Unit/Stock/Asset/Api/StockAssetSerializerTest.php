@@ -9,14 +9,23 @@ use App\Currency\CurrencyEnum;
 use App\Stock\Asset\Api\StockAssetSerializer;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
+use App\Stock\Dividend\Record\StockAssetDividendRecord;
+use App\Stock\Dividend\StockAssetDividend;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
+use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
+use App\Stock\Valuation\Model\StockValuationModel;
+use App\Stock\Valuation\Model\StockValuationModelResponse;
+use App\Stock\Valuation\Model\StockValuationModelState;
+use App\Stock\Valuation\StockValuationFacade;
 use App\Stock\Valuation\StockValuationPriceProvider;
 use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use ReflectionProperty;
 
 #[AllowMockObjectsWithoutExpectations]
@@ -60,15 +69,93 @@ class StockAssetSerializerTest extends TestCase
 		self::assertSame(['price' => 12.5, 'currency' => CurrencyEnum::USD->value], $data['aiAnalysisPrice']);
 	}
 
+	public function testSerializeDetailContainsOpenPositionsDividendsAndValuationModels(): void
+	{
+		$stockAsset = $this->createStockAssetWithCurrentFridayPrice();
+		$position = $this->createMock(StockPosition::class);
+		$position->method('getId')->willReturn(Uuid::fromString('00000000-0000-0000-0000-000000000001'));
+		$position->method('getOrderPiecesCount')->willReturn(4);
+		$position->method('getPricePerPiece')->willReturn($this->createAssetPrice(10.0));
+		$position->method('getTotalInvestedAmount')->willReturn($this->createAssetPrice(40.0));
+		$position->method('getCurrentTotalAmount')->willReturn($this->createAssetPrice(44.0));
+		$position->method('getTotalInvestedAmountInBrokerCurrency')->willReturn(
+			$this->createAssetPrice(900.0, CurrencyEnum::CZK),
+		);
+		$position->method('getOrderDate')->willReturn(new ImmutableDateTime('2026-01-01 00:00:00'));
+		$position->method('isDifferentBrokerAmount')->willReturn(true);
+
+		$record = $this->createMock(StockAssetDividendRecord::class);
+		$record->method('getId')->willReturn(Uuid::fromString('00000000-0000-0000-0000-000000000002'));
+		$record->method('getTotalPiecesHeldAtExDate')->willReturn(4);
+		$record->method('getTotalAmount')->willReturn(3.5);
+		$record->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$record->method('getTotalAmountInBrokerCurrency')->willReturn(80.0);
+		$record->method('getBrokerCurrency')->willReturn(CurrencyEnum::CZK);
+		$record->method('isReinvested')->willReturn(true);
+
+		$dividend = $this->createMock(StockAssetDividend::class);
+		$dividend->method('getId')->willReturn(Uuid::fromString('00000000-0000-0000-0000-000000000003'));
+		$dividend->method('getExDate')->willReturn(new ImmutableDateTime('2026-02-01 00:00:00'));
+		$dividend->method('getPaymentDate')->willReturn(new ImmutableDateTime('2026-02-15 00:00:00'));
+		$dividend->method('getDeclarationDate')->willReturn(new ImmutableDateTime('2026-01-20 00:00:00'));
+		$dividend->method('getAmount')->willReturn(0.875);
+		$dividend->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$dividend->method('getDividendType')->willReturn(StockAssetDividendTypeEnum::REGULAR);
+		$dividend->method('getRecords')->willReturn([$record]);
+
+		$model = $this->createMock(StockValuationModel::class);
+		$modelResponse = $this->createMock(StockValuationModelResponse::class);
+		$modelResponse->method('getStockValuationModel')->willReturn($model);
+		$modelResponse->method('getLabel')->willReturn('Discounted cash flow');
+		$modelResponse->method('getAssetPrice')->willReturn($this->createAssetPrice(123.45));
+		$modelResponse->method('getCalculatedPercentage')->willReturn(12.3);
+		$modelResponse->method('getCalculatedValue')->willReturn(15.6);
+		$modelResponse->method('getStockValuationModelTrend')->willReturn(StockValuationModelState::UNDERPRICED);
+		$modelResponse->method('getDescription')->willReturn('Model description');
+
+		$positionsReflection = new ReflectionProperty($stockAsset, 'positions');
+		$positionsReflection->setValue($stockAsset, new ArrayCollection([$position]));
+		$dividendsReflection = new ReflectionProperty($stockAsset, 'dividends');
+		$dividendsReflection->setValue($stockAsset, new ArrayCollection([$dividend]));
+
+		$serializer = $this->createSerializer(
+			new ImmutableDateTime('2026-01-12 08:00:00'),
+			stockAsset: $stockAsset,
+			valuationModels: [$modelResponse],
+		);
+
+		$data = $serializer->serializeDetail($stockAsset);
+
+		self::assertSame('00000000-0000-0000-0000-000000000001', $data['openPositions'][0]['id']);
+		self::assertSame(
+			['amount' => 3.5, 'currency' => CurrencyEnum::USD->value],
+			$data['dividends'][0]['paidAmount'],
+		);
+		self::assertSame('00000000-0000-0000-0000-000000000002', $data['dividends'][0]['records'][0]['id']);
+		self::assertSame('Discounted cash flow', $data['valuationModels'][0]['label']);
+	}
+
+	/**
+	 * @param array<StockValuationModelResponse> $valuationModels
+	 */
 	private function createSerializer(
 		ImmutableDateTime $now,
 		float|null $priceFromAllModels = null,
 		float|null $analyticsPrice = null,
 		float|null $aiAnalysisPrice = null,
+		StockAsset|null $stockAsset = null,
+		array $valuationModels = [],
 	): StockAssetSerializer
 	{
 		$datetimeFactory = $this->createMock(DatetimeFactory::class);
 		$datetimeFactory->method('createNow')->willReturn($now);
+		$stockValuationFacade = $this->createMock(StockValuationFacade::class);
+		if ($stockAsset !== null) {
+			$stockValuationFacade->expects(self::once())->method('getStockValuationsModelsForStockAsset')->with(
+				$stockAsset,
+			)->willReturn($valuationModels);
+		}
+
 		$stockValuationPriceProvider = $this->createMock(StockValuationPriceProvider::class);
 		$stockValuationPriceProvider->method('getAverageModelPrice')->willReturn(
 			$this->createAssetPrice($priceFromAllModels),
@@ -80,19 +167,19 @@ class StockAssetSerializerTest extends TestCase
 			$this->createAssetPrice($aiAnalysisPrice),
 		);
 
-		return new StockAssetSerializer($datetimeFactory, $stockValuationPriceProvider);
+		return new StockAssetSerializer($datetimeFactory, $stockValuationFacade, $stockValuationPriceProvider);
 	}
 
-	private function createAssetPrice(float|null $price): AssetPrice|null
+	private function createAssetPrice(float|null $price, CurrencyEnum $currency = CurrencyEnum::USD): AssetPrice|null
 	{
 		if ($price === null) {
 			return null;
 		}
 
 		$stockAsset = $this->createMock(StockAsset::class);
-		$stockAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$stockAsset->method('getCurrency')->willReturn($currency);
 
-		return new AssetPrice($stockAsset, $price, CurrencyEnum::USD);
+		return new AssetPrice($stockAsset, $price, $currency);
 	}
 
 	private function createStockAssetWithCurrentFridayPrice(): StockAsset

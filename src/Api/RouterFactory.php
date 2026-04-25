@@ -32,6 +32,7 @@ class RouterFactory
 			$v1->get('/ping', PingController::class . ':ping');
 			$v1->get('/dashboard/values', DashboardValueController::class . ':list');
 			$v1->get('/stocks', StockAssetController::class . ':list');
+			$v1->get('/stocks/{id}', StockAssetController::class . ':detail');
 			$v1->post('/home/device/record', HomeDeviceRecordController::class . ':create');
 			$v1->get('/home/device/records', HomeDeviceRecordController::class . ':list');
 		});
