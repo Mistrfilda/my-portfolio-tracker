@@ -22,3 +22,6 @@ puppeter/node_modules/*
 
 !www/build/admin/.gitkeep
 !www/prod-build/.gitkeep
+
+.junie/memory
+.junie/plans
