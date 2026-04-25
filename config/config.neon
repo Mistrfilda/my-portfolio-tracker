@@ -198,6 +198,7 @@ services:
 	# API
 	- App\Api\RouterFactory(apiKeyMiddleware: @apiKeyMiddleware)
 	- App\Api\Controller\PingController
+	- App\Dashboard\Api\DashboardValueController
 	- App\Stock\Asset\Api\StockAssetSerializer
 	- App\Stock\Asset\Api\StockAssetController
 	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)

@@ -21,7 +21,7 @@ class StockAssetController
 
 	public function list(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
 	{
-		$stockAssets = $this->stockAssetRepository->findAll();
+		$stockAssets = $this->stockAssetRepository->findAllActive();
 
 		$data = Json::encode($this->stockAssetSerializer->serializeList($stockAssets));
 

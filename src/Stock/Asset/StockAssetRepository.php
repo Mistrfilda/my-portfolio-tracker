@@ -110,6 +110,14 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 	}
 
 	/**
+	 * @return array<StockAsset>
+	 */
+	public function findAllActive(): array
+	{
+		return $this->doctrineRepository->findBy(['shouldDownloadPrice' => true], ['name' => OrderBy::ASC->value]);
+	}
+
+	/**
 	 * @param array<UuidInterface> $ids
 	 * @return array<StockAsset>
 	 */

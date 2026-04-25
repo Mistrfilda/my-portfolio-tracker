@@ -6,8 +6,9 @@ namespace App\Dashboard;
 
 use App\Statistic\PortolioStatisticType;
 use App\UI\Icon\SvgIcon;
+use JsonSerializable;
 
-class DashboardValue
+class DashboardValue implements JsonSerializable
 {
 
 	public function __construct(
@@ -29,6 +30,21 @@ class DashboardValue
 	public function getValue(): string
 	{
 		return $this->value;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function jsonSerialize(): array
+	{
+		return [
+			'label' => $this->label,
+			'value' => $this->value,
+			'color' => $this->color,
+			'svgIcon' => $this->getSvgIcon(),
+			'description' => $this->description,
+			'type' => $this->type?->value,
+		];
 	}
 
 	public function getColor(): string

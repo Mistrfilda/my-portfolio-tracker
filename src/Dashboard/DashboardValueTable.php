@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
-class DashboardValueTable
+use JsonSerializable;
+
+class DashboardValueTable implements JsonSerializable
 {
 
 	/**
@@ -37,6 +39,20 @@ class DashboardValueTable
 	public function getValue(): string
 	{
 		return $this->value;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function jsonSerialize(): array
+	{
+		return [
+			'label' => $this->label,
+			'value' => $this->value,
+			'color' => $this->color,
+			'heading' => $this->heading,
+			'data' => $this->data,
+		];
 	}
 
 	public function getColor(): string

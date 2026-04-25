@@ -306,36 +306,21 @@ class StockAsset implements Entity, Asset
 
 	public function getTrend(ImmutableDateTime $date): float
 	{
-		$priceRecords = $this->priceRecords->filter(
-			static fn (StockAssetPriceRecord $stockAssetPriceRecord) => $stockAssetPriceRecord->getDate()->format(
-				'Y-m-d',
-			) === $date->format(
-				'Y-m-d',
-			),
-		);
-
-		$deductDays = 1;
-		while (count($priceRecords) === 0) {
-			$modifiedDate = $date->deductDaysFromDatetime($deductDays);
-			$priceRecords = $this->priceRecords->filter(
-				static fn (StockAssetPriceRecord $stockAssetPriceRecord) => $stockAssetPriceRecord->getDate()->format(
-					'Y-m-d',
-				) === $modifiedDate->format('Y-m-d'),
-			);
-
-			if ($modifiedDate->diff($date)->days > 7) {
-				break;
-			}
-
-			$deductDays++;
-		}
-
-		if (count($priceRecords) === 0) {
+		$lastDayPriceRecord = $this->findLatestPriceRecordOnOrBefore($date);
+		if ($lastDayPriceRecord === null) {
 			return 0;
 		}
 
-		$lastDayPriceRecord = $priceRecords->first();
-		assert($lastDayPriceRecord instanceof StockAssetPriceRecord);
+		$currentPriceRecord = $this->findLatestPriceRecordOnOrBefore($this->priceDownloadedAt);
+		if (
+			$currentPriceRecord !== null
+			&& $currentPriceRecord->getDate()->format('Y-m-d') === $lastDayPriceRecord->getDate()->format('Y-m-d')
+		) {
+			$lastDayPriceRecord = $this->findLatestPriceRecordBefore($lastDayPriceRecord->getDate());
+			if ($lastDayPriceRecord === null) {
+				return 0;
+			}
+		}
 
 		$percentage = RuleOfThreeFilter::getPercentage(
 			$this->currentAssetPrice->getPrice(),
@@ -343,6 +328,48 @@ class StockAsset implements Entity, Asset
 		);
 
 		return round((float) ($percentage - 100), 2);
+	}
+
+	private function findLatestPriceRecordOnOrBefore(ImmutableDateTime $date): StockAssetPriceRecord|null
+	{
+		$latestPriceRecord = null;
+		$dateString = $date->format('Y-m-d');
+
+		foreach ($this->priceRecords->toArray() as $priceRecord) {
+			assert($priceRecord instanceof StockAssetPriceRecord);
+
+			$priceRecordDate = $priceRecord->getDate()->format('Y-m-d');
+			if ($priceRecordDate > $dateString) {
+				continue;
+			}
+
+			if ($latestPriceRecord === null || $priceRecordDate > $latestPriceRecord->getDate()->format('Y-m-d')) {
+				$latestPriceRecord = $priceRecord;
+			}
+		}
+
+		return $latestPriceRecord;
+	}
+
+	private function findLatestPriceRecordBefore(ImmutableDateTime $date): StockAssetPriceRecord|null
+	{
+		$latestPriceRecord = null;
+		$dateString = $date->format('Y-m-d');
+
+		foreach ($this->priceRecords->toArray() as $priceRecord) {
+			assert($priceRecord instanceof StockAssetPriceRecord);
+
+			$priceRecordDate = $priceRecord->getDate()->format('Y-m-d');
+			if ($priceRecordDate >= $dateString) {
+				continue;
+			}
+
+			if ($latestPriceRecord === null || $priceRecordDate > $latestPriceRecord->getDate()->format('Y-m-d')) {
+				$latestPriceRecord = $priceRecord;
+			}
+		}
+
+		return $latestPriceRecord;
 	}
 
 	public function getPriceDownloadedAt(): ImmutableDateTime

@@ -1,3 +1,8 @@
+---
+name: project-overview
+description: Invoke when the task is broad, spans multiple modules, or you first need to understand where a change belongs. Provides a navigation map for the project modules, likely entry points, related specialized skills, and the recommended workflow before editing code.
+---
+
 ## Project Overview — Navigation Map
 
 Use this skill when the task is broad, spans multiple modules, or you first need to understand where a change belongs.

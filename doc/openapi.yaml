@@ -4,6 +4,16 @@ info:
     title: My Portfolio Tracker API
     version: 1.0.0
 
+tags:
+    - name: System
+      description: System and health-check endpoints.
+    - name: Dashboard
+      description: Dashboard summary endpoints.
+    - name: Stocks
+      description: Stock asset endpoints.
+    - name: Home Devices
+      description: Home device measurement endpoints.
+
 security:
     - ApiKey: []
 
@@ -11,6 +21,8 @@ paths:
     /ping:
         get:
             summary: Ping the API
+            tags:
+                - System
             security:
                 - ApiKey: []
             responses:
@@ -24,9 +36,27 @@ paths:
                                     status:
                                         type: string
                                         example: ok
+    /dashboard/values:
+        get:
+            summary: Get dashboard value groups
+            tags:
+                - Dashboard
+            security:
+                - ApiKey: []
+            responses:
+                '200':
+                    description: List of dashboard value groups
+                    content:
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/DashboardValueGroup'
     /stocks:
         get:
             summary: Get list of all stock assets
+            tags:
+                - Stocks
             security:
                 - ApiKey: []
             responses:
@@ -41,6 +71,8 @@ paths:
     /home/device/record:
         post:
             summary: Create a new home device record
+            tags:
+                - Home Devices
             security:
                 - ApiKey: []
             requestBody:
@@ -59,6 +91,8 @@ paths:
     /home/device/records:
         get:
             summary: Get all devices with their latest measurements
+            tags:
+                - Home Devices
             security:
                 - ApiKey: []
             parameters:
@@ -96,6 +130,10 @@ components:
                 - exchange
                 - currency
                 - price
+                - trend
+                - oneDayChange
+                - sevenDayChange
+                - thirtyDayChange
                 - priceDownloadedAt
                 - assetPriceDownloader
             properties:
@@ -116,11 +154,100 @@ components:
                 price:
                     type: number
                     format: float
+                trend:
+                    type: string
+                    enum:
+                        - increasing
+                        - decreasing
+                oneDayChange:
+                    type: number
+                    format: float
+                sevenDayChange:
+                    type: number
+                    format: float
+                thirtyDayChange:
+                    type: number
+                    format: float
                 priceDownloadedAt:
                     type: string
                     format: date-time
                 assetPriceDownloader:
                     type: string
+        DashboardValue:
+            type: object
+            additionalProperties: false
+            required:
+                - label
+                - value
+                - color
+            properties:
+                label:
+                    type: string
+                value:
+                    type: string
+                color:
+                    type: string
+                svgIcon:
+                    type: string
+                    nullable: true
+                description:
+                    type: string
+                    nullable: true
+                type:
+                    type: string
+                    nullable: true
+        DashboardValueTable:
+            type: object
+            additionalProperties: false
+            required:
+                - label
+                - value
+                - color
+                - heading
+                - data
+            properties:
+                label:
+                    type: string
+                value:
+                    type: string
+                color:
+                    type: string
+                heading:
+                    type: object
+                    additionalProperties:
+                        type: string
+                data:
+                    type: array
+                    items:
+                        type: object
+                        additionalProperties: true
+        DashboardValueGroup:
+            type: object
+            additionalProperties: false
+            required:
+                - name
+                - heading
+                - positions
+                - isOpen
+                - tables
+            properties:
+                name:
+                    type: string
+                heading:
+                    type: string
+                description:
+                    type: string
+                    nullable: true
+                positions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DashboardValue'
+                isOpen:
+                    type: boolean
+                tables:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/DashboardValueTable'
         HomeDeviceRecordCreate:
             type: object
             additionalProperties: false

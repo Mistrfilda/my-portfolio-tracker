@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Api;
 
 use App\Api\Controller\PingController;
+use App\Dashboard\Api\DashboardValueController;
 use App\Home\Device\Record\Api\HomeDeviceRecordController;
 use App\Stock\Asset\Api\StockAssetController;
 use Psr\Container\ContainerInterface;
@@ -29,6 +30,7 @@ class RouterFactory
 	{
 		$v1Group = $slimApp->group('/api/v1', function (RouteCollectorProxy $v1): void {
 			$v1->get('/ping', PingController::class . ':ping');
+			$v1->get('/dashboard/values', DashboardValueController::class . ':list');
 			$v1->get('/stocks', StockAssetController::class . ':list');
 			$v1->post('/home/device/record', HomeDeviceRecordController::class . ':create');
 			$v1->get('/home/device/records', HomeDeviceRecordController::class . ':list');

@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
-class DashboardValueGroup
+use JsonSerializable;
+
+class DashboardValueGroup implements JsonSerializable
 {
 
 	/**
@@ -30,6 +32,21 @@ class DashboardValueGroup
 	public function getHeading(): string
 	{
 		return $this->heading;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function jsonSerialize(): array
+	{
+		return [
+			'name' => $this->name->value,
+			'heading' => $this->heading,
+			'description' => $this->description,
+			'positions' => $this->positions,
+			'isOpen' => $this->isOpen,
+			'tables' => $this->tables,
+		];
 	}
 
 	public function getDescription(): string|null
