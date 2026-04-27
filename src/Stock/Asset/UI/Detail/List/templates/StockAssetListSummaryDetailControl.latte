@@ -92,6 +92,7 @@
                 </thead>
                 <tbody class="divide-y divide-gray-200">
                 {foreach $sortedStockAssetsPositionsDTOs as $stockPositionDTO}
+                    {var $lastDaysDividendDetailDTO = $lastDaysDividendDetailDTOs[$stockPositionDTO->getStockAsset()->getId()->toString()]}
                     <tr class="hover:bg-gray-50 transition-colors">
                         <td class="whitespace-nowrap px-2 py-2 text-sm font-medium text-gray-900 text-center" x-show="!isHidden(0)">
                             <a href="#{$stockPositionDTO->getHtmlTarget()}" class="hover:text-blue-600 transition-colors">
@@ -123,13 +124,23 @@
                                     </span>
                             </td>
                             <td class="whitespace-nowrap px-2 py-2 text-center" x-show="!isHidden(6)">
+                                    <span class="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-sm font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+                                        {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()->getPrice()|percentage}
+                                    </span>
+                            </td>
+                            <td class="whitespace-nowrap px-2 py-2 text-center" x-show="!isHidden(7)">
+                                    <span class="inline-flex items-center rounded-md bg-green-50 px-2 py-0.5 text-sm font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                        {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$stockPositionDTO->getAveragePurchasePrice()|percentage}
+                                    </span>
+                            </td>
+                            <td class="whitespace-nowrap px-2 py-2 text-center" x-show="!isHidden(8)">
                                 {var $trend = $stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()}
                                 <span class="inline-flex items-center gap-x-1 rounded-full bg-{$trend->getTailwindColor()}-50 px-2 py-0.5 text-sm font-medium text-{$trend->getTailwindColor()}-700 ring-1 ring-inset ring-{$trend->getTailwindColor()}-600/20">
                                         {renderSvg $trend->getSvgIcon()->value, ['class' => 'h-3.5 w-3.5']}
                                     {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPercentageDifference()|percentage}
                                     </span>
                             </td>
-                            <td class="whitespace-nowrap px-2 py-2 text-sm text-center" x-show="!isHidden(7)">
+                            <td class="whitespace-nowrap px-2 py-2 text-sm text-center" x-show="!isHidden(9)">
                                     <span class="font-medium text-{$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getTrend()->getTailwindColor()}-700">
                                         {$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getPriceDifference()|currency:$stockPositionDTO->getCurrentPriceDiffInBrokerCurrency()->getCurrencyEnum()}
                                     </span>
@@ -153,7 +164,7 @@
                         <td class="whitespace-nowrap px-2 py-2 text-sm font-semibold text-gray-900 text-center">
                             {$totalInvestedAmountInCzk|currency:App\Currency\CurrencyEnum::CZK}
                         </td>
-                        <td colspan="4"></td>
+                        <td colspan="6"></td>
                     </tr>
                     </tfoot>
                 {/if}

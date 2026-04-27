@@ -2,6 +2,7 @@
 {templateType App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlTemplate}
 
 {foreach $stockAssetsPositionDTOs as $stockPositionDTO}
+    {var $lastDaysDividendDetailDTO = $lastDaysDividendDetailDTOs[$stockPositionDTO->getStockAsset()->getId()->toString()]}
     <div class="mt-6 bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden" id="{$stockPositionDTO->getHtmlTarget()}">
         {* Hlavička s názvem akcie *}
         <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
@@ -111,6 +112,30 @@
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="bg-white rounded-lg border-2 border-blue-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Dividendový výnos 365 dní / aktuální cena</div>
+                    </div>
+                    <div class="text-2xl font-bold text-blue-700 mb-2">
+                        {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$stockPositionDTO->getStockAsset()->getAssetCurrentPrice()->getPrice()|percentage}
+                    </div>
+                    <div class="text-sm text-blue-700">
+                        Dividenda: {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()|summaryPriceFormat}
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg border-2 border-green-200 p-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Dividendový výnos 365 dní / nákupní cena</div>
+                    </div>
+                    <div class="text-2xl font-bold text-green-700 mb-2">
+                        {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()->getPrice()|ruleOfThree:$stockPositionDTO->getAveragePurchasePrice()|percentage}
+                    </div>
+                    <div class="text-sm text-green-700">
+                        Dividenda: {$lastDaysDividendDetailDTO->getDividendsSummaryPriceWithTax()|summaryPriceFormat}
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-lg border-2 border-{$stockPositionDTO->getCurrentPriceDiff()->getTrend()->getTailwindColor()}-200 p-4">
                     <div class="flex items-center justify-between mb-3">
                         <div class="text-xs font-medium text-gray-500 uppercase tracking-wider">Zisk/ztráta</div>

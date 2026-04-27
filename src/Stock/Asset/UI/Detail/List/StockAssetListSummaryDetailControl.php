@@ -6,8 +6,11 @@ namespace App\Stock\Asset\UI\Detail\List;
 
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Dividend\UI\Detail\StockDividendDetailControl;
+use App\Stock\Dividend\UI\StockAssetDividendDetailService;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
+use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
 
 class StockAssetListSummaryDetailControl extends BaseControl
@@ -24,6 +27,8 @@ class StockAssetListSummaryDetailControl extends BaseControl
 		private StockAssetListDetailControlEnum $assetDetailControlEnum,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockPositionFacade $stockPositionFacade,
+		private readonly StockAssetDividendDetailService $stockAssetDividendDetailService,
+		private readonly DatetimeFactory $datetimeFactory,
 	)
 	{
 		$this->stockAssetIds = $stockAssetsIds;
@@ -36,7 +41,11 @@ class StockAssetListSummaryDetailControl extends BaseControl
 			: $this->stockAssetRepository->findByIds($this->stockAssetIds);
 
 		$stockAssetsPositionDTOs = [];
+		$lastDaysDividendDetailDTOs = [];
 		$totalInvestedAmountInCzk = 0;
+		$lastDaysDividendFrom = $this->datetimeFactory->createNow()->deductDaysFromDatetime(
+			StockDividendDetailControl::DAYS_SINCE,
+		);
 		foreach ($assets as $asset) {
 			if ($asset->hasOpenPositions()) {
 				if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::CLOSED_POSITIONS) {
@@ -54,10 +63,15 @@ class StockAssetListSummaryDetailControl extends BaseControl
 			);
 
 			$stockAssetsPositionDTOs[] = $detailDTO;
+			$lastDaysDividendDetailDTOs[$asset->getId()->toString()] = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
+				$asset,
+				$lastDaysDividendFrom,
+			);
 			$totalInvestedAmountInCzk += $detailDTO->getCurrentPriceInCzk()->getPrice();
 		}
 
-		$template = $this->getTemplate();
+		$template = $this->createTemplate(StockAssetListSummaryDetailControlTemplate::class);
+		assert($template instanceof StockAssetListSummaryDetailControlTemplate);
 
 		$sortedStockAssetsPositionsDTOs = $stockAssetsPositionDTOs;
 		usort($sortedStockAssetsPositionsDTOs, static function (StockAssetDetailDTO $a, StockAssetDetailDTO $b): int {
@@ -79,12 +93,15 @@ class StockAssetListSummaryDetailControl extends BaseControl
 				'Počet akcíí',
 				'Celková hodnota v CZK',
 				'% z portfolia',
+				'Dividendový výnos 365 dní / aktuální cena',
+				'Dividendový výnos 365 dní / nákupní cena',
 				'% Ziskovost po započtení měny brokera',
 				'% Ziskovost v měně brokera',
 			]);
 		}
 
 		$template->fields = $fields;
+		$template->lastDaysDividendDetailDTOs = $lastDaysDividendDetailDTOs;
 		$template->totalInvestedAmountInCzk = $totalInvestedAmountInCzk;
 		$template->sortedStockAssetsPositionsDTOs = $sortedStockAssetsPositionsDTOs;
 		$template->assetDetailControlEnum = $this->assetDetailControlEnum;

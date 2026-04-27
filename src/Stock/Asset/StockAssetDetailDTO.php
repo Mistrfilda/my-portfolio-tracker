@@ -89,6 +89,15 @@ class StockAssetDetailDTO
 		return $this->piecesCount;
 	}
 
+	public function getAveragePurchasePrice(): float
+	{
+		if ($this->piecesCount === 0) {
+			return 0.0;
+		}
+
+		return $this->totalInvestedAmount->getPrice() / $this->piecesCount;
+	}
+
 	public function getHtmlTarget(): string
 	{
 		return Strings::webalize($this->stockAsset->getId()->toString());
