@@ -7,6 +7,7 @@ namespace App\Stock\Valuation\UI;
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafetyProvider;
 use App\Stock\Valuation\StockValuationPriceProvider;
 use App\UI\Base\BaseAdminPresenter;
 
@@ -19,6 +20,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationPriceProvider $stockValuationPriceProvider,
+		private StockValuationMarginOfSafetyProvider $stockValuationMarginOfSafetyProvider,
 	)
 	{
 		parent::__construct();
@@ -35,25 +37,35 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 		);
 
 		foreach ($stockAssets as $stockAsset) {
+			$averageModelPrice = $this->stockValuationPriceProvider->getAverageModelPrice($stockAsset);
+			$analyticsPrice = $this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset);
+			$aiAnalysisPrice = $this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset);
+
 			$this->template->rows[] = new StockValuationOverviewRow(
 				$stockAsset,
 				[
 					$this->createOverviewValue(
 						'Price from all models',
-						$this->stockValuationPriceProvider->getAverageModelPrice($stockAsset),
+						$averageModelPrice,
 						$stockAsset,
 					),
 					$this->createOverviewValue(
 						'Analytics price',
-						$this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset),
+						$analyticsPrice,
 						$stockAsset,
 					),
 					$this->createOverviewValue(
 						'AI analysis price',
-						$this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset),
+						$aiAnalysisPrice,
 						$stockAsset,
 					),
 				],
+				$this->stockValuationMarginOfSafetyProvider->getForStockAsset(
+					$stockAsset,
+					$averageModelPrice,
+					$analyticsPrice,
+					$aiAnalysisPrice,
+				),
 			);
 		}
 	}

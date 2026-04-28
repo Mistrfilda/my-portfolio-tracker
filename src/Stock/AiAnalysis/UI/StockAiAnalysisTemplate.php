@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\UI;
 
+use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistItem;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use App\UI\Base\BaseAdminPresenterTemplate;
@@ -21,6 +22,9 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 
 	/** @var array<int, StockAiAnalysisStockResult> */
 	public array $singleStockResults = [];
+
+	/** @var array<int, StockAiAnalysisActionChecklistItem> */
+	public array $dailyBriefActionChecklistItems = [];
 
 	/** @var array<string, string> */
 	public array $portfolioPromptTypes = [];

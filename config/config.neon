@@ -335,6 +335,7 @@ services:
 	#Stock AI analysis
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
 	- App\Stock\AiAnalysis\StockAiAnalysisFacade
+	- App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider
 	- App\Stock\AiAnalysis\StockAiAnalysisRunRepository(App\Stock\AiAnalysis\StockAiAnalysisRun)
 	- App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository(App\Stock\AiAnalysis\StockAiAnalysisStockResult)
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisGridFactory
@@ -525,6 +526,7 @@ services:
 	- App\Stock\Valuation\Data\StockValuationDataFacade
 	- App\Stock\Valuation\StockValuationFacade(typed(App\Stock\Valuation\Model\StockValuationModel))
 	- App\Stock\Valuation\StockValuationPriceProvider
+	- App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafetyProvider
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand
 	- App\Stock\Valuation\UI\StockValuationSortService

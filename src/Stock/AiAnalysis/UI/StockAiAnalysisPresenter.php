@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\UI;
 
+use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
@@ -31,6 +32,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAiAnalysisFacade $stockAiAnalysisFacade,
 		private readonly StockAiAnalysisGridFactory $stockAiAnalysisGridFactory,
 		private readonly StockAssetRepository $stockAssetRepository,
+		private readonly StockAiAnalysisActionChecklistProvider $stockAiAnalysisActionChecklistProvider,
 	)
 	{
 		parent::__construct();
@@ -102,6 +104,9 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->portfolioResults = $portfolioResults;
 		$this->template->watchlistResults = $watchlistResults;
 		$this->template->singleStockResults = $singleStockResults;
+		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
+			$this->run,
+		);
 	}
 
 	private function getActionScore(StockAiAnalysisActionSuggestionEnum|null $action): int

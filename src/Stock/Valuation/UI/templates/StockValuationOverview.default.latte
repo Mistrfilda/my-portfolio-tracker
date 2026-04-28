@@ -5,7 +5,7 @@
 		<div class="border-b border-gray-200 px-4 py-5 sm:px-6">
 			<h2 class="text-base font-semibold text-gray-900">All stock valuation prices</h2>
 			<p class="mt-1 text-sm text-gray-500">
-				Comparison of the current stock price against price from all models, analytics price, and AI analysis price.
+				Comparison of the current stock price against price from all models, analytics price, AI analysis price, and the combined margin of safety signal.
 			</p>
 		</div>
 
@@ -28,10 +28,14 @@
 						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
 							AI analysis price
 						</th>
+						<th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+							Margin of safety
+						</th>
 					</tr>
 				</thead>
 				<tbody class="divide-y divide-gray-200 bg-white">
 					{foreach $rows as $row}
+						{var $marginOfSafety = $row->getMarginOfSafety()}
 						<tr>
 							<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
 								<div class="font-medium text-gray-900">{$row->getStockAsset()->getName()}</div>
@@ -56,6 +60,39 @@
 									{/if}
 								</td>
 							{/foreach}
+							<td class="px-3 py-4 text-sm text-gray-900 align-top min-w-64">
+								<div class="flex flex-wrap items-center gap-2">
+									<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$marginOfSafety->getStatus()->getBadgeClasses()}">
+										{$marginOfSafety->getStatus()->getLabel()}
+									</span>
+									<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$marginOfSafety->getConfidence()->getBadgeClasses()}">
+										{$marginOfSafety->getConfidence()->getLabel()}
+									</span>
+								</div>
+								{if $marginOfSafety->getFairPriceEstimate() !== null}
+									<div class="mt-2 text-gray-900">
+										Fair estimate: <span class="font-medium">{$marginOfSafety->getFairPriceEstimate()|assetPriceFormat}</span>
+									</div>
+								{/if}
+								{if $marginOfSafety->getMarginPercentage() !== null}
+									<div class="mt-1 text-gray-600">
+										Margin: <span class="font-medium">{if $marginOfSafety->getMarginPercentage() > 0}+{/if}{$marginOfSafety->getMarginPercentage()|number:2}%</span>
+										<span class="text-gray-400">({$marginOfSafety->getSourcesCount()} zdroje)</span>
+									</div>
+								{/if}
+								{if $marginOfSafety->getSourceSpreadPercentage() !== null}
+									<div class="mt-1 text-xs text-gray-500">
+										Model disagreement: {$marginOfSafety->getSourceSpreadPercentage()|number:2}%
+									</div>
+								{/if}
+								{if count($marginOfSafety->getReasons()) > 0}
+									<ul class="mt-2 list-disc pl-4 text-xs text-gray-500">
+										{foreach $marginOfSafety->getReasons() as $reason}
+											<li>{$reason}</li>
+										{/foreach}
+									</ul>
+								{/if}
+							</td>
 						</tr>
 					{/foreach}
 				</tbody>
