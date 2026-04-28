@@ -14,6 +14,9 @@ log/*
 www/build/*
 www/prod-build/*
 
+desktop/node_modules
+desktop/out
+
 .phpunit.result.cache
 
 .phpunit.cache/*

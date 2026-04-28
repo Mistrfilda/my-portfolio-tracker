@@ -6,6 +6,7 @@ namespace App\Stock\Dividend\UI\Detail;
 
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory;
+use App\Stock\Dividend\Safety\StockDividendSafetyScoreProvider;
 use App\Stock\Dividend\UI\StockAssetDividendDetailService;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Base\BaseControl;
@@ -23,6 +24,7 @@ class StockDividendDetailControl extends BaseControl
 		private StockAssetRepository $stockAssetRepository,
 		private StockAssetDividendRecordGridFactory $stockAssetDividendRecordGridFactory,
 		private StockAssetDividendDetailService $stockAssetDividendDetailService,
+		private StockDividendSafetyScoreProvider $stockDividendSafetyScoreProvider,
 		private DatetimeFactory $datetimeFactory,
 		private StockPositionFacade $stockPositionFacade,
 	)
@@ -98,6 +100,7 @@ class StockDividendDetailControl extends BaseControl
 
 		$template->openStockAssetDetailDTO = $this->stockPositionFacade->getStockAssetDetailDTO($this->stockAssetId);
 		$template->currentPrice = $stockAsset->getAssetCurrentPrice()->getPrice();
+		$template->dividendSafetyScore = $this->stockDividendSafetyScoreProvider->getForStockAsset($stockAsset);
 		$template->lastYear = $lastYear;
 		$template->setFile(__DIR__ . '/StockDividendDetailControl.latte');
 		$template->render();

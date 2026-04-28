@@ -388,8 +388,10 @@ services:
 	- App\Stock\Dividend\Record\UI\StockAssetDividendRecordGridFactory
 	- App\Stock\Dividend\UI\Detail\StockDividendDetailControlFactory
 	- App\Stock\Dividend\UI\StockAssetDividendDetailService
+	- App\Stock\Dividend\Safety\StockDividendSafetyScoreProvider
 	- App\Stock\Dividend\Forecast\StockAssetDividendForecastFacade
 	- App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository(App\Stock\Dividend\Forecast\StockAssetDividendForecast)
+	- App\Stock\Dividend\Forecast\StockAssetDividendForecastCashflowProvider
 	- App\Stock\Dividend\Forecast\UI\Control\StockAssetDividendForecastDetailControlFactory
 	- App\Stock\Dividend\Forecast\UI\StockAssetDividendForecastFormFactory
 	- App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade

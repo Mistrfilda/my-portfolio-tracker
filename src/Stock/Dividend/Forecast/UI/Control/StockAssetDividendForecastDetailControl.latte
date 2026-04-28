@@ -50,6 +50,86 @@
 
     {if count($records) > 0}
         <div class="mt-8 flow-root" x-data="{ openFormId: null }">
+            <div class="mb-8 bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                <div class="px-5 py-4 border-b border-gray-200 bg-white">
+                    <h2 class="text-lg font-semibold text-gray-900">Měsíční dividendové cashflow</h2>
+                    <p class="mt-1 text-sm text-gray-500">Součet očekávaných čistých dividend po měsících v CZK.</p>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="py-3 pl-5 pr-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Měsíc
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Čistě CZK
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Hrubě CZK
+                            </th>
+                            <th scope="col" class="px-3 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Stav
+                            </th>
+                            <th scope="col" class="py-3 pl-3 pr-5 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                Akcie
+                            </th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-100">
+						{foreach $cashflowMonths as $cashflowMonth}
+							{var $cashflowMonthLabel = $cashflowMonth->getLabel()}
+							{var $cashflowMonthNetAmountInCzk = $cashflowMonth->getNetAmountInCzk()}
+							{var $cashflowMonthGrossAmountInCzk = $cashflowMonth->getGrossAmountInCzk()}
+							<tr class="hover:bg-gray-50">
+								<td class="py-3 pl-5 pr-3 text-sm font-medium whitespace-nowrap">
+									{$cashflowMonthLabel}
+								</td>
+								<td class="px-3 py-3 text-sm text-right whitespace-nowrap">
+									{$cashflowMonthNetAmountInCzk|currency:$czkCurrency}
+								</td>
+								<td class="px-3 py-3 text-sm text-right whitespace-nowrap text-gray-500">
+									{$cashflowMonthGrossAmountInCzk|currency:$czkCurrency}
+                                </td>
+                                <td class="px-3 py-3 text-sm text-right whitespace-nowrap">
+                                    {if $cashflowMonth->getConfirmedItemsCount() > 0}
+                                        <span class="inline-flex items-center rounded-md bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800 ring-1 ring-inset ring-green-600/20">
+                                            potvrzené: {$cashflowMonth->getConfirmedItemsCount()}
+                                        </span>
+                                    {/if}
+                                    {if $cashflowMonth->getEstimatedItemsCount() > 0}
+                                        <span class="inline-flex items-center rounded-md bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20">
+                                            odhad: {$cashflowMonth->getEstimatedItemsCount()}
+                                        </span>
+                                    {/if}
+                                    {if !$cashflowMonth->hasItems()}
+                                        ---
+                                    {/if}
+                                </td>
+                                <td class="py-3 pl-3 pr-5 text-sm">
+									{foreach $cashflowMonth->getItems() as $cashflowItem}
+										{var $cashflowItemTicker = $cashflowItem->getStockAsset()->getTicker()}
+										{var $cashflowItemNetAmount = $cashflowItem->getNetAmount()}
+										{var $cashflowItemCurrency = $cashflowItem->getCurrency()}
+										{var $cashflowItemConfirmed = $cashflowItem->isConfirmed()}
+										<div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-600">
+											<span class="font-medium text-gray-900">{$cashflowItemTicker}</span>
+											<span>{$cashflowItemNetAmount|currency:$cashflowItemCurrency}</span>
+											{if $cashflowItemConfirmed}
+												<span class="text-green-700">potvrzené</span>
+											{else}
+												<span class="text-amber-700">odhad</span>
+											{/if}
+										</div>
+                                    {/foreach}
+                                </td>
+                            </tr>
+                        {/foreach}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
                 <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
                     <table class="min-w-full divide-y divide-gray-300">

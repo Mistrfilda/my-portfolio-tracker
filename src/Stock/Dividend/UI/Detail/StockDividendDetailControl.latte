@@ -1,5 +1,29 @@
 {templateType App\Stock\Dividend\UI\Detail\StockDividendDetailControlTemplate}
 
+<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+    <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h3 class="text-lg font-semibold text-gray-900">Dividend safety score</h3>
+                <p class="mt-1 text-sm text-gray-500">Jednoduché skóre udržitelnosti dividendy podle payout ratio, cashflow, zadlužení, růstu EPS a historie dividend.</p>
+            </div>
+            <span class="inline-flex items-center rounded-md px-3 py-1.5 text-sm font-semibold ring-1 ring-inset {$dividendSafetyScore->getStatus()->getBadgeClass()}">
+                {$dividendSafetyScore->getStatus()->getLabel()} · {$dividendSafetyScore->getScore()}/100
+            </span>
+        </div>
+    </div>
+    <div class="p-5">
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {foreach $dividendSafetyScore->getReasons() as $label => $reason}
+                <div class="rounded-lg border border-gray-200 px-4 py-3">
+                    <dt class="text-xs font-medium text-gray-500 uppercase tracking-wider">{$label}</dt>
+                    <dd class="mt-1 text-sm text-gray-900">{$reason}</dd>
+                </div>
+            {/foreach}
+        </dl>
+    </div>
+</div>
+
 {foreach $dividendDetailDTOs as $dividendDetailDTO}
     <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
         <div class="px-5 py-4 bg-gray-50 border-b border-gray-200">

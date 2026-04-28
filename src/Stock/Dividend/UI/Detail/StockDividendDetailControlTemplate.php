@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Dividend\UI\Detail;
 
 use App\Stock\Asset\StockAssetDetailDTO;
+use App\Stock\Dividend\Safety\StockDividendSafetyScore;
 use App\Stock\Dividend\UI\StockAssetDividendDetailDTO;
 use App\UI\Base\BaseControlTemplate;
 
@@ -19,5 +20,7 @@ class StockDividendDetailControlTemplate extends BaseControlTemplate
 	public StockAssetDetailDTO $openStockAssetDetailDTO;
 
 	public float $currentPrice;
+
+	public StockDividendSafetyScore $dividendSafetyScore;
 
 }

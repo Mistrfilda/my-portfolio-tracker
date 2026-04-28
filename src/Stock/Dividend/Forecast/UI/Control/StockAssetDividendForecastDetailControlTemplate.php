@@ -7,6 +7,7 @@ namespace App\Stock\Dividend\Forecast\UI\Control;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
+use App\Stock\Dividend\Forecast\StockAssetDividendForecastCashflowMonth;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecord;
 use App\UI\Base\BaseControlTemplate;
 
@@ -17,6 +18,11 @@ class StockAssetDividendForecastDetailControlTemplate extends BaseControlTemplat
 
 	/** @var array<StockAssetDividendForecastRecord> */
 	public array $records;
+
+	/** @var array<StockAssetDividendForecastCashflowMonth> */
+	public array $cashflowMonths;
+
+	public CurrencyEnum $czkCurrency;
 
 	/**
 	 * @var array<string, array{

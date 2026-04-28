@@ -10,6 +10,7 @@ use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
+use App\Stock\Dividend\Forecast\StockAssetDividendForecastCashflowProvider;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
 use App\UI\Base\BaseControl;
 use App\UI\FlashMessage\FlashMessageType;
@@ -30,6 +31,7 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 		UuidInterface $forecastId,
 		private StockAssetDividendForecastRepository $stockAssetDividendForecastRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
+		private StockAssetDividendForecastCashflowProvider $stockAssetDividendForecastCashflowProvider,
 		private JobRequestFacade $jobRequestFacade,
 		private StockAssetDividendForecastItemValuesFormFactory $stockAssetDividendForecastItemValuesFormFactory,
 	)
@@ -51,6 +53,10 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 	{
 		$this->template->forecast = $this->stockAssetDividendForecast;
 		$this->template->records = $this->stockAssetDividendForecast->getRecords();
+		$this->template->czkCurrency = CurrencyEnum::CZK;
+		$this->template->cashflowMonths = $this->stockAssetDividendForecastCashflowProvider->getMonths(
+			$this->stockAssetDividendForecast,
+		);
 
 		$totalsByCurrency = [];
 		$forYear = $this->stockAssetDividendForecast->getForYear();
