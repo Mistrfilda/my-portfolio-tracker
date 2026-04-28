@@ -57,7 +57,11 @@ class AssetTrendFacadeTest extends TestCase
 			->willReturn($deductedDate);
 
 		$activeAssetMock = $this->createMock(StockAsset::class);
-		$activeAssetMock->method('getTrend')->with($deductedDate)->willReturn(3.0);
+		$activeAssetMock
+			->expects($this->once())
+			->method('getTrend')
+			->with($deductedDate)
+			->willReturn(3.0);
 		$activeAssetMock->method('getName')->willReturn('Test Asset');
 		$activeAssetMock->method('getAssetCurrentPrice')->willReturn(
 			new AssetPrice(
@@ -98,7 +102,11 @@ class AssetTrendFacadeTest extends TestCase
 			->willReturn($deductedDate);
 
 		$activeAssetMock = $this->createMock(StockAsset::class);
-		$activeAssetMock->method('getTrend')->with($deductedDate)->willReturn(-3.0);
+		$activeAssetMock
+			->expects($this->once())
+			->method('getTrend')
+			->with($deductedDate)
+			->willReturn(-3.0);
 		$activeAssetMock->method('getName')->willReturn('Test Asset');
 		$activeAssetMock->method('getAssetCurrentPrice')->willReturn(
 			new AssetPrice(
@@ -139,7 +147,11 @@ class AssetTrendFacadeTest extends TestCase
 			->willReturn($deductedDate);
 
 		$activeAssetMock = $this->createMock(StockAsset::class);
-		$activeAssetMock->method('getTrend')->with($deductedDate)->willReturn(1.0);
+		$activeAssetMock
+			->expects($this->once())
+			->method('getTrend')
+			->with($deductedDate)
+			->willReturn(1.0);
 
 		$this->assetRepositoryMock
 			->method('getAllActiveAssets')

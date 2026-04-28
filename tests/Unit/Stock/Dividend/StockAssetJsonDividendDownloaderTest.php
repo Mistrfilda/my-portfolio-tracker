@@ -109,6 +109,7 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 		$mockStockAsset->method('getName')->willReturn('Test Stock');
 
 		$this->stockAssetRepository
+			->expects($this->once())
 			->method('getById')
 			->with($this->equalTo(Uuid::fromString($sampleUuid)))
 			->willReturn($mockStockAsset);
@@ -158,6 +159,7 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 		$mockStockAsset->method('getName')->willReturn('Test Stock');
 
 		$this->stockAssetRepository
+			->expects($this->once())
 			->method('getById')
 			->with($this->equalTo(Uuid::fromString($sampleUuid)))
 			->willReturn($mockStockAsset);

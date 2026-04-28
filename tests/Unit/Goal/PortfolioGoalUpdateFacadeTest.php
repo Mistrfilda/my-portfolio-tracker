@@ -275,6 +275,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$portfolioGoal->start(100.0, 100.0, $now); // percentage 0%
 
 		$this->portfolioGoalRepository
+			->expects($this->exactly(2))
 			->method('getById')
 			->with($portfolioGoalId)
 			->willReturn($portfolioGoal);
