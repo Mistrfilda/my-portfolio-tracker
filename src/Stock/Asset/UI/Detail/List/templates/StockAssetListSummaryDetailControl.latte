@@ -50,17 +50,18 @@
         >
             <div class="py-1">
                 {foreach $fields as $key => $field}
+                    {var $columnIndex = $iterator->counter0}
                     <button
                             type="button"
-                            x-on:click="toggleColumn({$key})"
+                            x-on:click="toggleColumn({$columnIndex})"
                             class="flex w-full items-center gap-x-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            :class="isHidden({$key}) && 'bg-gray-50'"
+                            :class="isHidden({$columnIndex}) && 'bg-gray-50'"
                     >
-                        <span class="w-5 h-5 flex-shrink-0" :class="isHidden({$key}) ? 'text-gray-400' : 'text-blue-600'">
-                            <template x-if="!isHidden({$key})">
+                        <span class="w-5 h-5 flex-shrink-0" :class="isHidden({$columnIndex}) ? 'text-gray-400' : 'text-blue-600'">
+                            <template x-if="!isHidden({$columnIndex})">
                                 {renderSvg App\UI\Icon\SvgIcon::EYE->value, ['class' => 'h-5 w-5']}
                             </template>
-                            <template x-if="isHidden({$key})">
+                            <template x-if="isHidden({$columnIndex})">
                                 {renderSvg App\UI\Icon\SvgIcon::EYE_CLOSED->value, ['class' => 'h-5 w-5']}
                             </template>
                         </span>
@@ -77,10 +78,11 @@
                 <thead class="bg-gray-50">
                 <tr>
                     {foreach $fields as $key => $field}
+                        {var $columnIndex = $iterator->counter0}
                         <th
                                 scope="col"
                                 class="px-2 py-2.5 text-center text-sm font-semibold text-gray-900"
-                                x-show="!isHidden({$key})"
+                                x-show="!isHidden({$columnIndex})"
                         >
                             {$field}
                         </th>
