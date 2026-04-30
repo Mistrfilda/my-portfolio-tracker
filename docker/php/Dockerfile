@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get install -y nodejs \
     && apt-get clean
 
-RUN docker-php-ext-install simplexml pdo_mysql intl
+RUN docker-php-ext-install simplexml pdo_mysql intl sockets
 
 WORKDIR /var
 

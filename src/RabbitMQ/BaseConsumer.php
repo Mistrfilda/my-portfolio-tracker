@@ -4,22 +4,22 @@ declare(strict_types = 1);
 
 namespace App\RabbitMQ;
 
-use Bunny\Message;
-use Contributte\RabbitMQ\Consumer\IConsumer;
 use CuyZ\Valinor\Mapper\Source\Source;
 use CuyZ\Valinor\MapperBuilder;
+use InvalidArgumentException;
+use Nette\Utils\Json;
 
 /**
  * @template TMessage of RabbitMQMessage
  */
-abstract class BaseConsumer implements IConsumer
+abstract class BaseConsumer implements RabbitMQConsumerHandler
 {
 
-	public function consume(Message $message): int
+	public function consume(string $payload): RabbitMQConsumeResult
 	{
-		$messageObject = $this->mapMessageData($message->content);
+		$messageObject = $this->mapMessageData($payload);
 		$this->processMessage($messageObject);
-		return IConsumer::MESSAGE_ACK;
+		return RabbitMQConsumeResult::Ack;
 	}
 
 	/**
@@ -27,8 +27,14 @@ abstract class BaseConsumer implements IConsumer
 	 */
 	private function mapMessageData(string $json): RabbitMQMessage
 	{
+		$data = Json::decode($json, forceArrays: true);
+
+		if (!is_array($data)) {
+			throw new InvalidArgumentException('RabbitMQ message payload must be a JSON object.');
+		}
+
 		$mapper = new MapperBuilder()->allowPermissiveTypes()->mapper();
-		return $mapper->map($this->getMessageClass(), Source::json($json));
+		return $mapper->map($this->getMessageClass(), Source::array($data));
 	}
 
 	/**

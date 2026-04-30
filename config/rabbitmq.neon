@@ -5,48 +5,25 @@ parameters:
 		host: 192.168.1.245
 		port: 31383
 		lazy: true
+		queues:
+			notificationQueue:
+				prefetchCount: 5
+			jobRequestQueue:
+				prefetchCount: 5
 
 services:
+	rabbitMQConnectionConfig: App\RabbitMQ\RabbitMQConnectionConfig(%rabbitmq.host%, %rabbitmq.port%, %rabbitmq.user%, %rabbitmq.password%)
+	rabbitMQConnectionFactory: App\RabbitMQ\RabbitMQConnectionFactory
+	rabbitMQPublisher: App\RabbitMQ\PhpAmqpLibRabbitMQPublisher
+	rabbitMQQueueConfigCollection: App\RabbitMQ\RabbitMQQueueConfigCollection([
+		App\RabbitMQ\RabbitMQQueueConfig('notificationQueue', 'notificationConsumer', @notificationConsumer, %rabbitmq.queues.notificationQueue.prefetchCount%),
+		App\RabbitMQ\RabbitMQQueueConfig('jobRequestQueue', 'jobRequestConsumer', @jobRequestConsumer, %rabbitmq.queues.jobRequestQueue.prefetchCount%),
+	])
+	rabbitMQQueueDeclarator: App\RabbitMQ\RabbitMQQueueDeclarator
+	rabbitMQConsumerRunner: App\RabbitMQ\RabbitMQConsumerRunner
+	- App\RabbitMQ\RabbitMQDeclareQueuesCommand
+	- App\RabbitMQ\RabbitMQConsumerCommand
 	notificationConsumer: App\Notification\RabbitMQ\NotificationConsumer
-	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@Contributte\RabbitMQ\Client::getProducer(notificationProducer))
+	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@rabbitMQPublisher, 'notificationQueue')
 	jobRequestConsumer: App\JobRequest\RabbitMQ\JobRequestConsumer
-	jobRequestProducer:	App\JobRequest\RabbitMQ\JobRequestProducer(@Contributte\RabbitMQ\Client::getProducer(jobRequestProducer))
-
-rabbitmq:
-	connections:
-		default:
-			user: %rabbitmq.user%
-			password: %rabbitmq.password%
-			host: %rabbitmq.host%
-			port: %rabbitmq.port%
-			lazy: %rabbitmq.lazy%
-
-	queues:
-		notificationQueue:
-			connection: default
-		jobRequestQueue:
-			connection: default
-
-	producers:
-		notificationProducer:
-			queue: notificationQueue
-			contentType: application/json
-			deliveryMode: 2 # Producer::DELIVERY_MODE_PERSISTENT
-		jobRequestProducer:
-			queue: jobRequestQueue
-			contentType: application/json
-			deliveryMode: 2 # Producer::DELIVERY_MODE_PERSISTENT
-
-	consumers:
-		notificationConsumer:
-			queue: notificationQueue
-			callback: [@notificationConsumer, consume]
-			qos:
-				prefetchSize: 0
-				prefetchCount: 5
-		jobRequestConsumer:
-			queue: jobRequestQueue
-			callback: [@jobRequestConsumer, consume]
-			qos:
-				prefetchSize: 0
-				prefetchCount: 5
+	jobRequestProducer:	App\JobRequest\RabbitMQ\JobRequestProducer(@rabbitMQPublisher, 'jobRequestQueue')

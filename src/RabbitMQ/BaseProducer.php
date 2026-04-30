@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace App\RabbitMQ;
 
-use Contributte\RabbitMQ\Producer\Producer;
 use CuyZ\Valinor\Normalizer\Format;
 use CuyZ\Valinor\NormalizerBuilder;
 use InvalidArgumentException;
+use Nette\Utils\Json;
 
 /**
  * @template TMessage of RabbitMQMessage
@@ -15,7 +15,10 @@ use InvalidArgumentException;
 abstract class BaseProducer
 {
 
-	public function __construct(private Producer $producer)
+	public function __construct(
+		private RabbitMQPublisher $publisher,
+		private string $queueName,
+	)
 	{
 	}
 
@@ -25,8 +28,7 @@ abstract class BaseProducer
 	final public function publish(RabbitMQMessage $message): void
 	{
 		$this->validateMessageType($message);
-		$this->producer->publish($this->mapMessageData($message));
-		$this->producer->sendHeartbeat();
+		$this->publisher->publish($this->queueName, $this->mapMessageData($message));
 	}
 
 	private function validateMessageType(RabbitMQMessage $message): void
@@ -49,9 +51,9 @@ abstract class BaseProducer
 	private function mapMessageData(RabbitMQMessage $message): string
 	{
 		$normalizer = new NormalizerBuilder()
-			->normalizer(Format::json());
+			->normalizer(Format::array());
 
-		return $normalizer->normalize($message);
+		return Json::encode($normalizer->normalize($message));
 	}
 
 	/**
