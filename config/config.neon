@@ -103,8 +103,6 @@ tracy:
 	showLocation: true
 	dumpTheme: dark
 	editor: 'phpstorm://open?file=%file&line=%line'
-	bar:
-		- Contributte\RabbitMQ\Diagnostics\BarPanel
 
 extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
@@ -113,7 +111,6 @@ extensions:
 	orm.cache: Nettrine\Cache\DI\CacheExtension
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
-	rabbitmq: Contributte\RabbitMQ\DI\RabbitMQExtension
 	psr11: Contributte\Psr11\DI\Psr11ContainerExtension
 
 	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
