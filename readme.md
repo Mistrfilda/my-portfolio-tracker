@@ -92,6 +92,40 @@ This repository contains the application code for my personal portfolio tracker.
 - Integration tests: `composer test-integration`
 - Full project verification: `composer build-all`
 
+### Browser smoke tests
+
+Browser smoke tests use Playwright Test and are stored in `tests/Browser`. They are read-only checks against an already running local application; the test command does not start PHP, Docker, or the database.
+
+Prepare the local environment file from the committed example:
+
+```bash
+cp .env.browser-tests.example .env.browser-tests
+```
+
+Fill in these values:
+
+- `PLAYWRIGHT_BASE_URL` - URL of the local application, for example `http://localhost:8000`
+- `PLAYWRIGHT_LOGIN_USERNAME` - local test user login
+- `PLAYWRIGHT_LOGIN_PASSWORD` - local test user password
+
+Before the first run, install the Chromium browser used by Playwright if it is not installed yet:
+
+```bash
+npx playwright install chromium
+```
+
+Run the smoke tests with:
+
+```bash
+npm run test-browser
+```
+
+`npm run test-browser` automatically builds frontend assets first via `npm run build-dev`. For interactive authoring/debugging, use:
+
+```bash
+npm run test-browser:ui
+```
+
 ## Notes
 
 - Local overrides belong in `config/config.local.neon` or `config/config-docker.local.neon`

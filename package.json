@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@eslint/css": "^0.11.1",
+    "@playwright/test": "^1.59.1",
     "@symfony/webpack-encore": "^6.0.0",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.19",
@@ -36,6 +37,10 @@
     "build-dev": "NODE_ENV=production encore prod",
     "watch-dev": "NODE_ENV=production encore dev --watch",
     "build-prod": "NODE_ENV=production PROD_HOST=1 encore prod",
+    "pretest-browser": "npm run build-dev",
+    "test-browser": "playwright test",
+    "pretest-browser:ui": "npm run build-dev",
+    "test-browser:ui": "playwright test --ui",
     "lint": "eslint assets/",
     "lint-fix": "eslint assets/ --fix"
   }

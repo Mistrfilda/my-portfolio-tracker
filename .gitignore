@@ -1,6 +1,7 @@
 config/config.local.neon
 config/config-docker.local.neon
 docker/config-docker.local.neon
+.env.browser-tests
 
 deploy-local.sh
 
