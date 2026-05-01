@@ -131,7 +131,8 @@
 		"latte-lint": "./tools/custom-latte-lint src/",
 		"build-all-local": [
 			"@comload",
-			"@build-all"
+			"@build-all",
+			"@acceptance-test"
 		],
 		"build-all": [
 			"@lint",
@@ -196,7 +197,11 @@
 		"composer-dependecy-check": "vendor/bin/composer-dependency-analyser",
 		"doctrine-proxies": "bin/console orm:generate-proxies",
 		"monitoring-push-monitors": "bin/console monitoring:push-monitors",
-		"crypto-download-data": "bin/console crypto:twelve-data:download"
+		"crypto-download-data": "bin/console crypto:twelve-data:download",
+		"acceptance-test": [
+			"npm run build-dev",
+			"npm run acceptance-tests"
+		]
 	},
 	"config": {
 		"allow-plugins": {

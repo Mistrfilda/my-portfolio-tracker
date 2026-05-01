@@ -41,6 +41,7 @@
     "test-browser": "playwright test",
     "pretest-browser:ui": "npm run build-dev",
     "test-browser:ui": "playwright test --ui",
+    "acceptance-tests": "playwright test",
     "lint": "eslint assets/",
     "lint-fix": "eslint assets/ --fix"
   }

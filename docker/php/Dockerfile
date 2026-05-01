@@ -23,7 +23,7 @@ COPY patches/ ./patches
 COPY package.json package-lock.json ./
 RUN curl -sS https://getcomposer.org/installer | php \
     && php composer.phar install --no-dev --optimize-autoloader \
-    && npm install
+    && npm ci
 
 COPY . .
 
@@ -58,7 +58,7 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && apt-get clean
 
-RUN npm install
+RUN npm ci
 
 WORKDIR /var/www
 
