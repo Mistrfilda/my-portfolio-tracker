@@ -12,7 +12,8 @@ RUN apt-get update && apt-get install -y \
     wget \
     && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get install -y nodejs \
-    && apt-get clean
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 RUN docker-php-ext-install simplexml pdo_mysql intl sockets
 
@@ -23,7 +24,7 @@ COPY patches/ ./patches
 COPY package.json package-lock.json ./
 RUN curl -sS https://getcomposer.org/installer | php \
     && php composer.phar install --no-dev --optimize-autoloader \
-    && npm ci
+    && npm ci --omit=dev
 
 COPY . .
 
@@ -58,7 +59,8 @@ RUN apt-get update && apt-get install -y \
     xdg-utils \
     && apt-get clean
 
-RUN npm ci
+ENV PUPPETEER_SKIP_DOWNLOAD=true
+RUN npm ci --omit=dev
 
 WORKDIR /var/www
 
