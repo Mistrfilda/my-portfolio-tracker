@@ -135,7 +135,7 @@ class StockValuationDataFacadeTest extends TestCase
 
 		$this->assertArrayHasKey(StockValuationTypeEnum::MARKET_CAP->value, $persisted);
 		$this->assertArrayHasKey(StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value, $persisted);
-		$this->assertSame(1.0, $persisted[StockValuationTypeEnum::MARKET_CAP->value]->getFloatValue());
+		$this->assertSame(100.0, $persisted[StockValuationTypeEnum::MARKET_CAP->value]->getFloatValue());
 		$this->assertNull($persisted[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value]->getFloatValue());
 		$this->assertNull($persisted[StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD->value]->getStringValue());
 	}

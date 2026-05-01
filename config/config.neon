@@ -108,7 +108,6 @@ extensions:
 	console: Contributte\Console\DI\ConsoleExtension(%consoleMode%)
 	dbal: Nettrine\DBAL\DI\DbalExtension
 	orm: Nettrine\ORM\DI\OrmExtension
-	orm.cache: Nettrine\Cache\DI\CacheExtension
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
 	psr11: Contributte\Psr11\DI\Psr11ContainerExtension
