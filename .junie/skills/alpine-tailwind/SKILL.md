@@ -71,6 +71,7 @@ description: Invoke before writing or modifying frontend interactivity or stylin
 
 ## Related skills
 
+- `tailwind-plus-components` – local Tailwind Plus HTML examples in `.twui`; inspect before composing new UI.
 - `latte-templates` – Latte syntax used together with `x-data`, `@click`, etc.
 - `ui-svg-icons` – SVG icons are often toggled with Alpine (`x-show`).
 - `ui-forms-admin` – form inputs already styled via Tailwind + custom renderer.

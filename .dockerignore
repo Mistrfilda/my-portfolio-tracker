@@ -17,7 +17,8 @@ test-results
 coverage
 playwright-report
 *.log
-test-results
 
 docker-compose.yaml
 readme.md
+
+.twui/*

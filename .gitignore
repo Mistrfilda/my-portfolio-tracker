@@ -12,6 +12,8 @@ var/*
 temp/*
 log/*
 
+.twui/*
+
 test-results/*
 
 www/build/*
