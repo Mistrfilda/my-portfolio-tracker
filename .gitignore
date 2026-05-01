@@ -12,6 +12,8 @@ var/*
 temp/*
 log/*
 
+test-results/*
+
 www/build/*
 www/prod-build/*
 
