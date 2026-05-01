@@ -14,7 +14,7 @@ class KbBankTransactionType
 			'enum' => BankTransactionType::CARD_PAYMENT,
 			'firstLineEq' => ['TRANSAKCE PLATEBNÍ KARTOU', 'Platba/Výběr hotovosti platební kartou'],
 			'firstLineContains' => [],
-			'rawContentContains' => ['Mobilní platba', 'Nákup na internetu', 'Výběr hotovosti z'],
+			'rawContentContains' => ['Mobilní platba', 'Nákup na internetu', 'Výběr hotovosti z', 'Nákup u obchodníka'],
 		],
 		BankTransactionType::REPEATING_TRANSACTION->value => [
 			'enum' => BankTransactionType::REPEATING_TRANSACTION,
