@@ -176,6 +176,16 @@ class StockValuationDataAnalyticsParserTest extends TestCase
 				],
 			],
 
+			'missing low label in text' => [
+				'Analyst Price Targets      40.00  43.00 Average     30.75 Current  46.00 High',
+				[
+					'low' => '40.00',
+					'average' => '43.00',
+					'current' => '30.75',
+					'high' => '46.00',
+				],
+			],
+
 			// Only one value
 			'only one value' => [
 				'150.00 Low',
@@ -208,6 +218,17 @@ class StockValuationDataAnalyticsParserTest extends TestCase
 			'numbers without keywords returns null' => [
 				'150.00 200.50 195.75 250.00',
 				null,
+			],
+
+			// Two numbers before Average without High/Current should remain incomplete, not invent Low.
+			'numbers before average without enough context do not infer low' => [
+				'150.00 200.50 Average',
+				[
+					'low' => null,
+					'average' => '200.50',
+					'current' => null,
+					'high' => null,
+				],
 			],
 		];
 	}

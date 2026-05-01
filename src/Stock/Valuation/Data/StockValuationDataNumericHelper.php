@@ -25,9 +25,11 @@ class StockValuationDataNumericHelper
 			return (float) str_replace(',', '.', $cleaned);
 		}
 
-		// Handle multipliers (B, M, K)
+		// Handle multipliers (T, B, M, K)
 		$multiplier = 1;
-		if (str_contains($value, 'B')) {
+		if (str_contains($value, 'T')) {
+			$multiplier = 1000000000000;
+		} elseif (str_contains($value, 'B')) {
 			$multiplier = 1000000000;
 		} elseif (str_contains($value, 'M')) {
 			$multiplier = 1000000;

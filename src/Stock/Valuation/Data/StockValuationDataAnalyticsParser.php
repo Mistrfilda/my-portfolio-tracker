@@ -32,6 +32,18 @@ class StockValuationDataAnalyticsParser
 			}
 		}
 
+		if (
+			$values['low'] === null
+			&& $values['average'] !== null
+			&& $values['current'] !== null
+			&& $values['high'] !== null
+		) {
+			$average = preg_quote($values['average'], '/');
+			if (preg_match('/(\d[\d,\.]+)\s+' . $average . '\s+Average/i', $textContent, $matches) === 1) {
+				$values['low'] = $matches[1];
+			}
+		}
+
 		if ($values['low'] === null && $values['average'] === null &&
 			$values['current'] === null && $values['high'] === null) {
 			return null;

@@ -59,7 +59,8 @@ class StockValuationDataNumericHelperTest extends TestCase
 			'percentage without decimals' => ['15%', 15.0],
 			'negative percentage' => ['-5.25%', -5.25],
 
-			// Multipliers (B, M, K)
+			// Multipliers (T, B, M, K)
+			'trillions' => ['1.23T', 1230000000000.0],
 			'billions' => ['1.5B', 1500000000.0],
 			'millions' => ['50.5M', 50500000.0],
 			'thousands' => ['123K', 123000.0],

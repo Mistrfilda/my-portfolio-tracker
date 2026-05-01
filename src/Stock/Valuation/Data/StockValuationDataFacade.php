@@ -70,13 +70,17 @@ class StockValuationDataFacade
 					$floatValue = null;
 					$stringValue = $value;
 
-					if ($value === '--') {
+					if ($value === '--' || $value === 'N/A' || $value === null || trim($value) === '') {
 						$stringValue = null;
 					} else {
 						if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
-							$floatValue = (float) str_replace('%', '', $value ?? '');
+							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
 						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
 							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+						}
+
+						if ($floatValue !== null && $valueType->isCurrencyValue()) {
+							$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
 						}
 					}
 

@@ -86,7 +86,7 @@ class StockValuationDataKeyAnalyticsParser
 	private function parseFinancialHighlights(): array
 	{
 		return [
-			'revenue_ttm' => $this->findValueByText('Revenue'),
+			'revenue_ttm' => $this->findValueByText('Revenue (ttm)'),
 			'revenue_per_share' => $this->findValueByText('Revenue Per Share'),
 			'quarterly_revenue_growth' => $this->findValueByText('Quarterly Revenue Growth'),
 			'gross_profit' => $this->findValueByText('Gross Profit'),

@@ -134,6 +134,33 @@ HTML;
 		$this->assertEquals($expected, $result);
 	}
 
+	public function testParseStockDataUsesRevenueTtmInsteadOfEnterpriseValueRevenue(): void
+	{
+		$html = <<<'HTML'
+		<html>
+			<body>
+				<h1>Deere &amp; Company (DE)</h1>
+				<table>
+					<tr>
+						<td>Enterprise Value/Revenue</td>
+						<td>4.55</td>
+					</tr>
+					<tr>
+						<td>Revenue  (ttm)</td>
+						<td>46.73B</td>
+					</tr>
+				</table>
+			</body>
+		</html>
+HTML;
+
+		$parser = new StockValuationDataKeyAnalyticsParser($html);
+		$result = $parser->parseStockData();
+
+		$this->assertSame('4.55', $result['valuation']['ev_revenue']);
+		$this->assertSame('46.73B', $result['financial_highlights']['revenue_ttm']);
+	}
+
 	/**
 	 * Tests if the parseStockData method handles missing sections in the HTML.
 	 */
