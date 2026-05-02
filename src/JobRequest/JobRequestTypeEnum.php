@@ -15,4 +15,6 @@ enum JobRequestTypeEnum: string
 
 	case PORTFOLIO_GOAL_UPDATE = 'portfolio_goal_update';
 
+	case STOCK_AI_ANALYSIS_GEMINI_PROCESS = 'stock_ai_analysis_gemini_process';
+
 }

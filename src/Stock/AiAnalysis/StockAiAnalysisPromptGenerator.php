@@ -128,6 +128,167 @@ class StockAiAnalysisPromptGenerator
 	}
 
 	/**
+	 * @return array<mixed>
+	 */
+	public function getAutomaticPortfolioData(): array
+	{
+		return $this->getPortfolioData();
+	}
+
+	/**
+	 * @return array<mixed>
+	 */
+	public function getAutomaticWatchlistData(): array
+	{
+		return $this->getWatchlistData();
+	}
+
+	/**
+	 * @param array<string, mixed> $portfolioItem
+	 */
+	public function generateAutomaticPortfolioStockPrompt(
+		array $portfolioItem,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): string
+	{
+		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+			? 'performance1DayComment'
+			: 'performance7DaysComment';
+
+		return $this->generateAutomaticStockPrompt(
+			'portfolioAnalysis',
+			[
+				[
+					'stockAssetId' => 'uuid',
+					'stockAssetName' => 'string',
+					'stockAssetTicker' => 'string',
+					'positiveNews' => 'string',
+					'negativeNews' => 'string',
+					'interestingNews' => 'string',
+					'aiOpinion' => 'string',
+					'earningsCommentary' => 'string',
+					'dividendAnalysis' => 'string',
+					$performanceCommentField => 'string',
+					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
+					'confidenceLevel' => 'low | medium | high',
+					'fairPrice' => 'float',
+					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
+				],
+			],
+			$portfolioItem,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $watchlistItem
+	 */
+	public function generateAutomaticWatchlistStockPrompt(
+		array $watchlistItem,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): string
+	{
+		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+			? 'performance1DayComment'
+			: 'performance7DaysComment';
+
+		return $this->generateAutomaticStockPrompt(
+			'watchlistAnalysis',
+			[
+				[
+					'stockAssetId' => 'uuid',
+					'stockAssetName' => 'string',
+					'stockAssetTicker' => 'string',
+					'news' => 'string',
+					'earningsCommentary' => 'string',
+					'dividendAnalysis' => 'string',
+					$performanceCommentField => 'string',
+					'buyRecommendation' => 'consider_buying | wait | not_interesting',
+					'reasoning' => 'string',
+					'confidenceLevel' => 'low | medium | high',
+					'fairPrice' => 'float',
+					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
+				],
+			],
+			$watchlistItem,
+		);
+	}
+
+	/**
+	 * @param array<mixed> $portfolioAnalysis
+	 * @param array<mixed> $watchlistAnalysis
+	 */
+	public function generateAutomaticReducePrompt(
+		bool $includesPortfolio,
+		bool $includesWatchlist,
+		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+		array $portfolioAnalysis,
+		array $watchlistAnalysis,
+	): string
+	{
+		$now = $this->datetimeFactory->createNow();
+		$schema = [];
+
+		if ($includesMarketOverview) {
+			$schema['marketOverview'] = [
+				'summary' => 'string',
+				'sentiment' => 'bullish | bearish | neutral',
+				'geopoliticalContext' => 'string',
+			];
+		}
+
+		if ($includesPortfolio && $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
+			$schema['dailyBrief'] = [
+				'summary' => 'string',
+				'marketPulse' => 'string',
+				'portfolioImpactSummary' => 'string',
+				'watchlistSummary' => 'string',
+				'importantAlerts' => 'string',
+				'nextDaysChecklist' => 'string',
+				'actionNeeded' => 'none | monitor | review_positions | review_watchlist',
+			];
+		} elseif ($includesPortfolio) {
+			$schema['portfolioEvaluation'] = [
+				'summary' => 'string',
+				'performance7DaysSummary' => 'string',
+			];
+		}
+
+		return implode("\n\n", [
+			sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y')),
+			'Z dílčích analýz akcií vytvoř pouze souhrnné části JSON odpovědi podle níže uvedeného '
+				. 'schématu. Neopisuj zpět pole portfolioAnalysis ani watchlistAnalysis.',
+			$this->loadPrompt('common/output_format'),
+			Json::encode($schema, pretty: true),
+			'Dílčí analýzy:',
+			Json::encode([
+				'portfolioAnalysis' => $portfolioAnalysis,
+				'watchlistAnalysis' => $watchlistAnalysis,
+			], pretty: true),
+		]);
+	}
+
+	/**
+	 * @param array<mixed> $schema
+	 * @param array<string, mixed> $stockData
+	 */
+	private function generateAutomaticStockPrompt(string $rootKey, array $schema, array $stockData): string
+	{
+		$now = $this->datetimeFactory->createNow();
+
+		return implode("\n\n", [
+			sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y')),
+			'Analyzuj pouze jednu níže uvedenou akcii. Použij aktuální webové informace přes Google Search a vrať pouze validní JSON podle schématu.',
+			$this->loadPrompt('common/output_format'),
+			Json::encode([
+				$rootKey => $schema,
+			], pretty: true),
+			'Data k analýze:',
+			Json::encode($stockData, pretty: true),
+		]);
+	}
+
+	/**
 	 * @return array<string, mixed>
 	 */
 	private function buildJsonSchema(

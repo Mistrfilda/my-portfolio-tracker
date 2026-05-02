@@ -76,7 +76,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - When assigning to `$this->template`, always add a matching public typed property to the Template class. Dynamic template properties are deprecated.
 - Use English in exception messages and comments.
 - Never use raw `<svg>` markup; use `{renderSvg}` and `App\UI\Icon\SvgIcon`.
-- Never commit `config/config.local.neon` or `docker/config-docker.local.neon`.
+- Never commit or try to read/open `config/config.local.neon` or `docker/config-docker.local.neon`.
 - When code or configuration changes, finish validation with `composer cs-fix && composer build-all`.
 
 ## Skills

@@ -5,10 +5,12 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisDailyBriefActionNeededEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
@@ -41,6 +43,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 
 	private DatetimeFactory $datetimeFactory;
 
+	private JobRequestFacade $jobRequestFacade;
+
 	public function setUp(): void
 	{
 		$this->promptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisPromptGenerator::class);
@@ -50,6 +54,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$this->stockAssetRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAssetRepository::class);
 		$this->entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$this->datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
+		$this->jobRequestFacade = UpdatedTestCase::createMockWithIgnoreMethods(JobRequestFacade::class);
 
 		$this->facade = new StockAiAnalysisFacade(
 			$this->promptGenerator,
@@ -57,6 +62,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$this->stockAssetRepository,
 			$this->entityManager,
 			$this->datetimeFactory,
+			$this->jobRequestFacade,
 		);
 	}
 
@@ -86,6 +92,75 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertTrue($run->includesWatchlist());
 		self::assertFalse($run->includesMarketOverview());
 		self::assertNull($run->getPortfolioPromptType());
+	}
+
+	public function testEnqueueGeminiProcessing(): void
+	{
+		$run = new StockAiAnalysisRun(
+			'Generated prompt text',
+			true,
+			true,
+			false,
+			null,
+			new ImmutableDateTime('2026-05-02 10:00:00'),
+		);
+		$now = new ImmutableDateTime('2026-05-02 11:00:00');
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+		$this->datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+		$this->entityManager->shouldReceive('flush')
+			->once();
+		$this->jobRequestFacade->shouldReceive('addStockAiAnalysisGeminiProcessToQueue')
+			->with($run->getId()->toString())
+			->once();
+
+		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
+
+		self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::QUEUED, $run->getGeminiProcessingStatus());
+		self::assertSame($now, $run->getGeminiProcessingQueuedAt());
+		self::assertNull($run->getGeminiProcessingError());
+	}
+
+	public function testEnqueueGeminiProcessingSkipsAlreadyProcessedRun(): void
+	{
+		$run = new StockAiAnalysisRun(
+			'Generated prompt text',
+			true,
+			true,
+			false,
+			null,
+			new ImmutableDateTime('2026-05-02 10:00:00'),
+		);
+		$run->setResponse(
+			'{}',
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			null,
+			new ImmutableDateTime('2026-05-02 11:00:00'),
+		);
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->andReturn($run);
+		$this->entityManager->shouldNotReceive('flush');
+		$this->jobRequestFacade->shouldNotReceive('addStockAiAnalysisGeminiProcessToQueue');
+
+		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
+
+		self::assertNull($run->getGeminiProcessingStatus());
 	}
 
 	public function testCreateRunWithDailyBriefPromptType(): void

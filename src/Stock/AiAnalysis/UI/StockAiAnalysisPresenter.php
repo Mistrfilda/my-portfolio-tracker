@@ -249,4 +249,29 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		return $form;
 	}
 
+	protected function createComponentGeminiProcessingForm(): Form
+	{
+		$form = new Form();
+		$form->addSubmit('submit', 'Zařadit ke zpracování přes Gemini');
+
+		$form->onSuccess[] = function (): void {
+			if ($this->run === null) {
+				$this->flashMessage('Nebyla vybrána žádná analýza.', 'danger');
+				return;
+			}
+
+			try {
+				$this->stockAiAnalysisFacade->enqueueGeminiProcessing($this->run->getId()->toString());
+				$this->flashMessage('AI analýza byla zařazena do fronty pro zpracování přes Gemini.', 'success');
+				$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
+			} catch (AbortException $e) {
+				throw $e;
+			} catch (Throwable $e) {
+				$this->flashMessage($e->getMessage(), 'danger');
+			}
+		};
+
+		return $form;
+	}
+
 }

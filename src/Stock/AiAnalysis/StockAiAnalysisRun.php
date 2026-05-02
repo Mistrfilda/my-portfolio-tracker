@@ -82,6 +82,21 @@ class StockAiAnalysisRun implements Entity
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
 	private ImmutableDateTime|null $processedAt = null;
 
+	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisGeminiProcessingStatusEnum::class)]
+	private StockAiAnalysisGeminiProcessingStatusEnum|null $geminiProcessingStatus = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $geminiProcessingQueuedAt = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $geminiProcessingStartedAt = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $geminiProcessingFinishedAt = null;
+
+	#[ORM\Column(type: Types::TEXT, nullable: true)]
+	private string|null $geminiProcessingError = null;
+
 	#[ORM\Column(type: Types::STRING, nullable: true)]
 	private string|null $stockTicker = null;
 
@@ -156,6 +171,38 @@ class StockAiAnalysisRun implements Entity
 		$this->dailyBriefNextDaysChecklist = $dailyBriefNextDaysChecklist;
 		$this->dailyBriefActionNeeded = $dailyBriefActionNeeded;
 		$this->processedAt = $now;
+		$this->updatedAt = $now;
+	}
+
+	public function markGeminiQueued(ImmutableDateTime $now): void
+	{
+		$this->geminiProcessingStatus = StockAiAnalysisGeminiProcessingStatusEnum::QUEUED;
+		$this->geminiProcessingQueuedAt = $now;
+		$this->geminiProcessingError = null;
+		$this->updatedAt = $now;
+	}
+
+	public function markGeminiProcessing(ImmutableDateTime $now): void
+	{
+		$this->geminiProcessingStatus = StockAiAnalysisGeminiProcessingStatusEnum::PROCESSING;
+		$this->geminiProcessingStartedAt = $now;
+		$this->geminiProcessingError = null;
+		$this->updatedAt = $now;
+	}
+
+	public function markGeminiCompleted(ImmutableDateTime $now): void
+	{
+		$this->geminiProcessingStatus = StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED;
+		$this->geminiProcessingFinishedAt = $now;
+		$this->geminiProcessingError = null;
+		$this->updatedAt = $now;
+	}
+
+	public function markGeminiFailed(ImmutableDateTime $now, string $error): void
+	{
+		$this->geminiProcessingStatus = StockAiAnalysisGeminiProcessingStatusEnum::FAILED;
+		$this->geminiProcessingFinishedAt = $now;
+		$this->geminiProcessingError = $error;
 		$this->updatedAt = $now;
 	}
 
@@ -257,6 +304,41 @@ class StockAiAnalysisRun implements Entity
 	public function getProcessedAt(): ImmutableDateTime|null
 	{
 		return $this->processedAt;
+	}
+
+	public function getGeminiProcessingStatus(): StockAiAnalysisGeminiProcessingStatusEnum|null
+	{
+		return $this->geminiProcessingStatus;
+	}
+
+	public function getGeminiProcessingQueuedAt(): ImmutableDateTime|null
+	{
+		return $this->geminiProcessingQueuedAt;
+	}
+
+	public function getGeminiProcessingStartedAt(): ImmutableDateTime|null
+	{
+		return $this->geminiProcessingStartedAt;
+	}
+
+	public function getGeminiProcessingFinishedAt(): ImmutableDateTime|null
+	{
+		return $this->geminiProcessingFinishedAt;
+	}
+
+	public function getGeminiProcessingError(): string|null
+	{
+		return $this->geminiProcessingError;
+	}
+
+	public function canBeQueuedForGeminiProcessing(): bool
+	{
+		return $this->processedAt === null
+			&& !in_array($this->geminiProcessingStatus, [
+				StockAiAnalysisGeminiProcessingStatusEnum::QUEUED,
+				StockAiAnalysisGeminiProcessingStatusEnum::PROCESSING,
+				StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED,
+			], true);
 	}
 
 	/**

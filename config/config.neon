@@ -17,6 +17,10 @@ parameters:
 		apiKey: __FILL_API_KEY__
 		updateStockAssetHoursThreshold: 2
 
+	gemini:
+		apiKey: __FILL_API_KEY__
+		model: gemini-3.1-pro-preview
+
 	pse:
 		updateStockAssetHoursThreshold: 1
 		verifySsl: true
@@ -329,8 +333,10 @@ services:
 	- App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory
 
 	#Stock AI analysis
+	- App\Ai\Gemini\GeminiClient(apiKey: %gemini.apiKey%, model: %gemini.model%)
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
 	- App\Stock\AiAnalysis\StockAiAnalysisFacade
+	- App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade
 	- App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider
 	- App\Stock\AiAnalysis\StockAiAnalysisRunRepository(App\Stock\AiAnalysis\StockAiAnalysisRun)
 	- App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository(App\Stock\AiAnalysis\StockAiAnalysisStockResult)

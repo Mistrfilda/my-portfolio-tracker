@@ -6,6 +6,7 @@ namespace App\Stock\AiAnalysis;
 
 use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\JobRequest\JobRequestFacade;
 use App\Stock\Asset\StockAssetRepository;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +26,7 @@ class StockAiAnalysisFacade
 		private StockAssetRepository $stockAssetRepository,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
+		private JobRequestFacade $jobRequestFacade,
 	)
 	{
 	}
@@ -72,6 +74,20 @@ class StockAiAnalysisFacade
 	public function getRun(string $id): StockAiAnalysisRun
 	{
 		return $this->stockAiAnalysisRunRepository->getById(Uuid::fromString($id));
+	}
+
+	public function enqueueGeminiProcessing(string $runId): void
+	{
+		$run = $this->getRun($runId);
+		if (!$run->canBeQueuedForGeminiProcessing()) {
+			return;
+		}
+
+		$now = $this->datetimeFactory->createNow();
+		$run->markGeminiQueued($now);
+		$this->entityManager->flush();
+
+		$this->jobRequestFacade->addStockAiAnalysisGeminiProcessToQueue($runId);
 	}
 
 	public function processResponse(string $runId, string $rawResponse): void

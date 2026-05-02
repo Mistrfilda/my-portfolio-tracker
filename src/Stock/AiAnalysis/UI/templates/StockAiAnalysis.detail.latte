@@ -95,6 +95,65 @@
 			</div>
 		</div>
 
+		{* Automatické zpracování přes Gemini *}
+		<div class="bg-white shadow-sm rounded-lg border border-violet-200 overflow-hidden mb-6">
+			<div class="px-6 py-4 border-b border-violet-200 bg-violet-50">
+				<div class="flex items-center justify-between gap-4">
+					<h2 class="text-lg font-semibold text-violet-900">Automatické zpracování přes Gemini</h2>
+					{if $run->getGeminiProcessingStatus() !== null}
+						<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {if $run->getGeminiProcessingStatus()->value === 'completed'}bg-green-100 text-green-800 ring-1 ring-inset ring-green-200{elseif $run->getGeminiProcessingStatus()->value === 'failed'}bg-red-100 text-red-800 ring-1 ring-inset ring-red-200{elseif $run->getGeminiProcessingStatus()->value === 'processing'}bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200{else}bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-200{/if}">
+							{$run->getGeminiProcessingStatus()->value}
+						</span>
+					{/if}
+				</div>
+			</div>
+			<div class="px-6 py-4 space-y-4">
+				<p class="text-sm text-gray-700 leading-relaxed">
+					Automatické zpracování zachová stejný způsob uložení výsledků jako ručně vložený JSON. Portfolio a watchlist se zpracují po jednotlivých akciích a poté se spojí do finální odpovědi.
+				</p>
+
+				<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+					{if $run->getGeminiProcessingQueuedAt() !== null}
+						<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+							<div class="font-medium text-gray-900">Zařazeno</div>
+							<div class="text-gray-600">{$run->getGeminiProcessingQueuedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+						</div>
+					{/if}
+					{if $run->getGeminiProcessingStartedAt() !== null}
+						<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+							<div class="font-medium text-gray-900">Spuštěno</div>
+							<div class="text-gray-600">{$run->getGeminiProcessingStartedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+						</div>
+					{/if}
+					{if $run->getGeminiProcessingFinishedAt() !== null}
+						<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+							<div class="font-medium text-gray-900">Dokončeno</div>
+							<div class="text-gray-600">{$run->getGeminiProcessingFinishedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+						</div>
+					{/if}
+				</div>
+
+				{if $run->getGeminiProcessingError() !== null}
+					<div class="rounded-md bg-red-50 border border-red-200 p-4">
+						<div class="font-medium text-red-900 mb-1">Poslední chyba</div>
+						<p class="text-sm text-red-800 whitespace-pre-line">{$run->getGeminiProcessingError()}</p>
+					</div>
+				{/if}
+
+				{if $run->canBeQueuedForGeminiProcessing()}
+					<form n:name="geminiProcessingForm">
+						<button n:name="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-violet-600 hover:bg-violet-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors bg-blue-600">
+							Zařadit ke zpracování přes Gemini
+						</button>
+					</form>
+				{elseif !$run->getProcessedAt() && $run->getGeminiProcessingStatus() !== null}
+					<p class="text-sm text-gray-600">Analýza je už zařazená nebo se právě zpracovává. Při selhání bude možné akci spustit znovu.</p>
+				{else}
+					<p class="text-sm text-gray-600">Analýza už byla zpracována, automatické zařazení není dostupné.</p>
+				{/if}
+			</div>
+		</div>
+
 		{* Nahrání odpovědi *}
 		{if !$run->getProcessedAt()}
 			<div class="bg-white shadow-sm rounded-lg border border-blue-200 overflow-hidden mb-6">

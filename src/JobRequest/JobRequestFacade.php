@@ -33,4 +33,11 @@ class JobRequestFacade
 		));
 	}
 
+	public function addStockAiAnalysisGeminiProcessToQueue(string $runId): void
+	{
+		$this->addToQueue(JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS, [
+			'runId' => $runId,
+		]);
+	}
+
 }

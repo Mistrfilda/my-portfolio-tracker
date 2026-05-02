@@ -6,6 +6,7 @@ namespace App\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Utils\TypeValidator;
 use Ramsey\Uuid\Uuid;
@@ -17,6 +18,7 @@ class JobRequestProcessor
 		private ExpenseTagFacade $expenseTagFacade,
 		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
 		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
+		private StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
 	)
 	{
 	}
@@ -40,6 +42,11 @@ class JobRequestProcessor
 				break;
 			case JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE:
 				$this->portfolioGoalUpdateFacade->updateAllActive();
+				break;
+			case JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS:
+				$this->stockAiAnalysisGeminiProcessorFacade->process(
+					TypeValidator::validateString($additionalData['runId'] ?? null),
+				);
 				break;
 		}
 	}
