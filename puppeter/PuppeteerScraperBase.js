@@ -10,21 +10,21 @@ export class PuppeteerScraperBase {
 		this.debugHtml = process.argv.includes('--debughtml');
 
 		this.browserConfig = {
-			//headless: false,
-			//devtools: true,
-			headless: true,
-			slowMo: 100,
-			browser: "chrome",
-			executablePath: "/usr/bin/chromium",
-			args: [
-				'--no-sandbox',
-				'--disable-setuid-sandbox',
-				'--disable-gpu',
-				'--disable-dev-shm-usage',
-				'--disable-background-timer-throttling',
-				'--disable-extensions',
-				'--disable-sync',
-			],
+			headless: false,
+			devtools: true,
+			// headless: true,
+			// slowMo: 100,
+			// browser: "chrome",
+			// executablePath: "/usr/bin/chromium",
+			// args: [
+			// 	'--no-sandbox',
+			// 	'--disable-setuid-sandbox',
+			// 	'--disable-gpu',
+			// 	'--disable-dev-shm-usage',
+			// 	'--disable-background-timer-throttling',
+			// 	'--disable-extensions',
+			// 	'--disable-sync',
+			// ],
 		};
 	}
 
