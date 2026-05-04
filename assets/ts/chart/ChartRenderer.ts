@@ -1,6 +1,6 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
-import Chart, {TooltipItem, Colors} from 'chart.js/auto';
+import Chart, {ChartOptions, Colors, TooltipItem} from 'chart.js/auto';
 import {ChartInstance} from "./ChartInstance";
 
 
@@ -15,34 +15,120 @@ export class ChartRenderer {
 
     constructor(naja: Naja, loadedCharts: Array<ChartInstance>) {
         this.naja = naja;
-        this.setDefaults();
-
         this.defaultBackgroundColor = '#111827';
         this.tooltipDefaults = this.getTooltipDefaults();
         this.loadedCharts = loadedCharts;
+
+        this.setDefaults();
     }
 
     setDefaults() {
         Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
-        // Chart.defaults.font.defaultFontColor = '#858796';
-        Chart.defaults.color = '#111827';
+        Chart.defaults.color = '#4b5563';
         Chart.register(Colors);
     }
 
     getTooltipDefaults() {
         return {
-            titleMarginBottom: 10,
-            titleFontColor: '#6e707e',
-            titleFontSize: 14,
-            backgroundColor: "rgb(255,255,255)",
-            bodyFontColor: "#858796",
-            borderColor: '#dddfeb',
+            backgroundColor: 'rgba(255, 255, 255, 0.96)',
+            titleColor: this.defaultBackgroundColor,
+            titleMarginBottom: 8,
+            titleFont: {
+                size: 13,
+                weight: 600,
+            },
+            bodyColor: '#4b5563',
+            bodyFont: {
+                size: 12,
+            },
+            borderColor: '#e5e7eb',
             borderWidth: 1,
-            xPadding: 15,
-            yPadding: 15,
-            displayColors: false,
-            caretPadding: 10,
+            padding: 12,
+            displayColors: true,
+            usePointStyle: true,
+            boxPadding: 4,
+            caretPadding: 8,
         }
+    }
+
+    getTooltipOptions(response: ChartData) {
+        return {
+            ...this.tooltipDefaults,
+            callbacks: {
+                label(tooltipItem: TooltipItem<any>): string | string[] | void {
+                    let label = tooltipItem.dataset.label || '';
+                    if (label) {
+                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
+                    }
+
+                    return label;
+                }
+            }
+        };
+    }
+
+    getBaseOptions(response: ChartData): ChartOptions {
+        return {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: {
+                padding: 4,
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    align: 'end',
+                    labels: {
+                        boxWidth: 8,
+                        boxHeight: 8,
+                        usePointStyle: true,
+                        color: '#374151',
+                        font: {
+                            size: 12,
+                            weight: 500,
+                        },
+                    },
+                },
+                tooltip: this.getTooltipOptions(response),
+            },
+        };
+    }
+
+    getCartesianOptions(response: ChartData): ChartOptions {
+        return {
+            ...this.getBaseOptions(response),
+            interaction: {
+                intersect: false,
+                mode: 'index',
+            },
+            scales: {
+                x: {
+                    grid: {
+                        display: false,
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        maxRotation: 0,
+                        autoSkipPadding: 16,
+                    },
+                    border: {
+                        display: false,
+                    },
+                },
+                y: {
+                    grid: {
+                        color: '#f3f4f6',
+                    },
+                    ticks: {
+                        color: '#6b7280',
+                        padding: 8,
+                    },
+                    border: {
+                        display: false,
+                    },
+                },
+            },
+        };
     }
 
     async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
@@ -56,25 +142,18 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
+                    ...this.getCartesianOptions(response),
+                    elements: {
+                        line: {
+                            borderWidth: 2,
+                            tension: 0.32,
+                        },
+                        point: {
+                            radius: 0,
+                            hoverRadius: 4,
+                            hitRadius: 12,
+                        },
                     },
-                    responsive: true,
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
-                                    let label = tooltipItem.dataset.label || '';
-                                    if (label) {
-                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
-                                    }
-
-                                    return label;
-                                }
-                            }
-                        }
-                    }
                 },
             });
 
@@ -100,25 +179,13 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    responsive: true,
-                    interaction: {
-                        intersect: false,
-                        mode: 'index',
+                    ...this.getCartesianOptions(response),
+                    datasets: {
+                        bar: {
+                            borderRadius: 6,
+                            borderSkipped: false,
+                        },
                     },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
-                                    let label = tooltipItem.dataset.label || '';
-                                    if (label) {
-                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
-                                    }
-
-                                    return label;
-                                }
-                            }
-                        }
-                    }
                 }
             });
 
@@ -145,22 +212,24 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    maintainAspectRatio: false,
-                    responsive: true,
+                    ...this.getBaseOptions(response),
+                    cutout: '62%',
                     plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label(tooltipItem: TooltipItem<any>): string | string[] | void {
-                                    let label = tooltipItem.dataset.label || '';
-                                    if (label) {
-                                        label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
-                                    }
-
-                                    return label;
-                                }
-                            }
-                        }
-                    }
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 8,
+                                boxHeight: 8,
+                                usePointStyle: true,
+                                color: '#374151',
+                                font: {
+                                    size: 12,
+                                    weight: 500,
+                                },
+                            },
+                        },
+                        tooltip: this.getTooltipOptions(response),
+                    },
                 },
             });
 

@@ -1,42 +1,56 @@
 {templateType App\Statistic\UI\PortfolioStatisticTemplate}
 {block #content}
-
-    <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3 w-1/2">
-        <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg divide-y divide-gray-200">
-                <nav class="flex flex-1 flex-col m-4" aria-label="Sidebar">
-                    <ul role="list" class="-mx-2 space-y-1">
-                        {foreach $charts as $chart}
-                            <li>
-                                <a href="#{$chart->getControl()}"
-                                   class="text-gray-700 hover:text-blue-600 hover:bg-gray-50 group flex gap-x-3 rounded-md p-2 pl-3 text-sm leading-6 font-semibold">{$chart->getTitle()} - {$chart->getDescription()}</a>
-                            </li>
-                        {/foreach}
-                    </ul>
-                </nav>
+    <div class="space-y-8">
+        <section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+            <div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-5 py-5 sm:px-6">
+                <p class="text-sm font-medium text-blue-700">Portfolio charts</p>
+                <h2 class="mt-1 text-xl font-semibold tracking-tight text-gray-900">Grafy portfolia</h2>
+                <p class="mt-2 max-w-3xl text-sm text-gray-600">
+                    Rychlý přehled grafů pro hodnotu portfolia, zainvestovanou částku, zisk a dividendy.
+                </p>
             </div>
-        </div>
-    </div>
 
-    {foreach $charts as $chart}
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-1 mt-3" id="{$chart->getControl()}">
-            <div class="bg-white overflow-hidden shadow-sm rounded-lg">
-                <div class="bg-white overflow-hidden shadow-sm rounded-lg divide-y divide-gray-200">
-                    <div class="px-4 py-5 sm:px-6">
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">
-                            {$chart->getTitle()}
-                        </h3>
-                        {if $chart->getDescription() !== null}
-                            <p class="mt-1 text-sm text-gray-500">
-                                {$chart->getDescription()}
-                            </p>
-                        {/if}
-                    </div>
-                    <div class="px-1 py-1">
-                        {control $chart->getControl()}
+            <nav class="border-t border-gray-100 bg-gray-50/70 px-5 py-5 sm:px-6" aria-label="Grafy portfolia">
+                <ul role="list" class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                    {foreach $charts as $chart}
+                        <li>
+                            <a href="#{$chart->getControl()}"
+                               class="group flex h-full flex-col rounded-xl bg-white px-4 py-3 shadow-sm ring-1 ring-gray-900/5 transition hover:-translate-y-0.5 hover:shadow-md hover:ring-blue-200">
+                                <span class="text-sm font-semibold text-gray-900 group-hover:text-blue-700">{$chart->getTitle()}</span>
+                                {if $chart->getDescription() !== null}
+                                    <span class="mt-1 text-xs leading-5 text-gray-500">{$chart->getDescription()}</span>
+                                {/if}
+                            </a>
+                        </li>
+                    {/foreach}
+                </ul>
+            </nav>
+        </section>
+
+        {foreach $charts as $chart}
+            <section id="{$chart->getControl()}" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+                <div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                            <h3 class="text-xl font-semibold tracking-tight text-gray-900">{$chart->getTitle()}</h3>
+                            {if $chart->getDescription() !== null}
+                                <p class="mt-2 text-sm text-gray-500">{$chart->getDescription()}</p>
+                            {/if}
+                        </div>
+                        <span class="inline-flex items-center rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                            Graf {$iterator->counter}/{count($charts)}
+                        </span>
                     </div>
                 </div>
-            </div>
-        </div>
-    {/foreach}
+
+                <div class="bg-gray-50/70 p-3 sm:p-5">
+                    <div class="rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-900/5 sm:p-4">
+                        <div class="h-80 sm:h-96 xl:h-[28rem]">
+                            {control $chart->getControl()}
+                        </div>
+                    </div>
+                </div>
+            </section>
+        {/foreach}
+    </div>
 {/block}
