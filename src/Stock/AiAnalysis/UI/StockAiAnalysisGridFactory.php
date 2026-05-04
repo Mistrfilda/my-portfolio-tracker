@@ -82,6 +82,8 @@ class StockAiAnalysisGridFactory
 
 		$grid->addColumnDatetime('processedAt', 'Zpracováno')->setSortable();
 
+		$grid->addColumnBadge('geminiProcessingStatus', 'Gemini stav', TailwindColorConstant::BLUE);
+
 		$grid->addAction(
 			'detail',
 			'Detail',
