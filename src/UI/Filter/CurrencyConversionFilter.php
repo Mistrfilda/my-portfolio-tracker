@@ -18,6 +18,10 @@ class CurrencyConversionFilter
 
 	public function convert(float $value, CurrencyEnum $from, CurrencyEnum $to): float
 	{
+		if ($from === $to) {
+			return $value;
+		}
+
 		return $this->currencyConversionFacade->convertSimpleValue(
 			$value,
 			$from,
