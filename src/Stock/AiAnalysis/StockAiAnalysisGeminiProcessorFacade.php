@@ -64,7 +64,8 @@ class StockAiAnalysisGeminiProcessorFacade
 		}
 
 		$fileCount = 0;
-		foreach (scandir($directory) ?: [] as $fileName) {
+		$filenames = scandir($directory);
+		foreach ($filenames === false ? [] : $filenames as $fileName) {
 			$filePath = FileSystem::joinPaths($directory, $fileName);
 			if (str_ends_with($fileName, '.json') && is_file($filePath)) {
 				$fileCount++;
