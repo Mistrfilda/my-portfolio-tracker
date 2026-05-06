@@ -9,6 +9,7 @@ use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -23,6 +24,7 @@ class StockAiAnalysisGeminiProcessorFacade
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
+		private readonly string $tempDir,
 	)
 	{
 	}
@@ -54,46 +56,82 @@ class StockAiAnalysisGeminiProcessorFacade
 		}
 	}
 
+	public function getCachedGeminiResponseFileCount(StockAiAnalysisRun $run): int
+	{
+		$directory = $this->getGeminiResponseDirectory($run);
+		if (!is_dir($directory)) {
+			return 0;
+		}
+
+		$fileCount = 0;
+		foreach (scandir($directory) ?: [] as $fileName) {
+			$filePath = FileSystem::joinPaths($directory, $fileName);
+			if (str_ends_with($fileName, '.json') && is_file($filePath)) {
+				$fileCount++;
+			}
+		}
+
+		return $fileCount;
+	}
+
 	/**
 	 * @return array<string, mixed>
 	 */
 	private function createGeminiResponse(StockAiAnalysisRun $run): array
 	{
 		if (!$run->includesPortfolio() && !$run->includesWatchlist()) {
-			return $this->decodeJsonObject($this->geminiClient->generateContent($run->getGeneratedPrompt()));
+			return $this->loadOrCreateGeminiResponse($run, 'manual.json', $run->getGeneratedPrompt());
 		}
 
 		$portfolioAnalysis = [];
 		if ($run->includesPortfolio()) {
+			$portfolioItemNumber = 1;
 			foreach ($this->promptGenerator->getAutomaticPortfolioData() as $portfolioItem) {
 				$portfolioItem = $this->validateStringKeyArray(TypeValidator::validateArray($portfolioItem));
-				$response = $this->decodeJsonObject($this->geminiClient->generateContent(
+				$response = $this->loadOrCreateGeminiResponse(
+					$run,
+					sprintf(
+						'portfolio-%03d-%s.json',
+						$portfolioItemNumber,
+						TypeValidator::validateString($portfolioItem['stockAssetId'] ?? null),
+					),
 					$this->promptGenerator->generateAutomaticPortfolioStockPrompt(
 						$portfolioItem,
 						$run->getPortfolioPromptType(),
 					),
-				));
+				);
 				$portfolioAnalysis[] = $this->extractAnalysisItem($response, 'portfolioAnalysis');
+				$portfolioItemNumber++;
 			}
 		}
 
 		$watchlistAnalysis = [];
 		if ($run->includesWatchlist()) {
+			$watchlistItemNumber = 1;
 			foreach ($this->promptGenerator->getAutomaticWatchlistData() as $watchlistItem) {
 				$watchlistItem = $this->validateStringKeyArray(TypeValidator::validateArray($watchlistItem));
-				$response = $this->decodeJsonObject($this->geminiClient->generateContent(
+				$response = $this->loadOrCreateGeminiResponse(
+					$run,
+					sprintf(
+						'watchlist-%03d-%s.json',
+						$watchlistItemNumber,
+						TypeValidator::validateString($watchlistItem['stockAssetId'] ?? null),
+					),
 					$this->promptGenerator->generateAutomaticWatchlistStockPrompt(
 						$watchlistItem,
 						$run->getPortfolioPromptType(),
 					),
-				));
+				);
 				$watchlistAnalysis[] = $this->extractAnalysisItem($response, 'watchlistAnalysis');
+				$watchlistItemNumber++;
 			}
 		}
 
 		$mergedResponse = [];
 		if ($this->needsReduceStep($run)) {
-			$mergedResponse = $this->decodeJsonObject($this->geminiClient->generateContent(
+			$mergedResponse = $this->loadOrCreateGeminiResponse(
+				$run,
+				'reduce.json',
 				$this->promptGenerator->generateAutomaticReducePrompt(
 					$run->includesPortfolio(),
 					$run->includesWatchlist(),
@@ -102,7 +140,7 @@ class StockAiAnalysisGeminiProcessorFacade
 					$portfolioAnalysis,
 					$watchlistAnalysis,
 				),
-			));
+			);
 		}
 
 		if ($run->includesPortfolio()) {
@@ -119,6 +157,51 @@ class StockAiAnalysisGeminiProcessorFacade
 	private function needsReduceStep(StockAiAnalysisRun $run): bool
 	{
 		return $run->includesMarketOverview() || $run->includesPortfolio();
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function loadOrCreateGeminiResponse(StockAiAnalysisRun $run, string $fileName, string $prompt): array
+	{
+		$filePath = $this->getGeminiResponseFilePath($run, $fileName);
+		if (is_file($filePath)) {
+			$data = Json::decode(FileSystem::read($filePath), forceArrays: true);
+
+			return $this->validateStringKeyArray(TypeValidator::validateArray($data));
+		}
+
+		$response = $this->decodeJsonObject($this->geminiClient->generateContent($prompt));
+		$this->writeGeminiResponseFile($filePath, $response);
+
+		return $response;
+	}
+
+	private function getGeminiResponseDirectory(StockAiAnalysisRun $run): string
+	{
+		return FileSystem::joinPaths(
+			$this->tempDir,
+			'stock-ai-analysis',
+			'gemini',
+			$run->getId()->toString(),
+		);
+	}
+
+	private function getGeminiResponseFilePath(StockAiAnalysisRun $run, string $fileName): string
+	{
+		return FileSystem::joinPaths($this->getGeminiResponseDirectory($run), $fileName);
+	}
+
+	/**
+	 * @param array<string, mixed> $response
+	 */
+	private function writeGeminiResponseFile(string $filePath, array $response): void
+	{
+		FileSystem::createDir(dirname($filePath));
+
+		$temporaryFilePath = $filePath . '.tmp.' . bin2hex(random_bytes(8));
+		FileSystem::write($temporaryFilePath, Json::encode($response, pretty: true));
+		FileSystem::rename($temporaryFilePath, $filePath, true);
 	}
 
 	/**

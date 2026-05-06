@@ -113,6 +113,10 @@
 				</p>
 
 				<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+					<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+						<div class="font-medium text-gray-900">Temp JSON soubory</div>
+						<div class="text-gray-600">{$geminiResponseTempFileCount}</div>
+					</div>
 					{if $run->getGeminiProcessingQueuedAt() !== null}
 						<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
 							<div class="font-medium text-gray-900">Zařazeno</div>

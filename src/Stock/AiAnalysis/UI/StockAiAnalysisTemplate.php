@@ -26,6 +26,8 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 	/** @var array<int, StockAiAnalysisActionChecklistItem> */
 	public array $dailyBriefActionChecklistItems = [];
 
+	public int $geminiResponseTempFileCount = 0;
+
 	/** @var array<string, string> */
 	public array $portfolioPromptTypes = [];
 

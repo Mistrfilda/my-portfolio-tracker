@@ -7,6 +7,7 @@ namespace App\Stock\AiAnalysis\UI;
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
@@ -33,6 +34,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAiAnalysisGridFactory $stockAiAnalysisGridFactory,
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockAiAnalysisActionChecklistProvider $stockAiAnalysisActionChecklistProvider,
+		private readonly StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
 	)
 	{
 		parent::__construct();
@@ -104,6 +106,8 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->portfolioResults = $portfolioResults;
 		$this->template->watchlistResults = $watchlistResults;
 		$this->template->singleStockResults = $singleStockResults;
+		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade
+			->getCachedGeminiResponseFileCount($this->run);
 		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
 			$this->run,
 		);
