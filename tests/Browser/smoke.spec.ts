@@ -60,6 +60,33 @@ test('all sidebar menu pages render without frontend errors', async ({ page }) =
 	}
 });
 
+test('all search result pages render without frontend errors', async ({ page }) => {
+	test.setTimeout(120_000);
+
+	await login(page);
+	const frontendErrors = watchFrontendErrors(page);
+
+	try {
+		const searchPages = await getSearchResultPages(page);
+
+		expect(searchPages).not.toEqual([]);
+
+		for (const searchPage of searchPages) {
+			await test.step(`${searchPage.label} search result page renders`, async () => {
+				await page.goto(searchPage.href, { waitUntil: 'domcontentloaded' });
+				const main = page.getByRole('main');
+
+				await expect(main).toBeVisible();
+				await expect(main.getByRole('heading', { level: 1 }).first()).toBeVisible();
+			});
+		}
+
+		frontendErrors.assertNoErrors();
+	} finally {
+		frontendErrors.dispose();
+	}
+});
+
 async function getSidebarMenuPages(page: Page): Promise<SidebarMenuPage[]> {
 	return await page.locator('nav[aria-label="Sidebar"]').last().locator('a').evaluateAll((links) => {
 		const menuPages: SidebarMenuPage[] = [];
@@ -82,5 +109,34 @@ async function getSidebarMenuPages(page: Page): Promise<SidebarMenuPage[]> {
 		}
 
 		return menuPages;
+	});
+}
+
+async function getSearchResultPages(page: Page): Promise<SidebarMenuPage[]> {
+	const commandList = page.locator('el-command-list').first();
+
+	await expect(commandList).toBeAttached();
+
+	return await commandList.locator('a').evaluateAll((links) => {
+		const searchPages: SidebarMenuPage[] = [];
+		const seenHrefs = new Set<string>();
+
+		for (const link of links) {
+			if (!(link instanceof HTMLAnchorElement)) {
+				continue;
+			}
+
+			const href = link.href;
+			const label = link.childNodes[0]?.textContent?.trim().replace(/\s+/g, ' ') ?? '';
+
+			if (label === '' || href === '' || seenHrefs.has(href)) {
+				continue;
+			}
+
+			seenHrefs.add(href);
+			searchPages.push({ label, href });
+		}
+
+		return searchPages;
 	});
 }
