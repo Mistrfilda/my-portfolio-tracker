@@ -43,10 +43,7 @@ class StockAiAnalysisPromptGenerator
 		string|null $stockName = null,
 	): string
 	{
-		$now = $this->datetimeFactory->createNow();
-
 		$parts = [];
-		$parts[] = sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
 
 		if ($includesMarketOverview) {
 			$parts[] = $this->loadPrompt('common/market_overview');
@@ -125,6 +122,13 @@ class StockAiAnalysisPromptGenerator
 		}
 
 		return implode("\n\n", $parts);
+	}
+
+	public function generateSystemInstruction(): string
+	{
+		$now = $this->datetimeFactory->createNow();
+
+		return sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
 	}
 
 	/**
@@ -226,7 +230,6 @@ class StockAiAnalysisPromptGenerator
 		array $watchlistAnalysis,
 	): string
 	{
-		$now = $this->datetimeFactory->createNow();
 		$schema = [];
 
 		if ($includesMarketOverview) {
@@ -255,7 +258,6 @@ class StockAiAnalysisPromptGenerator
 		}
 
 		return implode("\n\n", [
-			sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y')),
 			'Z dílčích analýz akcií vytvoř pouze souhrnné části JSON odpovědi podle níže uvedeného '
 				. 'schématu. Neopisuj zpět pole portfolioAnalysis ani watchlistAnalysis.',
 			$this->loadPrompt('common/output_format'),
@@ -274,10 +276,7 @@ class StockAiAnalysisPromptGenerator
 	 */
 	private function generateAutomaticStockPrompt(string $rootKey, array $schema, array $stockData): string
 	{
-		$now = $this->datetimeFactory->createNow();
-
 		return implode("\n\n", [
-			sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y')),
 			'Analyzuj pouze jednu níže uvedenou akcii. Použij aktuální webové informace přes Google Search a vrať pouze validní JSON podle schématu.',
 			$this->loadPrompt('common/output_format'),
 			Json::encode([

@@ -5,7 +5,8 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Currency\CurrencyEnum;
-use App\JobRequest\JobRequestFacade;
+use App\RabbitMQ\RabbitMQPublisher;
+use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisDailyBriefActionNeededEnum;
@@ -24,6 +25,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\Json;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Throwable;
@@ -43,7 +45,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 
 	private DatetimeFactory $datetimeFactory;
 
-	private JobRequestFacade $jobRequestFacade;
+	private RabbitMQPublisher&MockObject $rabbitMQPublisher;
+
+	private StockAiAnalysisGeminiProcessProducer $stockAiAnalysisGeminiProcessProducer;
 
 	public function setUp(): void
 	{
@@ -54,7 +58,11 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$this->stockAssetRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAssetRepository::class);
 		$this->entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$this->datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
-		$this->jobRequestFacade = UpdatedTestCase::createMockWithIgnoreMethods(JobRequestFacade::class);
+		$this->rabbitMQPublisher = $this->createMock(RabbitMQPublisher::class);
+		$this->stockAiAnalysisGeminiProcessProducer = new StockAiAnalysisGeminiProcessProducer(
+			$this->rabbitMQPublisher,
+			'aiClientsQueue',
+		);
 
 		$this->facade = new StockAiAnalysisFacade(
 			$this->promptGenerator,
@@ -62,7 +70,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$this->stockAssetRepository,
 			$this->entityManager,
 			$this->datetimeFactory,
-			$this->jobRequestFacade,
+			$this->stockAiAnalysisGeminiProcessProducer,
 		);
 	}
 
@@ -114,9 +122,19 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->andReturn($now);
 		$this->entityManager->shouldReceive('flush')
 			->once();
-		$this->jobRequestFacade->shouldReceive('addStockAiAnalysisGeminiProcessToQueue')
-			->with($run->getId()->toString())
-			->once();
+		$this->rabbitMQPublisher->expects(self::once())
+			->method('publish')
+			->with(
+				'aiClientsQueue',
+				self::callback(static function (string $payload) use ($now, $run): bool {
+					$publishedPayload = Json::decode($payload, forceArrays: true);
+					self::assertTrue(Uuid::isValid($publishedPayload['requestId']));
+					self::assertSame($now->getTimestamp(), $publishedPayload['messageQueuedAtTimestamp']);
+					self::assertSame($run->getId()->toString(), $publishedPayload['runId']);
+
+					return true;
+				}),
+			);
 
 		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
 
@@ -156,7 +174,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->once()
 			->andReturn($run);
 		$this->entityManager->shouldNotReceive('flush');
-		$this->jobRequestFacade->shouldNotReceive('addStockAiAnalysisGeminiProcessToQueue');
+		$this->rabbitMQPublisher->expects(self::never())
+			->method('publish');
 
 		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
 

@@ -80,8 +80,15 @@ class StockAiAnalysisGeminiProcessorFacade
 	 */
 	private function createGeminiResponse(StockAiAnalysisRun $run): array
 	{
+		$systemInstruction = $this->promptGenerator->generateSystemInstruction();
+
 		if (!$run->includesPortfolio() && !$run->includesWatchlist()) {
-			return $this->loadOrCreateGeminiResponse($run, 'manual.json', $run->getGeneratedPrompt());
+			return $this->loadOrCreateGeminiResponse(
+				$run,
+				'manual.json',
+				$run->getGeneratedPrompt(),
+				$systemInstruction,
+			);
 		}
 
 		$portfolioAnalysis = [];
@@ -100,6 +107,7 @@ class StockAiAnalysisGeminiProcessorFacade
 						$portfolioItem,
 						$run->getPortfolioPromptType(),
 					),
+					$systemInstruction,
 				);
 				$portfolioAnalysis[] = $this->extractAnalysisItem($response, 'portfolioAnalysis');
 				$portfolioItemNumber++;
@@ -122,6 +130,7 @@ class StockAiAnalysisGeminiProcessorFacade
 						$watchlistItem,
 						$run->getPortfolioPromptType(),
 					),
+					$systemInstruction,
 				);
 				$watchlistAnalysis[] = $this->extractAnalysisItem($response, 'watchlistAnalysis');
 				$watchlistItemNumber++;
@@ -141,6 +150,7 @@ class StockAiAnalysisGeminiProcessorFacade
 					$portfolioAnalysis,
 					$watchlistAnalysis,
 				),
+				$systemInstruction,
 			);
 		}
 
@@ -163,7 +173,12 @@ class StockAiAnalysisGeminiProcessorFacade
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function loadOrCreateGeminiResponse(StockAiAnalysisRun $run, string $fileName, string $prompt): array
+	private function loadOrCreateGeminiResponse(
+		StockAiAnalysisRun $run,
+		string $fileName,
+		string $prompt,
+		string $systemInstruction,
+	): array
 	{
 		$filePath = $this->getGeminiResponseFilePath($run, $fileName);
 		if (is_file($filePath)) {
@@ -172,7 +187,7 @@ class StockAiAnalysisGeminiProcessorFacade
 			return $this->validateStringKeyArray(TypeValidator::validateArray($data));
 		}
 
-		$response = $this->decodeJsonObject($this->geminiClient->generateContent($prompt));
+		$response = $this->decodeJsonObject($this->geminiClient->generateContent($prompt, $systemInstruction));
 		$this->writeGeminiResponseFile($filePath, $response);
 
 		return $response;

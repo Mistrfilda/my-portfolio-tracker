@@ -56,6 +56,9 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$entityManager->shouldReceive('flush')
 			->twice();
 
+		$promptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('system instruction');
 		$promptGenerator->shouldReceive('getAutomaticPortfolioData')
 			->once()
 			->andReturn([
@@ -85,7 +88,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->andReturn('reduce prompt');
 
 		$geminiClient->shouldReceive('generateContent')
-			->with('portfolio prompt')
+			->with('portfolio prompt', 'system instruction')
 			->once()
 			->andReturn(Json::encode([
 				'portfolioAnalysis' => [
@@ -97,7 +100,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				],
 			]));
 		$geminiClient->shouldReceive('generateContent')
-			->with('watchlist prompt')
+			->with('watchlist prompt', 'system instruction')
 			->once()
 			->andReturn(Json::encode([
 				'watchlistAnalysis' => [
@@ -109,7 +112,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				],
 			]));
 		$geminiClient->shouldReceive('generateContent')
-			->with('reduce prompt')
+			->with('reduce prompt', 'system instruction')
 			->once()
 			->andReturn(Json::encode([
 				'portfolioEvaluation' => [
@@ -212,6 +215,9 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			);
 		$entityManager->shouldReceive('flush')
 			->twice();
+		$promptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('system instruction');
 		$promptGenerator->shouldReceive('getAutomaticPortfolioData')
 			->once()
 			->andReturn([
@@ -294,8 +300,11 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->once()
 			->andReturn($run);
 		$stockAiAnalysisFacade->shouldNotReceive('processResponse');
+		$promptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('system instruction');
 		$geminiClient->shouldReceive('generateContent')
-			->with('Generated manual prompt')
+			->with('Generated manual prompt', 'system instruction')
 			->once()
 			->andReturn('not json');
 		$datetimeFactory->shouldReceive('createNow')

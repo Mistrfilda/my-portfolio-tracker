@@ -56,7 +56,7 @@ class RabbitMQConsumerRunner
 		try {
 			$result = $queue->consumer->consume($message->getBody());
 		} catch (Throwable $exception) {
-			$channel->basic_nack($message->getDeliveryTag(), false, true);
+			$channel->basic_nack($message->getDeliveryTag(), false, $queue->requeueOnFailure);
 
 			throw $exception;
 		}

@@ -40,6 +40,8 @@ class GeminiClientTest extends UpdatedTestCase
 				$requestBody = $request->getBody()->getContents();
 				$body = Json::decode($requestBody, true);
 				self::assertSame('Analyze portfolio', $body['contents'][0]['parts'][0]['text']);
+				self::assertSame(0.2, $body['generationConfig']['temperature']);
+				self::assertArrayNotHasKey('systemInstruction', $body);
 				self::assertStringContainsString('"google_search":{}', $requestBody);
 
 				return true;
@@ -70,6 +72,50 @@ class GeminiClientTest extends UpdatedTestCase
 		);
 
 		self::assertSame('{"marketOverview":{}}', $client->generateContent('Analyze portfolio'));
+	}
+
+	public function testGenerateContentSendsSystemInstructionWhenProvided(): void
+	{
+		$psr18ClientFactory = $this->createMock(Psr18ClientFactory::class);
+		$psr18Client = $this->createMock(ClientInterface::class);
+		$psr18ClientFactory->method('getClient')->willReturn($psr18Client);
+
+		$psr18Client->expects(self::once())
+			->method('sendRequest')
+			->with(self::callback(static function (RequestInterface $request): bool {
+				$body = Json::decode($request->getBody()->getContents(), true);
+				self::assertSame('Analyze portfolio', $body['contents'][0]['parts'][0]['text']);
+				self::assertSame('Answer as a stock analyst.', $body['systemInstruction']['parts'][0]['text']);
+				self::assertSame(0.2, $body['generationConfig']['temperature']);
+
+				return true;
+			}))
+			->willReturn(new Response(200, [], Json::encode([
+				'candidates' => [
+					[
+						'content' => [
+							'parts' => [
+								[
+									'text' => '{"marketOverview":{}}',
+								],
+							],
+						],
+					],
+				],
+			])));
+
+		$client = new GeminiClient(
+			'test-api-key',
+			'gemini-2.5-flash',
+			$psr18ClientFactory,
+			new Psr7RequestFactory(),
+			$this->createMock(LoggerInterface::class),
+		);
+
+		self::assertSame(
+			'{"marketOverview":{}}',
+			$client->generateContent('Analyze portfolio', 'Answer as a stock analyst.'),
+		);
 	}
 
 	public function testGenerateContentThrowsExceptionForInvalidResponseShape(): void

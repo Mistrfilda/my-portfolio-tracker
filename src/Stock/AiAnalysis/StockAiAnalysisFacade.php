@@ -6,7 +6,8 @@ namespace App\Stock\AiAnalysis;
 
 use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
-use App\JobRequest\JobRequestFacade;
+use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
+use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
 use App\Stock\Asset\StockAssetRepository;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -26,7 +27,7 @@ class StockAiAnalysisFacade
 		private StockAssetRepository $stockAssetRepository,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
-		private JobRequestFacade $jobRequestFacade,
+		private StockAiAnalysisGeminiProcessProducer $stockAiAnalysisGeminiProcessProducer,
 	)
 	{
 	}
@@ -87,7 +88,11 @@ class StockAiAnalysisFacade
 		$run->markGeminiQueued($now);
 		$this->entityManager->flush();
 
-		$this->jobRequestFacade->addStockAiAnalysisGeminiProcessToQueue($runId);
+		$this->stockAiAnalysisGeminiProcessProducer->publish(new StockAiAnalysisGeminiProcessMessage(
+			Uuid::uuid4()->toString(),
+			$now->getTimestamp(),
+			$runId,
+		));
 	}
 
 	public function processResponse(string $runId, string $rawResponse): void

@@ -13,6 +13,7 @@ final readonly class RabbitMQQueueConfig
 		public RabbitMQConsumerHandler $consumer,
 		public int $prefetchCount = 5,
 		public bool $durable = true,
+		public bool $requeueOnFailure = true,
 	)
 	{
 	}

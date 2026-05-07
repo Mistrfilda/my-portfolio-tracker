@@ -10,6 +10,8 @@ parameters:
 				prefetchCount: 5
 			jobRequestQueue:
 				prefetchCount: 5
+			aiClientsQueue:
+				prefetchCount: 5
 
 services:
 	rabbitMQConnectionConfig: App\RabbitMQ\RabbitMQConnectionConfig(%rabbitmq.host%, %rabbitmq.port%, %rabbitmq.user%, %rabbitmq.password%)
@@ -18,6 +20,7 @@ services:
 	rabbitMQQueueConfigCollection: App\RabbitMQ\RabbitMQQueueConfigCollection([
 		App\RabbitMQ\RabbitMQQueueConfig('notificationQueue', 'notificationConsumer', @notificationConsumer, %rabbitmq.queues.notificationQueue.prefetchCount%),
 		App\RabbitMQ\RabbitMQQueueConfig('jobRequestQueue', 'jobRequestConsumer', @jobRequestConsumer, %rabbitmq.queues.jobRequestQueue.prefetchCount%),
+		App\RabbitMQ\RabbitMQQueueConfig('aiClientsQueue', 'aiClientsConsumer', @aiClientsConsumer, %rabbitmq.queues.aiClientsQueue.prefetchCount%, requeueOnFailure: false),
 	])
 	rabbitMQQueueDeclarator: App\RabbitMQ\RabbitMQQueueDeclarator
 	rabbitMQConsumerRunner: App\RabbitMQ\RabbitMQConsumerRunner
@@ -26,4 +29,6 @@ services:
 	notificationConsumer: App\Notification\RabbitMQ\NotificationConsumer
 	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@rabbitMQPublisher, 'notificationQueue')
 	jobRequestConsumer: App\JobRequest\RabbitMQ\JobRequestConsumer
-	jobRequestProducer:	App\JobRequest\RabbitMQ\JobRequestProducer(@rabbitMQPublisher, 'jobRequestQueue')
+	jobRequestProducer: App\JobRequest\RabbitMQ\JobRequestProducer(@rabbitMQPublisher, 'jobRequestQueue')
+	aiClientsConsumer: App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessConsumer
+	aiClientsProducer: App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer(@rabbitMQPublisher, 'aiClientsQueue')

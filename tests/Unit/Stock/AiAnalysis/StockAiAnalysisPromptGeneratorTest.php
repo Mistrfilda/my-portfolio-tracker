@@ -46,10 +46,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$now = new ImmutableDateTime('2026-03-09 09:58:00');
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
-		$datetimeFactory->shouldReceive('createNow')
-			->once()
-			->andReturn($now);
-
 		$stockAssetRepository->shouldReceive('findAll')
 			->twice()
 			->andReturn([]);
@@ -71,6 +67,13 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		self::assertStringContainsString('"dailyBrief"', $prompt);
 		self::assertStringContainsString('"portfolio": []', $prompt);
 		self::assertStringContainsString('"watchlist": []', $prompt);
+		self::assertStringNotContainsString('Jsi zkušený finanční analytik', $prompt);
+
+		$datetimeFactory->shouldReceive('createNow')
+			->once()
+			->andReturn($now);
+
+		self::assertStringContainsString('09. 03. 2026', $generator->generateSystemInstruction());
 	}
 
 }
