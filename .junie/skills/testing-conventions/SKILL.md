@@ -54,6 +54,7 @@ class MyTest extends TestCase
 
 - **Prefer unit tests.** Move logic into pure services/facades so it can be unit-tested.
 - **Never use real RabbitMQ queues in tests** — call the target facade (e.g. `JobRequestProcessor`) directly with a synthetic message, or mock the producer.
+- Avoid shared PHPUnit mocks in `setUp()` when most tests do not assert calls on them. Use `createStub()` for default dependencies, and create a local `createMock()` only in tests that define explicit `expects()` assertions. This prevents PHPUnit warnings about mocks with no expectations.
 - Never call external HTTP APIs (Twelve Data, CNB, ECB, Discord) from tests — mock the client or the facade.
 - Use `App\Utils\TypeValidator` for scalar validation, `Nette\Utils\Json` for JSON.
 - Tabs for indentation, PSR-12, strict_types, English messages.

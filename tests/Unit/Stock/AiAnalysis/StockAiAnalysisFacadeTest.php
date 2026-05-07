@@ -25,7 +25,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\Json;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Throwable;
@@ -45,10 +44,6 @@ class StockAiAnalysisFacadeTest extends TestCase
 
 	private DatetimeFactory $datetimeFactory;
 
-	private RabbitMQPublisher&MockObject $rabbitMQPublisher;
-
-	private StockAiAnalysisGeminiProcessProducer $stockAiAnalysisGeminiProcessProducer;
-
 	public function setUp(): void
 	{
 		$this->promptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisPromptGenerator::class);
@@ -58,9 +53,13 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$this->stockAssetRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAssetRepository::class);
 		$this->entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$this->datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
-		$this->rabbitMQPublisher = $this->createMock(RabbitMQPublisher::class);
-		$this->stockAiAnalysisGeminiProcessProducer = new StockAiAnalysisGeminiProcessProducer(
-			$this->rabbitMQPublisher,
+		$this->createFacade($this->createStub(RabbitMQPublisher::class));
+	}
+
+	private function createFacade(RabbitMQPublisher $rabbitMQPublisher): void
+	{
+		$stockAiAnalysisGeminiProcessProducer = new StockAiAnalysisGeminiProcessProducer(
+			$rabbitMQPublisher,
 			'aiClientsQueue',
 		);
 
@@ -70,7 +69,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$this->stockAssetRepository,
 			$this->entityManager,
 			$this->datetimeFactory,
-			$this->stockAiAnalysisGeminiProcessProducer,
+			$stockAiAnalysisGeminiProcessProducer,
 		);
 	}
 
@@ -122,7 +121,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->andReturn($now);
 		$this->entityManager->shouldReceive('flush')
 			->once();
-		$this->rabbitMQPublisher->expects(self::once())
+		$rabbitMQPublisher = $this->createMock(RabbitMQPublisher::class);
+		$rabbitMQPublisher->expects(self::once())
 			->method('publish')
 			->with(
 				'aiClientsQueue',
@@ -135,6 +135,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 					return true;
 				}),
 			);
+		$this->createFacade($rabbitMQPublisher);
 
 		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
 
@@ -174,8 +175,10 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->once()
 			->andReturn($run);
 		$this->entityManager->shouldNotReceive('flush');
-		$this->rabbitMQPublisher->expects(self::never())
+		$rabbitMQPublisher = $this->createMock(RabbitMQPublisher::class);
+		$rabbitMQPublisher->expects(self::never())
 			->method('publish');
+		$this->createFacade($rabbitMQPublisher);
 
 		$this->facade->enqueueGeminiProcessing($run->getId()->toString());
 
