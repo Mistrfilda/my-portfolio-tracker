@@ -192,6 +192,9 @@ Alpine.data('modal', () => ({
 
 Alpine.data('loadChart', () => ({
     show: true,
+    resetGraphZoom(chartId: string): void {
+        chartRenderer.resetZoom(chartId);
+    },
     loadGraph(chartId: any, chartDataUrl: string, type: ChartType, shouldUpdateOnAjaxRequest: number): boolean {
         const chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
         const shouldUpdateOnAjaxRequestValue = Boolean(Number(shouldUpdateOnAjaxRequest));

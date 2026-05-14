@@ -1,6 +1,7 @@
 import {Naja, Payload} from "naja/dist/Naja";
 import {ChartData} from "./ChartData";
 import Chart, {ChartOptions, Colors, TooltipItem} from 'chart.js/auto';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import {ChartInstance} from "./ChartInstance";
 
 
@@ -25,7 +26,7 @@ export class ChartRenderer {
     setDefaults() {
         Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
         Chart.defaults.color = '#4b5563';
-        Chart.register(Colors);
+        Chart.register(Colors, zoomPlugin);
     }
 
     getTooltipDefaults() {
@@ -131,6 +132,33 @@ export class ChartRenderer {
         };
     }
 
+    getLineOptions(response: ChartData): ChartOptions {
+        const options = this.getCartesianOptions(response);
+
+        return {
+            ...options,
+            plugins: {
+                ...options.plugins,
+                zoom: {
+                    pan: {
+                        enabled: true,
+                        mode: 'x',
+                        modifierKey: 'ctrl',
+                    },
+                    zoom: {
+                        drag: {
+                            enabled: true,
+                            backgroundColor: 'rgba(17, 24, 39, 0.12)',
+                            borderColor: 'rgba(17, 24, 39, 0.35)',
+                            borderWidth: 1,
+                        },
+                        mode: 'x',
+                    },
+                },
+            },
+        };
+    }
+
     async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
         const graphData = this.fetchData(chartDataUrl);
 
@@ -142,7 +170,7 @@ export class ChartRenderer {
                     datasets: response.datasets
                 },
                 options: {
-                    ...this.getCartesianOptions(response),
+                    ...this.getLineOptions(response),
                     elements: {
                         line: {
                             borderWidth: 2,
@@ -261,6 +289,11 @@ export class ChartRenderer {
             chart.data.datasets = response.datasets;
             chart.update();
         }.bind(this));
+    }
+
+    resetZoom(chartId: string) {
+        const chart = Chart.getChart(chartId);
+        chart?.resetZoom();
     }
 
     fetchData(url: string): Promise<Payload> {

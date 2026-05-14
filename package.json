@@ -8,6 +8,7 @@
     "@tailwindplus/elements": "^1.0.4",
     "alpinejs": "^3.5.2",
     "chart.js": "^4.4.2",
+    "chartjs-plugin-zoom": "^2.2.0",
     "dotenv": "^10.0.0",
     "live-form-validation": "^1.10.0",
     "naja": "^2.2.1",
