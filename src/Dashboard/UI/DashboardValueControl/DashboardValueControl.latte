@@ -46,22 +46,20 @@
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
                     {varType App\Dashboard\DashboardValue $dashboardValue}
-                    <div class="relative overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
+                    <div class="relative flex h-full flex-col overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
                         <div class="absolute inset-x-0 top-0 h-1 bg-{$dashboardValue->getColor()}-500"></div>
-                        <div class="flex items-start gap-4">
-                            <div class="shrink-0 rounded-lg bg-{$dashboardValue->getColor()}-500 p-2.5 shadow-sm">
+                        <div class="flex min-h-12 items-start gap-4">
+                            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-{$dashboardValue->getColor()}-500 shadow-sm">
                                 {if $dashboardValue->getSvgIcon() !== null}
                                     {renderSvg $dashboardValue->getSvgIcon(), ['class' => 'h-5 w-5 text-white']}
                                 {/if}
                             </div>
-                            <div class="min-w-0 flex-1">
-                                <dt class="text-sm font-medium text-gray-500">{$dashboardValue->getLabel()}</dt>
-                                <dd class="mt-1 text-2xl font-semibold tracking-tight text-gray-900">{$dashboardValue->getValue()}</dd>
-                                {if $dashboardValue->getDescription() !== null}
-                                    <dd class="mt-2 text-xs leading-5 text-gray-500">{$dashboardValue->getDescription()}</dd>
-                                {/if}
-                            </div>
+                            <dt class="pt-1 text-sm font-medium leading-6 text-gray-500 break-words">{$dashboardValue->getLabel()}</dt>
                         </div>
+                        <dd class="mt-4 text-2xl font-semibold leading-tight tracking-tight text-gray-900">{$dashboardValue->getValue()}</dd>
+                        {if $dashboardValue->getDescription() !== null}
+                            <dd class="mt-3 text-xs leading-5 text-gray-500">{$dashboardValue->getDescription()}</dd>
+                        {/if}
                     </div>
                 {/foreach}
             </dl>
