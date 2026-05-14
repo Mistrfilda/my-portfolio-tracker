@@ -77,6 +77,15 @@ class StockAiAnalysisFacade
 		return $this->stockAiAnalysisRunRepository->getById(Uuid::fromString($id));
 	}
 
+	public function getGeneratedPromptForDisplay(StockAiAnalysisRun $run): string
+	{
+		return sprintf(
+			"Systémový prompt:\n\n%s\n\nUživatelský prompt:\n\n%s",
+			$this->promptGenerator->generateSystemInstruction(),
+			$run->getGeneratedPrompt(),
+		);
+	}
+
 	public function enqueueGeminiProcessing(string $runId): void
 	{
 		$run = $this->getRun($runId);

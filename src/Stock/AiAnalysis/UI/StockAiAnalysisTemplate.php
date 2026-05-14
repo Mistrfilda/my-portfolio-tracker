@@ -14,6 +14,8 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 
 	public StockAiAnalysisRun|null $run = null;
 
+	public string $generatedPromptForDisplay = '';
+
 	/** @var array<int, StockAiAnalysisStockResult> */
 	public array $portfolioResults = [];
 

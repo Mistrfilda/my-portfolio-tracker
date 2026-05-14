@@ -51,14 +51,14 @@
 			</div>
 			<div class="px-6 py-4">
 				<div class="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
-					<pre class="text-sm text-gray-800 whitespace-pre-wrap font-mono">{$run->getGeneratedPrompt()}</pre>
+					<pre class="text-sm text-gray-800 whitespace-pre-wrap font-mono">{$generatedPromptForDisplay}</pre>
 				</div>
  			<div class="mt-4">
 					<button id="copy-prompt-btn" type="button" class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-xs text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden transition-colors">
 						Kopírovat do schránky
 					</button>
 				</div>
-				<pre id="prompt-text" class="hidden">{$run->getGeneratedPrompt()}</pre>
+				<pre id="prompt-text" class="hidden">{$generatedPromptForDisplay}</pre>
 				<script>
 					document.getElementById('copy-prompt-btn').addEventListener('click', function () {
 						var btn = this;

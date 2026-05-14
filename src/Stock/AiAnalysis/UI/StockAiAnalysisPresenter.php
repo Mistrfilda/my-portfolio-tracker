@@ -106,6 +106,9 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->portfolioResults = $portfolioResults;
 		$this->template->watchlistResults = $watchlistResults;
 		$this->template->singleStockResults = $singleStockResults;
+		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay(
+			$this->run,
+		);
 		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade
 			->getCachedGeminiResponseFileCount($this->run);
 		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(

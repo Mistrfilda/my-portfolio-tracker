@@ -101,6 +101,21 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertNull($run->getPortfolioPromptType());
 	}
 
+	public function testGetGeneratedPromptForDisplayIncludesSystemInstruction(): void
+	{
+		$now = new ImmutableDateTime();
+		$run = new StockAiAnalysisRun('User prompt text', true, false, false, null, $now);
+
+		$this->promptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('System instruction text');
+
+		self::assertSame(
+			"Systémový prompt:\n\nSystem instruction text\n\nUživatelský prompt:\n\nUser prompt text",
+			$this->facade->getGeneratedPromptForDisplay($run),
+		);
+	}
+
 	public function testEnqueueGeminiProcessing(): void
 	{
 		$run = new StockAiAnalysisRun(
