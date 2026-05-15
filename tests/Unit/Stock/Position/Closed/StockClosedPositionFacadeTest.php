@@ -6,7 +6,10 @@ namespace App\Test\Unit\Stock\Position\Closed;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
+use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceEmbeddable;
+use App\Asset\Price\PriceDiff;
+use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -47,6 +50,8 @@ class StockClosedPositionFacadeTest extends TestCase
 
 	private JobRequestFacade $jobRequestFacade;
 
+	private CurrencyConversionFacade $currencyConversionFacade;
+
 	private StockAssetDividendRecordFacade $stockAssetDividendRecordFacade;
 
 	private SummaryPriceService $summaryPriceService;
@@ -64,6 +69,7 @@ class StockClosedPositionFacadeTest extends TestCase
 		$this->datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
 		$this->currentAppAdminGetter = UpdatedTestCase::createMockWithIgnoreMethods(CurrentAppAdminGetter::class);
 		$this->jobRequestFacade = UpdatedTestCase::createMockWithIgnoreMethods(JobRequestFacade::class);
+		$this->currencyConversionFacade = UpdatedTestCase::createMockWithIgnoreMethods(CurrencyConversionFacade::class);
 		$this->stockAssetDividendRecordFacade = UpdatedTestCase::createMockWithIgnoreMethods(
 			StockAssetDividendRecordFacade::class,
 		);
@@ -77,7 +83,7 @@ class StockClosedPositionFacadeTest extends TestCase
 			$this->datetimeFactory,
 			UpdatedTestCase::createMockWithIgnoreMethods(LoggerInterface::class),
 			$this->currentAppAdminGetter,
-			UpdatedTestCase::createMockWithIgnoreMethods(CurrencyConversionFacade::class),
+			$this->currencyConversionFacade,
 			$this->summaryPriceService,
 			$this->stockAssetDividendRecordFacade,
 			$this->jobRequestFacade,
@@ -216,6 +222,130 @@ class StockClosedPositionFacadeTest extends TestCase
 		$result = $this->facade->getAllStockClosedPositions();
 
 		$this->assertSame([], $result);
+	}
+
+	public function testGetAllStockClosedPositionsAggregatesClosedPositionsWithDividendsAndCzkConversion(): void
+	{
+		$firstCloseDate = new ImmutableDateTime('2026-04-01');
+		$secondCloseDate = new ImmutableDateTime('2026-04-10');
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$firstPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
+		$secondPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
+		$firstClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockClosedPosition::class);
+		$secondClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockClosedPosition::class);
+
+		$this->stockAssetRepository->shouldReceive('findAll')
+			->once()
+			->andReturn([$stockAsset]);
+		$stockAsset->shouldReceive('hasClosedPositions')
+			->once()
+			->andReturn(true);
+		$stockAsset->shouldReceive('getClosedPositions')
+			->once()
+			->andReturn([$firstPosition, $secondPosition]);
+
+		$this->prepareClosedPosition(
+			$stockAsset,
+			$firstPosition,
+			$firstClosedPosition,
+			1000.0,
+			1200.0,
+			$firstCloseDate,
+		);
+		$this->prepareClosedPosition(
+			$stockAsset,
+			$secondPosition,
+			$secondClosedPosition,
+			500.0,
+			600.0,
+			$secondCloseDate,
+		);
+
+		$this->currencyConversionFacade->shouldReceive('getConvertedAssetPrice')
+			->times(4)
+			->withAnyArgs()
+			->andReturnUsing(static function (AssetPrice $assetPrice, CurrencyEnum $currency): AssetPrice {
+				self::assertSame(CurrencyEnum::CZK, $currency);
+
+				return new AssetPrice(
+					$assetPrice->getAsset(),
+					$assetPrice->getPrice() * 22,
+					CurrencyEnum::CZK,
+				);
+			});
+
+		$dividendsSummary = new SummaryPrice(CurrencyEnum::USD, 90.0, 1);
+		$this->stockAssetDividendRecordFacade->shouldReceive('getTotalSummaryPriceForStockAsset')
+			->once()
+			->with($stockAsset)
+			->andReturn($dividendsSummary);
+		$this->currencyConversionFacade->shouldReceive('getConvertedSummaryPrice')
+			->times(3)
+			->withAnyArgs()
+			->andReturnUsing(static function (SummaryPrice $summaryPrice, CurrencyEnum $currency): SummaryPrice {
+				if ($currency === CurrencyEnum::CZK) {
+					return new SummaryPrice(
+						CurrencyEnum::CZK,
+						$summaryPrice->getPrice() * 22,
+						$summaryPrice->getCounter(),
+					);
+				}
+
+				return new SummaryPrice($currency, $summaryPrice->getPrice(), $summaryPrice->getCounter());
+			});
+		$this->summaryPriceService->shouldReceive('getSummaryPriceDiff')
+			->times(6)
+			->withAnyArgs()
+			->andReturnUsing(
+				static fn (SummaryPrice $summaryPrice, SummaryPrice $investedAmount): PriceDiff => new PriceDiff(
+					$summaryPrice->getPrice() - $investedAmount->getPrice(),
+					0.0,
+					$summaryPrice->getCurrency(),
+				),
+			);
+
+		$result = $this->facade->getAllStockClosedPositions();
+
+		$this->assertCount(1, $result);
+		$dto = $result[0];
+		$this->assertSame($stockAsset, $dto->getStockAsset());
+		$this->assertSame([$firstPosition, $secondPosition], $dto->getPositions());
+		$this->assertSame(1500.0, $dto->getTotalInvestedAmount()->getPrice());
+		$this->assertSame(1800.0, $dto->getTotalAmount()->getPrice());
+		$this->assertSame(90.0, $dto->getDividendsSummary()?->getPrice());
+		$this->assertSame(1890.0, $dto->getTotalAmountWithDividends()?->getPrice());
+		$this->assertSame(1500.0, $dto->getTotalInvestedAmountInBrokerCurrency()->getPrice());
+		$this->assertSame(1800.0, $dto->getTotalAmountInBrokerCurrency()->getPrice());
+		$this->assertSame(1890.0, $dto->getTotalAmountInBrokerCurrencyWithDividends()?->getPrice());
+		$this->assertSame(33000.0, $dto->getTotalInvestedAmountInBrokerCurrencyInCzk()->getPrice());
+		$this->assertSame(39600.0, $dto->getTotalAmountInBrokerCurrencyInCzk()->getPrice());
+		$this->assertSame(41580.0, $dto->getTotalAmountInBrokerCurrencyWithDividendsInCzk()?->getPrice());
+		$this->assertSame(300.0, $dto->getTotalAmountPriceDiff()->getPriceDifference());
+		$this->assertSame(390.0, $dto->getTotalAmountPriceDiffWithDividends()?->getPriceDifference());
+		$this->assertSame(6600.0, $dto->getTotalAmountPriceDiffInCzk()->getPriceDifference());
+		$this->assertSame(8580.0, $dto->getTotalAmountPriceDiffInCzkWithDividends()?->getPriceDifference());
+	}
+
+	private function prepareClosedPosition(
+		StockAsset $stockAsset,
+		StockPosition $position,
+		StockClosedPosition $closedPosition,
+		float $investedAmount,
+		float $closeAmount,
+		ImmutableDateTime $closeDate,
+	): void
+	{
+		$position->shouldReceive('getStockClosedPosition')->andReturn($closedPosition);
+		$position->shouldReceive('getTotalInvestedAmount')
+			->andReturn(new AssetPrice($stockAsset, $investedAmount, CurrencyEnum::USD));
+		$position->shouldReceive('getCurrentTotalAmount')
+			->andReturn(new AssetPrice($stockAsset, $closeAmount, CurrencyEnum::USD));
+		$position->shouldReceive('getTotalInvestedAmountInBrokerCurrency')
+			->andReturn(new AssetPrice($stockAsset, $investedAmount, CurrencyEnum::USD));
+
+		$closedPosition->shouldReceive('getTotalCloseAmountInBrokerCurrency')
+			->andReturn(new AssetPrice($stockAsset, $closeAmount, CurrencyEnum::USD));
+		$closedPosition->shouldReceive('getDate')->andReturn($closeDate);
 	}
 
 }
