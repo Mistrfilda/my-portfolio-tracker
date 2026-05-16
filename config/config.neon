@@ -178,6 +178,7 @@ monolog:
 				- Monolog\Handler\StreamHandler("php://stdout")
 				- App\Utils\Monolog\MonologDiscordHandler(%logger.discordWebhookUrl%, Monolog\Level::Error)
 			processors:
+				- App\Utils\Monolog\TracyExceptionFileProcessor(%appDir%/../log)
 				- Monolog\Processor\MemoryPeakUsageProcessor()
 				- Monolog\Processor\WebProcessor()
 				- Monolog\Processor\IntrospectionProcessor()
