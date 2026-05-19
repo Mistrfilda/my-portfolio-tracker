@@ -2,6 +2,13 @@
   "name": "app-starter",
   "version": "1.0.0",
   "license": "MIT",
+  "devEngines": {
+    "packageManager": {
+      "name": "npm",
+      "version": ">=11.10.0",
+      "onFail": "error"
+    }
+  },
   "dependencies": {
     "@tailwindcss/aspect-ratio": "^0.4",
     "@tailwindcss/postcss": "^4.1.13",

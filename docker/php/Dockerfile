@@ -21,7 +21,7 @@ WORKDIR /var
 
 COPY composer.json composer.lock ./
 COPY patches/ ./patches
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN curl -sS https://getcomposer.org/installer | php \
     && php composer.phar install --no-dev --optimize-autoloader \
     && npm ci --omit=dev

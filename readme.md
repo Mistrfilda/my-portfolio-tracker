@@ -81,7 +81,7 @@ This repository contains the application code for my personal portfolio tracker.
 ### Requirements
 - PHP 8.5+
 - Composer
-- Node.js 24+ and npm
+- Node.js 24+ and npm 11.10+ (required for the 5-day `min-release-age` install policy)
 - Docker
 - MariaDB/MySQL and RabbitMQ via Docker or another local setup
 

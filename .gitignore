@@ -33,6 +33,7 @@ puppeter/node_modules/*
 
 .junie/memory
 .junie/plans
+.junie/mcp
 
 resources/gemini/*
 !resources/gemini/.gitkeep
