@@ -8,6 +8,7 @@ use App\Ai\Gemini\GeminiClient;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use JsonException;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
@@ -187,7 +188,10 @@ class StockAiAnalysisGeminiProcessorFacade
 			return $this->validateStringKeyArray(TypeValidator::validateArray($data));
 		}
 
-		$response = $this->decodeJsonObject($this->geminiClient->generateContent($prompt, $systemInstruction));
+		$response = $this->decodeJsonObject(
+			$this->geminiClient->generateContent($prompt, $systemInstruction),
+			$fileName,
+		);
 		$this->writeGeminiResponseFile($filePath, $response);
 
 		return $response;
@@ -235,7 +239,7 @@ class StockAiAnalysisGeminiProcessorFacade
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function decodeJsonObject(string $response): array
+	private function decodeJsonObject(string $response, string|null $fileName = null): array
 	{
 		$response = trim($response);
 		if (str_starts_with($response, '```')) {
@@ -248,7 +252,21 @@ class StockAiAnalysisGeminiProcessorFacade
 			throw new Exception('Gemini response does not contain a JSON object.');
 		}
 
-		$data = Json::decode(substr($response, $start, $end - $start + 1), forceArrays: true);
+		try {
+			$data = Json::decode(substr($response, $start, $end - $start + 1), forceArrays: true);
+		} catch (JsonException $e) {
+			$this->logger->error('Gemini response is not a valid JSON object.', [
+				'fileName' => $fileName,
+				'jsonError' => $e->getMessage(),
+			]);
+			$this->logger->debug('Gemini response', [
+				'fileName' => $fileName,
+				'response' => $response,
+			]);
+
+			throw $e;
+		}
+
 		if (!is_array($data)) {
 			throw new Exception('Gemini response is not a JSON object.');
 		}
