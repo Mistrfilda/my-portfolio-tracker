@@ -7,6 +7,9 @@ namespace App\Stock\Dividend\Forecast;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Currency\MissingCurrencyPairException;
+use App\Stock\Dividend\StockAssetDividend;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
+use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class StockAssetDividendForecastCashflowProvider
@@ -14,6 +17,7 @@ class StockAssetDividendForecastCashflowProvider
 
 	public function __construct(
 		private CurrencyConversionFacade $currencyConversionFacade,
+		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -45,9 +49,11 @@ class StockAssetDividendForecastCashflowProvider
 	): void
 	{
 		$receivedMonths = $this->filterMonths($record->getReceivedDividendMonths());
+		$missedMonths = $this->getMissedAlreadyPaidDividendMonths($record);
 		$estimatedMonths = array_values(array_diff(
 			$this->filterMonths($record->getDividendUsuallyPaidAtMonths()),
 			$receivedMonths,
+			$missedMonths,
 		));
 
 		if ($receivedMonths !== []) {
@@ -56,8 +62,8 @@ class StockAssetDividendForecastCashflowProvider
 				$forecast,
 				$record,
 				$receivedMonths,
-				$record->getAlreadyReceivedDividendPerStock() * $record->getPiecesCurrentlyHeld(),
-				$record->getAlreadyReceivedDividendPerStockBeforeTax() * $record->getPiecesCurrentlyHeld(),
+				$record->getActualReceivedTotal(),
+				$record->getActualReceivedTotalBeforeTax(),
 				true,
 			);
 		}
@@ -144,6 +150,44 @@ class StockAssetDividendForecastCashflowProvider
 		}
 
 		return array_values(array_unique($filteredMonths));
+	}
+
+	/**
+	 * @return array<int>
+	 */
+	private function getMissedAlreadyPaidDividendMonths(StockAssetDividendForecastRecord $record): array
+	{
+		$months = [];
+		$now = $this->datetimeFactory->createNow();
+		$forYear = $record->getStockAssetDividendForecast()->getForYear();
+
+		foreach ($record->getStockAsset()->getDividends() as $dividend) {
+			if ($dividend->getExDate()->getYear() !== $forYear) {
+				continue;
+			}
+
+			if ($dividend->getDividendType() !== StockAssetDividendTypeEnum::REGULAR) {
+				continue;
+			}
+
+			if (count($dividend->getRecords()) > 0 || $this->isDividendAlreadyPaid($dividend, $now) === false) {
+				continue;
+			}
+
+			$months[] = $dividend->getExDate()->getMonth();
+		}
+
+		return $this->filterMonths($months);
+	}
+
+	private function isDividendAlreadyPaid(StockAssetDividend $dividend, ImmutableDateTime $now): bool
+	{
+		$paymentDate = $dividend->getPaymentDate();
+		if ($paymentDate !== null) {
+			return $paymentDate <= $now;
+		}
+
+		return $dividend->getExDate() <= $now;
 	}
 
 }

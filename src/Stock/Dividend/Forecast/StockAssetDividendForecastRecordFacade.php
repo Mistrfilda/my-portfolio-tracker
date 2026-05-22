@@ -5,11 +5,14 @@ declare(strict_types = 1);
 namespace App\Stock\Dividend\Forecast;
 
 use App\Asset\Price\SummaryPrice;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 
@@ -61,7 +64,16 @@ class StockAssetDividendForecastRecordFacade
 		}
 
 		foreach ($this->stockAssetRepository->findAll() as $stockAsset) {
-			if ($stockAsset->hasOpenPositions() === false || $stockAsset->doesPaysDividends() === false) {
+			$stockAssetForecastYearReceivedDividends = $this->stockAssetDividendRepository->findByStockAssetForYear(
+				$stockAsset,
+				$forYear,
+			);
+			$hasOpenDividendPayingPosition = $stockAsset->hasOpenPositions() && $stockAsset->doesPaysDividends();
+			$hasActualDividendRecord = $this->hasActualDividendRecordForYear(
+				$stockAssetForecastYearReceivedDividends,
+			);
+
+			if ($hasOpenDividendPayingPosition === false && $hasActualDividendRecord === false) {
 				if (array_key_exists($stockAsset->getId()->toString(), $existingRecordsByStockAsset)) {
 					$recordsToDelete[] = $existingRecordsByStockAsset[$stockAsset->getId()->toString()];
 				}
@@ -99,19 +111,27 @@ class StockAssetDividendForecastRecordFacade
 
 			$dividendTax = $stockAsset->getDividendTax();
 
-			$stockAssetForecastYearReceivedDividends = $this->stockAssetDividendRepository->findByStockAssetForYear(
-				$stockAsset,
-				$forYear,
-			);
-
 			$lastDividendForYear = null;
 			$receivedDividendsForYear = [];
+			$missedDividendMonths = [];
 			$receivedTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
 			$receivedTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
 			$specialDividendsTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
 			$specialDividendsTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
+			$now = $this->datetimeFactory->createNow();
 
 			foreach ($stockAssetForecastYearReceivedDividends as $stockAssetForecastYearReceivedDividend) {
+				if ($this->hasActualDividendRecord($stockAssetForecastYearReceivedDividend) === false) {
+					if (
+						$stockAssetForecastYearReceivedDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR
+						&& $this->isDividendAlreadyPaid($stockAssetForecastYearReceivedDividend, $now)
+					) {
+						$missedDividendMonths[] = $stockAssetForecastYearReceivedDividend->getExDate()->getMonth();
+					}
+
+					continue;
+				}
+
 				if ($stockAssetForecastYearReceivedDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR) {
 					$lastDividendForYear = $stockAssetForecastYearReceivedDividend;
 					$receivedDividendsForYear[$stockAssetForecastYearReceivedDividend
@@ -165,10 +185,15 @@ class StockAssetDividendForecastRecordFacade
 
 			$dividendUsuallyPaidAtMonths = array_keys($previousYearDividendsByMonth);
 			$receivedDividendMonths = array_keys($receivedDividendsForYear);
+			$expectedDividendMonths = array_diff(
+				$dividendUsuallyPaidAtMonths,
+				$receivedDividendMonths,
+				$missedDividendMonths,
+			);
 
 			$expectedDividendPerStock = 0;
 			$expectedDividendPerStockBeforeTax = 0;
-			$expectedDividendsCount = count($dividendUsuallyPaidAtMonths) - count($receivedDividendMonths);
+			$expectedDividendsCount = count($expectedDividendMonths);
 			if ($expectedDividendsCount > 0) {
 				$expectedDividendPerStock = $dividendForCalculation * $expectedDividendsCount;
 				$expectedDividendPerStockBeforeTax = $dividendForCalculationBeforeTax * $expectedDividendsCount;
@@ -206,6 +231,7 @@ class StockAssetDividendForecastRecordFacade
 			$expectedDividendPerStockConvertedBeforeTax = $expectedDividendPerStockBeforeTax;
 			$specialDividendsConverted = $specialDividendsTotalPriceForYear->getPrice();
 			$specialDividendsConvertedBeforeTax = $specialDividendsTotalPriceForYearBeforeTax->getPrice();
+			$piecesCurrentlyHeld = $this->getOpenPiecesCurrentlyHeld($stockAsset);
 
 			if ($existingRecord !== null) {
 				$existingRecord->recalculate(
@@ -213,7 +239,7 @@ class StockAssetDividendForecastRecordFacade
 					$alreadyReceivedConverted,
 					$alreadyReceivedConvertedBeforeTax,
 					$dividendUsuallyPaidAtMonths,
-					$stockAsset->getTotalPiecesHeld(),
+					$piecesCurrentlyHeld,
 					$originalDividendConverted,
 					$originalDividendConvertedBeforeTax,
 					$adjustedPriceConverted,
@@ -234,7 +260,7 @@ class StockAssetDividendForecastRecordFacade
 					$receivedDividendMonths,
 					$alreadyReceivedConverted,
 					$alreadyReceivedConvertedBeforeTax,
-					$stockAsset->getTotalPiecesHeld(),
+					$piecesCurrentlyHeld,
 					$originalDividendConverted,
 					$originalDividendConvertedBeforeTax,
 					$adjustedPriceConverted,
@@ -305,6 +331,45 @@ class StockAssetDividendForecastRecordFacade
 		);
 		$record->getStockAssetDividendForecast()->recalculatingPending();
 		$this->entityManager->flush();
+	}
+
+	/**
+	 * @param array<StockAssetDividend> $dividends
+	 */
+	private function hasActualDividendRecordForYear(array $dividends): bool
+	{
+		foreach ($dividends as $dividend) {
+			if ($this->hasActualDividendRecord($dividend)) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private function hasActualDividendRecord(StockAssetDividend $dividend): bool
+	{
+		return count($dividend->getRecords()) > 0;
+	}
+
+	private function getOpenPiecesCurrentlyHeld(StockAsset $stockAsset): int
+	{
+		$total = 0;
+		foreach ($stockAsset->getPositions(true) as $position) {
+			$total += $position->getOrderPiecesCount();
+		}
+
+		return $total;
+	}
+
+	private function isDividendAlreadyPaid(StockAssetDividend $dividend, ImmutableDateTime $now): bool
+	{
+		$paymentDate = $dividend->getPaymentDate();
+		if ($paymentDate !== null) {
+			return $paymentDate <= $now;
+		}
+
+		return $dividend->getExDate() <= $now;
 	}
 
 }
