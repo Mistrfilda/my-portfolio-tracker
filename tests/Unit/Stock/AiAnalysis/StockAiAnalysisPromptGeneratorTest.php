@@ -191,6 +191,59 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		self::assertStringNotContainsString('"portfolioEvaluation"', $prompt);
 	}
 
+	public function testGenerateResponseSchemaBuildsGeminiSchema(): void
+	{
+		$generator = $this->createGenerator();
+
+		$schema = $generator->generateResponseSchema(
+			false,
+			false,
+			true,
+			null,
+			'AAPL',
+			'Apple Inc.',
+		);
+
+		self::assertSame('OBJECT', $schema['type']);
+		self::assertSame(['marketOverview', 'stockAnalysis'], $schema['required']);
+		self::assertSame('OBJECT', $schema['properties']['marketOverview']['type']);
+		self::assertSame(
+			['summary', 'sentiment', 'geopoliticalContext'],
+			$schema['properties']['marketOverview']['required'],
+		);
+		self::assertSame(
+			['bullish', 'bearish', 'neutral'],
+			$schema['properties']['marketOverview']['properties']['sentiment']['enum'],
+		);
+		self::assertSame('NUMBER', $schema['properties']['stockAnalysis']['properties']['fairPrice']['type']);
+	}
+
+	public function testGenerateAutomaticPortfolioStockResponseSchemaBuildsGeminiArraySchema(): void
+	{
+		$generator = $this->createGenerator();
+
+		$schema = $generator->generateAutomaticPortfolioStockResponseSchema(
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
+		);
+
+		self::assertSame('OBJECT', $schema['type']);
+		self::assertSame(['portfolioAnalysis'], $schema['required']);
+		self::assertSame('ARRAY', $schema['properties']['portfolioAnalysis']['type']);
+		self::assertSame('OBJECT', $schema['properties']['portfolioAnalysis']['items']['type']);
+		self::assertContains(
+			'performance1DayComment',
+			$schema['properties']['portfolioAnalysis']['items']['required'],
+		);
+		self::assertNotContains(
+			'performance7DaysComment',
+			$schema['properties']['portfolioAnalysis']['items']['required'],
+		);
+		self::assertSame(
+			['hold', 'consider_selling', 'add_more', 'watch_closely'],
+			$schema['properties']['portfolioAnalysis']['items']['properties']['actionSuggestion']['enum'],
+		);
+	}
+
 	private function createGenerator(
 		mixed &$stockAssetRepository = null,
 		mixed &$stockValuationDataRepository = null,

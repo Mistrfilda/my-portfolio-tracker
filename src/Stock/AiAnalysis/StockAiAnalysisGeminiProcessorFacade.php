@@ -89,6 +89,14 @@ class StockAiAnalysisGeminiProcessorFacade
 				'manual.json',
 				$run->getGeneratedPrompt(),
 				$systemInstruction,
+				$this->promptGenerator->generateResponseSchema(
+					$run->includesPortfolio(),
+					$run->includesWatchlist(),
+					$run->includesMarketOverview(),
+					$run->getPortfolioPromptType(),
+					$run->getStockTicker(),
+					$run->getStockName(),
+				),
 			);
 		}
 
@@ -109,6 +117,9 @@ class StockAiAnalysisGeminiProcessorFacade
 						$run->getPortfolioPromptType(),
 					),
 					$systemInstruction,
+					$this->promptGenerator->generateAutomaticPortfolioStockResponseSchema(
+						$run->getPortfolioPromptType(),
+					),
 				);
 				$portfolioAnalysis[] = $this->extractAnalysisItem($response, 'portfolioAnalysis');
 				$portfolioItemNumber++;
@@ -132,6 +143,9 @@ class StockAiAnalysisGeminiProcessorFacade
 						$run->getPortfolioPromptType(),
 					),
 					$systemInstruction,
+					$this->promptGenerator->generateAutomaticWatchlistStockResponseSchema(
+						$run->getPortfolioPromptType(),
+					),
 				);
 				$watchlistAnalysis[] = $this->extractAnalysisItem($response, 'watchlistAnalysis');
 				$watchlistItemNumber++;
@@ -152,6 +166,11 @@ class StockAiAnalysisGeminiProcessorFacade
 					$watchlistAnalysis,
 				),
 				$systemInstruction,
+				$this->promptGenerator->generateAutomaticReduceResponseSchema(
+					$run->includesPortfolio(),
+					$run->includesMarketOverview(),
+					$run->getPortfolioPromptType(),
+				),
 			);
 		}
 
@@ -172,6 +191,7 @@ class StockAiAnalysisGeminiProcessorFacade
 	}
 
 	/**
+	 * @param array<string, mixed> $responseSchema
 	 * @return array<string, mixed>
 	 */
 	private function loadOrCreateGeminiResponse(
@@ -179,6 +199,7 @@ class StockAiAnalysisGeminiProcessorFacade
 		string $fileName,
 		string $prompt,
 		string $systemInstruction,
+		array $responseSchema,
 	): array
 	{
 		$filePath = $this->getGeminiResponseFilePath($run, $fileName);
@@ -189,7 +210,7 @@ class StockAiAnalysisGeminiProcessorFacade
 		}
 
 		$response = $this->decodeJsonObject(
-			$this->geminiClient->generateContent($prompt, $systemInstruction),
+			$this->geminiClient->generateContent($prompt, $systemInstruction, $responseSchema),
 			$fileName,
 		);
 		$this->writeGeminiResponseFile($filePath, $response);

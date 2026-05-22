@@ -41,6 +41,8 @@ class GeminiClientTest extends UpdatedTestCase
 				$body = Json::decode($requestBody, true);
 				self::assertSame('Analyze portfolio', $body['contents'][0]['parts'][0]['text']);
 				self::assertSame(0.2, $body['generationConfig']['temperature']);
+				self::assertSame('application/json', $body['generationConfig']['responseMimeType']);
+				self::assertArrayNotHasKey('responseSchema', $body['generationConfig']);
 				self::assertArrayNotHasKey('systemInstruction', $body);
 				self::assertStringContainsString('"google_search":{}', $requestBody);
 
@@ -72,6 +74,64 @@ class GeminiClientTest extends UpdatedTestCase
 		);
 
 		self::assertSame('{"marketOverview":{}}', $client->generateContent('Analyze portfolio'));
+	}
+
+	public function testGenerateContentSendsResponseSchemaWhenProvided(): void
+	{
+		$psr18ClientFactory = $this->createMock(Psr18ClientFactory::class);
+		$psr18Client = $this->createMock(ClientInterface::class);
+		$psr18ClientFactory->method('getClient')->willReturn($psr18Client);
+		$responseSchema = [
+			'type' => 'OBJECT',
+			'properties' => [
+				'marketOverview' => [
+					'type' => 'OBJECT',
+					'properties' => [
+						'summary' => [
+							'type' => 'STRING',
+						],
+					],
+				],
+			],
+			'required' => [
+				'marketOverview',
+			],
+		];
+
+		$psr18Client->expects(self::once())
+			->method('sendRequest')
+			->with(self::callback(static function (RequestInterface $request) use ($responseSchema): bool {
+				$body = Json::decode($request->getBody()->getContents(), true);
+				self::assertSame($responseSchema, $body['generationConfig']['responseSchema']);
+
+				return true;
+			}))
+			->willReturn(new Response(200, [], Json::encode([
+				'candidates' => [
+					[
+						'content' => [
+							'parts' => [
+								[
+									'text' => '{"marketOverview":{"summary":"Summary"}}',
+								],
+							],
+						],
+					],
+				],
+			])));
+
+		$client = new GeminiClient(
+			'test-api-key',
+			'gemini-2.5-flash',
+			$psr18ClientFactory,
+			new Psr7RequestFactory(),
+			$this->createMock(LoggerInterface::class),
+		);
+
+		self::assertSame(
+			'{"marketOverview":{"summary":"Summary"}}',
+			$client->generateContent('Analyze portfolio', responseSchema: $responseSchema),
+		);
 	}
 
 	public function testGenerateContentSendsSystemInstructionWhenProvided(): void

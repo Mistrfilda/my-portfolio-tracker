@@ -28,7 +28,14 @@ class GeminiClient
 	{
 	}
 
-	public function generateContent(string $prompt, string|null $systemInstruction = null): string
+	/**
+	 * @param array<string, mixed>|null $responseSchema
+	 */
+	public function generateContent(
+		string $prompt,
+		string|null $systemInstruction = null,
+		array|null $responseSchema = null,
+	): string
 	{
 		$this->logger->info('Sending Gemini generateContent request', [
 			'model' => $this->model,
@@ -39,7 +46,7 @@ class GeminiClient
 			$response = $this->psr18ClientFactory->getClient()->sendRequest(
 				$this->psr7RequestFactory->createPOSTRequest(
 					sprintf(self::API_URL_TEMPLATE, rawurlencode($this->model)),
-					$this->createPayload($prompt, $systemInstruction),
+					$this->createPayload($prompt, $systemInstruction, $responseSchema),
 					[
 						'Content-Type' => 'application/json',
 						'x-goog-api-key' => $this->apiKey,
@@ -102,9 +109,10 @@ class GeminiClient
 	}
 
 	/**
+	 * @param array<string, mixed>|null $responseSchema
 	 * @return array<string, mixed>
 	 */
-	private function createPayload(string $prompt, string|null $systemInstruction): array
+	private function createPayload(string $prompt, string|null $systemInstruction, array|null $responseSchema): array
 	{
 		$payload = [
 			'contents' => [
@@ -126,6 +134,10 @@ class GeminiClient
 				],
 			],
 		];
+
+		if ($responseSchema !== null) {
+			$payload['generationConfig']['responseSchema'] = $responseSchema;
+		}
 
 		if ($systemInstruction !== null) {
 			$payload['systemInstruction'] = [

@@ -42,6 +42,9 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$entityManager = Mockery::mock(EntityManagerInterface::class);
 		$logger = Mockery::mock(LoggerInterface::class);
 		$tempDir = $this->createTempDir();
+		$portfolioResponseSchema = ['type' => 'portfolio'];
+		$watchlistResponseSchema = ['type' => 'watchlist'];
+		$reduceResponseSchema = ['type' => 'reduce'];
 
 		$stockAiAnalysisFacade->shouldReceive('getRun')
 			->with($runId)
@@ -71,6 +74,10 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$promptGenerator->shouldReceive('generateAutomaticPortfolioStockPrompt')
 			->once()
 			->andReturn('portfolio prompt');
+		$promptGenerator->shouldReceive('generateAutomaticPortfolioStockResponseSchema')
+			->with(null)
+			->once()
+			->andReturn($portfolioResponseSchema);
 		$promptGenerator->shouldReceive('getAutomaticWatchlistData')
 			->once()
 			->andReturn([
@@ -83,12 +90,20 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$promptGenerator->shouldReceive('generateAutomaticWatchlistStockPrompt')
 			->once()
 			->andReturn('watchlist prompt');
+		$promptGenerator->shouldReceive('generateAutomaticWatchlistStockResponseSchema')
+			->with(null)
+			->once()
+			->andReturn($watchlistResponseSchema);
 		$promptGenerator->shouldReceive('generateAutomaticReducePrompt')
 			->once()
 			->andReturn('reduce prompt');
+		$promptGenerator->shouldReceive('generateAutomaticReduceResponseSchema')
+			->with(true, false, null)
+			->once()
+			->andReturn($reduceResponseSchema);
 
 		$geminiClient->shouldReceive('generateContent')
-			->with('portfolio prompt', 'system instruction')
+			->with('portfolio prompt', 'system instruction', $portfolioResponseSchema)
 			->once()
 			->andReturn(Json::encode([
 				'portfolioAnalysis' => [
@@ -100,7 +115,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				],
 			]));
 		$geminiClient->shouldReceive('generateContent')
-			->with('watchlist prompt', 'system instruction')
+			->with('watchlist prompt', 'system instruction', $watchlistResponseSchema)
 			->once()
 			->andReturn(Json::encode([
 				'watchlistAnalysis' => [
@@ -112,7 +127,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				],
 			]));
 		$geminiClient->shouldReceive('generateContent')
-			->with('reduce prompt', 'system instruction')
+			->with('reduce prompt', 'system instruction', $reduceResponseSchema)
 			->once()
 			->andReturn(Json::encode([
 				'portfolioEvaluation' => [
@@ -230,6 +245,10 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$promptGenerator->shouldReceive('generateAutomaticPortfolioStockPrompt')
 			->once()
 			->andReturn('portfolio prompt');
+		$promptGenerator->shouldReceive('generateAutomaticPortfolioStockResponseSchema')
+			->with(null)
+			->once()
+			->andReturn(['type' => 'portfolio']);
 		$promptGenerator->shouldReceive('getAutomaticWatchlistData')
 			->once()
 			->andReturn([
@@ -242,9 +261,17 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$promptGenerator->shouldReceive('generateAutomaticWatchlistStockPrompt')
 			->once()
 			->andReturn('watchlist prompt');
+		$promptGenerator->shouldReceive('generateAutomaticWatchlistStockResponseSchema')
+			->with(null)
+			->once()
+			->andReturn(['type' => 'watchlist']);
 		$promptGenerator->shouldReceive('generateAutomaticReducePrompt')
 			->once()
 			->andReturn('reduce prompt');
+		$promptGenerator->shouldReceive('generateAutomaticReduceResponseSchema')
+			->with(true, false, null)
+			->once()
+			->andReturn(['type' => 'reduce']);
 		$geminiClient->shouldNotReceive('generateContent');
 		$stockAiAnalysisFacade->shouldReceive('processResponse')
 			->with($runId, Mockery::on(static function (string $rawResponse): bool {
@@ -293,6 +320,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$entityManager = Mockery::mock(EntityManagerInterface::class);
 		$logger = Mockery::mock(LoggerInterface::class);
+		$manualResponseSchema = ['type' => 'manual'];
 		$tempDir = $this->createTempDir();
 
 		$stockAiAnalysisFacade->shouldReceive('getRun')
@@ -303,8 +331,12 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$promptGenerator->shouldReceive('generateSystemInstruction')
 			->once()
 			->andReturn('system instruction');
+		$promptGenerator->shouldReceive('generateResponseSchema')
+			->with(false, false, true, null, null, null)
+			->once()
+			->andReturn($manualResponseSchema);
 		$geminiClient->shouldReceive('generateContent')
-			->with('Generated manual prompt', 'system instruction')
+			->with('Generated manual prompt', 'system instruction', $manualResponseSchema)
 			->once()
 			->andReturn('not json');
 		$datetimeFactory->shouldReceive('createNow')

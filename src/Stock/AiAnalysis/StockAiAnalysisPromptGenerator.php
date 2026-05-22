@@ -132,6 +132,27 @@ class StockAiAnalysisPromptGenerator
 	}
 
 	/**
+	 * @return array<string, mixed>
+	 */
+	public function generateResponseSchema(
+		bool $includesPortfolio,
+		bool $includesWatchlist,
+		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType = null,
+		string|null $stockTicker = null,
+		string|null $stockName = null,
+	): array
+	{
+		return $this->convertJsonSchemaToGeminiResponseSchema($this->buildJsonSchema(
+			$includesPortfolio,
+			$includesWatchlist,
+			$includesMarketOverview,
+			$portfolioPromptType,
+			$stockTicker !== null && $stockName !== null,
+		));
+	}
+
+	/**
 	 * @return array<mixed>
 	 */
 	public function getAutomaticPortfolioData(): array
@@ -155,32 +176,23 @@ class StockAiAnalysisPromptGenerator
 		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
 	): string
 	{
-		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
-			? 'performance1DayComment'
-			: 'performance7DaysComment';
-
 		return $this->generateAutomaticStockPrompt(
 			'portfolioAnalysis',
-			[
-				[
-					'stockAssetId' => 'uuid',
-					'stockAssetName' => 'string',
-					'stockAssetTicker' => 'string',
-					'positiveNews' => 'string',
-					'negativeNews' => 'string',
-					'interestingNews' => 'string',
-					'aiOpinion' => 'string',
-					'earningsCommentary' => 'string',
-					'dividendAnalysis' => 'string',
-					$performanceCommentField => 'string',
-					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
-					'confidenceLevel' => 'low | medium | high',
-					'fairPrice' => 'float',
-					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
-				],
-			],
+			$this->buildPortfolioAnalysisJsonSchema($portfolioPromptType),
 			$portfolioItem,
 		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function generateAutomaticPortfolioStockResponseSchema(
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		return $this->convertJsonSchemaToGeminiResponseSchema([
+			'portfolioAnalysis' => $this->buildPortfolioAnalysisJsonSchema($portfolioPromptType),
+		]);
 	}
 
 	/**
@@ -191,30 +203,23 @@ class StockAiAnalysisPromptGenerator
 		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
 	): string
 	{
-		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
-			? 'performance1DayComment'
-			: 'performance7DaysComment';
-
 		return $this->generateAutomaticStockPrompt(
 			'watchlistAnalysis',
-			[
-				[
-					'stockAssetId' => 'uuid',
-					'stockAssetName' => 'string',
-					'stockAssetTicker' => 'string',
-					'news' => 'string',
-					'earningsCommentary' => 'string',
-					'dividendAnalysis' => 'string',
-					$performanceCommentField => 'string',
-					'buyRecommendation' => 'consider_buying | wait | not_interesting',
-					'reasoning' => 'string',
-					'confidenceLevel' => 'low | medium | high',
-					'fairPrice' => 'float',
-					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
-				],
-			],
+			$this->buildWatchlistAnalysisJsonSchema($portfolioPromptType),
 			$watchlistItem,
 		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function generateAutomaticWatchlistStockResponseSchema(
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		return $this->convertJsonSchemaToGeminiResponseSchema([
+			'watchlistAnalysis' => $this->buildWatchlistAnalysisJsonSchema($portfolioPromptType),
+		]);
 	}
 
 	/**
@@ -230,32 +235,11 @@ class StockAiAnalysisPromptGenerator
 		array $watchlistAnalysis,
 	): string
 	{
-		$schema = [];
-
-		if ($includesMarketOverview) {
-			$schema['marketOverview'] = [
-				'summary' => 'string',
-				'sentiment' => 'bullish | bearish | neutral',
-				'geopoliticalContext' => 'string',
-			];
-		}
-
-		if ($includesPortfolio && $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
-			$schema['dailyBrief'] = [
-				'summary' => 'string',
-				'marketPulse' => 'string',
-				'portfolioImpactSummary' => 'string',
-				'watchlistSummary' => 'string',
-				'importantAlerts' => 'string',
-				'nextDaysChecklist' => 'string',
-				'actionNeeded' => 'none | monitor | review_positions | review_watchlist',
-			];
-		} elseif ($includesPortfolio) {
-			$schema['portfolioEvaluation'] = [
-				'summary' => 'string',
-				'performance7DaysSummary' => 'string',
-			];
-		}
+		$schema = $this->buildAutomaticReduceJsonSchema(
+			$includesPortfolio,
+			$includesMarketOverview,
+			$portfolioPromptType,
+		);
 
 		return implode("\n\n", [
 			'Z dílčích analýz akcií vytvoř pouze souhrnné části JSON odpovědi podle níže uvedeného '
@@ -268,6 +252,22 @@ class StockAiAnalysisPromptGenerator
 				'watchlistAnalysis' => $watchlistAnalysis,
 			], pretty: true),
 		]);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function generateAutomaticReduceResponseSchema(
+		bool $includesPortfolio,
+		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		return $this->convertJsonSchemaToGeminiResponseSchema($this->buildAutomaticReduceJsonSchema(
+			$includesPortfolio,
+			$includesMarketOverview,
+			$portfolioPromptType,
+		));
 	}
 
 	/**
@@ -301,99 +301,255 @@ class StockAiAnalysisPromptGenerator
 		$schema = [];
 
 		if ($includesMarketOverview) {
-			$schema['marketOverview'] = [
-				'summary' => 'string',
-				'sentiment' => 'bullish | bearish | neutral',
-				'geopoliticalContext' => 'string',
-			];
+			$schema['marketOverview'] = $this->buildMarketOverviewJsonSchema();
 		}
 
 		if ($includesPortfolio && $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
-			$schema['dailyBrief'] = [
-				'summary' => 'string',
-				'marketPulse' => 'string',
-				'portfolioImpactSummary' => 'string',
-				'watchlistSummary' => 'string',
-				'importantAlerts' => 'string',
-				'nextDaysChecklist' => 'string',
-				'actionNeeded' => 'none | monitor | review_positions | review_watchlist',
-			];
+			$schema['dailyBrief'] = $this->buildDailyBriefJsonSchema();
 		}
 
 		if ($includesPortfolio && $portfolioPromptType !== StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
-			$schema['portfolioEvaluation'] = [
-				'summary' => 'string',
-				'performance7DaysSummary' => 'string',
-			];
+			$schema['portfolioEvaluation'] = $this->buildPortfolioEvaluationJsonSchema();
 		}
 
 		if ($includesStockAnalysis) {
-			$schema['stockAnalysis'] = [
-				'businessSummary' => 'string',
-				'moatAnalysis' => 'string',
-				'financialHealth' => 'string',
-				'earningsCommentary' => 'string',
-				'growthCatalysts' => 'string',
-				'risks' => 'string',
-				'dividendAnalysis' => 'string',
-				'valuationAssessment' => 'string',
-				'conclusion' => 'string',
-				'recommendation' => 'consider_buying | hold | consider_selling',
-				'confidenceLevel' => 'low | medium | high',
-				'fairPrice' => 'float',
-				'fairPriceCurrency' => 'USD | EUR | CZK | ...',
-			];
+			$schema['stockAnalysis'] = $this->buildStockAnalysisJsonSchema();
 		}
 
 		if ($includesPortfolio) {
-			$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
-				? 'performance1DayComment'
-				: 'performance7DaysComment';
-
-			$schema['portfolioAnalysis'] = [
-				[
-					'stockAssetId' => 'uuid',
-					'stockAssetName' => 'string',
-					'stockAssetTicker' => 'string',
-					'positiveNews' => 'string',
-					'negativeNews' => 'string',
-					'interestingNews' => 'string',
-					'aiOpinion' => 'string',
-					'earningsCommentary' => 'string',
-					'dividendAnalysis' => 'string',
-					$performanceCommentField => 'string',
-					'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
-					'confidenceLevel' => 'low | medium | high',
-					'fairPrice' => 'float',
-					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
-				],
-			];
+			$schema['portfolioAnalysis'] = $this->buildPortfolioAnalysisJsonSchema($portfolioPromptType);
 		}
 
 		if ($includesWatchlist) {
-			$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
-				? 'performance1DayComment'
-				: 'performance7DaysComment';
-
-			$schema['watchlistAnalysis'] = [
-				[
-					'stockAssetId' => 'uuid',
-					'stockAssetName' => 'string',
-					'stockAssetTicker' => 'string',
-					'news' => 'string',
-					'earningsCommentary' => 'string',
-					'dividendAnalysis' => 'string',
-					$performanceCommentField => 'string',
-					'buyRecommendation' => 'consider_buying | wait | not_interesting',
-					'reasoning' => 'string',
-					'confidenceLevel' => 'low | medium | high',
-					'fairPrice' => 'float',
-					'fairPriceCurrency' => 'USD | EUR | CZK | ...',
-				],
-			];
+			$schema['watchlistAnalysis'] = $this->buildWatchlistAnalysisJsonSchema($portfolioPromptType);
 		}
 
 		return $schema;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function buildAutomaticReduceJsonSchema(
+		bool $includesPortfolio,
+		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		$schema = [];
+
+		if ($includesMarketOverview) {
+			$schema['marketOverview'] = $this->buildMarketOverviewJsonSchema();
+		}
+
+		if ($includesPortfolio && $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF) {
+			$schema['dailyBrief'] = $this->buildDailyBriefJsonSchema();
+		} elseif ($includesPortfolio) {
+			$schema['portfolioEvaluation'] = $this->buildPortfolioEvaluationJsonSchema();
+		}
+
+		return $schema;
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function buildMarketOverviewJsonSchema(): array
+	{
+		return [
+			'summary' => 'string',
+			'sentiment' => 'bullish | bearish | neutral',
+			'geopoliticalContext' => 'string',
+		];
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function buildDailyBriefJsonSchema(): array
+	{
+		return [
+			'summary' => 'string',
+			'marketPulse' => 'string',
+			'portfolioImpactSummary' => 'string',
+			'watchlistSummary' => 'string',
+			'importantAlerts' => 'string',
+			'nextDaysChecklist' => 'string',
+			'actionNeeded' => 'none | monitor | review_positions | review_watchlist',
+		];
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function buildPortfolioEvaluationJsonSchema(): array
+	{
+		return [
+			'summary' => 'string',
+			'performance7DaysSummary' => 'string',
+		];
+	}
+
+	/**
+	 * @return array<string, string>
+	 */
+	private function buildStockAnalysisJsonSchema(): array
+	{
+		return [
+			'businessSummary' => 'string',
+			'moatAnalysis' => 'string',
+			'financialHealth' => 'string',
+			'earningsCommentary' => 'string',
+			'growthCatalysts' => 'string',
+			'risks' => 'string',
+			'dividendAnalysis' => 'string',
+			'valuationAssessment' => 'string',
+			'conclusion' => 'string',
+			'recommendation' => 'consider_buying | hold | consider_selling',
+			'confidenceLevel' => 'low | medium | high',
+			'fairPrice' => 'float',
+			'fairPriceCurrency' => 'USD | EUR | CZK | ...',
+		];
+	}
+
+	/**
+	 * @return array<int, array<string, string>>
+	 */
+	private function buildPortfolioAnalysisJsonSchema(
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+			? 'performance1DayComment'
+			: 'performance7DaysComment';
+
+		return [
+			[
+				'stockAssetId' => 'uuid',
+				'stockAssetName' => 'string',
+				'stockAssetTicker' => 'string',
+				'positiveNews' => 'string',
+				'negativeNews' => 'string',
+				'interestingNews' => 'string',
+				'aiOpinion' => 'string',
+				'earningsCommentary' => 'string',
+				'dividendAnalysis' => 'string',
+				$performanceCommentField => 'string',
+				'actionSuggestion' => 'hold | consider_selling | add_more | watch_closely',
+				'confidenceLevel' => 'low | medium | high',
+				'fairPrice' => 'float',
+				'fairPriceCurrency' => 'USD | EUR | CZK | ...',
+			],
+		];
+	}
+
+	/**
+	 * @return array<int, array<string, string>>
+	 */
+	private function buildWatchlistAnalysisJsonSchema(
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		$performanceCommentField = $portfolioPromptType === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF
+			? 'performance1DayComment'
+			: 'performance7DaysComment';
+
+		return [
+			[
+				'stockAssetId' => 'uuid',
+				'stockAssetName' => 'string',
+				'stockAssetTicker' => 'string',
+				'news' => 'string',
+				'earningsCommentary' => 'string',
+				'dividendAnalysis' => 'string',
+				$performanceCommentField => 'string',
+				'buyRecommendation' => 'consider_buying | wait | not_interesting',
+				'reasoning' => 'string',
+				'confidenceLevel' => 'low | medium | high',
+				'fairPrice' => 'float',
+				'fairPriceCurrency' => 'USD | EUR | CZK | ...',
+			],
+		];
+	}
+
+	/**
+	 * @param array<mixed> $schema
+	 * @return array<string, mixed>
+	 */
+	private function convertJsonSchemaToGeminiResponseSchema(array $schema): array
+	{
+		return $this->convertJsonSchemaValueToGeminiSchema($schema);
+	}
+
+	/**
+	 * @param array<mixed>|string $schema
+	 * @return array<string, mixed>
+	 */
+	private function convertJsonSchemaValueToGeminiSchema(array|string $schema): array
+	{
+		if (is_string($schema)) {
+			return $this->convertJsonSchemaStringToGeminiSchema($schema);
+		}
+
+		if ($this->isJsonListSchema($schema)) {
+			$itemSchema = $schema[0] ?? [];
+			assert(is_array($itemSchema) || is_string($itemSchema));
+
+			return [
+				'type' => 'ARRAY',
+				'items' => $this->convertJsonSchemaValueToGeminiSchema($itemSchema),
+			];
+		}
+
+		$properties = [];
+		foreach ($schema as $key => $value) {
+			if (!is_string($key)) {
+				continue;
+			}
+
+			assert(is_array($value) || is_string($value));
+
+			$properties[$key] = $this->convertJsonSchemaValueToGeminiSchema($value);
+		}
+
+		return [
+			'type' => 'OBJECT',
+			'properties' => $properties,
+			'required' => array_keys($properties),
+		];
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function convertJsonSchemaStringToGeminiSchema(string $schema): array
+	{
+		if ($schema === 'float') {
+			return [
+				'type' => 'NUMBER',
+			];
+		}
+
+		$geminiSchema = [
+			'type' => 'STRING',
+		];
+
+		if (str_contains($schema, ' | ')) {
+			$values = array_filter(explode(' | ', $schema), static fn (string $value): bool => $value !== '...');
+			if ($values !== []) {
+				$geminiSchema['enum'] = array_values($values);
+			}
+		}
+
+		return $geminiSchema;
+	}
+
+	/**
+	 * @param array<mixed> $schema
+	 */
+	private function isJsonListSchema(array $schema): bool
+	{
+		return array_key_exists(0, $schema) && count($schema) === 1;
 	}
 
 	private function loadPrompt(string $name): string
