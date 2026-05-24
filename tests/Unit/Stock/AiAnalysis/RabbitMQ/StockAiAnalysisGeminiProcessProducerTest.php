@@ -44,6 +44,42 @@ class StockAiAnalysisGeminiProcessProducerTest extends TestCase
 			'requestId' => 'request-1',
 			'messageQueuedAtTimestamp' => 123,
 			'runId' => 'run-1',
+			'targetType' => StockAiAnalysisGeminiProcessMessage::TARGET_RUN,
+			'followUpQuestionId' => null,
+		], Json::decode($publisher->payload, forceArrays: true));
+	}
+
+	public function testPublishSerializesFollowUpMessage(): void
+	{
+		$publisher = new class implements RabbitMQPublisher {
+
+			public string|null $payload = null;
+
+			/**
+			 * @param array<string, mixed> $headers
+			 */
+			public function publish(string $queueName, string $payload, array $headers = []): void
+			{
+				$this->payload = $payload;
+			}
+
+		};
+		$producer = new StockAiAnalysisGeminiProcessProducer($publisher, 'aiClientsQueue');
+
+		$producer->publish(new StockAiAnalysisGeminiProcessMessage(
+			'request-1',
+			123,
+			'run-1',
+			StockAiAnalysisGeminiProcessMessage::TARGET_FOLLOW_UP,
+			'question-1',
+		));
+
+		self::assertSame([
+			'requestId' => 'request-1',
+			'messageQueuedAtTimestamp' => 123,
+			'runId' => 'run-1',
+			'targetType' => StockAiAnalysisGeminiProcessMessage::TARGET_FOLLOW_UP,
+			'followUpQuestionId' => 'question-1',
 		], Json::decode($publisher->payload, forceArrays: true));
 	}
 

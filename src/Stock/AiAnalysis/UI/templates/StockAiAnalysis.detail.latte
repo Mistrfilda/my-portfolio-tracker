@@ -180,6 +180,141 @@
 			</div>
 		{/if}
 
+		{* Doplňující dotazy *}
+		<div class="bg-white shadow-sm rounded-lg border border-emerald-200 overflow-hidden mb-6">
+			<div class="px-6 py-4 border-b border-emerald-200 bg-emerald-50">
+				<h2 class="text-lg font-semibold text-emerald-900">Doplňující dotazy</h2>
+			</div>
+			<div class="px-6 py-4 space-y-6">
+				<form n:name="followUpQuestionForm" class="space-y-4">
+					<div>
+						<label n:name="question" class="block text-sm font-medium text-gray-700 mb-1">Nový dotaz</label>
+						<textarea n:name="question" rows="4" class="shadow-xs focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="Například: Jak by se změnil závěr při poklesu tržeb o 10 %?"></textarea>
+					</div>
+					<div>
+						<button n:name="submit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors">
+							Vygenerovat doplňující prompt
+						</button>
+					</div>
+				</form>
+
+				<div class="space-y-4">
+					{foreach $followUpQuestions as $followUpQuestion}
+						<div class="rounded-lg border border-gray-200 overflow-hidden">
+							<div class="px-4 py-3 bg-gray-50 border-b border-gray-200 flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+								<div>
+									<div class="text-sm font-semibold text-gray-900">{$followUpQuestion->getQuestion()}</div>
+									<div class="text-xs text-gray-500 mt-1">Vytvořeno {$followUpQuestion->getCreatedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+								</div>
+								{if $followUpQuestion->getGeminiProcessingStatus() !== null}
+									<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium {if $followUpQuestion->getGeminiProcessingStatus()->value === 'completed'}bg-green-100 text-green-800 ring-1 ring-inset ring-green-200{elseif $followUpQuestion->getGeminiProcessingStatus()->value === 'failed'}bg-red-100 text-red-800 ring-1 ring-inset ring-red-200{elseif $followUpQuestion->getGeminiProcessingStatus()->value === 'processing'}bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200{else}bg-yellow-100 text-yellow-800 ring-1 ring-inset ring-yellow-200{/if}">
+										{$followUpQuestion->getGeminiProcessingStatus()->value}
+									</span>
+								{/if}
+							</div>
+							<div class="p-4 space-y-4">
+								<div>
+									<div class="text-sm font-medium text-gray-900 mb-2">Vygenerovaný prompt</div>
+									<div class="bg-gray-50 p-4 rounded-lg border border-gray-200 max-h-96 overflow-y-auto">
+										<pre class="text-sm text-gray-800 whitespace-pre-wrap font-mono">{$followUpQuestion->getGeneratedPrompt()}</pre>
+									</div>
+									<button type="button" class="copy-follow-up-prompt-btn mt-3 inline-flex items-center px-3 py-2 border border-gray-300 shadow-xs text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden transition-colors" data-target="follow-up-prompt-{$followUpQuestion->getId()->toString()}">
+										Kopírovat prompt
+									</button>
+									<pre id="follow-up-prompt-{$followUpQuestion->getId()->toString()}" class="hidden">{$followUpQuestion->getGeneratedPrompt()}</pre>
+								</div>
+
+								{if $followUpQuestion->getGeminiProcessingQueuedAt() !== null || $followUpQuestion->getGeminiProcessingStartedAt() !== null || $followUpQuestion->getGeminiProcessingFinishedAt() !== null}
+									<div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+										{if $followUpQuestion->getGeminiProcessingQueuedAt() !== null}
+											<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+												<div class="font-medium text-gray-900">Zařazeno</div>
+												<div class="text-gray-600">{$followUpQuestion->getGeminiProcessingQueuedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+											</div>
+										{/if}
+										{if $followUpQuestion->getGeminiProcessingStartedAt() !== null}
+											<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+												<div class="font-medium text-gray-900">Spuštěno</div>
+												<div class="text-gray-600">{$followUpQuestion->getGeminiProcessingStartedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+											</div>
+										{/if}
+										{if $followUpQuestion->getGeminiProcessingFinishedAt() !== null}
+											<div class="rounded-md bg-gray-50 border border-gray-200 p-3">
+												<div class="font-medium text-gray-900">Dokončeno</div>
+												<div class="text-gray-600">{$followUpQuestion->getGeminiProcessingFinishedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}</div>
+											</div>
+										{/if}
+									</div>
+								{/if}
+
+								{if $followUpQuestion->getGeminiProcessingError() !== null}
+									<div class="rounded-md bg-red-50 border border-red-200 p-4">
+										<div class="font-medium text-red-900 mb-1">Poslední chyba</div>
+										<p class="text-sm text-red-800 whitespace-pre-line">{$followUpQuestion->getGeminiProcessingError()}</p>
+									</div>
+								{/if}
+
+								{if $followUpQuestion->getRawResponse() !== null}
+									<div>
+										<div class="text-sm font-medium text-gray-900 mb-2">Uložená odpověď</div>
+										<div class="bg-green-50 p-3 rounded-md border border-green-200">
+											<pre class="text-sm text-green-900 whitespace-pre-wrap">{$followUpQuestion->getRawResponse()}</pre>
+										</div>
+									</div>
+								{else}
+									<div class="flex flex-wrap gap-3">
+										{if $followUpQuestion->canBeQueuedForGeminiProcessing()}
+											<a n:href="enqueueFollowUpGemini! questionId: $followUpQuestion->getId()->toString()" class="inline-flex items-center px-3 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-violet-600 hover:bg-violet-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-violet-500 transition-colors">
+												Zařadit přes Gemini
+											</a>
+										{else}
+											<p class="text-sm text-gray-600">Dotaz je už zařazený nebo se právě zpracovává.</p>
+										{/if}
+									</div>
+									<form n:name="followUpManualResponseForm" class="space-y-3">
+										<input n:name="questionId" value="{$followUpQuestion->getId()->toString()}">
+										<div>
+											<label n:name="rawResponse" class="block text-sm font-medium text-gray-700 mb-1">Ruční odpověď z AI</label>
+											<textarea n:name="rawResponse" rows="6" class="shadow-xs focus:ring-emerald-500 focus:border-emerald-500 block w-full sm:text-sm border-gray-300 rounded-md"></textarea>
+										</div>
+										<button n:name="submit" class="inline-flex items-center px-3 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+											Uložit ruční odpověď
+										</button>
+									</form>
+								{/if}
+							</div>
+						</div>
+					{else}
+						<p class="text-sm text-gray-600">K této analýze zatím nejsou žádné doplňující dotazy.</p>
+					{/foreach}
+				</div>
+			</div>
+		</div>
+
+		<script>
+			document.querySelectorAll('.copy-follow-up-prompt-btn').forEach(function (button) {
+				button.addEventListener('click', function () {
+					var textElement = document.getElementById(button.dataset.target);
+					if (!textElement) {
+						return;
+					}
+
+					var originalText = button.textContent;
+					var text = textElement.textContent;
+					if (navigator.clipboard && navigator.clipboard.writeText) {
+						navigator.clipboard.writeText(text).then(function () {
+							button.textContent = '✓ Zkopírováno!';
+							setTimeout(function () { button.textContent = originalText; }, 2000);
+						}).catch(function () {
+							fallbackCopy(text, button);
+						});
+					} else {
+						fallbackCopy(text, button);
+					}
+				});
+			});
+		</script>
+
 		{* Výsledky analýzy *}
 		{if $run->getProcessedAt()}
 			{* Přehled trhu *}

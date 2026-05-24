@@ -7,6 +7,7 @@ namespace App\Stock\AiAnalysis\UI;
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
@@ -35,6 +36,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAssetRepository $stockAssetRepository,
 		private readonly StockAiAnalysisActionChecklistProvider $stockAiAnalysisActionChecklistProvider,
 		private readonly StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
+		private readonly StockAiAnalysisFollowUpQuestionFacade $stockAiAnalysisFollowUpQuestionFacade,
 	)
 	{
 		parent::__construct();
@@ -114,6 +116,26 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
 			$this->run,
 		);
+		$this->template->followUpQuestions = $this->stockAiAnalysisFollowUpQuestionFacade->getQuestionsForRun(
+			$this->run,
+		);
+	}
+
+	public function handleEnqueueFollowUpGemini(string $questionId): void
+	{
+		if ($this->run === null) {
+			$this->flashMessage('Nebyla vybrána žádná analýza.', 'danger');
+			return;
+		}
+
+		try {
+			$this->stockAiAnalysisFollowUpQuestionFacade->enqueueGeminiProcessing($questionId);
+			$this->flashMessage('Doplňující dotaz byl zařazen do fronty pro zpracování přes Gemini.', 'success');
+		} catch (Throwable $e) {
+			$this->flashMessage($e->getMessage(), 'danger');
+		}
+
+		$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
 	}
 
 	private function getActionScore(StockAiAnalysisActionSuggestionEnum|null $action): int
@@ -276,6 +298,56 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			} catch (Throwable $e) {
 				$this->flashMessage($e->getMessage(), 'danger');
 			}
+		};
+
+		return $form;
+	}
+
+	protected function createComponentFollowUpQuestionForm(): Form
+	{
+		$form = new Form();
+		$form->addTextArea('question', 'Doplňující dotaz')
+			->setRequired('Zadejte prosím doplňující dotaz.');
+		$form->addSubmit('submit', 'Vygenerovat doplňující prompt');
+
+		$form->onSuccess[] = function (Form $form): void {
+			if ($this->run === null) {
+				$this->flashMessage('Nebyla vybrána žádná analýza.', 'danger');
+				return;
+			}
+
+			$this->stockAiAnalysisFollowUpQuestionFacade->createQuestion(
+				$this->run->getId()->toString(),
+				TypeValidator::validateString($form->getValues()->question),
+			);
+			$this->flashMessage('Doplňující prompt byl úspěšně vygenerován.', 'success');
+			$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
+		};
+
+		return $form;
+	}
+
+	protected function createComponentFollowUpManualResponseForm(): Form
+	{
+		$form = new Form();
+		$form->addHidden('questionId')
+			->setRequired('Chybí identifikátor doplňujícího dotazu.');
+		$form->addTextArea('rawResponse', 'Odpověď z AI')
+			->setRequired('Zadejte prosím odpověď z AI.');
+		$form->addSubmit('submit', 'Uložit odpověď');
+
+		$form->onSuccess[] = function (Form $form): void {
+			if ($this->run === null) {
+				$this->flashMessage('Nebyla vybrána žádná analýza.', 'danger');
+				return;
+			}
+
+			$this->stockAiAnalysisFollowUpQuestionFacade->processManualResponse(
+				TypeValidator::validateString($form->getValues()->questionId),
+				TypeValidator::validateString($form->getValues()->rawResponse),
+			);
+			$this->flashMessage('Odpověď na doplňující dotaz byla úspěšně uložena.', 'success');
+			$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
 		};
 
 		return $form;

@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Ai\Gemini\GeminiClient;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
@@ -36,6 +37,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$runId = $run->getId()->toString();
 
 		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$stockAiAnalysisFollowUpQuestionFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
 		$promptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
 		$geminiClient = Mockery::mock(GeminiClient::class);
 		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
@@ -148,6 +150,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 
 		$processor = new StockAiAnalysisGeminiProcessorFacade(
 			$stockAiAnalysisFacade,
+			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
 			$datetimeFactory,
@@ -212,6 +215,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		]));
 
 		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$stockAiAnalysisFollowUpQuestionFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
 		$promptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
 		$geminiClient = Mockery::mock(GeminiClient::class);
 		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
@@ -285,6 +289,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 
 		$processor = new StockAiAnalysisGeminiProcessorFacade(
 			$stockAiAnalysisFacade,
+			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
 			$datetimeFactory,
@@ -315,6 +320,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$runId = $run->getId()->toString();
 
 		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$stockAiAnalysisFollowUpQuestionFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
 		$promptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
 		$geminiClient = Mockery::mock(GeminiClient::class);
 		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
@@ -352,6 +358,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 
 		$processor = new StockAiAnalysisGeminiProcessorFacade(
 			$stockAiAnalysisFacade,
+			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
 			$datetimeFactory,
@@ -371,6 +378,36 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		} finally {
 			$this->deleteTempDir($tempDir);
 		}
+	}
+
+	public function testProcessFollowUpDelegatesToFollowUpFacade(): void
+	{
+		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$stockAiAnalysisFollowUpQuestionFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
+		$promptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
+		$geminiClient = Mockery::mock(GeminiClient::class);
+		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
+		$entityManager = Mockery::mock(EntityManagerInterface::class);
+		$logger = Mockery::mock(LoggerInterface::class);
+
+		$stockAiAnalysisFollowUpQuestionFacade->shouldReceive('processGeminiQuestion')
+			->with('question-1')
+			->once();
+
+		$processor = new StockAiAnalysisGeminiProcessorFacade(
+			$stockAiAnalysisFacade,
+			$stockAiAnalysisFollowUpQuestionFacade,
+			$promptGenerator,
+			$geminiClient,
+			$datetimeFactory,
+			$entityManager,
+			$logger,
+			sys_get_temp_dir(),
+		);
+
+		$processor->processFollowUp('question-1');
+
+		self::assertTrue(true);
 	}
 
 	private function createTempDir(): string

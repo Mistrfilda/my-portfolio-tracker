@@ -21,6 +21,11 @@ class StockAiAnalysisGeminiProcessConsumer extends BaseConsumer
 
 	protected function processMessage(object $messageObject): void
 	{
+		if ($messageObject->targetType === StockAiAnalysisGeminiProcessMessage::TARGET_FOLLOW_UP) {
+			$this->stockAiAnalysisGeminiProcessorFacade->processFollowUp($messageObject->followUpQuestionId ?? '');
+			return;
+		}
+
 		$this->stockAiAnalysisGeminiProcessorFacade->process($messageObject->runId);
 	}
 

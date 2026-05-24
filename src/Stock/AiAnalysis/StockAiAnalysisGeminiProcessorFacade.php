@@ -20,6 +20,7 @@ class StockAiAnalysisGeminiProcessorFacade
 
 	public function __construct(
 		private readonly StockAiAnalysisFacade $stockAiAnalysisFacade,
+		private readonly StockAiAnalysisFollowUpQuestionFacade $stockAiAnalysisFollowUpQuestionFacade,
 		private readonly StockAiAnalysisPromptGenerator $promptGenerator,
 		private readonly GeminiClient $geminiClient,
 		private readonly DatetimeFactory $datetimeFactory,
@@ -55,6 +56,11 @@ class StockAiAnalysisGeminiProcessorFacade
 
 			throw $exception;
 		}
+	}
+
+	public function processFollowUp(string $questionId): void
+	{
+		$this->stockAiAnalysisFollowUpQuestionFacade->processGeminiQuestion($questionId);
 	}
 
 	public function getCachedGeminiResponseFileCount(StockAiAnalysisRun $run): int
