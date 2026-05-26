@@ -25,16 +25,16 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 	public const DEFAULT_YEAR = 2026;
 
 	public const MONEY_GOALS = [
-		75000,
-		78000,
 		81000,
 		84000,
 		87000,
 		90000,
-		93000,
-		96000,
+		95000,
 		100000,
 		105000,
+		110000,
+		115000,
+		120000,
 	];
 
 	public const HOURS = [
