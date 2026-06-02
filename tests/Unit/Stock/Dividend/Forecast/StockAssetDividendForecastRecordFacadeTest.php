@@ -377,6 +377,95 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->assertTrue(true);
 	}
 
+	public function testRecalculateDoesNotDuplicateFuturePlannedDividendInExpectedAmount(): void
+	{
+		$stockAssetId = Uuid::uuid4();
+
+		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
+		$forecast->shouldReceive('getForYear')->andReturn(2024);
+		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
+		$forecast->shouldReceive('recalculated')->once()->with($this->now);
+
+		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('hasOpenPositions')->andReturn(true);
+		$stockAsset->shouldReceive('doesPaysDividends')->andReturn(true);
+		$stockAsset->shouldReceive('getId')->andReturn($stockAssetId);
+		$stockAsset->shouldReceive('getCurrency')->andReturn(CurrencyEnum::USD);
+		$this->mockOpenPositions($stockAsset, 10);
+		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
+
+		$existingRecord = Mockery::mock(StockAssetDividendForecastRecord::class);
+		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
+		$existingRecord->shouldReceive('getCustomDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getCustomGrossDividendUsedForCalculation')->andReturn(null);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStock')->andReturn(null);
+		$existingRecord->shouldReceive('getExpectedSpecialDividendThisYearPerStockBeforeTax')->andReturn(null);
+		$existingRecord->shouldReceive('recalculate')->once()->with(
+			[],
+			0.0,
+			0.0,
+			[7],
+			10,
+			1.0,
+			1.0,
+			1.0,
+			1.0,
+			0.0,
+			0.0,
+			null,
+			null,
+			0.0,
+			0.0,
+		);
+
+		$this->stockAssetDividendForecastRepository
+			->shouldReceive('getById')
+			->with($this->forecastId)
+			->once()
+			->andReturn($forecast);
+
+		$this->stockAssetDividendForecastRecordRepository
+			->shouldReceive('findByStockAssetDividendForecast')
+			->with($this->forecastId)
+			->once()
+			->andReturn([$existingRecord]);
+
+		$this->stockAssetRepository
+			->shouldReceive('findAll')
+			->once()
+			->andReturn([$stockAsset]);
+
+		$previousDividend = $this->createDividendMock(7, 1.0, StockAssetDividendTypeEnum::REGULAR, year: 2023);
+
+		$this->stockAssetDividendRepository
+			->shouldReceive('findByStockAssetForYear')
+			->with($stockAsset, 2023)
+			->once()
+			->andReturn([$previousDividend]);
+
+		$plannedDividend = $this->createDividendMock(7, 1.0, StockAssetDividendTypeEnum::REGULAR, hasRecords: false);
+
+		$this->stockAssetDividendRepository
+			->shouldReceive('findByStockAssetForYear')
+			->with($stockAsset, 2024)
+			->once()
+			->andReturn([$plannedDividend]);
+
+		$this->stockAssetDividendRepository
+			->shouldReceive('getLastDividend')
+			->with($stockAsset, StockAssetDividendTypeEnum::REGULAR)
+			->once()
+			->andReturn($plannedDividend);
+
+		$this->entityManager->shouldReceive('remove')->never();
+		$this->entityManager->shouldReceive('flush')->twice();
+
+		$this->facade->recalculate($this->forecastId);
+
+		$this->assertTrue(true);
+	}
+
 	public function testRecalculateAll(): void
 	{
 		$forecast1 = Mockery::mock(StockAssetDividendForecast::class);

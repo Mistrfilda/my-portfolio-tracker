@@ -12,7 +12,6 @@ use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
-use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 
@@ -113,22 +112,18 @@ class StockAssetDividendForecastRecordFacade
 
 			$lastDividendForYear = null;
 			$receivedDividendsForYear = [];
-			$missedDividendMonths = [];
+			$existingRegularDividendMonths = [];
 			$receivedTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
 			$receivedTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
 			$specialDividendsTotalPriceForYear = new SummaryPrice($stockAsset->getCurrency());
 			$specialDividendsTotalPriceForYearBeforeTax = new SummaryPrice($stockAsset->getCurrency());
-			$now = $this->datetimeFactory->createNow();
 
 			foreach ($stockAssetForecastYearReceivedDividends as $stockAssetForecastYearReceivedDividend) {
-				if ($this->hasActualDividendRecord($stockAssetForecastYearReceivedDividend) === false) {
-					if (
-						$stockAssetForecastYearReceivedDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR
-						&& $this->isDividendAlreadyPaid($stockAssetForecastYearReceivedDividend, $now)
-					) {
-						$missedDividendMonths[] = $stockAssetForecastYearReceivedDividend->getExDate()->getMonth();
-					}
+				if ($stockAssetForecastYearReceivedDividend->getDividendType() === StockAssetDividendTypeEnum::REGULAR) {
+					$existingRegularDividendMonths[] = $stockAssetForecastYearReceivedDividend->getExDate()->getMonth();
+				}
 
+				if ($this->hasActualDividendRecord($stockAssetForecastYearReceivedDividend) === false) {
 					continue;
 				}
 
@@ -187,8 +182,7 @@ class StockAssetDividendForecastRecordFacade
 			$receivedDividendMonths = array_keys($receivedDividendsForYear);
 			$expectedDividendMonths = array_diff(
 				$dividendUsuallyPaidAtMonths,
-				$receivedDividendMonths,
-				$missedDividendMonths,
+				$existingRegularDividendMonths,
 			);
 
 			$expectedDividendPerStock = 0;
@@ -360,16 +354,6 @@ class StockAssetDividendForecastRecordFacade
 		}
 
 		return $total;
-	}
-
-	private function isDividendAlreadyPaid(StockAssetDividend $dividend, ImmutableDateTime $now): bool
-	{
-		$paymentDate = $dividend->getPaymentDate();
-		if ($paymentDate !== null) {
-			return $paymentDate <= $now;
-		}
-
-		return $dividend->getExDate() <= $now;
 	}
 
 }

@@ -18,7 +18,6 @@ use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\Common\Collections\ArrayCollection;
-use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
@@ -55,7 +54,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 
 		$this->setRecords($forecast, [$record]);
 
-		$provider = $this->createProvider($this->createMock(CurrencyConversionFacade::class), $now);
+		$provider = $this->createProvider($this->createMock(CurrencyConversionFacade::class));
 		$months = $provider->getMonths($forecast);
 
 		self::assertCount(12, $months);
@@ -88,7 +87,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 		$currencyConversionFacade = $this->createMock(CurrencyConversionFacade::class);
 		$currencyConversionFacade->method('convertSimpleValue')->willThrowException(new MissingCurrencyPairException());
 
-		$provider = $this->createProvider($currencyConversionFacade, $now);
+		$provider = $this->createProvider($currencyConversionFacade);
 		$months = $provider->getMonths($forecast);
 
 		self::assertSame(0.0, $months[2]->getNetAmountInCzk());
@@ -115,7 +114,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 
 		$this->setRecords($forecast, [$record]);
 
-		$provider = $this->createProvider($this->createMock(CurrencyConversionFacade::class), $now);
+		$provider = $this->createProvider($this->createMock(CurrencyConversionFacade::class));
 		$months = $provider->getMonths($forecast);
 
 		self::assertFalse($months[0]->hasItems());
@@ -125,15 +124,39 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 		self::assertSame(1, $months[3]->getEstimatedItemsCount());
 	}
 
+	public function testExcludesFuturePlannedDividendWithoutActualRecordFromCashflow(): void
+	{
+		$now = new ImmutableDateTime('2026-06-01');
+		$stockAsset = $this->createStockAsset('Kofola', 'KOFOLA.PR', CurrencyEnum::CZK);
+		$plannedDividend = $this->createDividend($stockAsset, 2026, 7, 21.0);
+		$this->setDividends($stockAsset, [$plannedDividend]);
+		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now);
+		$record = $this->createRecord(
+			$forecast,
+			$stockAsset,
+			CurrencyEnum::CZK,
+			[7],
+			[],
+			0.0,
+			21.0,
+			10,
+		);
+
+		$this->setRecords($forecast, [$record]);
+
+		$provider = $this->createProvider($this->createMock(CurrencyConversionFacade::class));
+		$months = $provider->getMonths($forecast);
+
+		self::assertFalse($months[6]->hasItems());
+		self::assertSame(0, $months[6]->getConfirmedItemsCount());
+		self::assertSame(0, $months[6]->getEstimatedItemsCount());
+	}
+
 	private function createProvider(
 		CurrencyConversionFacade $currencyConversionFacade,
-		ImmutableDateTime $now,
 	): StockAssetDividendForecastCashflowProvider
 	{
-		$datetimeFactory = $this->createMock(DatetimeFactory::class);
-		$datetimeFactory->method('createNow')->willReturn($now);
-
-		return new StockAssetDividendForecastCashflowProvider($currencyConversionFacade, $datetimeFactory);
+		return new StockAssetDividendForecastCashflowProvider($currencyConversionFacade);
 	}
 
 	private function createStockAsset(

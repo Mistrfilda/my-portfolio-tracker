@@ -7,9 +7,7 @@ namespace App\Stock\Dividend\Forecast;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Currency\MissingCurrencyPairException;
-use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
-use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class StockAssetDividendForecastCashflowProvider
@@ -17,7 +15,6 @@ class StockAssetDividendForecastCashflowProvider
 
 	public function __construct(
 		private CurrencyConversionFacade $currencyConversionFacade,
-		private DatetimeFactory $datetimeFactory,
 	)
 	{
 	}
@@ -49,11 +46,11 @@ class StockAssetDividendForecastCashflowProvider
 	): void
 	{
 		$receivedMonths = $this->filterMonths($record->getReceivedDividendMonths());
-		$missedMonths = $this->getMissedAlreadyPaidDividendMonths($record);
+		$plannedMonths = $this->getPlannedRegularDividendMonths($record);
 		$estimatedMonths = array_values(array_diff(
 			$this->filterMonths($record->getDividendUsuallyPaidAtMonths()),
 			$receivedMonths,
-			$missedMonths,
+			$plannedMonths,
 		));
 
 		if ($receivedMonths !== []) {
@@ -155,10 +152,9 @@ class StockAssetDividendForecastCashflowProvider
 	/**
 	 * @return array<int>
 	 */
-	private function getMissedAlreadyPaidDividendMonths(StockAssetDividendForecastRecord $record): array
+	private function getPlannedRegularDividendMonths(StockAssetDividendForecastRecord $record): array
 	{
 		$months = [];
-		$now = $this->datetimeFactory->createNow();
 		$forYear = $record->getStockAssetDividendForecast()->getForYear();
 
 		foreach ($record->getStockAsset()->getDividends() as $dividend) {
@@ -170,7 +166,7 @@ class StockAssetDividendForecastCashflowProvider
 				continue;
 			}
 
-			if (count($dividend->getRecords()) > 0 || $this->isDividendAlreadyPaid($dividend, $now) === false) {
+			if (count($dividend->getRecords()) > 0) {
 				continue;
 			}
 
@@ -178,16 +174,6 @@ class StockAssetDividendForecastCashflowProvider
 		}
 
 		return $this->filterMonths($months);
-	}
-
-	private function isDividendAlreadyPaid(StockAssetDividend $dividend, ImmutableDateTime $now): bool
-	{
-		$paymentDate = $dividend->getPaymentDate();
-		if ($paymentDate !== null) {
-			return $paymentDate <= $now;
-		}
-
-		return $dividend->getExDate() <= $now;
 	}
 
 }
