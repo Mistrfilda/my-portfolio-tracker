@@ -10,6 +10,8 @@ use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Nette\Utils\Json;
+use Nette\Utils\JsonException;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
@@ -107,7 +109,10 @@ class StockAiAnalysisFollowUpQuestionFacade
 				$this->stockAiAnalysisPromptGenerator->generateSystemInstruction(),
 				null,
 			);
-			$followUpQuestion->setResponse($response, $this->datetimeFactory->createNow());
+			$followUpQuestion->setResponse(
+				$this->normalizeGeminiResponse($response),
+				$this->datetimeFactory->createNow(),
+			);
 			$followUpQuestion->markGeminiCompleted($this->datetimeFactory->createNow());
 			$this->entityManager->flush();
 		} catch (Throwable $exception) {
@@ -120,6 +125,35 @@ class StockAiAnalysisFollowUpQuestionFacade
 
 			throw $exception;
 		}
+	}
+
+	private function normalizeGeminiResponse(string $response): string
+	{
+		$trimmedResponse = trim($response);
+		if (str_starts_with($trimmedResponse, '```')) {
+			$trimmedResponse = preg_replace(
+				'/^```(?:json)?\s*|\s*```$/',
+				'',
+				$trimmedResponse,
+			) ?? $trimmedResponse;
+			$trimmedResponse = trim($trimmedResponse);
+		}
+
+		if (!str_starts_with($trimmedResponse, '{') || !str_ends_with($trimmedResponse, '}')) {
+			return $response;
+		}
+
+		try {
+			$data = Json::decode($trimmedResponse, forceArrays: true);
+		} catch (JsonException) {
+			return $response;
+		}
+
+		if (!is_array($data) || !array_key_exists('response', $data) || !is_string($data['response'])) {
+			return $response;
+		}
+
+		return TypeValidator::validateString($data['response']);
 	}
 
 }
