@@ -272,6 +272,59 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		self::assertSame($completedAt, $question->getGeminiProcessingFinishedAt());
 	}
 
+	public function testProcessesGeminiQuestionWithJsonStringResponse(): void
+	{
+		$createdAt = new ImmutableDateTime('2026-05-24 10:00:00');
+		$processingAt = new ImmutableDateTime('2026-05-24 11:00:00');
+		$responseAt = new ImmutableDateTime('2026-05-24 11:01:00');
+		$completedAt = new ImmutableDateTime('2026-05-24 11:02:00');
+		$questionId = Uuid::uuid4();
+		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
+		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
+		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisFollowUpQuestionRepository::class,
+		);
+		$promptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisFollowUpPromptGenerator::class);
+		$stockAiAnalysisPromptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisPromptGenerator::class,
+		);
+		$geminiClient = UpdatedTestCase::createMockWithIgnoreMethods(GeminiClient::class);
+		$entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
+		$datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
+
+		$questionRepository->shouldReceive('getById')
+			->withArgs(static fn ($id): bool => $id->equals($questionId))
+			->once()
+			->andReturn($question);
+		$datetimeFactory->shouldReceive('createNow')
+			->times(3)
+			->andReturn($processingAt, $responseAt, $completedAt);
+		$entityManager->shouldReceive('flush')
+			->twice();
+		$stockAiAnalysisPromptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('System instruction');
+		$geminiClient->shouldReceive('generateContent')
+			->with('Generated prompt', 'System instruction', null)
+			->once()
+			->andReturn(Json::encode("Gemini answer\nwith second line"));
+
+		$this->createFacade(
+			$runRepository,
+			$questionRepository,
+			$promptGenerator,
+			$entityManager,
+			$datetimeFactory,
+			stockAiAnalysisPromptGenerator: $stockAiAnalysisPromptGenerator,
+			geminiClient: $geminiClient,
+		)->processGeminiQuestion($questionId->toString());
+
+		self::assertSame("Gemini answer\nwith second line", $question->getRawResponse());
+		self::assertSame(StockAiAnalysisFollowUpStatusEnum::COMPLETED, $question->getGeminiProcessingStatus());
+		self::assertSame($completedAt, $question->getGeminiProcessingFinishedAt());
+	}
+
 	private function createFacade(
 		StockAiAnalysisRunRepository $runRepository,
 		StockAiAnalysisFollowUpQuestionRepository $questionRepository,

@@ -126,7 +126,6 @@ class GeminiClient
 			],
 			'generationConfig' => [
 				'temperature' => 0.2,
-				'responseMimeType' => 'application/json',
 			],
 			'tools' => [
 				[
@@ -136,6 +135,7 @@ class GeminiClient
 		];
 
 		if ($responseSchema !== null) {
+			$payload['generationConfig']['responseMimeType'] = 'application/json';
 			$payload['generationConfig']['responseSchema'] = $responseSchema;
 		}
 

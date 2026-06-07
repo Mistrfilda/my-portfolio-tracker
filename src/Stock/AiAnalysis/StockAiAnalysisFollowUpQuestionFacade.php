@@ -139,7 +139,7 @@ class StockAiAnalysisFollowUpQuestionFacade
 			$trimmedResponse = trim($trimmedResponse);
 		}
 
-		if (!str_starts_with($trimmedResponse, '{') || !str_ends_with($trimmedResponse, '}')) {
+		if (!$this->looksLikeJsonResponse($trimmedResponse)) {
 			return $response;
 		}
 
@@ -149,11 +149,21 @@ class StockAiAnalysisFollowUpQuestionFacade
 			return $response;
 		}
 
+		if (is_string($data)) {
+			return TypeValidator::validateString($data);
+		}
+
 		if (!is_array($data) || !array_key_exists('response', $data) || !is_string($data['response'])) {
 			return $response;
 		}
 
 		return TypeValidator::validateString($data['response']);
+	}
+
+	private function looksLikeJsonResponse(string $response): bool
+	{
+		return (str_starts_with($response, '{') && str_ends_with($response, '}'))
+			|| (str_starts_with($response, '"') && str_ends_with($response, '"'));
 	}
 
 }

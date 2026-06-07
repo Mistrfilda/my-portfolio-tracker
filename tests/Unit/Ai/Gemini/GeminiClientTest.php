@@ -41,7 +41,7 @@ class GeminiClientTest extends UpdatedTestCase
 				$body = Json::decode($requestBody, true);
 				self::assertSame('Analyze portfolio', $body['contents'][0]['parts'][0]['text']);
 				self::assertSame(0.2, $body['generationConfig']['temperature']);
-				self::assertSame('application/json', $body['generationConfig']['responseMimeType']);
+				self::assertArrayNotHasKey('responseMimeType', $body['generationConfig']);
 				self::assertArrayNotHasKey('responseSchema', $body['generationConfig']);
 				self::assertArrayNotHasKey('systemInstruction', $body);
 				self::assertStringContainsString('"google_search":{}', $requestBody);
@@ -102,6 +102,7 @@ class GeminiClientTest extends UpdatedTestCase
 			->method('sendRequest')
 			->with(self::callback(static function (RequestInterface $request) use ($responseSchema): bool {
 				$body = Json::decode($request->getBody()->getContents(), true);
+				self::assertSame('application/json', $body['generationConfig']['responseMimeType']);
 				self::assertSame($responseSchema, $body['generationConfig']['responseSchema']);
 
 				return true;
