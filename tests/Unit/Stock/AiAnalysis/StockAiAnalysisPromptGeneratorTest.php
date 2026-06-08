@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Asset\Price\AssetPrice;
-use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
@@ -33,23 +32,16 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$generator = $this->createGenerator(
 			$stockAssetRepository,
 			$stockValuationDataRepository,
-			$assetPriceSummaryFacade,
-			$stockPositionFacade,
-			$stockAssetPriceRecordRepository,
-			$datetimeFactory,
+			stockPositionFacade: $stockPositionFacade,
+			stockAssetPriceRecordRepository: $stockAssetPriceRecordRepository,
+			datetimeFactory: $datetimeFactory,
 		);
 
 		$now = new ImmutableDateTime('2026-03-09 09:58:00');
-		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
 		$stockAssetRepository->shouldReceive('findAll')
 			->twice()
 			->andReturn([]);
-
-		$assetPriceSummaryFacade->shouldReceive('getCurrentValue')
-			->once()
-			->with(CurrencyEnum::CZK)
-			->andReturn($summaryPrice);
 
 		$prompt = $generator->generate(
 			true,
@@ -100,19 +92,11 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$generator = $this->createGenerator(
 			$stockAssetRepository,
 			$stockValuationDataRepository,
-			$assetPriceSummaryFacade,
 		);
-
-		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
 		$stockAssetRepository->shouldReceive('findAll')
 			->twice()
 			->andReturn([]);
-
-		$assetPriceSummaryFacade->shouldReceive('getCurrentValue')
-			->once()
-			->with(CurrencyEnum::CZK)
-			->andReturn($summaryPrice);
 
 		$prompt = $generator->generate(true, true, false);
 
@@ -203,13 +187,11 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$generator = $this->createGenerator(
 			$stockAssetRepository,
 			$stockValuationDataRepository,
-			$assetPriceSummaryFacade,
-			$stockPositionFacade,
-			$stockAssetPriceRecordRepository,
-			$datetimeFactory,
+			stockPositionFacade: $stockPositionFacade,
+			stockAssetPriceRecordRepository: $stockAssetPriceRecordRepository,
+			datetimeFactory: $datetimeFactory,
 		);
 
-		$portfolioValue = new SummaryPrice(CurrencyEnum::CZK, 20_000);
 		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
 		$stockAsset->shouldReceive('hasOpenPositions')
 			->andReturn(true);
@@ -255,10 +237,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$stockPositionFacade->shouldReceive('getStockAssetDetailDTO')
 			->once()
 			->andReturn($stockAssetDetail);
-		$assetPriceSummaryFacade->shouldReceive('getCurrentValue')
-			->once()
-			->with(CurrencyEnum::CZK)
-			->andReturn($portfolioValue);
 		$stockValuationDataRepository->shouldReceive('findLatestForStockAsset')
 			->andReturn([]);
 		$datetimeFactory->shouldReceive('createNow')
@@ -272,7 +250,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 
 		self::assertStringContainsString('"openPositions": [', $prompt);
 		self::assertStringContainsString('"stockAssetTicker": "AAPL"', $prompt);
-		self::assertStringContainsString('"portfolioPercentage": 6', $prompt);
+		self::assertStringContainsString('"portfolioPercentage": 100', $prompt);
 		self::assertStringContainsString('"profitLossPercent": 20', $prompt);
 		self::assertStringContainsString('"lastPurchaseDate": "2025-03-15"', $prompt);
 		self::assertStringContainsString('"averagePurchasePrice": 1000', $prompt);
@@ -336,7 +314,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 	private function createGenerator(
 		mixed &$stockAssetRepository = null,
 		mixed &$stockValuationDataRepository = null,
-		mixed &$assetPriceSummaryFacade = null,
 		mixed &$stockPositionFacade = null,
 		mixed &$stockAssetPriceRecordRepository = null,
 		mixed &$datetimeFactory = null,
@@ -346,7 +323,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$stockValuationDataRepository ??= UpdatedTestCase::createMockWithIgnoreMethods(
 			StockValuationDataRepository::class,
 		);
-		$assetPriceSummaryFacade ??= UpdatedTestCase::createMockWithIgnoreMethods(AssetPriceSummaryFacade::class);
 		$stockPositionFacade ??= UpdatedTestCase::createMockWithIgnoreMethods(StockPositionFacade::class);
 		$stockAssetPriceRecordRepository ??= UpdatedTestCase::createMockWithIgnoreMethods(
 			StockAssetPriceRecordRepository::class,
@@ -356,7 +332,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		return new StockAiAnalysisPromptGenerator(
 			$stockAssetRepository,
 			$stockValuationDataRepository,
-			$assetPriceSummaryFacade,
 			$stockPositionFacade,
 			$stockAssetPriceRecordRepository,
 			$datetimeFactory,

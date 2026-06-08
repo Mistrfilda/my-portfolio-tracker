@@ -82,18 +82,61 @@
 			</div>
 		</div>
 
-		<div n:syntax="double">
-			<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6" x-data="{ copied: false, copyPrompt() { navigator.clipboard.writeText($refs.prompt.textContent); this.copied = true; } }">
-				<div class="flex items-center justify-between gap-4 mb-4">
-					<h2 class="text-lg font-medium text-gray-900">Prompt otevřených pozic</h2>
-					<button type="button" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50" @click="copyPrompt()">
-						<span x-show="!copied">Zkopírovat</span>
-						<span x-show="copied">Zkopírováno</span>
-					</button>
-				</div>
-				<p class="mb-4 text-sm text-gray-500">Prompt obsahuje jen aktuálně otevřené pozice a základní metriky pro ruční vložení do externího chatu.</p>
-				<pre x-ref="prompt" class="shadow-xs block w-full sm:text-sm border border-gray-300 rounded-md font-mono whitespace-pre-wrap p-3 overflow-auto max-h-96">{{$manualOpenPositionsPrompt}}</pre>
-			</div>
-		</div>
+        <div n:syntax="double">
+            <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
+                <div class="flex items-center justify-between gap-4 mb-4">
+                    <h2 class="text-lg font-medium text-gray-900">Prompt otevřených pozic</h2>
+                    <button id="copy-open-positions-prompt-btn" type="button" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        Zkopírovat
+                    </button>
+                </div>
+                <p class="mb-4 text-sm text-gray-500">Prompt obsahuje jen aktuálně otevřené pozice a základní metriky pro ruční vložení do externího chatu.</p>
+                <pre id="open-positions-prompt-text" class="shadow-xs block w-full sm:text-sm border border-gray-300 rounded-md font-mono whitespace-pre-wrap p-3 overflow-auto max-h-96">{{$manualOpenPositionsPrompt}}</pre>
+
+                <script>
+					document.getElementById('copy-open-positions-prompt-btn').addEventListener('click', function () {
+						var btn = this;
+						var text = document.getElementById('open-positions-prompt-text').textContent;
+
+						if (navigator.clipboard && navigator.clipboard.writeText) {
+							navigator.clipboard.writeText(text).then(function () {
+								btn.textContent = '✓ Zkopírováno!';
+								setTimeout(function () {
+									btn.textContent = 'Zkopírovat';
+								}, 2000);
+							}).catch(function () {
+								fallbackCopyOpenPositionsPrompt(text, btn);
+							});
+						} else {
+							fallbackCopyOpenPositionsPrompt(text, btn);
+						}
+					});
+
+					function fallbackCopyOpenPositionsPrompt(text, btn) {
+						var textarea = document.createElement('textarea');
+						textarea.value = text;
+						textarea.style.position = 'fixed';
+						textarea.style.opacity = '0';
+						document.body.appendChild(textarea);
+						textarea.select();
+
+						try {
+							document.execCommand('copy');
+							btn.textContent = '✓ Zkopírováno!';
+							setTimeout(function () {
+								btn.textContent = 'Zkopírovat';
+							}, 2000);
+						} catch (e) {
+							btn.textContent = '✗ Nepodařilo se zkopírovat';
+							setTimeout(function () {
+								btn.textContent = 'Zkopírovat';
+							}, 2000);
+						}
+
+						document.body.removeChild(textarea);
+					}
+                </script>
+            </div>
+        </div>
 	</div>
 {/block}

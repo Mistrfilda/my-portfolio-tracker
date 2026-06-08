@@ -4,8 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
-use App\Asset\Price\AssetPriceSummaryFacade;
-use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
@@ -26,7 +24,6 @@ class StockAiAnalysisPromptGenerator
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationDataRepository $stockValuationDataRepository,
-		private AssetPriceSummaryFacade $assetPriceSummaryFacade,
 		private StockPositionFacade $stockPositionFacade,
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
@@ -593,9 +590,10 @@ class StockAiAnalysisPromptGenerator
 	private function getPortfolioData(): array
 	{
 		$assets = $this->stockAssetRepository->findAll();
-		$totalPortfolioValue = $this->assetPriceSummaryFacade->getCurrentValue(CurrencyEnum::CZK)->getPrice();
 
 		$data = [];
+		$currentPricesInCzk = [];
+		$totalPortfolioValue = 0.0;
 		foreach ($assets as $asset) {
 			if (!$asset->hasOpenPositions()) {
 				continue;
@@ -605,6 +603,9 @@ class StockAiAnalysisPromptGenerator
 				$asset->getId(),
 				StockAssetListDetailControlEnum::OPEN_POSITIONS,
 			);
+			$currentPriceInCzk = $dto->getCurrentPriceInCzk()->getPrice();
+			$currentPricesInCzk[] = $currentPriceInCzk;
+			$totalPortfolioValue += $currentPriceInCzk;
 			$valuations = $this->stockValuationDataRepository->findLatestForStockAsset($asset);
 
 			$firstPurchaseDate = null;
@@ -620,10 +621,6 @@ class StockAiAnalysisPromptGenerator
 				}
 			}
 
-			$portfolioPercentage = $totalPortfolioValue > 0
-				? $dto->getCurrentPriceInCzk()->getPrice() / $totalPortfolioValue * 100
-				: 0;
-
 			$data[] = [
 				'stockAssetId' => $asset->getId()->toString(),
 				'stockAssetName' => $asset->getName(),
@@ -634,7 +631,7 @@ class StockAiAnalysisPromptGenerator
 				'averagePurchasePrice' => $dto->getPiecesCount() > 0
 					? $dto->getTotalInvestedAmount()->getPrice() / $dto->getPiecesCount()
 					: 0,
-				'portfolioPercentage' => round($portfolioPercentage, 2),
+				'portfolioPercentage' => 0.0,
 				'profitLossPercent' => round($dto->getCurrentPriceDiff()->getPercentageDifference(), 2),
 				'firstPurchaseDate' => $firstPurchaseDate?->format('Y-m-d'),
 				'lastPurchaseDate' => $lastPurchaseDate?->format('Y-m-d'),
@@ -671,6 +668,14 @@ class StockAiAnalysisPromptGenerator
 				'performance1Day' => $this->getPerformance1Day($asset),
 				'performance7Days' => $this->getPerformance7Days($asset),
 			];
+		}
+
+		foreach ($data as $index => $portfolioItem) {
+			$portfolioPercentage = $totalPortfolioValue > 0
+				? $currentPricesInCzk[$index] / $totalPortfolioValue * 100
+				: 0;
+
+			$data[$index]['portfolioPercentage'] = round($portfolioPercentage, 2);
 		}
 
 		return $data;
