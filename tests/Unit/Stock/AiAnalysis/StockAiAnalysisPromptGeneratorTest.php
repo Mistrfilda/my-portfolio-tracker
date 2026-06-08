@@ -4,12 +4,18 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceSummaryFacade;
+use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
+use App\Stock\Asset\StockAsset;
+use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Position\StockAssetPositionDetailDTO;
+use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionFacade;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
@@ -17,6 +23,7 @@ use App\Test\UpdatedTestCase;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class StockAiAnalysisPromptGeneratorTest extends TestCase
 {
@@ -189,6 +196,88 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		self::assertStringContainsString('"stockAssetTicker": "AAPL"', $prompt);
 		self::assertStringContainsString('"stockAssetTicker": "MSFT"', $prompt);
 		self::assertStringNotContainsString('"portfolioEvaluation"', $prompt);
+	}
+
+	public function testGenerateManualOpenPositionsPromptContainsOnlyOpenPositionsSummary(): void
+	{
+		$generator = $this->createGenerator(
+			$stockAssetRepository,
+			$stockValuationDataRepository,
+			$assetPriceSummaryFacade,
+			$stockPositionFacade,
+			$stockAssetPriceRecordRepository,
+			$datetimeFactory,
+		);
+
+		$portfolioValue = new SummaryPrice(CurrencyEnum::CZK, 20_000);
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$stockAsset->shouldReceive('hasOpenPositions')
+			->andReturn(true);
+		$stockAsset->shouldReceive('getId')
+			->andReturn(Uuid::fromString('4f5874f6-782b-4d92-a8fe-efc3b1b0c8ef'));
+		$stockAsset->shouldReceive('getName')
+			->andReturn('Apple Inc.');
+		$stockAsset->shouldReceive('getTicker')
+			->andReturn('AAPL');
+		$stockAsset->shouldReceive('getCurrency')
+			->andReturn(CurrencyEnum::USD);
+		$stockAsset->shouldReceive('getAssetCurrentPrice')
+			->andReturn(new AssetPrice($stockAsset, 120, CurrencyEnum::USD));
+
+		$olderPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
+		$olderPosition->shouldReceive('getOrderDate')
+			->andReturn(new ImmutableDateTime('2025-01-10'));
+		$newerPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
+		$newerPosition->shouldReceive('getOrderDate')
+			->andReturn(new ImmutableDateTime('2025-03-15'));
+
+		$positionDtos = [
+			new StockAssetPositionDetailDTO($olderPosition, new PriceDiff(0, 100, CurrencyEnum::USD)),
+			new StockAssetPositionDetailDTO($newerPosition, new PriceDiff(0, 100, CurrencyEnum::USD)),
+		];
+		$stockAssetDetail = new StockAssetDetailDTO(
+			$stockAsset,
+			$positionDtos,
+			new SummaryPrice(CurrencyEnum::CZK, 10_000),
+			new SummaryPrice(CurrencyEnum::CZK, 12_000),
+			new SummaryPrice(CurrencyEnum::USD, 500),
+			new SummaryPrice(CurrencyEnum::USD, 450),
+			new PriceDiff(2_000, 120, CurrencyEnum::CZK),
+			new PriceDiff(50, 111.11, CurrencyEnum::USD),
+			new SummaryPrice(CurrencyEnum::CZK, 1_200),
+			new PriceDiff(0, 100, CurrencyEnum::CZK),
+			10,
+		);
+
+		$stockAssetRepository->shouldReceive('findAll')
+			->once()
+			->andReturn([$stockAsset]);
+		$stockPositionFacade->shouldReceive('getStockAssetDetailDTO')
+			->once()
+			->andReturn($stockAssetDetail);
+		$assetPriceSummaryFacade->shouldReceive('getCurrentValue')
+			->once()
+			->with(CurrencyEnum::CZK)
+			->andReturn($portfolioValue);
+		$stockValuationDataRepository->shouldReceive('findLatestForStockAsset')
+			->andReturn([]);
+		$datetimeFactory->shouldReceive('createNow')
+			->twice()
+			->andReturn(new ImmutableDateTime('2025-04-01'));
+		$stockAssetPriceRecordRepository->shouldReceive('findByStockAssetSinceDate')
+			->twice()
+			->andReturn([]);
+
+		$prompt = $generator->generateManualOpenPositionsPrompt();
+
+		self::assertStringContainsString('"openPositions": [', $prompt);
+		self::assertStringContainsString('"stockAssetTicker": "AAPL"', $prompt);
+		self::assertStringContainsString('"portfolioPercentage": 6', $prompt);
+		self::assertStringContainsString('"profitLossPercent": 20', $prompt);
+		self::assertStringContainsString('"lastPurchaseDate": "2025-03-15"', $prompt);
+		self::assertStringContainsString('"averagePurchasePrice": 1000', $prompt);
+		self::assertStringNotContainsString('"watchlist"', $prompt);
+		self::assertStringNotContainsString('"marketOverview"', $prompt);
 	}
 
 	public function testGenerateResponseSchemaBuildsGeminiSchema(): void

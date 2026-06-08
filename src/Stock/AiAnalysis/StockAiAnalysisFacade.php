@@ -86,6 +86,11 @@ class StockAiAnalysisFacade
 		);
 	}
 
+	public function getManualOpenPositionsPrompt(): string
+	{
+		return $this->promptGenerator->generateManualOpenPositionsPrompt();
+	}
+
 	public function enqueueGeminiProcessing(string $runId): void
 	{
 		$run = $this->getRun($runId);

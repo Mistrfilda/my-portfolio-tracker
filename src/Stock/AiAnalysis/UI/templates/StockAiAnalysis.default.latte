@@ -6,7 +6,7 @@
 		{control aiAnalysisGrid}
 	</div>
 
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+	<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
 		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
 			<h2 class="text-lg font-medium text-gray-900 mb-4">Analýza portfolia</h2>
 
@@ -79,6 +79,20 @@
 						</button>
 					</div>
 				</form>
+			</div>
+		</div>
+
+		<div n:syntax="double">
+			<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6" x-data="{ copied: false, copyPrompt() { navigator.clipboard.writeText($refs.prompt.textContent); this.copied = true; } }">
+				<div class="flex items-center justify-between gap-4 mb-4">
+					<h2 class="text-lg font-medium text-gray-900">Prompt otevřených pozic</h2>
+					<button type="button" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50" @click="copyPrompt()">
+						<span x-show="!copied">Zkopírovat</span>
+						<span x-show="copied">Zkopírováno</span>
+					</button>
+				</div>
+				<p class="mb-4 text-sm text-gray-500">Prompt obsahuje jen aktuálně otevřené pozice a základní metriky pro ruční vložení do externího chatu.</p>
+				<pre x-ref="prompt" class="shadow-xs block w-full sm:text-sm border border-gray-300 rounded-md font-mono whitespace-pre-wrap p-3 overflow-auto max-h-96">{{$manualOpenPositionsPrompt}}</pre>
 			</div>
 		</div>
 	</div>

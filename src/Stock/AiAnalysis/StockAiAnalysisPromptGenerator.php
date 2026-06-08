@@ -160,6 +160,29 @@ class StockAiAnalysisPromptGenerator
 		return $this->getPortfolioData();
 	}
 
+	public function generateManualOpenPositionsPrompt(): string
+	{
+		$positions = [];
+		foreach ($this->getPortfolioData() as $portfolioItem) {
+			assert(is_array($portfolioItem));
+
+			$positions[] = [
+				'stockAssetName' => $portfolioItem['stockAssetName'],
+				'stockAssetTicker' => $portfolioItem['stockAssetTicker'],
+				'currency' => $portfolioItem['currency'],
+				'portfolioPercentage' => $portfolioItem['portfolioPercentage'],
+				'profitLossPercent' => $portfolioItem['profitLossPercent'],
+				'lastPurchaseDate' => $portfolioItem['lastPurchaseDate'],
+				'averagePurchasePrice' => $portfolioItem['averagePurchasePrice'],
+			];
+		}
+
+		return implode("\n\n", [
+			'Seznam aktuálně otevřených akciových pozic v mém portfoliu:',
+			Json::encode(['openPositions' => $positions], pretty: true),
+		]);
+	}
+
 	/**
 	 * @return array<mixed>
 	 */
@@ -585,10 +608,15 @@ class StockAiAnalysisPromptGenerator
 			$valuations = $this->stockValuationDataRepository->findLatestForStockAsset($asset);
 
 			$firstPurchaseDate = null;
+			$lastPurchaseDate = null;
 			foreach ($dto->getPositions() as $positionDto) {
 				$position = $positionDto->getStockPosition();
 				if ($firstPurchaseDate === null || $position->getOrderDate() < $firstPurchaseDate) {
 					$firstPurchaseDate = $position->getOrderDate();
+				}
+
+				if ($lastPurchaseDate === null || $position->getOrderDate() > $lastPurchaseDate) {
+					$lastPurchaseDate = $position->getOrderDate();
 				}
 			}
 
@@ -609,6 +637,7 @@ class StockAiAnalysisPromptGenerator
 				'portfolioPercentage' => round($portfolioPercentage, 2),
 				'profitLossPercent' => round($dto->getCurrentPriceDiff()->getPercentageDifference(), 2),
 				'firstPurchaseDate' => $firstPurchaseDate?->format('Y-m-d'),
+				'lastPurchaseDate' => $lastPurchaseDate?->format('Y-m-d'),
 				'dividendYield' => $this->getValuationValue(
 					$valuations,
 					StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD,

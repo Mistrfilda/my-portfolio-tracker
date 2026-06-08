@@ -31,7 +31,7 @@ class StockAiAnalysisGridFactory
 			),
 		);
 
-		$grid->setLimit(30);
+		$grid->setLimit(10);
 
 		$grid->addColumnDatetime('createdAt', 'Vytvořeno')->setSortable();
 

@@ -46,6 +46,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 	{
 		$this->template->heading = 'AI analýzy';
 		$this->template->run = null;
+		$this->template->manualOpenPositionsPrompt = $this->stockAiAnalysisFacade->getManualOpenPositionsPrompt();
 
 		$assets = $this->stockAssetRepository->findAll();
 		$stockAssetsData = [];
