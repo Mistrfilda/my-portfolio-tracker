@@ -19,7 +19,7 @@ parameters:
 
 	gemini:
 		apiKey: __FILL_API_KEY__
-		model: gemini-3.1-pro-preview
+		model: gemini-3.5-flash
 		geminiFolder: %appDir%/../resources/gemini
 
 	pse:
