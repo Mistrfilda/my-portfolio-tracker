@@ -66,6 +66,7 @@ class GeminiClient
 			$this->logger->error('Gemini generateContent returned non-success status code', [
 				'model' => $this->model,
 				'statusCode' => $response->getStatusCode(),
+				'message' => $response->getBody()->getContents(),
 			]);
 
 			throw new GeminiClientException(sprintf(
@@ -137,12 +138,6 @@ class GeminiClient
 		if ($responseSchema !== null) {
 			$payload['generationConfig']['responseMimeType'] = 'application/json';
 			$payload['generationConfig']['responseSchema'] = $responseSchema;
-			$payload['generationConfig']['responseFormat'] = [
-				'text' => [
-					'mimeType' => 'application/json',
-					'schema' => $responseSchema,
-				],
-			];
 		}
 
 		if ($systemInstruction !== null) {

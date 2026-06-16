@@ -104,8 +104,7 @@ class GeminiClientTest extends UpdatedTestCase
 				$body = Json::decode($request->getBody()->getContents(), true);
 				self::assertSame('application/json', $body['generationConfig']['responseMimeType']);
 				self::assertSame($responseSchema, $body['generationConfig']['responseSchema']);
-				self::assertSame('application/json', $body['generationConfig']['responseFormat']['text']['mimeType']);
-				self::assertSame($responseSchema, $body['generationConfig']['responseFormat']['text']['schema']);
+				self::assertArrayNotHasKey('responseFormat', $body['generationConfig']);
 
 				return true;
 			}))
