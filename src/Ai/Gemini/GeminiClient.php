@@ -137,6 +137,12 @@ class GeminiClient
 		if ($responseSchema !== null) {
 			$payload['generationConfig']['responseMimeType'] = 'application/json';
 			$payload['generationConfig']['responseSchema'] = $responseSchema;
+			$payload['generationConfig']['responseFormat'] = [
+				'text' => [
+					'mimeType' => 'application/json',
+					'schema' => $responseSchema,
+				],
+			];
 		}
 
 		if ($systemInstruction !== null) {

@@ -18,11 +18,15 @@ use Throwable;
 class StockAiAnalysisGeminiProcessorFacade
 {
 
+	private const RETRY_INSTRUCTION = 'Your previous response was invalid JSON. Return only syntactically valid JSON '
+		. 'matching the provided schema. Do not include markdown fences, explanations, or any text outside the JSON object.';
+
 	public function __construct(
 		private readonly StockAiAnalysisFacade $stockAiAnalysisFacade,
 		private readonly StockAiAnalysisFollowUpQuestionFacade $stockAiAnalysisFollowUpQuestionFacade,
 		private readonly StockAiAnalysisPromptGenerator $promptGenerator,
 		private readonly GeminiClient $geminiClient,
+		private readonly StockAiAnalysisGeminiJsonNormalizer $geminiJsonNormalizer,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
@@ -215,13 +219,59 @@ class StockAiAnalysisGeminiProcessorFacade
 			return $this->validateStringKeyArray(TypeValidator::validateArray($data));
 		}
 
-		$response = $this->decodeJsonObject(
-			$this->geminiClient->generateContent($prompt, $systemInstruction, $responseSchema),
-			$fileName,
-		);
+		$rawResponse = $this->geminiClient->generateContent($prompt, $systemInstruction, $responseSchema);
+		try {
+			$response = $this->decodeJsonObject($rawResponse);
+		} catch (Throwable $firstException) {
+			$this->logGeminiJsonParseFailure($fileName, $firstException, $rawResponse);
+
+			$retryRawResponse = $this->geminiClient->generateContent(
+				$this->createRetryPrompt($prompt),
+				$systemInstruction,
+				$responseSchema,
+			);
+
+			try {
+				$response = $this->decodeJsonObject($retryRawResponse);
+			} catch (Throwable $retryException) {
+				$this->logGeminiJsonParseFailure($fileName, $retryException, $retryRawResponse);
+
+				throw new Exception(
+					sprintf(
+						'Gemini response file "%s" could not be parsed after retry: %s',
+						$fileName,
+						$retryException->getMessage(),
+					),
+					0,
+					$retryException,
+				);
+			}
+		}
+
 		$this->writeGeminiResponseFile($filePath, $response);
 
 		return $response;
+	}
+
+	private function createRetryPrompt(string $prompt): string
+	{
+		return $prompt . "\n\n" . self::RETRY_INSTRUCTION;
+	}
+
+	private function logGeminiJsonParseFailure(string $fileName, Throwable $exception, string $response): void
+	{
+		$this->logger->warning('Gemini response is not a valid JSON object.', [
+			'fileName' => $fileName,
+			'jsonError' => $exception->getMessage(),
+			'responseSnippet' => $this->createResponseSnippet($response),
+		]);
+	}
+
+	private function createResponseSnippet(string $response): string
+	{
+		$response = preg_replace('/\s+/', ' ', trim($response)) ?? $response;
+
+		return mb_substr($response, 0, 500);
 	}
 
 	private function getGeminiResponseDirectory(StockAiAnalysisRun $run): string
@@ -266,12 +316,9 @@ class StockAiAnalysisGeminiProcessorFacade
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function decodeJsonObject(string $response, string|null $fileName = null): array
+	private function decodeJsonObject(string $response): array
 	{
-		$response = trim($response);
-		if (str_starts_with($response, '```')) {
-			$response = preg_replace('/^```(?:json)?\s*|\s*```$/', '', $response) ?? $response;
-		}
+		$response = $this->geminiJsonNormalizer->normalize($response);
 
 		$start = strpos($response, '{');
 		$end = strrpos($response, '}');
@@ -282,15 +329,6 @@ class StockAiAnalysisGeminiProcessorFacade
 		try {
 			$data = Json::decode(substr($response, $start, $end - $start + 1), forceArrays: true);
 		} catch (JsonException $e) {
-			$this->logger->error('Gemini response is not a valid JSON object.', [
-				'fileName' => $fileName,
-				'jsonError' => $e->getMessage(),
-			]);
-			$this->logger->debug('Gemini response', [
-				'fileName' => $fileName,
-				'response' => $response,
-			]);
-
 			throw $e;
 		}
 

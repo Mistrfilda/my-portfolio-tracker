@@ -340,6 +340,7 @@ services:
 	- App\Stock\AiAnalysis\StockAiAnalysisFollowUpPromptGenerator
 	- App\Stock\AiAnalysis\StockAiAnalysisFacade
 	- App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade
+	- App\Stock\AiAnalysis\StockAiAnalysisGeminiJsonNormalizer
 	- App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade(tempDir: %gemini.geminiFolder%)
 	- App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider
 	- App\Stock\AiAnalysis\StockAiAnalysisRunRepository(App\Stock\AiAnalysis\StockAiAnalysisRun)

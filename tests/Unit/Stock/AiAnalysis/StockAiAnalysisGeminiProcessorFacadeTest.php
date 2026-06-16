@@ -7,6 +7,7 @@ namespace App\Test\Unit\Stock\AiAnalysis;
 use App\Ai\Gemini\GeminiClient;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisGeminiJsonNormalizer;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
@@ -107,15 +108,9 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$geminiClient->shouldReceive('generateContent')
 			->with('portfolio prompt', 'system instruction', $portfolioResponseSchema)
 			->once()
-			->andReturn(Json::encode([
-				'portfolioAnalysis' => [
-					[
-						'stockAssetId' => 'portfolio-stock-id',
-						'stockAssetName' => 'Portfolio stock',
-						'stockAssetTicker' => 'PORT',
-					],
-				],
-			]));
+			->andReturn(
+				'{"portfolioAnalysis":.[{"stockAssetId":"portfolio-stock-id","stockAssetName":"Portfolio stock","stockAssetTicker":"PORT"}]}',
+			);
 		$geminiClient->shouldReceive('generateContent')
 			->with('watchlist prompt', 'system instruction', $watchlistResponseSchema)
 			->once()
@@ -153,6 +148,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
 			$datetimeFactory,
 			$entityManager,
 			$logger,
@@ -292,6 +288,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
 			$datetimeFactory,
 			$entityManager,
 			$logger,
@@ -302,6 +299,103 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			$processor->process($runId);
 
 			self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED, $run->getGeminiProcessingStatus());
+		} finally {
+			$this->deleteTempDir($tempDir);
+		}
+	}
+
+	public function testProcessRetriesOnceWhenGeminiResponseIsInvalid(): void
+	{
+		$run = new StockAiAnalysisRun(
+			'Generated manual prompt',
+			false,
+			false,
+			true,
+			null,
+			new ImmutableDateTime('2026-05-02 10:00:00'),
+		);
+		$runId = $run->getId()->toString();
+		$manualResponseSchema = ['type' => 'manual'];
+		$tempDir = $this->createTempDir();
+
+		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$stockAiAnalysisFollowUpQuestionFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
+		$promptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
+		$geminiClient = Mockery::mock(GeminiClient::class);
+		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
+		$entityManager = Mockery::mock(EntityManagerInterface::class);
+		$logger = Mockery::mock(LoggerInterface::class);
+
+		$stockAiAnalysisFacade->shouldReceive('getRun')
+			->with($runId)
+			->once()
+			->andReturn($run);
+		$promptGenerator->shouldReceive('generateSystemInstruction')
+			->once()
+			->andReturn('system instruction');
+		$promptGenerator->shouldReceive('generateResponseSchema')
+			->with(false, false, true, null, null, null)
+			->once()
+			->andReturn($manualResponseSchema);
+		$geminiClient->shouldReceive('generateContent')
+			->with('Generated manual prompt', 'system instruction', $manualResponseSchema)
+			->once()
+			->andReturn('{"marketOverview":. invalid}');
+		$geminiClient->shouldReceive('generateContent')
+			->with(
+				Mockery::on(static fn (string $prompt): bool => str_starts_with($prompt, 'Generated manual prompt')
+					&& str_contains($prompt, 'Your previous response was invalid JSON')),
+				'system instruction',
+				$manualResponseSchema,
+			)
+			->once()
+			->andReturn(Json::encode([
+				'marketOverview' => [
+					'summary' => 'Retry summary',
+				],
+			]));
+		$stockAiAnalysisFacade->shouldReceive('processResponse')
+			->with($runId, Mockery::on(static function (string $rawResponse): bool {
+				$data = Json::decode($rawResponse, forceArrays: true);
+
+				return $data['marketOverview']['summary'] === 'Retry summary';
+			}))
+			->once();
+		$datetimeFactory->shouldReceive('createNow')
+			->twice()
+			->andReturn(
+				new ImmutableDateTime('2026-05-02 11:00:00'),
+				new ImmutableDateTime('2026-05-02 11:05:00'),
+			);
+		$entityManager->shouldReceive('flush')
+			->twice();
+		$logger->shouldReceive('warning')
+			->once();
+
+		$processor = new StockAiAnalysisGeminiProcessorFacade(
+			$stockAiAnalysisFacade,
+			$stockAiAnalysisFollowUpQuestionFacade,
+			$promptGenerator,
+			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
+			$datetimeFactory,
+			$entityManager,
+			$logger,
+			$tempDir,
+		);
+
+		try {
+			$processor->process($runId);
+
+			self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED, $run->getGeminiProcessingStatus());
+			self::assertSame([
+				'marketOverview' => [
+					'summary' => 'Retry summary',
+				],
+			], Json::decode(
+				FileSystem::read($tempDir . '/stock-ai-analysis/gemini/' . $runId . '/manual.json'),
+				forceArrays: true,
+			));
 		} finally {
 			$this->deleteTempDir($tempDir);
 		}
@@ -345,6 +439,15 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->with('Generated manual prompt', 'system instruction', $manualResponseSchema)
 			->once()
 			->andReturn('not json');
+		$geminiClient->shouldReceive('generateContent')
+			->with(
+				Mockery::on(static fn (string $prompt): bool => str_starts_with($prompt, 'Generated manual prompt')
+					&& str_contains($prompt, 'Your previous response was invalid JSON')),
+				'system instruction',
+				$manualResponseSchema,
+			)
+			->once()
+			->andReturn('still not json');
 		$datetimeFactory->shouldReceive('createNow')
 			->twice()
 			->andReturn(
@@ -355,12 +458,15 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->twice();
 		$logger->shouldReceive('error')
 			->once();
+		$logger->shouldReceive('warning')
+			->twice();
 
 		$processor = new StockAiAnalysisGeminiProcessorFacade(
 			$stockAiAnalysisFacade,
 			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
 			$datetimeFactory,
 			$entityManager,
 			$logger,
@@ -371,10 +477,14 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			self::assertException(
 				static fn () => $processor->process($runId),
 				Throwable::class,
-				'Gemini response does not contain a JSON object.',
+				'Gemini response file "manual.json" could not be parsed after retry: Gemini response does not contain a JSON object.',
 			);
 			self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::FAILED, $run->getGeminiProcessingStatus());
-			self::assertSame('Gemini response does not contain a JSON object.', $run->getGeminiProcessingError());
+			self::assertSame(
+				'Gemini response file "manual.json" could not be parsed after retry: Gemini response does not contain a JSON object.',
+				$run->getGeminiProcessingError(),
+			);
+			self::assertFileDoesNotExist($tempDir . '/stock-ai-analysis/gemini/' . $runId . '/manual.json');
 		} finally {
 			$this->deleteTempDir($tempDir);
 		}
@@ -399,6 +509,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			$stockAiAnalysisFollowUpQuestionFacade,
 			$promptGenerator,
 			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
 			$datetimeFactory,
 			$entityManager,
 			$logger,
