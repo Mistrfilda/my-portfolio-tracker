@@ -83,6 +83,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Domain-specific guidance lives in `.junie/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
 - Start with `.junie/skills/project-overview/SKILL.md` when the task is broad, cross-module, or you are not sure where the code belongs.
 - Commonly useful skills:
+	- `mcp-local-app-access` — MCP inspection of the local app behind login using `.env.browser-tests`.
 	- `testing-conventions` — PHPUnit layout, base classes, naming, and mocking rules.
 	- `ui-base-presenters-templates` — typed template classes for presenters and controls.
 	- `latte-templates`, `nette-forms`, `ui-forms-admin` — UI and form work.

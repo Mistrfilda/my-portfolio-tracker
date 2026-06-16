@@ -37,3 +37,5 @@ puppeter/node_modules/*
 
 resources/gemini/*
 !resources/gemini/.gitkeep
+
+.playwright-mcp
