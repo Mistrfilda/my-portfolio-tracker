@@ -25,7 +25,7 @@ class DatagridTemplate extends Template
 	/** @var ArrayCollection<int, IColumn> */
 	public ArrayCollection $columns;
 
-	/** @var ArrayCollection<int, IFilter> */
+	/** @var ArrayCollection<string, IFilter> */
 	public ArrayCollection $filters;
 
 	/** @var array<int|string, Entity> */

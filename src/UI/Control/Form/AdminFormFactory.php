@@ -12,6 +12,9 @@ class AdminFormFactory
 
 	}
 
+	/**
+	 * @param class-string|null $mappedClass
+	 */
 	public function create(string|null $mappedClass = null): AdminForm
 	{
 		$form = new AdminForm();

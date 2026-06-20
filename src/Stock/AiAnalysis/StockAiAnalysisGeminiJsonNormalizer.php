@@ -33,9 +33,21 @@ final class StockAiAnalysisGeminiJsonNormalizer
 
 	private function repairKnownAnalysisPlaceholder(string $response): string
 	{
-		return preg_replace(
+		$response = preg_replace(
 			'/("(?:(?:portfolio|watchlist)Analysis)"\s*:\s*)\.(\s*[\[{])/',
 			'$1$2',
+			$response,
+		) ?? $response;
+
+		$response = preg_replace(
+			'/("portfolioAnalysis"\s*:\s*)\.\s*([^"{\[\]\r\n][^"]*?)(?=",\s*"negativeNews"\s*:)/u',
+			'$1[{"positiveNews":"$2',
+			$response,
+		) ?? $response;
+
+		return preg_replace(
+			'/("watchlistAnalysis"\s*:\s*)\.\s*([^"{\[\]\r\n][^"]*?)(?=",\s*"earningsCommentary"\s*:)/u',
+			'$1[{"news":"$2',
 			$response,
 		) ?? $response;
 	}

@@ -138,7 +138,6 @@ abstract class BasePresenter extends Presenter
 		}
 	}
 
-	//@phpstan-ignore missingType.generics
 	public function checkRequirements(ReflectionClass|ReflectionMethod $element): void
 	{
 		$storage = $this->getUser()->getStorage();

@@ -35,7 +35,7 @@
 		"gedmo/doctrine-extensions": "^3.5",
 		"guzzlehttp/guzzle": "^7.4",
 		"latte/latte": "^3.0",
-		"league/openapi-psr7-validator": "^0.22.0",
+		"league/openapi-psr7-validator": "^0.22",
 		"mistrfilda/datetime": "^0.5",
 		"monolog/monolog": "*",
 		"nette/application": "^3.1",

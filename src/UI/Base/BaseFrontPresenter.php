@@ -16,7 +16,7 @@ class BaseFrontPresenter extends BasePresenter
 	}
 
 	/**
-	 * @return array<string>
+	 * @return non-empty-list<string>
 	 */
 	public function formatLayoutTemplateFiles(): array
 	{

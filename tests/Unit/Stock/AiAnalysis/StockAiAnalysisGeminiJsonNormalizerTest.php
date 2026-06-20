@@ -49,11 +49,51 @@ class StockAiAnalysisGeminiJsonNormalizerTest extends UpdatedTestCase
 		);
 	}
 
-	public function testDoesNotInventMissingJsonStructureForFreeTextAfterKnownAnalysisKey(): void
+	public function testRepairsMissingPortfolioAnalysisArrayObjectAndPositiveNewsKey(): void
 	{
 		$normalizer = new StockAiAnalysisGeminiJsonNormalizer();
 		$normalized = $normalizer->normalize(
-			'{"portfolioAnalysis":. Klíčová divize rostla, "negativeNews":"High payout ratio"}',
+			'{"portfolioAnalysis":. Silné výsledky produkce za Q1 FY26.","negativeNews":"Pokles zisku."}]}',
+		);
+
+		self::assertSame(
+			[
+				'portfolioAnalysis' => [
+					[
+						'positiveNews' => 'Silné výsledky produkce za Q1 FY26.',
+						'negativeNews' => 'Pokles zisku.',
+					],
+				],
+			],
+			Json::decode($normalized, forceArrays: true),
+		);
+	}
+
+	public function testRepairsMissingWatchlistAnalysisArrayObjectAndNewsKey(): void
+	{
+		$normalizer = new StockAiAnalysisGeminiJsonNormalizer();
+		$normalized = $normalizer->normalize(
+			'{"watchlistAnalysis":. Nový kontrakt může podpořit růst.","earningsCommentary":"Výsledky byly solidní."}]}',
+		);
+
+		self::assertSame(
+			[
+				'watchlistAnalysis' => [
+					[
+						'news' => 'Nový kontrakt může podpořit růst.',
+						'earningsCommentary' => 'Výsledky byly solidní.',
+					],
+				],
+			],
+			Json::decode($normalized, forceArrays: true),
+		);
+	}
+
+	public function testDoesNotInventMissingJsonStructureForUnrecognizedFreeTextAfterKnownAnalysisKey(): void
+	{
+		$normalizer = new StockAiAnalysisGeminiJsonNormalizer();
+		$normalized = $normalizer->normalize(
+			'{"portfolioAnalysis":. Klíčová divize rostla}',
 		);
 
 		self::assertException(
