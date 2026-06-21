@@ -131,7 +131,7 @@ class StockAiAnalysisGeminiProcessorFacade
 						$run->getPortfolioPromptType(),
 					),
 				);
-				$portfolioAnalysis[] = $this->extractAnalysisItem($response, 'portfolioAnalysis');
+				$portfolioAnalysis[] = $this->extractAnalysisItem($response, 'portfolioAnalysis', $portfolioItem);
 				$portfolioItemNumber++;
 			}
 		}
@@ -157,7 +157,7 @@ class StockAiAnalysisGeminiProcessorFacade
 						$run->getPortfolioPromptType(),
 					),
 				);
-				$watchlistAnalysis[] = $this->extractAnalysisItem($response, 'watchlistAnalysis');
+				$watchlistAnalysis[] = $this->extractAnalysisItem($response, 'watchlistAnalysis', $watchlistItem);
 				$watchlistItemNumber++;
 			}
 		}
@@ -303,14 +303,32 @@ class StockAiAnalysisGeminiProcessorFacade
 
 	/**
 	 * @param array<string, mixed> $response
+	 * @param array<string, mixed> $stockData
 	 * @return array<string, mixed>
 	 */
-	private function extractAnalysisItem(array $response, string $key): array
+	private function extractAnalysisItem(array $response, string $key, array $stockData): array
 	{
 		$analysis = TypeValidator::validateArray($response[$key] ?? null);
 		$item = $analysis[0] ?? null;
 
-		return $this->validateStringKeyArray(TypeValidator::validateArray($item));
+		return $this->withStockAssetIdentity(
+			$this->validateStringKeyArray(TypeValidator::validateArray($item)),
+			$stockData,
+		);
+	}
+
+	/**
+	 * @param array<string, mixed> $analysisItem
+	 * @param array<string, mixed> $stockData
+	 * @return array<string, mixed>
+	 */
+	private function withStockAssetIdentity(array $analysisItem, array $stockData): array
+	{
+		$analysisItem['stockAssetId'] = TypeValidator::validateString($stockData['stockAssetId'] ?? null);
+		$analysisItem['stockAssetName'] = TypeValidator::validateString($stockData['stockAssetName'] ?? null);
+		$analysisItem['stockAssetTicker'] = TypeValidator::validateString($stockData['stockAssetTicker'] ?? null);
+
+		return $analysisItem;
 	}
 
 	/**

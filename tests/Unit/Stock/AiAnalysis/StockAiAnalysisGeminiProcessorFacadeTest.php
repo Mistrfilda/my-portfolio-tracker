@@ -109,7 +109,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->with('portfolio prompt', 'system instruction', $portfolioResponseSchema)
 			->once()
 			->andReturn(
-				'{"portfolioAnalysis":.[{"stockAssetId":"portfolio-stock-id","stockAssetName":"Portfolio stock","stockAssetTicker":"PORT"}]}',
+				'{"portfolioAnalysis":.[{"positiveNews":"Portfolio positive news"}]}',
 			);
 		$geminiClient->shouldReceive('generateContent')
 			->with('watchlist prompt', 'system instruction', $watchlistResponseSchema)
@@ -117,9 +117,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->andReturn(Json::encode([
 				'watchlistAnalysis' => [
 					[
-						'stockAssetId' => 'watchlist-stock-id',
-						'stockAssetName' => 'Watchlist stock',
-						'stockAssetTicker' => 'WATCH',
+						'positiveNews' => 'Watchlist positive news',
 					],
 				],
 			]));
@@ -138,8 +136,14 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				$data = Json::decode($rawResponse, forceArrays: true);
 
 				return $data['portfolioEvaluation']['summary'] === 'Portfolio summary'
+					&& $data['portfolioAnalysis'][0]['stockAssetId'] === 'portfolio-stock-id'
+					&& $data['portfolioAnalysis'][0]['stockAssetName'] === 'Portfolio stock'
 					&& $data['portfolioAnalysis'][0]['stockAssetTicker'] === 'PORT'
-					&& $data['watchlistAnalysis'][0]['stockAssetTicker'] === 'WATCH';
+					&& $data['portfolioAnalysis'][0]['positiveNews'] === 'Portfolio positive news'
+					&& $data['watchlistAnalysis'][0]['stockAssetId'] === 'watchlist-stock-id'
+					&& $data['watchlistAnalysis'][0]['stockAssetName'] === 'Watchlist stock'
+					&& $data['watchlistAnalysis'][0]['stockAssetTicker'] === 'WATCH'
+					&& $data['watchlistAnalysis'][0]['positiveNews'] === 'Watchlist positive news';
 			}))
 			->once();
 
