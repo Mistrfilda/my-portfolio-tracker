@@ -7,6 +7,8 @@ d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (ear
 e) Analýza dividendy (dividendAnalysis, 3–5 vět) – zhodnoť dividendovou politiku společnosti. Je dividenda stabilní a bezpečná? Jaký je payout ratio a jeho udržitelnost? Má společnost historii pravidelného zvyšování dividendy? Pokud společnost dividendu nevyplácí, uveď to a zmiň případné plány na zavedení.
 f) Tvůj obecný názor s ohledem na můj dlouhodobý investiční horizont (3–5 vět)
 g) Krátké zhodnocení výkonnosti za posledních 7 dní (performance7DaysComment, 2–3 věty) – okomentuj procentuální změnu ceny, co stojí za pohybem.
-h) Doporučení (hold, consider_selling, add_more, watch_closely)
+h) Doporučení (hold, consider_selling, add_more, watch_closely) – add_more použij jen při atraktivní valuaci, silné investiční tezi a dostatečné marži bezpečnosti. Pokud je titul kvalitní, ale drahý nebo nejasný, preferuj hold/watch_closely. Pokud se zhoršily fundamenty, výsledky, rizika nebo valuace výrazně převyšuje férovou cenu, zvaž consider_selling.
 i) Míra jistoty doporučení (confidenceLevel: low, medium, high)
 j) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – na základě dodaných dat (P/E, PEG, P/B, růst) a případného srovnání s cílovou cenou analytiků (analystTargetPrice) odhadni konzervativní intrinsic value.
+
+Při doporučení explicitně porovnej aktuální cenu s fairPrice. Pokud fairPrice nenabízí alespoň rozumnou marži bezpečnosti, nevol add_more.

@@ -297,7 +297,11 @@ class StockAiAnalysisPromptGenerator
 	private function generateAutomaticStockPrompt(string $rootKey, array $schema, array $stockData): string
 	{
 		return implode("\n\n", [
-			'Analyzuj pouze jednu níže uvedenou akcii. Použij aktuální webové informace přes Google Search a vrať pouze validní JSON podle schématu.',
+			'Analyzuj pouze jednu níže uvedenou akcii. Použij aktuální webové informace přes Google Search '
+				. 'a vrať pouze validní JSON podle schématu. Při doporučení buď konzervativní: nákupové '
+				. 'varianty použij jen při atraktivní valuaci, silné tezi, přijatelných rizicích a dostatečné '
+				. 'marži bezpečnosti; při nejasných datech, drahé valuaci nebo běžném šumu preferuj hold, '
+				. 'wait nebo watch_closely podle schématu.',
 			$this->loadPrompt('common/output_format'),
 			Json::encode([
 				$rootKey => $schema,

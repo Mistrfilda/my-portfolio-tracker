@@ -61,7 +61,11 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			->once()
 			->andReturn($now);
 
-		self::assertStringContainsString('09. 03. 2026', $generator->generateSystemInstruction());
+		$systemInstruction = $generator->generateSystemInstruction();
+
+		self::assertStringContainsString('09. 03. 2026', $systemInstruction);
+		self::assertStringContainsString('Nebuď defaultně optimistický', $systemInstruction);
+		self::assertStringContainsString('preferuj konzervativnější doporučení', $systemInstruction);
 	}
 
 	public function testGenerateStockAnalysisWithMarketOverview(): void
@@ -79,6 +83,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 
 		self::assertStringContainsString('Analyzuj aktuální situaci na trhu', $prompt);
 		self::assertStringContainsString('Analyzuj detailně společnost Apple Inc. (AAPL).', $prompt);
+		self::assertStringContainsString('Recommendation framework', $prompt);
 		self::assertStringContainsString('"marketOverview"', $prompt);
 		self::assertStringContainsString('"stockAnalysis"', $prompt);
 		self::assertStringContainsString('"fairPriceCurrency"', $prompt);
@@ -101,6 +106,8 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$prompt = $generator->generate(true, true, false);
 
 		self::assertStringContainsString('performance7DaysComment', $prompt);
+		self::assertStringContainsString('nevol add_more', $prompt);
+		self::assertStringContainsString('preferuj wait', $prompt);
 		self::assertStringContainsString('"portfolioEvaluation"', $prompt);
 		self::assertStringContainsString('"portfolioAnalysis"', $prompt);
 		self::assertStringContainsString('"watchlistAnalysis"', $prompt);
@@ -124,6 +131,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		);
 
 		self::assertStringContainsString('"portfolioAnalysis"', $prompt);
+		self::assertStringContainsString('Při doporučení buď konzervativní', $prompt);
 		self::assertStringContainsString('"performance1DayComment"', $prompt);
 		self::assertStringNotContainsString('"performance7DaysComment"', $prompt);
 		self::assertStringContainsString('"stockAssetId": "asset-1"', $prompt);
@@ -144,6 +152,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		);
 
 		self::assertStringContainsString('"watchlistAnalysis"', $prompt);
+		self::assertStringContainsString('Při doporučení buď konzervativní', $prompt);
 		self::assertStringContainsString('"performance7DaysComment"', $prompt);
 		self::assertStringNotContainsString('"performance1DayComment"', $prompt);
 		self::assertStringContainsString('"buyRecommendation"', $prompt);

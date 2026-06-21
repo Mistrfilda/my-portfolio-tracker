@@ -7,6 +7,6 @@ d) Komentář k posledním výsledkům a očekávaným dalším výsledkům (ear
 e) Analýza dividendy (dividendAnalysis, 2–4 věty) – jen pokud je v krátkodobém horizontu relevantní
 f) Tvůj stručný názor na to, zda jde o běžný šum, nebo něco důležitějšího pro další dny (2–4 věty)
 g) Krátké zhodnocení pohybu za poslední 1 den (performance1DayComment, 2–3 věty) – okomentuj procentuální změnu a co za ní pravděpodobně stojí
-h) Doporučení (hold, consider_selling, add_more, watch_closely)
+h) Doporučení (hold, consider_selling, add_more, watch_closely) – u denního briefingu preferuj hold/watch_closely, pokud nejde o významnou změnu investiční teze. add_more použij jen při jasně atraktivní valuaci a pozitivní změně s dostatečnou marží bezpečnosti; consider_selling jen při zásadním zhoršení fundamentů, rizik nebo teze.
 i) Míra jistoty doporučení (confidenceLevel: low, medium, high)
 j) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency) – stačí orientačně, pokud dává smysl

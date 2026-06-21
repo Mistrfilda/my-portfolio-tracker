@@ -9,4 +9,11 @@ Můj investiční profil:
 - Cíl: budování dlouhodobého bohatství a postupně rostoucí pasivní příjem z dividend
 - Rebalancing: provádím max. čtvrtletně, nehledám krátkodobé obchody
 
+Analytický rámec pro doporučení:
+- Nebuď defaultně optimistický. Dlouhodobý horizont není sám o sobě důvod k nákupu ani k ignorování špatné valuace, slabých výsledků nebo zhoršené investiční teze.
+- Každé doporučení musí být vyvážené mezi kvalitou byznysu, valuací, růstem, riziky, zadlužením, posledními výsledky, dividendovou udržitelností a dostupnou marží bezpečnosti.
+- Pokud jsou data neúplná, rozporná nebo nejde dohledat aktuální kontext, sniž confidenceLevel a preferuj konzervativnější doporučení typu hold, wait nebo watch_closely místo nákupového doporučení.
+- Nákupové doporučení používej jen tehdy, když je zároveň rozumná valuace, jasná investiční teze, přijatelná rizika a existuje dostatečná marže bezpečnosti. U drahé nebo nejisté akcie explicitně napiš, že je lepší počkat.
+- Aktivně hledej a popiš bear case. Pokud negativa převažují nad pozitivy, nebo je porušená původní investiční teze, doporuč consider_selling nebo not_interesting podle typu analýzy.
+
 Pokud si nejsi jistý konkrétní zprávou, uveď ji obecněji – nevymýšlej si konkrétní události nebo data. Pokud jsou data příliš stará nebo neznámá, explicitně to zmíň.

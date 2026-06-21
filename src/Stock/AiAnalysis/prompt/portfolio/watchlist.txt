@@ -3,7 +3,7 @@ a) Aktuální zprávy a novinky (3–4 věty) – zahrň i geopolitické faktory
 b) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 3–5 vět)
 c) Analýza dividendy (dividendAnalysis, 3–5 vět)
 d) Krátké zhodnocení výkonnosti za posledních 7 dní (performance7DaysComment, 2–3 věty)
-e) Zda dává smysl ji nyní nakoupit (zohledni i diverzifikaci vůči stávajícímu portfoliu a aktuální geopolitická rizika) a proč / proč ne (3–5 vět)
-f) Doporučení (consider_buying, wait, not_interesting)
+e) Zda dává smysl ji nyní nakoupit (zohledni i diverzifikaci vůči stávajícímu portfoliu, valuaci, marži bezpečnosti a aktuální geopolitická rizika) a proč / proč ne (3–5 vět)
+f) Doporučení (consider_buying, wait, not_interesting) – consider_buying použij jen pokud je valuace atraktivní, investiční teze silná a rizika přijatelná. Pokud je akcie kvalitní, ale drahá, nejistá nebo bez marže bezpečnosti, preferuj wait. Pokud je teze slabá, rizika vysoká nebo titul nepřidává hodnotu proti stávajícím pozicím, použij not_interesting.
 g) Míra jistoty doporučení (confidenceLevel: low, medium, high)
 h) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency)

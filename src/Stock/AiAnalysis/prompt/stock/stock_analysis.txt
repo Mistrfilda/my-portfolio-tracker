@@ -12,6 +12,8 @@ Zaměř se na následující oblasti:
 8. Valuace: Jak si stojí valuace historicky a vůči hlavním konkurentům (P/E, P/S, EV/EBITDA, FCF yield). Je akcie levná/drahá vůči svému historickému průměru?
 9. Fair Value: Jaká je tvá férová cena (intrinsic value) za akcii? Použij konzervativní předpoklady.
 
+Recommendation framework: consider_buying použij jen tehdy, pokud je byznys kvalitní, valuace atraktivní vůči fair value, rizika jsou přijatelná a existuje dostatečná marže bezpečnosti. hold použij pro kvalitní, ale férově oceněné nebo drahé akcie bez jasné marže bezpečnosti. consider_selling použij při výrazně předražené valuaci, zhoršení fundamentů, slabém růstu, vysokém zadlužení, neudržitelné dividendě nebo narušené investiční tezi.
+
 Do výstupu 'stockAnalysis' zahrň:
 - businessSummary: Shrnutí byznys modelu (3-5 vět).
 - moatAnalysis: Analýza konkurenční výhody (4-6 vět).
@@ -22,7 +24,7 @@ Do výstupu 'stockAnalysis' zahrň:
 - dividendAnalysis: Zhodnocení dividendové politiky – stabilita, bezpečnost, payout ratio, historie zvyšování, očekávaný vývoj (3-5 vět). Pokud společnost dividendu nevyplácí, uveď to.
 - valuationAssessment: Zhodnocení aktuální ceny – podhodnocená/férová/předražená s vysvětlením proč (3-5 vět).
 - conclusion: Závěrečný verdikt a investiční teze (3-5 vět).
-- recommendation: (consider_buying, hold, consider_selling)
+- recommendation: (consider_buying, hold, consider_selling) – nákupové doporučení musí být podloženo fair value a marží bezpečnosti; pokud tato podpora chybí, preferuj hold nebo consider_selling podle rizik.
 - confidenceLevel: Míra jistoty doporučení (low, medium, high)
 - fairPrice: Tvůj odhad férové ceny (číslo, float).
 - fairPriceCurrency: Měna férové ceny (např. USD).

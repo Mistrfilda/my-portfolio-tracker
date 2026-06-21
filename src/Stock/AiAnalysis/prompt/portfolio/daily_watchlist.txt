@@ -4,7 +4,7 @@ a) Aktuální zprávy a novinky (2–3 věty) – zahrň i geopolitické faktory
 b) Komentář k posledním výsledkům a očekávaným dalším výsledkům (earningsCommentary, 2–4 věty)
 c) Analýzu dividendy (dividendAnalysis, 2–4 věty) – jen pokud je v krátkodobém horizontu relevantní
 d) Krátké zhodnocení výkonnosti za poslední 1 den (performance1DayComment, 2–3 věty)
-e) Zda titul po posledním dni dává větší smysl sledovat / nakoupit / ignorovat a proč (reasoning, 2–4 věty)
-f) Doporučení (consider_buying, wait, not_interesting)
+e) Zda titul po posledním dni dává větší smysl sledovat / nakoupit / ignorovat a proč (reasoning, 2–4 věty). Denní pohyb ceny sám o sobě nestačí pro nákupové doporučení.
+f) Doporučení (consider_buying, wait, not_interesting) – consider_buying použij jen při jasném zlepšení teze, atraktivní valuaci a dostatečné marži bezpečnosti. Při nejasných datech, drahé valuaci nebo běžném tržním šumu preferuj wait; při slabé tezi nebo vysokých rizicích použij not_interesting.
 g) Míra jistoty doporučení (confidenceLevel: low, medium, high)
 h) Odhad férové ceny (fairPrice) a měnu (fairPriceCurrency)
