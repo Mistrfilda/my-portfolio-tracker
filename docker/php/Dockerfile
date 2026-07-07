@@ -43,21 +43,30 @@ RUN chown -R www-data:www-data /var/temp
 
 WORKDIR /var/puppeter
 
-RUN apt-get update && apt-get install -y \
-    chromium \
-    libnss3 \
-    libnspr4 \
-    libatk1.0-0 \
-    libatk-bridge2.0-0 \
-    libgbm1 \
-    libgtk-3-0 \
-    libxdamage1 \
-    libxfixes3 \
-    libxrandr2 \
-    libxkbcommon0 \
-    fonts-liberation \
-    xdg-utils \
-    && apt-get clean
+ARG CHROMIUM_VERSION=149.0.7827.196-1~deb13u1
+ARG CHROMIUM_SNAPSHOT=20260626T000000Z
+
+RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/%s/ trixie-security main\n' "${CHROMIUM_SNAPSHOT}" > /etc/apt/sources.list.d/chromium-snapshot.list \
+    && apt-get update \
+    && apt-get install -y \
+        chromium=${CHROMIUM_VERSION} \
+        chromium-common=${CHROMIUM_VERSION} \
+        chromium-sandbox=${CHROMIUM_VERSION} \
+        libnss3 \
+        libnspr4 \
+        libatk1.0-0 \
+        libatk-bridge2.0-0 \
+        libgbm1 \
+        libgtk-3-0 \
+        libxdamage1 \
+        libxfixes3 \
+        libxrandr2 \
+        libxkbcommon0 \
+        fonts-liberation \
+        xdg-utils \
+    && rm /etc/apt/sources.list.d/chromium-snapshot.list \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 ENV PUPPETEER_SKIP_DOWNLOAD=true
 RUN npm ci --omit=dev
