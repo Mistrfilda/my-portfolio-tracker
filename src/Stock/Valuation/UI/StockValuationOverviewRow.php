@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Valuation\UI;
 
 use App\Stock\Asset\StockAsset;
+use App\Stock\Dividend\Safety\StockDividendSafetyScore;
 use App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafety;
 
 class StockValuationOverviewRow
@@ -17,6 +18,7 @@ class StockValuationOverviewRow
 		private StockAsset $stockAsset,
 		private array $values,
 		private StockValuationMarginOfSafety $marginOfSafety,
+		private StockDividendSafetyScore $dividendSafetyScore,
 	)
 	{
 	}
@@ -37,6 +39,11 @@ class StockValuationOverviewRow
 	public function getMarginOfSafety(): StockValuationMarginOfSafety
 	{
 		return $this->marginOfSafety;
+	}
+
+	public function getDividendSafetyScore(): StockDividendSafetyScore
+	{
+		return $this->dividendSafetyScore;
 	}
 
 }

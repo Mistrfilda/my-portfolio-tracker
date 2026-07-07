@@ -7,6 +7,7 @@ namespace App\Stock\Valuation\UI;
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Dividend\Safety\StockDividendSafetyScoreProvider;
 use App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafetyProvider;
 use App\Stock\Valuation\StockValuationPriceProvider;
 use App\UI\Base\BaseAdminPresenter;
@@ -21,6 +22,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationPriceProvider $stockValuationPriceProvider,
 		private StockValuationMarginOfSafetyProvider $stockValuationMarginOfSafetyProvider,
+		private StockDividendSafetyScoreProvider $stockDividendSafetyScoreProvider,
 	)
 	{
 		parent::__construct();
@@ -66,6 +68,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 					$analyticsPrice,
 					$aiAnalysisPrice,
 				),
+				$this->stockDividendSafetyScoreProvider->getForStockAsset($stockAsset),
 			);
 		}
 	}
