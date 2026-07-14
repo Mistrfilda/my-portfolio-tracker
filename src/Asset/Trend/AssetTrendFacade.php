@@ -10,8 +10,6 @@ use App\Notification\NotificationFacade;
 use App\Notification\NotificationParameterEnum;
 use App\Notification\NotificationParameters;
 use App\Notification\NotificationTypeEnum;
-use App\UI\Filter\AssetPriceFilter;
-use App\UI\Filter\PercentageFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
 
 class AssetTrendFacade
@@ -34,37 +32,41 @@ class AssetTrendFacade
 	): void
 	{
 		$now = $this->datetimeFactory->createNow();
+		$dateToCompare = $now->deductDaysFromDatetime($numberOfDaysToCompare);
+		$trends = [];
+
 		foreach ($this->assetRepositories as $assetRepository) {
 			foreach ($assetRepository->getAllActiveAssets() as $activeAsset) {
-				$trend = $activeAsset->getTrend($now->deductDaysFromDatetime($numberOfDaysToCompare));
+				$trend = $activeAsset->getTrend($dateToCompare);
 
-				if (abs($trend) > $differenceThreshold) {
-					if ($trend > 0) {
-						$notificationType = NotificationTypeEnum::PRICE_ALERT_UP;
-					} else {
-						$notificationType = NotificationTypeEnum::PRICE_ALERT_DOWN;
-					}
-				} else {
+				if (abs($trend) <= $differenceThreshold) {
 					continue;
 				}
 
-				$parameters = new NotificationParameters();
-				$parameters->addParameter(NotificationParameterEnum::TREND_DAYS_THRESHOLD, $numberOfDaysToCompare);
-
-				$this->notificationFacade->create(
-					$notificationType,
-					[NotificationChannelEnum::DISCORD],
-					sprintf(
-						"**%s** \n\n Aktuální hodnota %s \n Změna o **%s** *(časové okno v dnech: %s)*",
-						$activeAsset->getName(),
-						AssetPriceFilter::format($activeAsset->getAssetCurrentPrice()),
-						PercentageFilter::format($trend),
-						$numberOfDaysToCompare,
-					),
-					$parameters,
-				);
+				$currentPrice = $activeAsset->getAssetCurrentPrice();
+				$trends[] = [
+					'name' => $activeAsset->getName(),
+					'currentPrice' => $currentPrice->getPrice(),
+					'currency' => $currentPrice->getCurrency()->value,
+					'trend' => $trend,
+				];
 			}
 		}
+
+		if ($trends === []) {
+			return;
+		}
+
+		$parameters = new NotificationParameters();
+		$parameters->addParameter(NotificationParameterEnum::TREND_DAYS_THRESHOLD, $numberOfDaysToCompare);
+
+		$this->notificationFacade->create(
+			NotificationTypeEnum::ASSET_TRENDS,
+			[NotificationChannelEnum::DISCORD],
+			'Asset trends',
+			$parameters,
+			['trends' => $trends],
+		);
 	}
 
 }

@@ -29,13 +29,13 @@ class DiscordChannelServiceTest extends TestCase
 		$this->assertSame('https://example.com/webhook/new-dividend', $result);
 	}
 
-	public function testWebhookUrlPriceAlertWithValidThreshold(): void
+	public function testWebhookUrlAssetTrendsWithValidThreshold(): void
 	{
 		$mapping = [
 			DiscordChannelEnum::TREND_ALERT_7_DAYS->value => 'https://example.com/webhook/trend-alert-7-days',
 		];
 		$notification = $this->createNotification(
-			NotificationTypeEnum::PRICE_ALERT_UP,
+			NotificationTypeEnum::ASSET_TRENDS,
 			[NotificationParameterEnum::TREND_DAYS_THRESHOLD->value => 7],
 		);
 

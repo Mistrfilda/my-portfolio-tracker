@@ -22,12 +22,14 @@ class NotificationFacade
 
 	/**
 	 * @param array<NotificationChannelEnum> $notificationChannels
+	 * @param array<string, mixed> $data
 	 */
 	public function create(
 		NotificationTypeEnum $notificationTypeEnum,
 		array $notificationChannels,
 		string $message,
 		NotificationParameters|null $notificationParameters = null,
+		array $data = [],
 	): void
 	{
 		$notification = new Notification(
@@ -35,6 +37,7 @@ class NotificationFacade
 			$notificationChannels,
 			$message,
 			$this->datetimeFactory->createNow(),
+			$data,
 		);
 
 		if ($notificationParameters !== null) {

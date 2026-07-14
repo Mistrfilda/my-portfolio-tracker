@@ -28,7 +28,7 @@ class DiscordChannelService
 
 		if (in_array(
 			$notification->getNotificationTypeEnum(),
-			[NotificationTypeEnum::PRICE_ALERT_UP, NotificationTypeEnum::PRICE_ALERT_DOWN],
+			[NotificationTypeEnum::PRICE_ALERT_UP, NotificationTypeEnum::PRICE_ALERT_DOWN, NotificationTypeEnum::ASSET_TRENDS],
 			true,
 		)) {
 			$threshold = $notification->getParameter(NotificationParameterEnum::TREND_DAYS_THRESHOLD);

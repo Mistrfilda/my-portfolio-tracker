@@ -10,6 +10,8 @@ use App\Asset\Trend\AssetTrendFacade;
 use App\Currency\CurrencyEnum;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
+use App\Notification\NotificationParameterEnum;
+use App\Notification\NotificationParameters;
 use App\Notification\NotificationTypeEnum;
 use App\Stock\Asset\StockAsset;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -42,7 +44,7 @@ class AssetTrendFacadeTest extends TestCase
 		);
 	}
 
-	public function testProcessTrendsWithPositiveThresholdExceedingTrend(): void
+	public function testProcessTrendsCreatesOneNotificationWithAllThresholdExceedingTrends(): void
 	{
 		$dateTimeMock = $this->createMock(ImmutableDateTime::class);
 		$this->datetimeFactoryMock
@@ -71,62 +73,56 @@ class AssetTrendFacadeTest extends TestCase
 			),
 		);
 
-		$this->assetRepositoryMock
-			->method('getAllActiveAssets')
-			->willReturn([$activeAssetMock]);
-
-		$this->notificationFacadeMock
-			->expects($this->once())
-			->method('create')
-			->with(
-				NotificationTypeEnum::PRICE_ALERT_UP,
-				[NotificationChannelEnum::DISCORD],
-				$this->stringContains('3.00 %'),
-			);
-
-		$this->assetTrendFacade->processTrends(7, 2);
-	}
-
-	public function testProcessTrendsWithNegativeThresholdExceedingTrend(): void
-	{
-		$dateTimeMock = $this->createMock(ImmutableDateTime::class);
-		$this->datetimeFactoryMock
-			->method('createNow')
-			->willReturn($dateTimeMock);
-
-		$deductedDate = $this->createMock(ImmutableDateTime::class);
-		$dateTimeMock
-			->expects($this->once())
-			->method('deductDaysFromDatetime')
-			->with(7)
-			->willReturn($deductedDate);
-
-		$activeAssetMock = $this->createMock(StockAsset::class);
-		$activeAssetMock
+		$secondActiveAssetMock = $this->createMock(StockAsset::class);
+		$secondActiveAssetMock
 			->expects($this->once())
 			->method('getTrend')
 			->with($deductedDate)
-			->willReturn(-3.0);
-		$activeAssetMock->method('getName')->willReturn('Test Asset');
-		$activeAssetMock->method('getAssetCurrentPrice')->willReturn(
+			->willReturn(-4.5);
+		$secondActiveAssetMock->method('getName')->willReturn('Second Asset');
+		$secondActiveAssetMock->method('getAssetCurrentPrice')->willReturn(
 			new AssetPrice(
-				$activeAssetMock,
-				100,
-				CurrencyEnum::CZK,
+				$secondActiveAssetMock,
+				25.5,
+				CurrencyEnum::USD,
 			),
 		);
 
 		$this->assetRepositoryMock
 			->method('getAllActiveAssets')
-			->willReturn([$activeAssetMock]);
+			->willReturn([$activeAssetMock, $secondActiveAssetMock]);
 
 		$this->notificationFacadeMock
 			->expects($this->once())
 			->method('create')
 			->with(
-				NotificationTypeEnum::PRICE_ALERT_DOWN,
+				NotificationTypeEnum::ASSET_TRENDS,
 				[NotificationChannelEnum::DISCORD],
-				$this->stringContains('-3.00 %'),
+				'Asset trends',
+				$this->callback(static function (NotificationParameters $parameters): bool {
+					self::assertSame(
+						[NotificationParameterEnum::TREND_DAYS_THRESHOLD->value => 7],
+						$parameters->getParameters(),
+					);
+
+					return true;
+				}),
+				[
+					'trends' => [
+						[
+							'name' => 'Test Asset',
+							'currentPrice' => 100.0,
+							'currency' => CurrencyEnum::CZK->value,
+							'trend' => 3.0,
+						],
+						[
+							'name' => 'Second Asset',
+							'currentPrice' => 25.5,
+							'currency' => CurrencyEnum::USD->value,
+							'trend' => -4.5,
+						],
+					],
+				],
 			);
 
 		$this->assetTrendFacade->processTrends(7, 2);

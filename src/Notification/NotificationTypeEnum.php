@@ -13,6 +13,8 @@ enum NotificationTypeEnum: string
 
 	case PRICE_ALERT_DOWN = 'price_alert_down';
 
+	case ASSET_TRENDS = 'asset_trends';
+
 	case GOALS_UPDATES = 'goals_updates';
 
 	public function getTitle(): string
@@ -21,6 +23,7 @@ enum NotificationTypeEnum: string
 			self::NEW_DIVIDEND => 'New dividend',
 			self::PRICE_ALERT_UP => 'Price alert up',
 			self::PRICE_ALERT_DOWN => 'Price alert down',
+			self::ASSET_TRENDS => 'Asset trends',
 			self::GOALS_UPDATES => 'Goals update',
 		};
 	}

@@ -40,14 +40,20 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 	#[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
 	private array $parameters;
 
+	/** @var array<string, mixed> */
+	#[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+	private array $data;
+
 	/**
 	 * @param array<NotificationChannelEnum> $notificationChannels
+	 * @param array<string, mixed> $data
 	 */
 	public function __construct(
 		NotificationTypeEnum $notificationTypeEnum,
 		array $notificationChannels,
 		string $message,
 		ImmutableDateTime $now,
+		array $data = [],
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -60,6 +66,7 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 		$this->notificationStateEnum = NotificationStateEnum::CREATED;
 		$this->createdAt = $now;
 		$this->parameters = [];
+		$this->data = $data;
 	}
 
 	public function addParameter(NotificationParameterEnum $key, string|int $value): void
@@ -123,6 +130,14 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 	public function getParameters(): array
 	{
 		return $this->parameters;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getData(): array
+	{
+		return $this->data;
 	}
 
 }
