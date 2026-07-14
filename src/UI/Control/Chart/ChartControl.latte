@@ -7,9 +7,10 @@
     <div n:if="$chartType === 'line'" class="mb-2 flex justify-end">
         <button
                 type="button"
-                class="rounded-md bg-white/90 px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50"
+                class="rounded-md bg-white/90 px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                aria-label="Obnovit původní měřítko grafu"
                 @click="resetGraphZoom('{$chartId}')"
-        >Reset zoom</button>
+        >Obnovit měřítko</button>
     </div>
 
     <div class="relative min-h-0 flex-1">

@@ -26,7 +26,25 @@ export class ChartRenderer {
     setDefaults() {
         Chart.defaults.font.family = 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"';
         Chart.defaults.color = '#4b5563';
+        Chart.defaults.locale = 'cs-CZ';
         Chart.register(Colors, zoomPlugin);
+    }
+
+    isSmallViewport(): boolean {
+        return window.matchMedia('(max-width: 639px)').matches;
+    }
+
+    formatTickValue(value: string | number): string {
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue)) {
+            return String(value);
+        }
+
+        return new Intl.NumberFormat('cs-CZ', {
+            notation: this.isSmallViewport() ? 'compact' : 'standard',
+            maximumFractionDigits: this.isSmallViewport() ? 1 : 0,
+        }).format(numericValue);
     }
 
     getTooltipDefaults() {
@@ -123,6 +141,7 @@ export class ChartRenderer {
                     ticks: {
                         color: '#6b7280',
                         padding: 8,
+                        callback: (value: string | number) => this.formatTickValue(value),
                     },
                     border: {
                         display: false,
@@ -233,6 +252,7 @@ export class ChartRenderer {
         const graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
+            const isSmallViewport = this.isSmallViewport();
             const myChart = new Chart(graphCanvasElement, {
                 type: 'doughnut',
                 data: {
@@ -244,7 +264,7 @@ export class ChartRenderer {
                     cutout: '62%',
                     plugins: {
                         legend: {
-                            position: 'right',
+                            position: isSmallViewport ? 'bottom' : 'right',
                             labels: {
                                 boxWidth: 8,
                                 boxHeight: 8,
@@ -253,6 +273,27 @@ export class ChartRenderer {
                                 font: {
                                     size: 12,
                                     weight: 500,
+                                },
+                                generateLabels: (chart: Chart) => {
+                                    const values = (chart.data.datasets[0]?.data ?? []).map((value) => Number(value));
+                                    const total = values.reduce((sum, value) => sum + value, 0);
+
+                                    return (chart.data.labels ?? []).map((label, index) => {
+                                        const style = chart.getDatasetMeta(0).controller.getStyle(index, false);
+                                        const value = values[index];
+                                        const percentage = total > 0 ? (value / total) * 100 : 0;
+
+                                        return {
+                                            text: `${String(label)} · ${new Intl.NumberFormat('cs-CZ', { maximumFractionDigits: 1 }).format(percentage)} %`,
+                                            fillStyle: style.backgroundColor,
+                                            strokeStyle: style.borderColor,
+                                            fontColor: '#374151',
+                                            lineWidth: style.borderWidth,
+                                            pointStyle: 'circle',
+                                            hidden: !chart.getDataVisibility(index),
+                                            index: index,
+                                        };
+                                    });
                                 },
                             },
                         },
