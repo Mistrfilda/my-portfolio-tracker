@@ -14,6 +14,7 @@ Generic deferred-job mechanism backed by RabbitMQ. Prefer it over creating a new
 	- `stock_asset_dividend_forecast_recalculate`
 	- `stock_asset_dividend_forecast_recalculate_all`
 	- `portfolio_goal_update`
+	- `stock_ai_analysis_gemini_process`
 - **`JobRequestFacade`** — public entry point; call it from any facade/presenter to enqueue a job.
 - **`JobRequestProcessor`** — consumer-side dispatcher; routes each `JobRequestTypeEnum` to the concrete facade (`ExpenseTagFacade`, `StockAssetDividendForecastRecordFacade`, `PortfolioGoalUpdateFacade`, …).
 - **`RabbitMQ/`** — `JobRequestMessage`, `JobRequestProducer`, `JobRequestConsumer` built on top of `src/RabbitMQ/` base classes (see `rabbitmq-base` skill).
@@ -21,9 +22,8 @@ Generic deferred-job mechanism backed by RabbitMQ. Prefer it over creating a new
 ### How to enqueue a job
 
 ```php
-$this->jobRequestFacade->create(
+$this->jobRequestFacade->addToQueue(
 	JobRequestTypeEnum::EXPENSE_TAG_PROCESS,
-	['expenseTagId' => $tag->getId()->toString()],
 );
 ```
 
@@ -32,8 +32,9 @@ $this->jobRequestFacade->create(
 1. Add a new case to `JobRequestTypeEnum`.
 2. Implement the executing method on the appropriate domain facade (or create one if needed) — must accept the payload and be idempotent.
 3. Wire the new branch in `JobRequestProcessor` (switch on enum -> call facade).
-4. Make sure the target facade is registered in `config/config.neon` and autowired into `JobRequestProcessor`.
-5. No new queue/exchange is needed — the existing JobRequest queue handles it.
+4. Add a named convenience method on `JobRequestFacade` when callers would otherwise duplicate payload keys, as with `addStockAiAnalysisGeminiProcessToQueue()`.
+5. Make sure the target facade is registered in `config/config.neon` and autowired into `JobRequestProcessor`.
+6. No new queue/exchange is needed — the existing JobRequest queue handles it.
 
 ### Rules
 

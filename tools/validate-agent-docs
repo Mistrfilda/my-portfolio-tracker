@@ -1,0 +1,208 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types = 1);
+
+$rootDirectory = dirname(__DIR__);
+$skillsDirectory = $rootDirectory . '/.agents/skills';
+$skillFiles = glob($skillsDirectory . '/*/SKILL.md');
+
+if ($skillFiles === false || $skillFiles === []) {
+	fwrite(STDERR, "No project skills found.\n");
+	exit(1);
+}
+
+sort($skillFiles);
+
+$errors = [];
+$skills = [];
+$contents = [];
+
+foreach ($skillFiles as $skillFile) {
+	$relativePath = getRelativePath($rootDirectory, $skillFile);
+	$content = file_get_contents($skillFile);
+	if ($content === false) {
+		$errors[] = sprintf('%s: unable to read file', $relativePath);
+		continue;
+	}
+	$contents[$skillFile] = $content;
+
+	if (preg_match('/\A---\R(?<frontmatter>.*?)\R---\R/s', $content, $frontmatterMatch) !== 1) {
+		$errors[] = sprintf('%s: missing or invalid YAML frontmatter', $relativePath);
+		continue;
+	}
+
+	$frontmatter = $frontmatterMatch['frontmatter'];
+	if (preg_match('/^name:\s*(?<name>[^\r\n]+)$/m', $frontmatter, $nameMatch) !== 1) {
+		$errors[] = sprintf('%s: missing name', $relativePath);
+		continue;
+	}
+
+	$name = trim($nameMatch['name'], " \t\n\r\0\x0B\"'");
+	$directoryName = basename(dirname($skillFile));
+
+	if (preg_match('/^[a-z0-9]+(?:-[a-z0-9]+)*$/', $name) !== 1) {
+		$errors[] = sprintf('%s: invalid skill name "%s"', $relativePath, $name);
+	}
+	if (strlen($name) > 64) {
+		$errors[] = sprintf('%s: skill name exceeds 64 characters', $relativePath);
+	}
+
+	if ($name !== $directoryName) {
+		$errors[] = sprintf('%s: skill name "%s" does not match directory "%s"', $relativePath, $name, $directoryName);
+	}
+
+	if (array_key_exists($name, $skills)) {
+		$errors[] = sprintf('%s: duplicate skill name "%s"', $relativePath, $name);
+	}
+
+	$skills[$name] = $relativePath;
+
+	if (preg_match('/^description:\s*(?<description>[^\r\n]+)$/m', $frontmatter, $descriptionMatch) !== 1) {
+		$errors[] = sprintf('%s: missing single-line description', $relativePath);
+	} else {
+		$rawDescription = trim($descriptionMatch['description']);
+		$isQuotedDescription = (
+			str_starts_with($rawDescription, "'") && str_ends_with($rawDescription, "'")
+		) || (
+			str_starts_with($rawDescription, '"') && str_ends_with($rawDescription, '"')
+		);
+		if ($isQuotedDescription === false && preg_match('/:\s|\s#/', $rawDescription) === 1) {
+			$errors[] = sprintf('%s: quote description values containing YAML punctuation', $relativePath);
+		}
+
+		$description = trim($rawDescription, "\"'");
+		if ($description === '') {
+			$errors[] = sprintf('%s: empty description', $relativePath);
+		}
+		if (strlen($description) > 1024) {
+			$errors[] = sprintf('%s: description exceeds 1024 characters', $relativePath);
+		}
+		if (str_contains($description, '<') || str_contains($description, '>')) {
+			$errors[] = sprintf('%s: description contains angle brackets', $relativePath);
+		}
+	}
+
+	preg_match_all('/^(?<field>[A-Za-z][A-Za-z0-9_-]*):/m', $frontmatter, $fieldMatches);
+	$unexpectedFields = array_diff(array_unique($fieldMatches['field']), ['name', 'description']);
+	foreach ($unexpectedFields as $unexpectedField) {
+		$errors[] = sprintf('%s: unsupported frontmatter field "%s"', $relativePath, $unexpectedField);
+	}
+
+	if (str_contains($content, '[TODO:') || str_contains($content, 'TODO placeholder')) {
+		$errors[] = sprintf('%s: unresolved skill template TODO', $relativePath);
+	}
+
+	$openAiMetadataFile = dirname($skillFile) . '/agents/openai.yaml';
+	if (is_file($openAiMetadataFile)) {
+		$openAiMetadata = file_get_contents($openAiMetadataFile);
+		if ($openAiMetadata === false) {
+			$errors[] = sprintf('%s: unable to read file', getRelativePath($rootDirectory, $openAiMetadataFile));
+			continue;
+		}
+		if (str_contains($openAiMetadata, '$' . $name) === false) {
+			$errors[] = sprintf(
+				'%s: default_prompt must mention $%s',
+				getRelativePath($rootDirectory, $openAiMetadataFile),
+				$name,
+			);
+		}
+	}
+}
+
+foreach ($contents as $skillFile => $content) {
+	$relativePath = getRelativePath($rootDirectory, $skillFile);
+	$insideRelatedSkills = false;
+
+	foreach (preg_split('/\R/', $content) ?: [] as $lineNumber => $line) {
+		if (preg_match('/^##\s+Related skills\s*$/i', $line) === 1) {
+			$insideRelatedSkills = true;
+			continue;
+		}
+
+		if ($insideRelatedSkills && preg_match('/^##\s+/', $line) === 1) {
+			$insideRelatedSkills = false;
+		}
+
+		$skillReferences = [];
+		if (
+			$insideRelatedSkills
+			&& preg_match('/^\s*-\s+`(?<reference>[a-z0-9]+(?:-[a-z0-9]+)+)`/', $line, $relatedSkillMatch) === 1
+		) {
+			$skillReferences[] = $relatedSkillMatch['reference'];
+		} elseif (preg_match('/\bskills?\b/i', $line) === 1) {
+			preg_match_all('/`(?<reference>[a-z0-9]+(?:-[a-z0-9]+)+)`/', $line, $skillReferenceMatches);
+			$skillReferences = $skillReferenceMatches['reference'];
+		}
+
+		foreach ($skillReferences as $skillReference) {
+				if (array_key_exists($skillReference, $skills) === false) {
+					$errors[] = sprintf(
+						'%s:%d: unknown referenced skill "%s"',
+						$relativePath,
+						$lineNumber + 1,
+						$skillReference,
+					);
+			}
+		}
+	}
+
+	preg_match_all(
+		'/`(?<path>(?:src|tests|config|doc|assets|puppeter|tools)\/[^`]+)`/',
+		$content,
+		$pathMatches,
+	);
+	foreach (array_unique($pathMatches['path']) as $referencedPath) {
+		if (shouldSkipPathValidation($referencedPath)) {
+			continue;
+		}
+
+		$normalizedPath = rtrim($referencedPath, '/');
+		if (file_exists($rootDirectory . '/' . $normalizedPath) === false) {
+			$errors[] = sprintf('%s: referenced path does not exist: %s', $relativePath, $referencedPath);
+		}
+	}
+}
+
+if ($errors !== []) {
+	fwrite(STDERR, "Agent documentation validation failed:\n");
+	foreach ($errors as $error) {
+		fwrite(STDERR, '- ' . $error . "\n");
+	}
+
+	exit(1);
+}
+
+fwrite(STDOUT, sprintf("Validated %d project skills.\n", count($skills)));
+
+/**
+ * @return non-empty-string
+ */
+function getRelativePath(string $rootDirectory, string $path): string
+{
+	$relativePath = substr($path, strlen($rootDirectory) + 1);
+	assert($relativePath !== false && $relativePath !== '');
+
+	return $relativePath;
+}
+
+function shouldSkipPathValidation(string $path): bool
+{
+	if (
+		str_contains($path, '*')
+		|| str_contains($path, '<')
+		|| str_contains($path, '>')
+		|| str_contains($path, '%')
+		|| str_contains($path, '{')
+		|| str_contains($path, '}')
+		|| str_contains($path, '$')
+		|| str_contains($path, '...')
+	) {
+		return true;
+	}
+
+	return in_array($path, [
+		'config/config.local.neon',
+		'docker/config-docker.local.neon',
+	], true);
+}

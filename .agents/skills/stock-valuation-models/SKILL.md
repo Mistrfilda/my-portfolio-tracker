@@ -1,6 +1,6 @@
 ---
 name: stock-valuation-models
-description: Invoke before adding or modifying stock valuation data parsing, valuation models, valuation UI/sorting, or industry peer comparison. Covers  valuation JSON download/parsing, `StockValuationData`, `StockValuationTypeEnum`, `StockValuationFacade`, and models under `src/Stock/Valuation/Model/Price/`.
+description: Invoke before adding or modifying stock valuation JSON parsing, valuation models, valuation UI or sorting, and industry peer comparison. Covers `StockValuationData`, `StockValuationTypeEnum`, `StockValuationFacade`, and models under `src/Stock/Valuation/Model/Price/`.
 ---
 
 ## Stock Valuation
@@ -18,7 +18,7 @@ Use this skill for valuation parsing, `StockValuationTypeEnum`, valuation model 
 - `puppeter/KeyStatisticsScraper.js`, `puppeter/AnalystInsightsScraper.js`, `puppeter/FinancialsScraper.js`, and `puppeter/StockAssetIndustryScapper.js` scrape pages into JSON files under `%puppeter.folder%`.
 - `src/Stock/Valuation/Data/StockValuationDataParseCommand.php` is the CLI entry point for parsing downloaded valuation JSON.
 - `src/Stock/Valuation/Data/StockValuationDataFacade.php` coordinates parsing and persistence.
-- `src/Stock/Valuation/Data/StockValuationDataKeyAnalyticsParser.php` parses  `key-statistics` HTML.
+- `src/Stock/Valuation/Data/StockValuationDataKeyAnalyticsParser.php` parses `key-statistics` HTML.
 - `src/Stock/Valuation/Data/StockValuationDataAnalyticsParser.php` parses analyst insights JSON/text.
 - `src/Stock/Valuation/Data/StockValuationDataNumericHelper.php` normalizes numeric strings.
 - `src/Stock/Valuation/Data/StockValuationData.php` stores parsed values.
@@ -36,7 +36,7 @@ Use this skill for valuation parsing, `StockValuationTypeEnum`, valuation model 
 	- Current valuation persistence is primarily from `processKeyStatistics()` and `processAnalystInsights()`.
 	- `financials.json` may be downloaded even if it is not currently persisted by this command; verify before relying on it.
 4. `StockValuationDataFacade` maps parsed values to `StockValuationTypeEnum` keys and saves `StockValuationData` records.
-	- `basic_info` can be parsed from  but is not the same as persisted valuation metrics; check the facade before assuming a parsed field is stored.
+	- `basic_info` can be parsed from key-statistics HTML but is not the same as persisted valuation metrics; check the facade before assuming a parsed field is stored.
 5. `StockValuationFacade` loads parsed data and runs all services typed as `App\Stock\Valuation\Model\StockValuationModel`.
 6. UI controls render per-stock valuation details, comparison tables, sorting, and industry peer comparison.
 
@@ -48,7 +48,7 @@ Use this skill for valuation parsing, `StockValuationTypeEnum`, valuation model 
 - `isCurrencyValue()` affects UI formatting, sorting, and currency conversion. Only real money-like values belong there.
 	- Currency values include market cap, enterprise value, revenue, cash/debt amounts, per-share prices, dividends per share, and analyst price targets.
 	- Ratios, counts, volumes, beta, margins, yields, and debt/equity percentages are not currency values.
-- Be careful with  labels that are substrings of other labels. Prefer exact/specific labels such as `Revenue (ttm)` over broad labels like `Revenue`, which can accidentally match `Enterprise Value/Revenue`.
+- Be careful with metric labels that are substrings of other labels. Prefer exact labels such as `Revenue (ttm)` over broad labels like `Revenue`, which can accidentally match `Enterprise Value/Revenue`.
 
 ### Numeric and currency normalization
 
@@ -93,7 +93,7 @@ All extend `BasePriceModel` and return `StockValuationPriceModelResponse`:
 4. If the model needs extra input fields, extend `StockValuationData` / `ValuationDataParser` and generate a Doctrine migration (see `doctrine-migrations` skill).
 5. Add a unit test for the calculation with fixed inputs (prefer unit over integration — see `testing-conventions`).
 
-### Adding or changing a parsed  metric
+### Adding or changing a parsed metric
 
 1. Add or update the metric in `StockValuationTypeEnum`.
 	- Set the correct group and `StockValuationTypeValueTypeEnum`.
@@ -106,7 +106,7 @@ All extend `BasePriceModel` and return `StockValuationPriceModelResponse`:
 5. Add or update unit tests under `tests/Unit/Stock/Valuation/`.
 	- Parser tests belong under `tests/Unit/Stock/Valuation/Data/`.
 	- Enum behavior belongs in `tests/Unit/Stock/Valuation/StockValuationTypeEnumTest.php`.
-	- Use local fixtures/synthetic HTML; never call or external HTTP APIs in tests.
+	- Use local fixtures or synthetic HTML; never call external HTTP APIs in tests.
 
 ### UI and sorting
 

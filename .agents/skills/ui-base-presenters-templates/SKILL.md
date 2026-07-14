@@ -1,42 +1,57 @@
 ---
 name: ui-base-presenters-templates
-description: Invoke before creating or modifying a Nette Presenter or Control in this project. Provides the mandatory Template-class pattern and the base presenters (`BasePresenter`, `BaseAdminPresenter`, `BaseSysadminPresenter`, `BaseFrontPresenter`, `BaseControl`) in `src/UI/Base/`. Use when the user assigns template properties, introduces a new presenter/control, or asks about template properties.
+description: Invoke before creating or modifying a Nette Presenter or Control, assigning template properties, or adding a presenter/control Template class. Provides the mandatory typed-template pattern based on `src/UI/Base/`, including presenter PHPDoc, control `createTemplate()` usage, Latte `{templateType}`, lifecycle boundaries, and routing registration.
 ---
 
-## Base Presenters, Controls & Templates
+# Base Presenters, Controls, and Templates
 
-Every presenter and control in this project MUST extend a project base class and MUST use a typed Template class — dynamic template properties are deprecated.
+Every project presenter and control must use the appropriate base class and a typed Template class. Dynamic template properties are not allowed.
 
-### Base classes (`src/UI/Base/`)
+## Base classes
 
-- **`BasePresenter`** — abstract root for all presenters.
-- **`BaseAdminPresenter`** — admin module (authenticated, admin layout).
-- **`BaseSysadminPresenter`** — sysadmin-only screens.
-- **`BaseFrontPresenter`** — public/front module.
-- **`BaseControl`** — abstract root for all controls/components.
-- **`BasePresenterParameters`** — shared config (pageTitle, storageName) injected via DI (`%basePresenterParameters.*%`).
+- `BasePresenter` — common presenter behavior.
+- `BaseAdminPresenter` — authenticated admin UI and admin layout.
+- `BaseSysadminPresenter` — sysadmin-only UI.
+- `BaseFrontPresenter` — public/front layout.
+- `BaseControl` — reusable UI controls.
+- `BaseAdminPresenterTemplate`, `BasePresenterTemplate`, and `BaseControlTemplate` — typed template bases.
 
-### Template classes
+## Presenter pattern
 
-- `BasePresenterTemplate` — for `BasePresenter` descendants.
-- `BaseAdminPresenterTemplate` — for admin presenters.
-- `BaseControlTemplate` — for controls.
+1. Create `<PresenterName>Template` beside the presenter and extend the appropriate base Template class.
+2. Declare every presenter-specific template variable as a public typed property; document array generics with PHPDoc.
+3. Add this class-level annotation to the presenter:
 
-### Mandatory pattern
+```php
+/**
+ * @property-read ExampleTemplate $template
+ */
+class ExamplePresenter extends BaseAdminPresenter
+```
 
-1. For every presenter/control, create a matching `<Name>Template` class extending the appropriate base template class.
-2. Declare every template variable as a **public typed property** on that Template class.
-3. In the presenter/control annotate the template type:
-	```php
-	/** @var MyPresenterTemplate $template */
-	$this->template->myVar = $value;
-	```
-4. Never assign a variable to `$this->template` without first declaring it on the Template class — this triggers deprecation warnings and breaks strict Latte typing (`latte.strictTypes: true`).
+4. Assign only declared properties in `render*()`, `action*()`, or shared lifecycle methods.
+5. Add `{templateType App\...\ExampleTemplate}` to every matching Latte template.
 
-### Other rules
+## Control pattern
 
-- Keep actions/signals for writes/redirects and `render<Name>` for preparing read-only template data — see `nette-architecture` skill.
-- Page title is set via `BasePresenterParameters`; override per action when needed.
-- All comments and exception messages in English; tabs for indentation.
-- For Latte filter usage (`currency`, `summaryPriceFormat`, …) see `ui-latte-filters`.
-- When creating new presenter, register route in `config/routing.neon`.
+```php
+$template = $this->createTemplate(ExampleControlTemplate::class);
+assert($template instanceof ExampleControlTemplate);
+$template->items = $items;
+$template->setFile(__DIR__ . '/ExampleControl.latte');
+$template->render();
+```
+
+Extend `BaseControlTemplate`, declare every assigned property, and add the matching `{templateType}` directive to the Latte file.
+
+## Boundaries
+
+- Use actions/signals for writes and redirects; use `render*()` for read-only view preparation.
+- Keep business calculations and repository queries out of Template classes and Latte.
+- Register a new presenter's mapping in `config/routing.neon`.
+- Use `latte-templates` for template syntax and `nette-architecture` for placement/lifecycle decisions.
+
+## Validation
+
+- Run `composer latte-lint` for focused template validation.
+- Finish PHP/Latte/config changes with `composer cs-fix && composer build-all`.

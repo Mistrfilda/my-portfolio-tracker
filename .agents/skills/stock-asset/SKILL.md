@@ -66,7 +66,7 @@ Use this skill before changing stock asset creation/editing, asset flags, ticker
 - If you change price flags or currency behavior, inspect `src/Stock/Price/` and shared asset price infrastructure.
 - If you change dividend settings, inspect `src/Stock/Dividend/` and the `stock-dividend` skill.
 - If you change valuation settings or industry behavior, inspect `src/Stock/Valuation/` and the `stock-valuation-models` skill.
-- If you change watchlist or stock identity fields, inspect `src/Stock/AiAnalysis/` and the `stock-ai-analysis-gemini` skill.
+- If you change watchlist or stock identity fields, inspect `src/Stock/AiAnalysis/` and use `stock-ai-analysis`; add `stock-ai-analysis-gemini` only for provider-specific processing.
 
 ### UI rules
 

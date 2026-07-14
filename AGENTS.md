@@ -49,8 +49,9 @@ The test: Every changed line should trace directly to the user's request.
 **Define success criteria. Loop until verified.**
 
 Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass" – do not start with invalid tests on new features.
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
+- "Add validation" → "Cover valid and invalid inputs, then make the complete test suite pass."
+- "Fix the bug" → "Add a regression test that reproduces it, then make it pass."
+- "Add a feature" → "Test the requested behavior alongside the implementation; do not leave intentionally failing tests."
 - "Refactor X" → "Ensure tests pass before and after"
 
 For multi-step tasks, state a brief plan:
@@ -76,8 +77,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - When assigning to `$this->template`, always add a matching public typed property to the Template class. Dynamic template properties are deprecated.
 - Use English in exception messages and comments.
 - Never use raw `<svg>` markup; use `{renderSvg}` and `App\UI\Icon\SvgIcon`.
-- Never commit or try to read/open `config/config.local.neon` or `docker/config-docker.local.neon`.
-- When code or configuration changes, finish validation with `composer cs-fix && composer build-all`.
+- Never commit, read, print, or open `config/config.local.neon` or `docker/config-docker.local.neon`. Do not use wildcard commands that can include them; target public configuration files explicitly.
+
+## Validation Matrix
+- PHP, Latte, or NEON changes: finish with `composer cs-fix && composer build-all`.
+- TypeScript or CSS changes: run `npm run lint && npm run build-dev`; also run the PHP/Latte checks when the change crosses those layers.
+- Browser-test changes: run `npm run test-browser` when the local app and credentials are available; otherwise run `npx playwright test --list` and report the runtime limitation.
+- `AGENTS.md` or `.agents/skills/`-only changes: run `composer agent-docs`; a full application build is not required.
 
 ## Skills
 - Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
@@ -90,8 +96,9 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 	- `doctrine-migrations` — Doctrine entities, repositories, schema changes, migrations.
 	- `api-slim` — REST API endpoints and OpenAPI-related work.
 	- `job-request`, `rabbitmq-base` — asynchronous jobs and RabbitMQ integration.
-	- `asset-price-system`, `currency-conversion`, `stock-valuation-models` — core investment-domain logic.
+	- `asset-price-system`, `asset-price-downloaders`, `asset-position-system`, `currency-conversion`, `stock-valuation-models` — core investment-domain logic.
 
 ## Project Notes
 - Human-oriented setup and infrastructure details belong in `readme.md` and related docs, not in these global guidelines.
 - If a domain needs more than a short rule here, prefer a dedicated skill over expanding this file.
+- Keep skills concise and project-specific. Put detailed syntax or API catalogs in a skill's `references/` folder and load them only when needed.

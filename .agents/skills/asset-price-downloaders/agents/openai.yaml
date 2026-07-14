@@ -1,0 +1,4 @@
+interface:
+  display_name: "Asset Price Downloaders"
+  short_description: "Price downloader workflows and contracts"
+  default_prompt: "Use $asset-price-downloaders to modify a stock, crypto, or JSON price downloader safely."

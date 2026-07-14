@@ -14,7 +14,7 @@ Use this skill before changing dividend entities, dividend download/parsing, div
 - `src/Stock/Dividend/StockAssetDividend.php` is the Doctrine entity for one dividend event.
 - `src/Stock/Dividend/StockAssetDividendFacade.php` is the write boundary for manual create/update and dashboard access helpers.
 - `src/Stock/Dividend/StockAssetDividendRepository.php` contains dividend queries by stock asset, date, year, ex-date, and type.
-- `src/Stock/Dividend/StockAssetDividendRecord.php` stores per-position dividend records linked to a dividend event.
+- `src/Stock/Dividend/Record/StockAssetDividendRecord.php` stores per-position dividend records linked to a dividend event.
 - `src/Stock/Dividend/StockAssetDividendTypeEnum.php` distinguishes dividend types.
 - `src/Stock/Dividend/StockAssetDividendSourceEnum.php` defines dividend download/source configuration stored on `StockAsset`.
 - `src/Stock/Dividend/Downloader/` contains dividend downloader implementations and related contracts.

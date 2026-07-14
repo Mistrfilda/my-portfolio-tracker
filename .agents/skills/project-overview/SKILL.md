@@ -34,6 +34,12 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 	- Start in `src/Asset/` for shared contracts.
 	- Then inspect the concrete module in `src/Stock/Price/`, `src/Portu/Price/`, or `src/Crypto/`.
 	- Read `asset-price-system` before changing shared price logic.
+	- Read `asset-price-downloaders` for source selection, HTTP/JSON imports, or downloader commands.
+
+- **Positions / closed positions / portfolio value**
+	- Start with the contracts in `src/Asset/Position/`.
+	- Continue in `src/Stock/Position/`, `src/Crypto/Position/`, or `src/Portu/Position/`.
+	- Read `asset-position-system` before changing position calculations or closing flows.
 
 - **Dividends / dividend forecasts / stock fundamentals**
 	- Start in `src/Stock/Dividend/`.
@@ -83,6 +89,8 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 - `ui-base-presenters-templates`
 - `doctrine-migrations`
 - `asset-price-system`
+- `asset-price-downloaders`
+- `asset-position-system`
 - `currency-conversion`
 - `job-request`
 - `rabbitmq-base`

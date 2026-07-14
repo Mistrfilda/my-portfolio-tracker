@@ -1,327 +1,40 @@
 ---
 name: nette-utils
-description: Provides Nette Utils helper classes. Use when working with Arrays, Strings, Image, Finder, FileSystem, Json, Validators, DateTime, Html element builder, Random, Callback, Type, or SmartObject from nette/utils. Do NOT use for Nette Schema, Nette Forms, Nette Database, Latte filters, or DI configuration.
+description: Invoke when using or changing `Nette\Utils` helpers such as `Json`, `FileSystem`, `Finder`, `Strings`, `Arrays`, `Image`, or `Html` in this project. Provides project-specific choices around JSON, scalar validation, files, strings, and time. Do not trigger for Nette Forms, DI configuration, Doctrine, or Latte filters unless a Utils helper is directly involved.
 ---
 
-## Nette Utils
+# Nette Utils
 
-A collection of useful PHP utility classes for everyday tasks.
+Prefer the established project helper and keep utility use at the infrastructure boundary.
 
-```shell
-composer require nette/utils
-```
+## Project choices
 
-For detailed references:
-- [Arrays, ArrayHash, ArrayList](references/arrays.md)
-- [Strings and regex functions](references/strings.md)
-- [Image manipulation](references/image.md)
-- [File searching with Finder](references/finder.md)
+- Use `Nette\Utils\Json` for all JSON serialization and deserialization. Do not call raw `json_encode()` / `json_decode()` in application code.
+- Use `App\Utils\TypeValidator` for scalar extraction and validation. Do not replace it with `Nette\Utils\Validators` in project flows.
+- Use `Nette\Utils\FileSystem` for application file reads, writes, copies, directory creation, and deletion.
+- Use the injected `Mistrfilda\Datetime\DatetimeFactory` and its immutable types for domain timestamps; do not introduce `Nette\Utils\DateTime` or direct current-time construction into existing domain flows.
+- Use `Nette\Utils\Strings` / `Arrays` only when they make the existing code clearer than native PHP and match nearby code.
 
----
+## JSON
 
-## DateTime
+- Decode into arrays only when the consumer expects arrays; otherwise preserve the established object shape.
+- Validate decoded top-level and scalar shapes before assigning them to entities or DTOs.
+- Catch `Nette\Utils\JsonException` only where the layer can add meaningful domain context or recover.
 
-Extended `DateTime` class with strict validation and DST fixes.
+## Files
 
-```php
-use Nette\Utils\DateTime;
+- Keep paths injected or derived from existing configuration/folder services.
+- Do not read local secret configuration files.
+- In import pipelines, preserve the established request/results/processed-file lifecycle.
+- Tests must use temporary directories or fixtures and clean up only their own files.
 
-// Create from various formats
-DateTime::from(1138013640);              // from timestamp
-DateTime::from('2024-02-26 04:15:32');   // from string
-DateTime::from($dateTimeInterface);       // from object
+## References
 
-// Create from parts (throws on invalid date)
-DateTime::fromParts(2024, 2, 26, 4, 15);
+Read only the reference needed for the task:
 
-// Immutable modification
-$clone = $original->modifyClone('+1 day');
+- `references/arrays.md`
+- `references/strings.md`
+- `references/image.md`
+- `references/finder.md`
 
-// Convert relative time to seconds
-DateTime::relativeToSeconds('10 minutes'); // 600
-DateTime::relativeToSeconds('-1 hour');    // -3600
-
-// JSON serialization (ISO 8601)
-echo json_encode($dateTime); // "2024-02-26T04:15:32+01:00"
-```
-
----
-
-## Json
-
-Safe JSON encoding/decoding with exceptions.
-
-```php
-use Nette\Utils\Json;
-
-// Encode
-$json = Json::encode($data);
-$json = Json::encode($data, pretty: true);        // formatted
-$json = Json::encode($data, asciiSafe: true);     // escape unicode
-$json = Json::encode($data, htmlSafe: true);      // escape < > &
-$json = Json::encode($data, forceObjects: true);  // arrays as objects
-
-// Decode
-$data = Json::decode($json);                    // returns stdClass
-$data = Json::decode($json, forceArray: true);  // returns array
-
-// Both throw Nette\Utils\JsonException on error
-```
-
----
-
-## Validators
-
-Value validation and type checking.
-
-```php
-use Nette\Utils\Validators;
-
-// Type checking
-Validators::is($value, 'int');              // true/false
-Validators::is($value, 'int|string|bool');  // union types
-Validators::is($value, 'int:0..100');       // range
-Validators::is($value, 'string:10..20');    // length range
-Validators::is($value, 'array:1..5');       // count range
-
-// Specific validators
-Validators::isEmail('user@example.com');    // true
-Validators::isUrl('https://nette.org');     // true
-Validators::isUri('mailto:info@nette.org'); // true
-Validators::isNumeric('123');               // true (string number)
-Validators::isNumericInt('123');            // true (string integer)
-Validators::isUnicode($string);             // valid UTF-8?
-Validators::isInRange($value, [0, 100]);    // in range?
-Validators::isNone($value);                 // 0, '', false, null, []?
-
-// Assertion (throws on failure)
-Validators::assert($value, 'string:5..10');
-Validators::assertField($array, 'key', 'int');
-```
-
-### Expected Types
-
-| Type | Description |
-|------|-------------|
-| `int`, `float`, `bool`, `string`, `array`, `null` | PHP types |
-| `scalar` | `int\|float\|bool\|string` |
-| `list` | indexed array |
-| `number` | `int\|float` |
-| `numeric` | number or numeric string |
-| `unicode` | valid UTF-8 string |
-| `email`, `url`, `uri` | format validation |
-| `alnum`, `alpha`, `digit`, `lower`, `upper` | character classes |
-| `class`, `interface` | existing class/interface |
-| `file`, `directory` | existing path |
-
----
-
-## FileSystem
-
-File operations with exception handling.
-
-```php
-use Nette\Utils\FileSystem;
-
-// Read/Write
-$content = FileSystem::read('/path/to/file');
-FileSystem::write('/path/to/file', $content);
-
-// Read large files line by line
-foreach (FileSystem::readLines('/path/to/file') as $line) {
-	echo $line;
-}
-
-// Copy/Move/Delete
-FileSystem::copy($source, $target);
-FileSystem::rename($source, $target);
-FileSystem::delete($path);  // works on directories too
-
-// Directory operations
-FileSystem::createDir('/path/to/dir');
-FileSystem::makeWritable('/path');
-
-// Path utilities
-FileSystem::isAbsolute('../path');                    // false
-FileSystem::normalizePath('/file/../path');           // '/path'
-FileSystem::joinPaths('a', 'b', 'file.txt');          // 'a/b/file.txt'
-FileSystem::resolvePath('/base', '../file.txt');      // '/file.txt'
-FileSystem::unixSlashes('path\\to\\file');            // 'path/to/file'
-```
-
----
-
-## Floats
-
-Safe floating-point comparisons.
-
-```php
-use Nette\Utils\Floats;
-
-// Compare floats (handles precision issues)
-Floats::isZero(0.0);                    // true
-Floats::areEqual(0.1 + 0.2, 0.3);       // true (!)
-Floats::isLessThan($a, $b);
-Floats::isLessThanOrEqualTo($a, $b);
-Floats::isGreaterThan($a, $b);
-Floats::isGreaterThanOrEqualTo($a, $b);
-
-// Compare with result
-Floats::compare($a, $b);  // -1, 0, or 1
-```
-
----
-
-## Random
-
-Cryptographically secure random values.
-
-```php
-use Nette\Utils\Random;
-
-// Random string (default: 0-9, a-z)
-Random::generate(10);                    // 'a4b3c2d1e0'
-Random::generate(10, 'A-Z');             // 'XYZABCDEF'
-Random::generate(10, '0-9A-Za-z');       // 'aB3cD4eF5g'
-Random::generate(10, 'A-Za-z!@#$%');     // 'aBc!@Def#$'
-```
-
----
-
-## Paginator
-
-Pagination calculations.
-
-```php
-use Nette\Utils\Paginator;
-
-$paginator = new Paginator;
-$paginator->setItemCount(100);  // total items
-$paginator->setItemsPerPage(10);
-$paginator->setPage(3);
-
-echo $paginator->getPageCount();    // 10
-echo $paginator->getOffset();       // 20 (for SQL OFFSET)
-echo $paginator->getLength();       // 10 (for SQL LIMIT)
-echo $paginator->isFirst();         // false
-echo $paginator->isLast();          // false
-```
-
----
-
-## Html
-
-HTML element builder.
-
-```php
-use Nette\Utils\Html;
-
-// Create element
-$el = Html::el('a', ['href' => 'https://nette.org']);
-$el->setText('Nette');
-echo $el;  // <a href="https://nette.org">Nette</a>
-
-// Fluent interface
-$el = Html::el('div')
-	->id('container')
-	->class('main active')
-	->data('id', 123)
-	->setHtml('<p>Content</p>');
-
-// Shorthand
-Html::el('input', ['type' => 'text', 'name' => 'email']);
-Html::el('div class="box"');  // from string
-```
-
----
-
-## Callback
-
-Working with PHP callables.
-
-```php
-use Nette\Utils\Callback;
-
-// Normalize to closure
-$closure = Callback::closure($callable);
-$closure = Callback::closure($obj, 'method');
-$closure = Callback::closure('Class::method');
-
-// Check validity
-Callback::check($callable);  // throws if invalid
-
-// Invoke with exception wrapping
-Callback::invokeSafe($callable, $args, $onError);
-
-// Reflection
-$reflection = Callback::toReflection($callable);
-```
-
----
-
-## Type
-
-PHP type utilities.
-
-```php
-use Nette\Utils\Type;
-
-// Get type from reflection
-$type = Type::fromReflection($reflectionProperty);
-$type = Type::fromReflection($reflectionParameter);
-
-// Parse type string
-$type = Type::fromString('int|string|null');
-
-// Type info
-$type->getSingleName();     // 'int' or null if union
-$type->getNames();          // ['int', 'string', 'null']
-$type->isUnion();           // true
-$type->isIntersection();    // false
-$type->isBuiltin();         // true
-$type->allowsNull();        // true
-$type->isClass();           // false
-```
-
----
-
-## SmartObject Trait
-
-Modern PHP object features for classes.
-
-```php
-use Nette\SmartObject;
-
-class MyClass
-{
-	use SmartObject;
-
-	private string $name;
-
-	public function getName(): string
-	{
-		return $this->name;
-	}
-
-	public function setName(string $name): void
-	{
-		$this->name = $name;
-	}
-}
-
-$obj = new MyClass;
-$obj->name = 'John';    // calls setName()
-echo $obj->name;        // calls getName()
-```
-
-### Online Documentation
-
-For detailed information, use WebFetch on these URLs:
-
-- [Arrays](https://doc.nette.org/en/utils/arrays) – array helpers
-- [Strings](https://doc.nette.org/en/utils/strings) – string functions and regex
-- [Images](https://doc.nette.org/en/utils/images) – image manipulation
-- [FileSystem](https://doc.nette.org/en/utils/filesystem) – file operations
-- [Finder](https://doc.nette.org/en/utils/finder) – file searching
-- [JSON](https://doc.nette.org/en/utils/json) – safe JSON handling
-- [Validators](https://doc.nette.org/en/utils/validators) – type checking and validation
+Use the installed `nette/utils` API and the nearest project implementation as the source of truth when a reference and current code differ.

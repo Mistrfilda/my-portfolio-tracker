@@ -129,12 +129,14 @@
 			"vendor/bin/phpcov merge --html temp/coverage/merged temp/coverage-php"
 		],
 		"latte-lint": "./tools/custom-latte-lint src/",
+		"agent-docs": "php tools/validate-agent-docs",
 		"build-all-local": [
 			"@comload",
 			"@build-all",
 			"@acceptance-test"
 		],
 		"build-all": [
+			"@agent-docs",
 			"@lint",
 			"@stan",
 			"@cs",

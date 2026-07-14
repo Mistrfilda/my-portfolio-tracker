@@ -46,5 +46,5 @@ Never hand-edit the schema or skip the migration step — the production DB is s
 ### Testing
 
 - Prefer unit tests over integration tests.
-- Integration tests that touch the DB extend `App\Test\Integration\Api\ApiTestCase`.
+- Integration tests that touch the DB extend `App\Test\Integration\IntegrationTestCase`; only Slim API tests extend `App\Test\Integration\Api\ApiTestCase`.
 - Never use real RabbitMQ queues in tests; for DB, use the test database set up by the test base class.

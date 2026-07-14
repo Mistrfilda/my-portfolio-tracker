@@ -1,0 +1,4 @@
+interface:
+  display_name: "Asset Position System"
+  short_description: "Cross-asset position and closing workflows"
+  default_prompt: "Use $asset-position-system to change Stock, Crypto, or Portu position behavior consistently."

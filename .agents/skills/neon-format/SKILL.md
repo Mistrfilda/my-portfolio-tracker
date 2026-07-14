@@ -1,216 +1,38 @@
 ---
 name: neon-format
-description: Invoke before creating or modifying .neon files. Provides NEON syntax and Nette configuration conventions. Use when writing or editing .neon config files, asking about NEON syntax (entities, multiline strings, inline notation, special values, escaping), converting YAML to NEON, parsing or encoding NEON in PHP (Neon::decode, Neon::encode), running neon-lint, or debugging NEON syntax errors. For phpstan.neon, use the phpstan-analysis skill (from nette-dev plugin) instead. Do not trigger for Nette DI concepts like autowiring and service registration without .neon file context.
+description: Invoke before creating or modifying `.neon` files. Provides project NEON syntax, tab indentation, block and inline notation, DI entity syntax, safe handling of local overrides, and `vendor/bin/neon-lint` validation. Combine with `nette-configuration` for services, parameters, autowiring, or extensions, and with the relevant specialized skill for `phpstan.neon` or RabbitMQ configuration.
 ---
 
-## NEON Format
+# NEON Format
 
-NEON (Nette Object Notation) is a human-readable data format used for configuration files in Nette. Similar to YAML but with support for entities and tab indentation.
+Preserve the surrounding file style and use tabs for block indentation.
 
-```shell
-composer require nette/neon
-```
+## Syntax
 
-### Mappings
+- Write mappings as `key: value` with a space after the colon.
+- Use `- value` for block sequences.
+- Use `[a, b]` or `{key: value}` only for short, simple inline values.
+- Quote values that contain NEON punctuation, look like booleans/dates/numbers, or need leading/trailing whitespace.
+- Use `null`, `true`, and `false` consistently with the surrounding project configuration.
+- Keep DI entities and named arguments in their established form, for example `Service(argument: %parameter%)` and `typed(Interface)`.
 
-Key-value pairs with required space after colon:
+Do not mechanically convert tabs to spaces. YAML files such as `doc/openapi.yaml` and GitHub workflows are not NEON and use spaces.
 
-```neon
-street: 742 Evergreen Terrace
-city: Springfield
-country: USA
-```
+## Project files
 
-Inline notation with braces:
+- `config/config.neon` — main framework, parameters, and services.
+- `config/forms.neon` — form messages.
+- `config/routing.neon` — presenter mappings.
+- `config/rabbitmq.neon` — queue transport.
+- `phpstan.neon` — static-analysis configuration.
 
-```neon
-{street: 742 Evergreen Terrace, city: Springfield, country: USA}
-```
-
-### Sequences
-
-Indexed arrays with hyphen and space:
-
-```neon
-- Cat
-- Dog
-- Goldfish
-```
-
-Inline notation with brackets:
-
-```neon
-[Cat, Dog, Goldfish]
-```
-
-### Nesting
-
-Indentation defines structure:
-
-```neon
-pets:
-	- Cat
-	- Dog
-cars:
-	- Volvo
-	- Skoda
-```
-
-Block and inline can be combined:
-
-```neon
-pets: [Cat, Dog]
-cars:
-	- Volvo
-	- Skoda
-```
-
-### Strings
-
-Unquoted, single-quoted, or double-quoted:
-
-```neon
-- An unquoted string
-- 'Single-quoted string'
-- "Double-quoted with \t escapes"
-```
-
-Quote strings containing: `# " ' , : = - [ ] { } ( )`
-
-Double a quote to include it: `'It''s working'`
-
-Multiline strings with triple quotes:
-
-```neon
-'''
-	first line
-		second line
-	third line
-'''
-```
-
-### Special Values
-
-```neon
-# Numbers
-count: 12
-price: 12.3
-scientific: +1.2e-34
-binary: 0b11010
-octal: 0o666
-hex: 0x7A
-
-# Null
-value: null
-empty:
-
-# Booleans
-enabled: true
-disabled: false
-active: yes
-inactive: no
-
-# Dates (auto-converted to DateTimeImmutable)
-date: 2016-06-03
-datetime: 2016-06-03 19:00:00
-with_tz: 2016-06-03 19:00:00 +02:00
-```
-
-### Entities
-
-Function-like structures for DI configuration:
-
-```neon
-Column(type: int, nulls: yes)
-```
-
-Chained entities:
-
-```neon
-Column(type: int) Field(id: 1)
-```
-
-Multiline entity:
-
-```neon
-Column(
-	type: int
-	nulls: yes
-)
-```
-
-### Comments
-
-```neon
-# This line is ignored
-street: 742 Evergreen Terrace  # inline comment
-```
-
-### Block vs Inline Notation
-
-Use **inline** for short, simple values (up to ~3 items):
-```neon
-extensions: [foo, bar]
-roles: {admin: true, user: false}
-```
-
-Use **block** for anything complex, nested, or long:
-```neon
-services:
-	- App\Model\UserService
-	- App\Model\OrderService
-```
-
-### Key Rules
-
-- Space after `:` is required (`key: value`, not `key:value`)
-- Use **tabs** for indentation (not spaces – unlike YAML)
-- Block notation cannot be nested inside inline notation
-- Unquoted strings cannot start/end with spaces or look like numbers/booleans/dates
+Never inspect, print, edit, or include local secret configuration files in wildcard commands.
 
 ## PHP API
 
-```php
-use Nette\Neon\Neon;
-```
+Use `Nette\Neon\Neon::decode()`, `decodeFile()`, and `encode()` when application code must process NEON. Preserve `Nette\Neon\Exception` unless the current layer can provide useful context.
 
-### encode(mixed $value, bool $blockMode=false, string $indentation="\t"): string
+## Validation
 
-Converts PHP value to NEON. Pass `true` to `$blockMode` for multiline output.
-
-```php
-Neon::encode($value);       // inline NEON
-Neon::encode($value, true); // multiline NEON
-```
-
-### decode(string $neon): mixed
-
-Parses NEON string to PHP value. Dates become `DateTimeImmutable`, entities become `Nette\Neon\Entity`.
-
-```php
-Neon::decode('hello: world'); // ['hello' => 'world']
-```
-
-### decodeFile(string $file): mixed
-
-Parses NEON file to PHP value (removes BOM).
-
-```php
-Neon::decodeFile('config.neon');
-```
-
-All methods throw `Nette\Neon\Exception` on error.
-
-### Lint Command
-
-Check syntax errors in `.neon` files:
-
-```shell
-vendor/bin/neon-lint <path>
-```
-
-### Online Documentation
-
-For detailed information, use WebFetch on these URLs:
-
-- [NEON Format](https://ne-on.org) – complete NEON specification and examples
+- Run `vendor/bin/neon-lint <explicit-changed-file>` for a focused syntax check.
+- Finish code/config changes with `composer cs-fix && composer build-all`.

@@ -38,7 +38,7 @@ description: Invoke before writing or modifying frontend interactivity or stylin
 
 ### Existing shared components (don't duplicate – reuse)
 
-`frontMenu`, `dropdown`, `flashMessage`, `select`, `datagridFilter`, `photosModal`, `modal`, `loadChart`, `expenseMainTag`, `addExpenseOtherTag`, `removeOtherTag`, `currencyConvert`, `stockValuationModelData`, `dragScroll` – all declared in `assets/app.ts` `Window` interface and registered in `AppAlpine.ts`.
+`frontMenu`, `dropdown`, `flashMessage`, `select`, `datagridFilter`, `modal`, `loadChart`, `expenseMainTag`, `addExpenseOtherTag`, `removeOtherTag`, `currencyConvert`, `stockValuationModelData`, `dragScroll` – registered in `AppAlpine.ts`. Treat declarations in the `Window` interface as typings only; verify that a component is actually registered before reusing it.
 
 ## Tailwind conventions
 

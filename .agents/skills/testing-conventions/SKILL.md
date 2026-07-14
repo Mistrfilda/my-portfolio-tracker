@@ -1,6 +1,6 @@
 ---
 name: testing-conventions
-description: Invoke before writing or modifying any PHPUnit test. Provides the project's testing conventions – directory split (`tests/Unit`, `tests/Integration`), base classes (`PHPUnit\Framework\TestCase`, `App\Test\Integration\Api\ApiTestCase`), naming (`*Test.php`), and the rule to prefer unit tests and never use real RabbitMQ.
+description: Invoke before writing or modifying any PHPUnit test. Provides the project's test layout, commands, base classes (`PHPUnit\Framework\TestCase`, `App\Test\Integration\IntegrationTestCase`, and `App\Test\Integration\Api\ApiTestCase`), naming, mocking conventions, and rules against real queues or external HTTP calls.
 ---
 
 ## Testing Conventions
@@ -12,14 +12,16 @@ description: Invoke before writing or modifying any PHPUnit test. Provides the p
 
 ### Commands
 
-- All tests: `vendor/bin/phpunit`
-- Unit only: `vendor/bin/phpunit tests/Unit`
-- Integration only: `vendor/bin/phpunit tests/Integration`
+- All checks: `composer build-all`
+- Unit only: `composer test-unit`
+- Integration only: `composer test-integration`
+- Direct PHPUnit filtering is allowed for a focused test while iterating.
 
 ### Base classes
 
 - Unit tests → extend `PHPUnit\Framework\TestCase`.
-- Integration / REST API tests → extend `App\Test\Integration\Api\ApiTestCase`.
+- Database/container integration tests → extend `App\Test\Integration\IntegrationTestCase`.
+- Slim REST API integration tests → extend `App\Test\Integration\Api\ApiTestCase`, which already extends `IntegrationTestCase`.
 
 ### Naming
 
@@ -59,4 +61,5 @@ class MyTest extends TestCase
 - Use `App\Utils\TypeValidator` for scalar validation, `Nette\Utils\Json` for JSON.
 - Tabs for indentation, PSR-12, strict_types, English messages.
 - Mark tests that talk to the DB with their natural place in `tests/Integration/`; for API, `ApiTestCase` handles bootstrapping.
-- Add a failing reproducer test before fixing a bug (expected by `[CODE]` mode workflow).
+- For a bug fix, add a regression test that fails for the observed behavior before implementing the fix when practical.
+- For a new feature, test the requested behavior alongside the implementation; do not leave intentionally failing tests in the final change.

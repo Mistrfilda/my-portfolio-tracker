@@ -1,231 +1,52 @@
 ---
 name: nette-architecture
-description: Invoke before designing presenters, modules, or application structure in web application. Use when asking about directory structure (app/ folder organization), presenter organization (modules, Admin/Front/Api, BasePresenter), domain-driven placement (Core/ vs Model/), component and factory placement, presenter lifecycle (action/render/template), CLI tasks, Accessory placement, project skeleton, or refactoring architecture. Also trigger when starting a new Nette project.
+description: Invoke before designing or refactoring presenters, controls, UI factories, modules, CLI commands, or domain placement in this Nette application. Covers the project's domain-first `src/` structure, presenter lifecycle, `UI/` placement, base classes, routing mapping, and boundaries between presenters, facades, repositories, and commands. Also trigger when deciding where a new feature belongs.
 ---
 
-For new projects, see [the project skeleton reference](references/skeleton.md).
-For the `#[Requires]` attribute (HTTP method/AJAX restrictions on actions), see [the reference](references/requires.md).
+# Nette Architecture
 
-## Application Architecture
+Use the current domain-first structure under `src/`; do not introduce a generic `app/Presentation`, `Core`, `Model`, or `Tasks` hierarchy.
 
-### Presenter Lifecycle
+## Choose the owner
 
-Understanding the request flow is essential for placing logic correctly:
+- Place shared asset contracts and calculations in `src/Asset/` only when Stock, Crypto, and Portu genuinely share the behavior.
+- Place domain behavior under its owning root such as `src/Stock/`, `src/Cash/`, `src/Currency/`, or `src/Notification/`.
+- Keep UI code in the owning domain's `UI/` subtree.
+- Keep reusable application UI infrastructure in `src/UI/`.
+- Keep CLI commands near the behavior they invoke, normally in an owning `Command/` folder; commands coordinate and facades/services execute.
+- Use `project-overview` when ownership is unclear or multiple modules are involved.
 
-1. **`startup()`** – runs first, use for access checks and early redirects
-2. **`action<Name>()`** – processes the request (data writes, redirects). Signals (`handle<Name>()`) also run in this phase.
-3. **`beforeRender()`** – runs before every render, use for shared template variables
-4. **`render<Name>()`** – prepares data for the template (read-only, no redirects)
-5. **Template** – renders the HTML output
+## Presenter lifecycle
 
-The key insight: actions and signals *do things* (write, redirect), renders *prepare views* (read). Mixing these responsibilities leads to redirect-after-render bugs and untestable presenters.
+1. `startup()` — shared setup and access checks; always call the parent implementation.
+2. `action<Name>()` and `handle<Name>()` — writes, state changes, redirects, and signal handling.
+3. `beforeRender()` — shared presentation setup.
+4. `render<Name>()` — read-only data preparation for the template.
+5. Latte template — rendering only.
 
-### Directory Structure
+Keep business rules in facades/services. Presenters coordinate request parameters, components, template data, flash messages, and redirects.
 
-The application follows domain-driven organization. The reason: when code is grouped by domain (products, orders, customers), related files are close together and changes to one feature don't scatter across multiple directories.
+## Presenters and controls
 
-- App: The main application namespace (`App\`)
-  - Bootstrap: Application initialization and configuration
-  - Core: Infrastructure concerns (routing, integrations)
-  - Entity: Database entities (see nette-database skill for entity design)
-  - Model: Business logic services organized by domain
-  - Presentation: UI layer organized by modules
-  - Tasks: Command-line executable tasks
+- Extend the appropriate project base class from `src/UI/Base/`.
+- Use a mandatory typed Template class for every presenter/control through `ui-base-presenters-templates`.
+- Register new presenter mappings in `config/routing.neon`; the generic route itself lives in `src/Router/RouterFactory.php`.
+- Keep a component or form factory close to its only consumer. Move it into shared `src/UI/` infrastructure only after there is real cross-domain reuse.
+- Prefer composition through injected factories/services over deeper presenter inheritance.
 
-### Evolution Strategy
+## Persistence and APIs
 
-**Start minimal** -> **Grow organically** -> **Refactor when painful**
+- Repositories own Doctrine queries; callers consume named repository methods rather than constructing ad-hoc DQL.
+- Facades coordinate entity changes, persistence, logging, and required side effects.
+- Use `doctrine-migrations` for entities, repositories, or schema changes.
+- Use `api-slim` for REST endpoints; Slim controllers are not Nette presenters.
 
-Start with flat structure – create subdirectories only when you have 5+ related files or clear implementation variants. The threshold exists because below 5 files, subdirectories add navigation overhead without improving discoverability.
+## Validation
 
-Don't architect for theoretical future complexity. Address actual complexity when it emerges with clear user needs driving structural decisions.
+- Mirror the nearest implementation in the owning domain.
+- Test domain logic below the presenter whenever possible.
+- For code/config changes, finish with `composer cs-fix && composer build-all`.
 
-**When refactoring to deeper structure:** Move files one domain at a time. Create the new subdirectory, move related presenters/services into it, update namespaces, and verify. Don't reorganize everything at once.
+## References
 
-### Configuration
-
-- config/common.neon: Main application configuration
-- config/services.neon: Service definitions and auto-wiring configuration
-
-For DI configuration details (service registration, autowiring, parameters), see the nette-configuration skill.
-
-### Core vs Model Decision Matrix
-
-The distinction matters because Core/ code is reusable across projects while Model/ code is specific to your business. This affects testability, replaceability, and team ownership.
-
-**Use Core/ for:**
-- Technology-agnostic infrastructure (MyExplorer, RouterFactory, QueueMailer)
-- External service integrations (SentryLogger, AI/, GoogleSearch/)
-- Framework extensions and utilities
-- Code that could be moved to another project unchanged
-
-**Use Model/ for:**
-- Business domain logic (CatalogService, CustomerService, OrderService)
-- Domain-specific operations and rules
-- Entity-specific processing logic
-- Code that knows about your business concepts (products, orders, customers)
-
-### Model Layer Principles
-
-```
-app/Model/
-├── CatalogService.php       ← Main domain services at root
-├── CustomerService.php
-├── OrderService.php
-├── mails/                   ← Email templates (specialized assets)
-├── Payment/                 ← Implementation variants
-│   ├── CardOnlinePayment.php
-│   ├── BankTransferPayment.php
-│   └── CashPayment.php
-└── exceptions.php           ← Domain exceptions
-```
-
-Naming convention: `mails/` is lowercase because it contains non-PHP assets (email templates). `Payment/` is uppercase because it contains PHP classes following PSR-4.
-
-**Service placement rules:**
-1. Main domain coordinator services directly in Model/
-2. Implementation variants get subdirectories when 3+ implementations exist
-3. Specialized assets (templates, exceptions) in focused locations
-
-
-### Module Structure
-
-Modules group presenters by user audience and access requirements. Admin, Front, and Api have different authentication, layouts, and URL patterns – that's why they're separate modules, not just for organization.
-
-```
-app/Presentation/
-├── Accessory/               ← UI shared across entire application
-│   ├── LatteExtension.php
-│   └── TemplateFilters.php
-├── Admin/
-│   ├── BasePresenter.php    ← Admin-specific functionality
-│   ├── Auth/                ← Authentication
-│   ├── Catalog/             ← Product management
-│   │   ├── Brand/
-│   │   ├── List/            ← Overview/utility presenters
-│   │   └── Product/
-│   └── Fulfill/             ← Order processing
-└── Front/
-    ├── Customer/
-    └── Listing/
-```
-
-**Keep presenters flat until complexity demands structure:**
-
-```
-# Start simple
-Dashboard/DashboardPresenter.php
-
-# Grow when needed
-Admin/Catalog/Product/ProductPresenter.php
-Admin/Catalog/Brand/BrandPresenter.php
-Admin/Catalog/List/ListPresenter.php
-```
-
-**Create nested structure when:**
-- Single functional area has 4+ presenters
-- Clear sub-domains emerge (Product management, Order fulfillment)
-- Shared logic between related presenters
-
-
-### Presenter Directory Contents
-
-Each presenter directory contains the presenter class, its templates, and its local components:
-
-```
-Product/
-├── ProductPresenter.php
-├── default.latte
-├── edit.latte
-└── ProductFormFactory.php   ← Form factory used only by this presenter
-```
-
-For template organization details (layouts, partials, @-prefixed files), see the latte-templates skill.
-
-### Base Presenter Strategy
-
-Create BasePresenter for each major module **only when needed:**
-- `Admin\BasePresenter` – authentication checks, admin-specific setup
-- Contains common `startup()` checks, `beforeRender()` template variables
-
-**Avoid deep inheritance** – prefer composition over inheritance chains deeper than BasePresenter -> SpecificPresenter. Deep chains make it hard to understand which method runs when and create fragile coupling between unrelated presenters.
-
-### Component, Factory, and Accessory Placement
-
-Where to place components, form factories, Latte extensions, and other shared code follows a proximity principle – keep code close to where it's used:
-
-**In the presenter directory** – used by one presenter only:
-```
-Product/
-├── ProductPresenter.php
-├── ProductFormFactory.php   ← Only ProductPresenter uses this
-└── edit.latte
-```
-
-**In Module/Accessory/** – shared across presenters within one module:
-```
-Admin/
-├── Accessory/
-│   ├── DataGridFactory.php  ← Used by multiple Admin presenters
-│   └── AdminFilters.php     ← Admin-specific template helpers
-├── Product/
-└── Order/
-```
-
-**In Presentation/Accessory/** – shared across modules:
-```
-Presentation/
-├── Accessory/
-│   ├── LatteExtension.php     ← App-wide Latte filters/functions
-│   ├── NavigationFactory.php  ← Used in Admin and Front
-│   └── TemplateFilters.php
-```
-
-Form factories that encapsulate form creation with validation and callbacks are preferred over building forms directly in presenters when the same form appears in multiple places. For form factory implementation patterns, see the nette-forms skill.
-
-### When to Create New Module
-
-**Create module when:**
-- You have 5+ related presenters
-- Functionality has distinct user base (Admin vs Front vs Api)
-- Different authentication/authorization requirements
-- Separate URL structure patterns
-
-**Avoid modules for:**
-- Single presenter with single purpose
-- Artificial separation without clear user/functional boundaries
-
-
-### Tasks and Command Organization
-
-```
-app/Tasks/
-├── Maintenance/           ← Cleanup, optimization
-├── Integration/           ← External data sync
-└── Scheduled/             ← Recurring operations
-```
-
-**Task responsibility boundaries:**
-- Tasks handle execution context (CLI arguments, error handling, scheduling)
-- Business logic stays in Model services
-- Tasks coordinate, services execute
-
-This separation means business logic is testable without CLI context and reusable from presenters or other entry points.
-
-### Anti-Patterns to Avoid
-
-**Don't create directories prematurely** – a directory with one file is harder to navigate than a flat list. Wait until you have actual complexity (5+ related files), not anticipated complexity.
-
-**Don't separate by technical layer** – Services/, Repositories/, Controllers/ separation forces you to jump between directories for every feature change. Domain organization keeps related code together.
-
-**Don't create deep hierarchies** – prefer descriptive names over nested structure (OrderFulfillmentService vs Fulfill/Order/Service). Deep nesting increases cognitive load and makes imports longer without adding clarity.
-
-**Don't duplicate Base presenter logic** – if two modules need the same functionality, extract it to a trait or a shared service. Copying leads to divergence and bugs when one copy gets updated but not the other.
-
-### Online Documentation
-
-For detailed information, use WebFetch on these URLs:
-
-- [Application](https://doc.nette.org/en/application) – presenters, routing, templates
-- [Components](https://doc.nette.org/en/application/components) – components and signal handling
-- [Directory Structure](https://doc.nette.org/en/application/directory-structure) – recommended layout
+- Read `references/requires.md` only when adding Nette `#[Requires]` restrictions.
