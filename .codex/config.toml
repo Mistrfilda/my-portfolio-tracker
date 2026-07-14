@@ -1,5 +1,8 @@
 default_permissions = "portfolio-workspace"
 
+[shell_environment_policy]
+set = { MY_PORTFOLIO_TRACKER_CODEX = "1" }
+
 [permissions.portfolio-workspace]
 description = "Workspace access with local secret configuration denied."
 extends = ":workspace"
@@ -7,3 +10,10 @@ extends = ":workspace"
 [permissions.portfolio-workspace.filesystem.":workspace_roots"]
 "config/config.local.neon" = "deny"
 "docker/config-docker.local.neon" = "deny"
+
+[permissions.portfolio-workspace.network]
+enabled = true
+
+[permissions.portfolio-workspace.network.domains]
+"localhost" = "allow"
+"127.0.0.1" = "allow"

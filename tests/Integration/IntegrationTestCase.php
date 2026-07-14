@@ -30,7 +30,11 @@ abstract class IntegrationTestCase extends TestCase
 		parent::setUp();
 
 		$configurator = Bootstrap::boot(true, false);
-		$configurator->addConfig(__DIR__ . '/integration_test.neon');
+		$configurator->addConfig(__DIR__ . '/integration.test.neon');
+		if (is_file(__DIR__ . '/integration.test.local.neon')) {
+			$configurator->addConfig(__DIR__ . '/integration.test.local.neon');
+		}
+
 		$this->configureContainer($configurator);
 		$this->container = $configurator->createContainer();
 

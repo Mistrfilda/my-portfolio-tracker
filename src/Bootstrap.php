@@ -6,6 +6,7 @@ namespace App;
 
 use Nette\Bootstrap\Configurator;
 use function dirname;
+use function getenv;
 use function is_file;
 
 class Bootstrap
@@ -40,6 +41,12 @@ class Bootstrap
 
 		if (is_file($appDir . '/config/config-docker.local.neon')) {
 			$configurator->addConfig($appDir . '/config/config-docker.local.neon');
+		}
+
+		$integrationTestLocalConfig = $appDir . '/tests/Integration/integration.test.local.neon';
+		if (getenv('MY_PORTFOLIO_TRACKER_CODEX') === '1' && is_file($integrationTestLocalConfig)) {
+			$configurator->addConfig($appDir . '/tests/Integration/integration.test.neon');
+			$configurator->addConfig($integrationTestLocalConfig);
 		}
 
 		return $configurator;

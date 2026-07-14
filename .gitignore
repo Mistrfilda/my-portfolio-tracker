@@ -39,3 +39,5 @@ resources/gemini/*
 !resources/gemini/.gitkeep
 
 .playwright-mcp
+
+tests/Integration/integration.test.local.neon
