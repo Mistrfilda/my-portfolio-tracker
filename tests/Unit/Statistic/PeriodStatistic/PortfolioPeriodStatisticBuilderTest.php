@@ -71,7 +71,18 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 			['date' => $startRecord->getCreatedAt(), 'amount' => 100.0],
 			['date' => $endRecord->getCreatedAt(), 'amount' => 150.0],
 		]);
-		$recordRepository->method('findBetweenDates')->willReturn([$startRecord, $endRecord]);
+		$recordRepository->method('findDailyChartValuesBetweenDates')->willReturn([
+			[
+				'date' => $startRecord->getCreatedAt(),
+				'portfolioValue' => '120 CZK',
+				'investedValue' => '100 CZK',
+			],
+			[
+				'date' => $endRecord->getCreatedAt(),
+				'portfolioValue' => '190 CZK',
+				'investedValue' => '150 CZK',
+			],
+		]);
 
 		$result = $this->createBuilder($recordRepository)->build($this->createReport());
 

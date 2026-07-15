@@ -31,9 +31,9 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 
 	public function testFindsPeriodBoundaryRecordsAndDailyInvestedValues(): void
 	{
-		$this->persistRecord('2077-03-01 08:00:00', '1 000 CZK');
-		$this->persistRecord('2077-03-10 12:00:00', '1 250 CZK');
-		$this->persistRecord('2077-03-20 20:00:00', '1 500 CZK');
+		$this->persistRecord('2077-03-01 08:00:00', '1 000 CZK', '1 100 CZK');
+		$this->persistRecord('2077-03-10 12:00:00', '1 250 CZK', '1 400 CZK');
+		$this->persistRecord('2077-03-20 20:00:00', '1 500 CZK', '1 800 CZK');
 		$this->entityManager->flush();
 		$this->entityManager->clear();
 
@@ -65,6 +65,12 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 				$dailyInvestedValues,
 			),
 		);
+
+		$this->entityManager->clear();
+		$chartValues = $this->repository->findDailyChartValuesBetweenDates($start, $end);
+		self::assertSame(['1 100 CZK', '1 400 CZK', '1 800 CZK'], array_column($chartValues, 'portfolioValue'));
+		self::assertSame(['1 000 CZK', '1 250 CZK', '1 500 CZK'], array_column($chartValues, 'investedValue'));
+		self::assertSame(0, $this->entityManager->getUnitOfWork()->size());
 	}
 
 	public function testReturnsNoRecordsOutsideRequestedPeriod(): void
@@ -76,13 +82,14 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 		self::assertNull($this->repository->findLastBetweenDates($start, $end));
 		self::assertSame([], $this->repository->findBetweenDates($start, $end));
 		self::assertSame([], $this->repository->findDailyInvestedCzkBetweenDates($start, $end));
+		self::assertSame([], $this->repository->findDailyChartValuesBetweenDates($start, $end));
 	}
 
-	private function persistRecord(string $date, string $investedValue): void
+	private function persistRecord(string $date, string $investedValue, string $portfolioValue): void
 	{
 		$now = new ImmutableDateTime($date);
 		$record = new PortfolioStatisticRecord($now);
-		$statistic = new PortfolioStatistic(
+		$investedStatistic = new PortfolioStatistic(
 			$record,
 			$now,
 			DashboardValueGroupEnum::TOTAL_VALUES,
@@ -95,10 +102,25 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 			PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
 			null,
 		);
-		$record->getPortfolioStatistics()->add($statistic);
+		$portfolioValueStatistic = new PortfolioStatistic(
+			$record,
+			$now,
+			DashboardValueGroupEnum::TOTAL_VALUES,
+			PortolioStatisticType::TOTAL_VALUE_IN_CZK->format(),
+			$portfolioValue,
+			'blue',
+			null,
+			null,
+			PortolioStatisticType::TOTAL_VALUE_IN_CZK,
+			PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
+			null,
+		);
+		$record->getPortfolioStatistics()->add($investedStatistic);
+		$record->getPortfolioStatistics()->add($portfolioValueStatistic);
 
 		$this->entityManager->persist($record);
-		$this->entityManager->persist($statistic);
+		$this->entityManager->persist($investedStatistic);
+		$this->entityManager->persist($portfolioValueStatistic);
 	}
 
 }

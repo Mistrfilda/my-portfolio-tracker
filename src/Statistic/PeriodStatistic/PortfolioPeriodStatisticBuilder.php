@@ -617,21 +617,27 @@ class PortfolioPeriodStatisticBuilder
 		PortfolioPeriodStatisticDividendSectionDTO $dividendSection,
 	): PortfolioPeriodStatisticChartSectionDTO
 	{
-		$dailyRecords = [];
-		foreach ($this->portfolioStatisticRecordRepository->findBetweenDates($start, $end) as $record) {
-			$dailyRecords[$record->getCreatedAt()->format('Y-m-d')] = $record;
+		$dailyValues = [];
+		foreach ($this->portfolioStatisticRecordRepository->findDailyChartValuesBetweenDates($start, $end) as $values) {
+			$dailyValues[$values['date']->format('Y-m-d')] = $values;
 		}
 
 		$portfolioValues = [];
 		$investedValues = [];
-		foreach ($dailyRecords as $date => $record) {
+		foreach ($dailyValues as $date => $values) {
 			$portfolioValues[] = new PortfolioPeriodStatisticChartPointDTO(
 				$date,
-				$this->getRecordValue($record, PortolioStatisticType::TOTAL_VALUE_IN_CZK),
+				$this->normalizeRecordValue(
+					$values['portfolioValue'],
+					PortolioStatisticType::TOTAL_VALUE_IN_CZK,
+				),
 			);
 			$investedValues[] = new PortfolioPeriodStatisticChartPointDTO(
 				$date,
-				$this->getRecordValue($record, PortolioStatisticType::TOTAL_INVESTED_IN_CZK),
+				$this->normalizeRecordValue(
+					$values['investedValue'],
+					PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
+				),
 			);
 		}
 
@@ -711,6 +717,11 @@ class PortfolioPeriodStatisticBuilder
 			);
 		}
 
+		return $this->normalizeRecordValue($value, $type);
+	}
+
+	private function normalizeRecordValue(string $value, PortolioStatisticType $type): float
+	{
 		$normalized = str_replace(['CZK', ' '], '', $value);
 		if (!is_numeric($normalized)) {
 			throw new PortfolioPeriodStatisticUnableToBuildException(

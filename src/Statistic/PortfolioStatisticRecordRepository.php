@@ -129,6 +129,55 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 		return $result;
 	}
 
+	/**
+	 * @return array<array{date: ImmutableDateTime, portfolioValue: string, investedValue: string}>
+	 */
+	public function findDailyChartValuesBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$rows = $this->doctrineRepository->createQueryBuilder('r')
+			->select(
+				'r.createdAt AS date',
+				'portfolioValueStatistic.value AS portfolioValue',
+				'investedValueStatistic.value AS investedValue',
+			)
+			->innerJoin(
+				'r.portfolioStatistics',
+				'portfolioValueStatistic',
+				'WITH',
+				'portfolioValueStatistic.type = :portfolioValueType',
+			)
+			->innerJoin(
+				'r.portfolioStatistics',
+				'investedValueStatistic',
+				'WITH',
+				'investedValueStatistic.type = :investedValueType',
+			)
+			->where('r.createdAt >= :start')
+			->andWhere('r.createdAt <= :end')
+			->orderBy('r.createdAt', 'ASC')
+			->setParameter('portfolioValueType', PortolioStatisticType::TOTAL_VALUE_IN_CZK)
+			->setParameter('investedValueType', PortolioStatisticType::TOTAL_INVESTED_IN_CZK)
+			->setParameter('start', $start)
+			->setParameter('end', $end)
+			->getQuery()
+			->getScalarResult();
+
+		$result = [];
+		foreach ($rows as $row) {
+			assert(is_array($row));
+			$dateRaw = $row['date'];
+			$result[] = [
+				'date' => $dateRaw instanceof ImmutableDateTime
+					? $dateRaw
+					: new ImmutableDateTime(TypeValidator::validateString($dateRaw)),
+				'portfolioValue' => TypeValidator::validateString($row['portfolioValue']),
+				'investedValue' => TypeValidator::validateString($row['investedValue']),
+			];
+		}
+
+		return $result;
+	}
+
 	public function getById(int $id, LockModeEnum|null $lockMode = null): PortfolioStatisticRecord
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('portfolioStatisticRecord');
