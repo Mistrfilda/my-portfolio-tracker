@@ -26,6 +26,12 @@ class MenuBuilder
 		return [
 			new MenuItem('Dashboard', 'default', SvgIcon::HOME, 'Dashboard'),
 			new MenuGroup('Statistiky', SvgIcon::CHART_BAR_SQUARE, [
+				new MenuItem(
+					'PortfolioPeriodStatistic',
+					'default',
+					SvgIcon::PRESENTATION_CHART_UP,
+					'Přehled portfolia',
+				),
 				new MenuItem('PortfolioStatisticChart', 'default', SvgIcon::CHART_BAR_SQUARE, 'Grafy'),
 				new MenuItem('PortfolioStatisticTotal', 'default', SvgIcon::ARCHIVE_BOX, 'Statistiky'),
 				new MenuItem('CurrencyOverview', 'default', SvgIcon::CIRCLE_STACK, 'Měnový přehled'),

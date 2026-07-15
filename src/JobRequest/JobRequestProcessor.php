@@ -6,6 +6,7 @@ namespace App\JobRequest;
 
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
+use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Utils\TypeValidator;
@@ -19,6 +20,7 @@ class JobRequestProcessor
 		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
 		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
 		private StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
+		private PortfolioPeriodStatisticFacade $portfolioPeriodStatisticFacade,
 	)
 	{
 	}
@@ -46,6 +48,11 @@ class JobRequestProcessor
 			case JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS:
 				$this->stockAiAnalysisGeminiProcessorFacade->process(
 					TypeValidator::validateString($additionalData['runId'] ?? null),
+				);
+				break;
+			case JobRequestTypeEnum::PORTFOLIO_PERIOD_STATISTIC_PROCESS:
+				$this->portfolioPeriodStatisticFacade->process(
+					TypeValidator::validateString($additionalData['reportId'] ?? null),
 				);
 				break;
 		}

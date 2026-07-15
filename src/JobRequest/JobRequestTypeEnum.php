@@ -17,4 +17,6 @@ enum JobRequestTypeEnum: string
 
 	case STOCK_AI_ANALYSIS_GEMINI_PROCESS = 'stock_ai_analysis_gemini_process';
 
+	case PORTFOLIO_PERIOD_STATISTIC_PROCESS = 'portfolio_period_statistic_process';
+
 }

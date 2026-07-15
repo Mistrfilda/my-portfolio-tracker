@@ -40,4 +40,11 @@ class JobRequestFacade
 		]);
 	}
 
+	public function addPortfolioPeriodStatisticProcessToQueue(string $reportId): void
+	{
+		$this->addToQueue(JobRequestTypeEnum::PORTFOLIO_PERIOD_STATISTIC_PROCESS, [
+			'reportId' => $reportId,
+		]);
+	}
+
 }

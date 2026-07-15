@@ -19,6 +19,24 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class CryptoAssetPriceRecordRepository extends BaseRepository
 {
 
+	public function findFirstInPeriod(
+		CryptoAsset $cryptoAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): CryptoAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($cryptoAsset, $start, $end, OrderBy::ASC);
+	}
+
+	public function findLastInPeriod(
+		CryptoAsset $cryptoAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): CryptoAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($cryptoAsset, $start, $end, OrderBy::DESC);
+	}
+
 	public function getById(int $id, LockModeEnum|null $lockMode = null): CryptoAssetPriceRecord
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('cryptoAssetPriceRecord');
@@ -111,6 +129,30 @@ class CryptoAssetPriceRecordRepository extends BaseRepository
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('cryptoAssetPriceRecord');
+	}
+
+	private function findPeriodBoundary(
+		CryptoAsset $cryptoAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+		OrderBy $orderBy,
+	): CryptoAssetPriceRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->eq('cryptoAssetPriceRecord.cryptoAsset', ':cryptoAsset'),
+			$qb->expr()->gte('cryptoAssetPriceRecord.date', ':start'),
+			$qb->expr()->lte('cryptoAssetPriceRecord.date', ':end'),
+		);
+		$qb->setParameter('cryptoAsset', $cryptoAsset);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('cryptoAssetPriceRecord.date', $orderBy->value);
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof CryptoAssetPriceRecord);
+		return $result;
 	}
 
 }

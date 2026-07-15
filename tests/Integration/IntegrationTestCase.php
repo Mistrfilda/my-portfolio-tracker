@@ -113,6 +113,7 @@ abstract class IntegrationTestCase extends TestCase
 		echo 'Migrating database...' . PHP_EOL;
 		$migratorConfiguration = new MigratorConfiguration();
 		$migrator->migrate($plan, $migratorConfiguration);
+		$connection->close();
 		echo 'Schema initialization completed.' . PHP_EOL;
 	}
 

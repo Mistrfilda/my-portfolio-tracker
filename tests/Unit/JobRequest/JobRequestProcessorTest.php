@@ -8,6 +8,7 @@ use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
 use App\JobRequest\JobRequestProcessor;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
@@ -22,12 +23,14 @@ class JobRequestProcessorTest extends UpdatedTestCase
 		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
 		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
 		$stockAiAnalysisGeminiProcessorFacadeMock = Mockery::mock(StockAiAnalysisGeminiProcessorFacade::class);
+		$portfolioPeriodStatisticFacadeMock = Mockery::mock(PortfolioPeriodStatisticFacade::class);
 
 		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
+			$portfolioPeriodStatisticFacadeMock,
 		);
 
 		$type = JobRequestTypeEnum::EXPENSE_TAG_PROCESS;
@@ -48,12 +51,14 @@ class JobRequestProcessorTest extends UpdatedTestCase
 		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
 		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
 		$stockAiAnalysisGeminiProcessorFacadeMock = Mockery::mock(StockAiAnalysisGeminiProcessorFacade::class);
+		$portfolioPeriodStatisticFacadeMock = Mockery::mock(PortfolioPeriodStatisticFacade::class);
 
 		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
+			$portfolioPeriodStatisticFacadeMock,
 		);
 
 		$stockAiAnalysisGeminiProcessorFacadeMock
@@ -63,6 +68,34 @@ class JobRequestProcessorTest extends UpdatedTestCase
 
 		$jobRequestProcessor->process(JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS, [
 			'runId' => 'run-id',
+		]);
+
+		$this->assertTrue(true);
+	}
+
+	public function testProcessPortfolioPeriodStatistic(): void
+	{
+		$expenseTagFacadeMock = Mockery::mock(ExpenseTagFacade::class);
+		$stockAssetDividendForecastRecordFacadeMock = Mockery::mock(StockAssetDividendForecastRecordFacade::class);
+		$portfolioGoalUpdateFacadeMock = Mockery::mock(PortfolioGoalUpdateFacade::class);
+		$stockAiAnalysisGeminiProcessorFacadeMock = Mockery::mock(StockAiAnalysisGeminiProcessorFacade::class);
+		$portfolioPeriodStatisticFacadeMock = Mockery::mock(PortfolioPeriodStatisticFacade::class);
+
+		$jobRequestProcessor = new JobRequestProcessor(
+			$expenseTagFacadeMock,
+			$stockAssetDividendForecastRecordFacadeMock,
+			$portfolioGoalUpdateFacadeMock,
+			$stockAiAnalysisGeminiProcessorFacadeMock,
+			$portfolioPeriodStatisticFacadeMock,
+		);
+
+		$portfolioPeriodStatisticFacadeMock
+			->shouldReceive('process')
+			->with('report-id')
+			->once();
+
+		$jobRequestProcessor->process(JobRequestTypeEnum::PORTFOLIO_PERIOD_STATISTIC_PROCESS, [
+			'reportId' => 'report-id',
 		]);
 
 		$this->assertTrue(true);

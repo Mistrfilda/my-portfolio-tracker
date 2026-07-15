@@ -18,6 +18,74 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class PortfolioStatisticRecordRepository extends BaseRepository
 {
 
+	public function findFirstBetweenDates(
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('portfolioStatisticRecord.createdAt', ':start'),
+			$qb->expr()->lte('portfolioStatisticRecord.createdAt', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'ASC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
+	public function findLastBetweenDates(
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('portfolioStatisticRecord.createdAt', ':start'),
+			$qb->expr()->lte('portfolioStatisticRecord.createdAt', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'DESC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
+	public function findFirst(): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'ASC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
+	/**
+	 * @return array<PortfolioStatisticRecord>
+	 */
+	public function findBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('portfolioStatisticRecord.createdAt', ':start'),
+			$qb->expr()->lte('portfolioStatisticRecord.createdAt', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'ASC');
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('portfolioStatisticRecord');

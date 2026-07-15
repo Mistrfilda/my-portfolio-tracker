@@ -19,6 +19,24 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class StockAssetPriceRecordRepository extends BaseRepository
 {
 
+	public function findFirstInPeriod(
+		StockAsset $stockAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): StockAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($stockAsset, $start, $end, OrderBy::ASC);
+	}
+
+	public function findLastInPeriod(
+		StockAsset $stockAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): StockAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($stockAsset, $start, $end, OrderBy::DESC);
+	}
+
 	public function getById(int $id, LockModeEnum|null $lockMode = null): StockAssetPriceRecord
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetPriceRecord');
@@ -108,6 +126,30 @@ class StockAssetPriceRecordRepository extends BaseRepository
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('stockAssetPriceRecord');
+	}
+
+	private function findPeriodBoundary(
+		StockAsset $stockAsset,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+		OrderBy $orderBy,
+	): StockAssetPriceRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->eq('stockAssetPriceRecord.stockAsset', ':stockAsset'),
+			$qb->expr()->gte('stockAssetPriceRecord.date', ':start'),
+			$qb->expr()->lte('stockAssetPriceRecord.date', ':end'),
+		);
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('stockAssetPriceRecord.date', $orderBy->value);
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof StockAssetPriceRecord);
+		return $result;
 	}
 
 }

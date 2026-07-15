@@ -7,6 +7,7 @@ namespace App\Portu\Price;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use App\Doctrine\OrderBy;
 use App\Portu\Position\PortuPosition;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
@@ -18,6 +19,24 @@ use Ramsey\Uuid\UuidInterface;
  */
 class PortuAssetPriceRecordRepository extends BaseRepository
 {
+
+	public function findFirstInPeriod(
+		PortuPosition $portuPosition,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): PortuAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($portuPosition, $start, $end, OrderBy::ASC);
+	}
+
+	public function findLastInPeriod(
+		PortuPosition $portuPosition,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): PortuAssetPriceRecord|null
+	{
+		return $this->findPeriodBoundary($portuPosition, $start, $end, OrderBy::DESC);
+	}
 
 	public function getById(int $id, LockModeEnum|null $lockMode = null): PortuAssetPriceRecord
 	{
@@ -100,6 +119,30 @@ class PortuAssetPriceRecordRepository extends BaseRepository
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('portuAssetPriceRecord');
+	}
+
+	private function findPeriodBoundary(
+		PortuPosition $portuPosition,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+		OrderBy $orderBy,
+	): PortuAssetPriceRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->eq('portuAssetPriceRecord.portuPosition', ':portuPosition'),
+			$qb->expr()->gte('portuAssetPriceRecord.date', ':start'),
+			$qb->expr()->lte('portuAssetPriceRecord.date', ':end'),
+		);
+		$qb->setParameter('portuPosition', $portuPosition);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('portuAssetPriceRecord.date', $orderBy->value);
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof PortuAssetPriceRecord);
+		return $result;
 	}
 
 }

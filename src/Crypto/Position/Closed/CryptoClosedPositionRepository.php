@@ -8,6 +8,7 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -37,6 +38,23 @@ class CryptoClosedPositionRepository extends BaseRepository
 	public function findAll(): array
 	{
 		return $this->doctrineRepository->findAll();
+	}
+
+	/**
+	 * @return array<CryptoClosedPosition>
+	 */
+	public function findBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->gte('cryptoClosedPosition.orderDate', ':start'),
+			$qb->expr()->lte('cryptoClosedPosition.orderDate', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('cryptoClosedPosition.orderDate', 'ASC');
+
+		return $qb->getQuery()->getResult();
 	}
 
 	/**

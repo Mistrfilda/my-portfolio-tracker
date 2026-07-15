@@ -1,0 +1,45 @@
+{templateType App\Statistic\PeriodStatistic\UI\PortfolioPeriodStatisticTemplate}
+
+{block #content}
+	<div class="space-y-6">
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="border-b border-gray-100 bg-gradient-to-r from-blue-50/70 via-white to-white px-6 py-5">
+				<h2 class="text-lg font-semibold text-gray-900">Nový přehled</h2>
+				<p class="mt-1 text-sm text-gray-500">Vyberte období. Výpočet proběhne asynchronně nad uloženými historickými daty.</p>
+			</div>
+
+			<form n:name="portfolioPeriodStatisticForm" class="px-6 py-6">
+				<div class="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:items-end">
+					<div>
+						<label n:name="preset" class="block text-sm font-medium text-gray-700">Období</label>
+						<select n:name="preset" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"></select>
+					</div>
+					<div>
+						<label n:name="startDate" class="block text-sm font-medium text-gray-700">Vlastní začátek</label>
+						<input n:name="startDate" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+					</div>
+					<div>
+						<label n:name="endDate" class="block text-sm font-medium text-gray-700">Vlastní konec</label>
+						<input n:name="endDate" class="mt-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm">
+					</div>
+					<div>
+						<button n:name="submit" class="inline-flex w-full justify-center rounded-md bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+							Vygenerovat přehled
+						</button>
+					</div>
+				</div>
+				<p class="mt-4 text-xs text-gray-500">Vlastní data se použijí pouze při volbě „Vlastní období“.</p>
+			</form>
+		</section>
+
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="border-b border-gray-100 px-6 py-5">
+				<h2 class="text-lg font-semibold text-gray-900">Vygenerované přehledy</h2>
+				<p class="mt-1 text-sm text-gray-500">Každé spuštění vytváří samostatnou neměnnou verzi.</p>
+			</div>
+			<div class="p-6">
+				{control portfolioPeriodStatisticGrid}
+			</div>
+		</section>
+	</div>
+{/block}

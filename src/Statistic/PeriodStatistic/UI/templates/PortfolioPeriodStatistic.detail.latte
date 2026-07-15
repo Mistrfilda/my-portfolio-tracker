@@ -1,0 +1,146 @@
+{templateType App\Statistic\PeriodStatistic\UI\PortfolioPeriodStatisticTemplate}
+
+{block #content}
+	{if $report !== null}
+		<div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+			<div>
+				<p class="text-sm text-gray-500">
+					Požadované období {$report->getRequestedStartAt()|date:'j. n. Y'}–{$report->getRequestedEndAt()|date:'j. n. Y'}
+				</p>
+				{if $report->getEffectiveStartAt() !== null && $report->getEffectiveEndAt() !== null}
+					<p class="mt-1 text-sm text-gray-500">
+						Použitá data {$report->getEffectiveStartAt()|date:'j. n. Y H:i'}–{$report->getEffectiveEndAt()|date:'j. n. Y H:i'}
+					</p>
+				{/if}
+			</div>
+			<div class="flex flex-wrap gap-2">
+				<a n:href="default" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Všechny přehledy</a>
+				{if $report->isCompleted()}
+					<a n:href="regenerate!, id => $report->getId()->toString()" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Vygenerovat novou verzi</a>
+				{/if}
+				{if $report->canRetry()}
+					<a n:href="retry!, id => $report->getId()->toString()" class="rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">Zkusit znovu</a>
+				{/if}
+			</div>
+		</div>
+
+		{if $report->isPending()}
+			<div class="rounded-2xl border border-blue-200 bg-blue-50 p-6">
+				<h2 class="text-base font-semibold text-blue-900">{$report->getStatusLabel()}</h2>
+				<p class="mt-2 text-sm text-blue-700">Přehled se připravuje ve frontě. Obnovte za chvíli tuto stránku.</p>
+			</div>
+		{elseif $report->canRetry()}
+			<div class="rounded-2xl border border-red-200 bg-red-50 p-6">
+				<h2 class="text-base font-semibold text-red-900">Výpočet přehledu selhal</h2>
+				<p class="mt-2 text-sm text-red-700">{$report->getProcessingError() ?? 'Neznámá chyba'}</p>
+			</div>
+		{elseif $report->isCompleted() && $report->getSummary() !== null && $report->getAssetSection() !== null && $report->getDividendSection() !== null}
+			{var $summary = $report->getSummary()}
+			{var $assetSection = $report->getAssetSection()}
+			{var $dividendSection = $report->getDividendSection()}
+
+			{if $summary->warnings !== []}
+				<div class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-5">
+					<h2 class="text-sm font-semibold text-amber-900">Výpočet obsahuje upozornění</h2>
+					<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-800">
+						{foreach $summary->warnings as $warning}<li>{$warning}</li>{/foreach}
+					</ul>
+				</div>
+			{/if}
+
+			<dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Investováno</dt>
+					<dd class="mt-2 text-2xl font-semibold text-gray-900">{$summary->investedAtEnd|currency:App\Currency\CurrencyEnum::CZK}</dd>
+					<p n:class="'mt-2 text-sm font-medium', $summary->investedDifference < 0 ? 'text-red-600' : 'text-green-600'">{$summary->investedDifference|currency:App\Currency\CurrencyEnum::CZK} za období</p>
+				</div>
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Hodnota portfolia</dt>
+					<dd class="mt-2 text-2xl font-semibold text-gray-900">{$summary->valueAtEnd|currency:App\Currency\CurrencyEnum::CZK}</dd>
+					<p n:class="'mt-2 text-sm font-medium', $summary->valueDifference < 0 ? 'text-red-600' : 'text-green-600'">{$summary->valueDifference|currency:App\Currency\CurrencyEnum::CZK}{if $summary->valueDifferencePercentage !== null} ({$summary->valueDifferencePercentage|percentage}){/if}</p>
+				</div>
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Celkový zisk období</dt>
+					<dd n:class="'mt-2 text-2xl font-semibold', $summary->totalPeriodProfit < 0 ? 'text-red-600' : 'text-green-600'">{$summary->totalPeriodProfit|currency:App\Currency\CurrencyEnum::CZK}</dd>
+					<p class="mt-2 text-sm text-gray-500">Včetně realizovaných zisků a dividend</p>
+				</div>
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Čisté dividendy</dt>
+					<dd class="mt-2 text-2xl font-semibold text-green-600">{$summary->netDividends|currency:App\Currency\CurrencyEnum::CZK}</dd>
+					<p class="mt-2 text-sm text-gray-500">{$dividendSection->count} plateb podle ex-date</p>
+				</div>
+			</dl>
+
+			<section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-6 py-5"><h2 class="text-lg font-semibold text-gray-900">Výnosové metriky</h2></div>
+				<dl class="grid grid-cols-2 gap-px bg-gray-100 sm:grid-cols-4">
+					<div class="bg-white p-5"><dt class="text-sm text-gray-500">TWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{$summary->timeWeightedReturn|percentage}</dd></div>
+					<div class="bg-white p-5"><dt class="text-sm text-gray-500">Annualizovaný TWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->annualizedTimeWeightedReturn !== null}{$summary->annualizedTimeWeightedReturn|percentage}{else}N/A{/if}</dd></div>
+					<div class="bg-white p-5"><dt class="text-sm text-gray-500">MWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->moneyWeightedReturn !== null}{$summary->moneyWeightedReturn|percentage}{else}N/A{/if}</dd></div>
+					<div class="bg-white p-5"><dt class="text-sm text-gray-500">XIRR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->xirr !== null}{$summary->xirr|percentage}{else}N/A{/if}</dd></div>
+				</dl>
+			</section>
+
+			<div class="mt-6 grid grid-cols-1 gap-6 xl:grid-cols-2">
+				<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<div class="border-b border-gray-100 px-6 py-5">
+						<h2 class="text-lg font-semibold text-gray-900">Hodnota a investovaná částka</h2>
+						<p class="mt-1 text-sm text-gray-500">Vývoj celkové hodnoty portfolia proti vloženému kapitálu.</p>
+					</div>
+					<div class="bg-gray-50/70 p-4 sm:p-5">
+						<div class="h-[22rem] rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-900/5 sm:h-96 sm:p-4">
+							{control portfolioValueChart}
+						</div>
+					</div>
+				</section>
+				<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<div class="border-b border-gray-100 px-6 py-5">
+						<h2 class="text-lg font-semibold text-gray-900">Dividendy podle společnosti</h2>
+						<p class="mt-1 text-sm text-gray-500">Rozdělení čistých dividend přijatých ve vybraném období.</p>
+					</div>
+					<div class="bg-gray-50/70 p-4 sm:p-5">
+						<div class="h-[22rem] rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-900/5 sm:h-96 sm:p-4">
+							{control dividendByCompanyChart}
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-6 py-5">
+					<h2 class="text-lg font-semibold text-gray-900">Výkonnost assetů</h2>
+					<p class="mt-1 text-sm text-gray-500">Řazeno podle tržního výkonu ceny. Příspěvek zahrnuje změnu hodnoty, nákupy, prodeje a dividendy.</p>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200">
+						<thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Asset</th><th class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Výkon ceny</th><th class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Hodnota na konci</th><th class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Čisté dividendy</th><th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Příspěvek</th></tr></thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $assetSection->assets as $asset}
+								<tr><td class="whitespace-nowrap px-6 py-4"><div class="text-sm font-medium text-gray-900">{$asset->name}{if $asset->ticker !== null} ({$asset->ticker}){/if}</div><div class="text-xs text-gray-500">{$asset->assetType|capitalize}{if $asset->warnings !== []} · neúplná data{/if}</div></td><td n:class="'whitespace-nowrap px-3 py-4 text-right text-sm font-medium', ($asset->marketPerformancePercentage ?? 0) < 0 ? 'text-red-600' : 'text-green-600'">{if $asset->marketPerformancePercentage !== null}{$asset->marketPerformancePercentage|percentage}{else}N/A{/if}</td><td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700">{if $asset->valueAtEndCzk !== null}{$asset->valueAtEndCzk|currency:App\Currency\CurrencyEnum::CZK}{else}N/A{/if}</td><td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700">{$asset->netDividendsCzk|currency:App\Currency\CurrencyEnum::CZK}</td><td n:class="'whitespace-nowrap px-6 py-4 text-right text-sm font-medium', ($asset->totalContributionCzk ?? 0) < 0 ? 'text-red-600' : 'text-green-600'">{if $asset->totalContributionCzk !== null}{$asset->totalContributionCzk|currency:App\Currency\CurrencyEnum::CZK}{else}N/A{/if}</td></tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			<section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-6 py-5">
+					<h2 class="text-lg font-semibold text-gray-900">Obdržené dividendy</h2>
+					<p class="mt-1 text-sm text-gray-500">Hrubě {$dividendSection->grossTotalCzk|currency:App\Currency\CurrencyEnum::CZK}, daň {$dividendSection->taxTotalCzk|currency:App\Currency\CurrencyEnum::CZK}, čistě {$dividendSection->netTotalCzk|currency:App\Currency\CurrencyEnum::CZK}.</p>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200">
+						<thead class="bg-gray-50"><tr><th class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Společnost</th><th class="px-3 py-3 text-left text-xs font-medium uppercase tracking-wide text-gray-500">Ex-date</th><th class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Kusy</th><th class="px-3 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Hrubá</th><th class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wide text-gray-500">Čistá CZK</th></tr></thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $dividendSection->dividends as $dividend}
+								<tr><td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900">{$dividend->stockAssetName} ({$dividend->ticker})</td><td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{$dividend->getExDate()|date:'j. n. Y'}</td><td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700">{$dividend->pieces}</td><td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700">{$dividend->grossAmount|number:2} {$dividend->currency}</td><td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-green-600">{if $dividend->netAmountCzk !== null}{$dividend->netAmountCzk|currency:App\Currency\CurrencyEnum::CZK}{else}N/A{/if}</td></tr>
+							{else}
+								<tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-500">V období nebyly evidovány žádné dividendy.</td></tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
+			</section>
+		{/if}
+	{/if}
+{/block}
