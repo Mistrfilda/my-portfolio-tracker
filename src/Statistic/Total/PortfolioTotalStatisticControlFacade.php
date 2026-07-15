@@ -106,7 +106,7 @@ class PortfolioTotalStatisticControlFacade
 						),
 						$firstMonthValue->getCreatedAt(),
 						$portfolioStatisticRecord->getCreatedAt(),
-						$this->portfolioStatisticRecordRepository->findDailyInvestedCzkBetweenDates(
+						$this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
 							$firstMonthValue->getCreatedAt(),
 							$portfolioStatisticRecord->getCreatedAt(),
 						),
@@ -161,7 +161,7 @@ class PortfolioTotalStatisticControlFacade
 					),
 					$firstYearValue->getCreatedAt(),
 					$lastYearValue->getCreatedAt(),
-					$this->portfolioStatisticRecordRepository->findDailyInvestedCzkBetweenDates(
+					$this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
 						$firstYearValue->getCreatedAt(),
 						$lastYearValue->getCreatedAt(),
 					),

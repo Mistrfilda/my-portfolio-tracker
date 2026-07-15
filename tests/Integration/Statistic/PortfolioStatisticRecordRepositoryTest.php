@@ -56,8 +56,9 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 			),
 		);
 
-		$dailyInvestedValues = $this->repository->findDailyInvestedCzkBetweenDates($start, $end);
+		$dailyInvestedValues = $this->repository->findDailyPerformanceValuesBetweenDates($start, $end);
 		self::assertSame([1_000.0, 1_250.0, 1_500.0], array_column($dailyInvestedValues, 'amount'));
+		self::assertSame([1_100.0, 1_400.0, 1_800.0], array_column($dailyInvestedValues, 'portfolioValue'));
 		self::assertSame(
 			['2077-03-01', '2077-03-10', '2077-03-20'],
 			array_map(
@@ -81,7 +82,7 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 		self::assertNull($this->repository->findFirstBetweenDates($start, $end));
 		self::assertNull($this->repository->findLastBetweenDates($start, $end));
 		self::assertSame([], $this->repository->findBetweenDates($start, $end));
-		self::assertSame([], $this->repository->findDailyInvestedCzkBetweenDates($start, $end));
+		self::assertSame([], $this->repository->findDailyPerformanceValuesBetweenDates($start, $end));
 		self::assertSame([], $this->repository->findDailyChartValuesBetweenDates($start, $end));
 	}
 

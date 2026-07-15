@@ -140,7 +140,7 @@ class PortfolioPeriodStatisticBuilder
 			dividendsInPeriod: $dividendSection->netTotalCzk,
 			startDate: $startRecord->getCreatedAt(),
 			endDate: $endRecord->getCreatedAt(),
-			cashFlowData: $this->portfolioStatisticRecordRepository->findDailyInvestedCzkBetweenDates(
+			cashFlowData: $this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
 				$startRecord->getCreatedAt(),
 				$endRecord->getCreatedAt(),
 			),

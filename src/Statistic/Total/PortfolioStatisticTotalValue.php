@@ -10,7 +10,7 @@ class PortfolioStatisticTotalValue
 {
 
 	/**
-	 * @param array<array{date: ImmutableDateTime, amount: float}>|null $cashFlowData
+	 * @param array<array{date: ImmutableDateTime, amount: float, portfolioValue?: float}>|null $cashFlowData
 	 */
 	public function __construct(
 		private int|null $month,
@@ -56,6 +56,16 @@ class PortfolioStatisticTotalValue
 	public function getLabel(): string
 	{
 		return $this->label;
+	}
+
+	public function getStartDate(): ImmutableDateTime|null
+	{
+		return $this->startDate;
+	}
+
+	public function getEndDate(): ImmutableDateTime|null
+	{
+		return $this->endDate;
 	}
 
 	public function getClosedPositionsProfitInPeriod(): float
@@ -114,10 +124,16 @@ class PortfolioStatisticTotalValue
 	 * Time-Weighted Return - performance excluding the impact of cash flows.
 	 * Most accurate metric for comparing performance.
 	 *
-	 * Formula: ((valueAtEnd / (valueAtStart + newInvestments)) - 1) * 100
+	 * Uses chained daily returns when daily portfolio values are available. Otherwise,
+	 * it falls back to the endpoint calculation for backwards compatibility.
 	 */
 	public function getTimeWeightedReturn(): float
 	{
+		$chainedReturn = $this->getChainedTimeWeightedReturn();
+		if ($chainedReturn !== null) {
+			return $chainedReturn;
+		}
+
 		$newInvestments = $this->investedAtEnd - $this->investedAtStart;
 		$startingCapital = $this->valueAtStart + $newInvestments;
 
@@ -126,6 +142,38 @@ class PortfolioStatisticTotalValue
 		}
 
 		return (($this->valueAtEnd / $startingCapital) - 1) * 100;
+	}
+
+	private function getChainedTimeWeightedReturn(): float|null
+	{
+		if ($this->cashFlowData === null || count($this->cashFlowData) < 2) {
+			return null;
+		}
+
+		$firstEntry = $this->cashFlowData[0];
+		if (!isset($firstEntry['portfolioValue'])) {
+			return null;
+		}
+
+		$growthFactor = 1.0;
+		$previousInvested = $firstEntry['amount'];
+		$previousPortfolioValue = $firstEntry['portfolioValue'];
+
+		foreach (array_slice($this->cashFlowData, 1) as $entry) {
+			if (!isset($entry['portfolioValue'])) {
+				return null;
+			}
+
+			$cashFlow = $entry['amount'] - $previousInvested;
+			if ($previousPortfolioValue > 0.0) {
+				$growthFactor *= ($entry['portfolioValue'] - $cashFlow) / $previousPortfolioValue;
+			}
+
+			$previousInvested = $entry['amount'];
+			$previousPortfolioValue = $entry['portfolioValue'];
+		}
+
+		return ($growthFactor - 1) * 100;
 	}
 
 	/**

@@ -15,6 +15,8 @@ use App\Currency\CurrencyEnum;
 use App\Dashboard\DashboardDividendvalueBuilderFacade;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Portu\Position\PortuPositionFacade;
+use App\Statistic\Total\PortfolioStatisticTotalValue;
+use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\Closed\StockClosedPositionFacade;
@@ -56,6 +58,8 @@ class DashboardValueBuilderFacadeTest extends TestCase
 
 	private StockAssetRepository|MockInterface $stockAssetRepository;
 
+	private PortfolioStatisticTotalValueProvider|MockInterface $portfolioStatisticTotalValueProvider;
+
 	private LinkGenerator $linkGenerator;
 
 	private DatetimeFactory|MockInterface $datetimeFactory;
@@ -74,6 +78,7 @@ class DashboardValueBuilderFacadeTest extends TestCase
 		$this->cryptoPositionFacade = Mockery::mock(CryptoPositionFacade::class);
 		$this->cryptoAssetRepository = Mockery::mock(CryptoAssetRepository::class);
 		$this->stockAssetRepository = Mockery::mock(StockAssetRepository::class);
+		$this->portfolioStatisticTotalValueProvider = Mockery::mock(PortfolioStatisticTotalValueProvider::class);
 		$this->linkGenerator = $this->createLinkGenerator();
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 
@@ -88,8 +93,67 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->cryptoPositionFacade,
 			$this->cryptoAssetRepository,
 			$this->stockAssetRepository,
+			$this->portfolioStatisticTotalValueProvider,
 			$this->linkGenerator,
 			$this->datetimeFactory,
+		);
+	}
+
+	public function testTotalValuesIncludeAllTimePortfolioPerformance(): void
+	{
+		$totalInvestedAmount = new SummaryPrice(CurrencyEnum::CZK, 100_000, 5);
+		$currentValue = new SummaryPrice(CurrencyEnum::CZK, 110_000, 5);
+		$diff = new PriceDiff(10_000, 110.0, CurrencyEnum::CZK);
+		$startDate = new ImmutableDateTime('2024-01-01');
+		$endDate = new ImmutableDateTime('2024-12-31');
+		$performance = new PortfolioStatisticTotalValue(
+			month: null,
+			label: 'Portfolio performance since inception',
+			investedAtStart: 100_000,
+			investedAtEnd: 100_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 110_000,
+			startDate: $startDate,
+			endDate: $endDate,
+			cashFlowData: [
+				['date' => $startDate, 'amount' => 100_000.0, 'portfolioValue' => 100_000.0],
+				['date' => $endDate, 'amount' => 100_000.0, 'portfolioValue' => 110_000.0],
+			],
+		);
+
+		$this->assetPriceSummaryFacade->shouldReceive('getTotalInvestedAmount')
+			->once()
+			->with(CurrencyEnum::CZK)
+			->andReturn($totalInvestedAmount);
+		$this->assetPriceSummaryFacade->shouldReceive('getCurrentValue')
+			->once()
+			->with(CurrencyEnum::CZK)
+			->andReturn($currentValue);
+		$this->summaryPriceService->shouldReceive('getSummaryPriceDiff')
+			->once()
+			->with($currentValue, $totalInvestedAmount)
+			->andReturn($diff);
+		$this->portfolioStatisticTotalValueProvider->shouldReceive('getAllTimeValue')
+			->once()
+			->andReturn($performance);
+
+		$getTotalValues = Closure::bind(
+			fn () => $this->getTotalValues(),
+			$this->dashboardValueBuilderFacade,
+			DashboardValueBuilderFacade::class,
+		);
+		$group = $getTotalValues();
+		$values = $group->getPositions();
+
+		self::assertCount(8, $values);
+		self::assertSame('Výkonnost portfolia (TWR)', $values[4]->getLabel());
+		self::assertSame('10.00 %', $values[4]->getValue());
+		self::assertSame('Annualizovaný TWR', $values[5]->getLabel());
+		self::assertSame('MWR (Modified Dietz)', $values[6]->getLabel());
+		self::assertSame('XIRR', $values[7]->getLabel());
+		self::assertSame(
+			'Bez vlivu vkladů/výběrů · 01. 01. 2024–31. 12. 2024',
+			$values[4]->getDescription(),
 		);
 	}
 

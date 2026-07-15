@@ -69,6 +69,17 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 		return $result;
 	}
 
+	public function findLast(): PortfolioStatisticRecord|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->orderBy('portfolioStatisticRecord.createdAt', 'DESC');
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof PortfolioStatisticRecord);
+		return $result;
+	}
+
 	/**
 	 * @return array<PortfolioStatisticRecord>
 	 */
@@ -92,21 +103,36 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 	}
 
 	/**
-	 * Returns a lightweight list (createdAt, investedCzk) for Modified Dietz calculation.
+	 * Returns lightweight daily values for TWR, Modified Dietz, and XIRR calculations.
 	 * Does not load full entities — works only with scalar values.
 	 *
-	 * @return array<array{date: ImmutableDateTime, amount: float}>
+	 * @return array<array{date: ImmutableDateTime, amount: float, portfolioValue: float}>
 	 */
-	public function findDailyInvestedCzkBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	public function findDailyPerformanceValuesBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
 	{
 		$rows = $this->doctrineRepository->createQueryBuilder('r')
-			->select('r.createdAt AS date, ps.value AS amount')
-			->innerJoin('r.portfolioStatistics', 'ps')
-			->where('ps.type = :type')
+			->select(
+				'r.createdAt AS date',
+				'investedStatistic.value AS amount',
+				'portfolioValueStatistic.value AS portfolioValue',
+			)
+			->innerJoin(
+				'r.portfolioStatistics',
+				'investedStatistic',
+				'WITH',
+				'investedStatistic.type = :investedType',
+			)
+			->innerJoin(
+				'r.portfolioStatistics',
+				'portfolioValueStatistic',
+				'WITH',
+				'portfolioValueStatistic.type = :portfolioValueType',
+			)
 			->andWhere('r.createdAt >= :start')
 			->andWhere('r.createdAt <= :end')
 			->orderBy('r.createdAt', 'ASC')
-			->setParameter('type', PortolioStatisticType::TOTAL_INVESTED_IN_CZK)
+			->setParameter('investedType', PortolioStatisticType::TOTAL_INVESTED_IN_CZK)
+			->setParameter('portfolioValueType', PortolioStatisticType::TOTAL_VALUE_IN_CZK)
 			->setParameter('start', $start)
 			->setParameter('end', $end)
 			->getQuery()
@@ -123,6 +149,11 @@ class PortfolioStatisticRecordRepository extends BaseRepository
 			$result[] = [
 				'date' => $date,
 				'amount' => (float) $amount,
+				'portfolioValue' => (float) str_replace(
+					['CZK', ' '],
+					'',
+					TypeValidator::validateString($row['portfolioValue']),
+				),
 			];
 		}
 

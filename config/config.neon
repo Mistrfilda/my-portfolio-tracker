@@ -381,6 +381,7 @@ services:
 
 	- App\Statistic\Total\UI\Control\PortfolioStatisticTotalControlFactory
 	- App\Statistic\Total\PortfolioTotalStatisticControlFacade(startYear: %portfolioStatistic.startYear%)
+	- App\Statistic\Total\PortfolioStatisticTotalValueProvider
 
 	#Stock dividends
 	- App\Stock\Dividend\StockAssetDividendFacade

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\Asset\Price\AssetPriceEnum;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
 use App\Crypto\Asset\CryptoAssetRepository;
@@ -12,6 +13,8 @@ use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\PortolioStatisticType;
+use App\Statistic\Total\PortfolioStatisticTotalValue;
+use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\Closed\StockClosedPositionFacade;
@@ -38,6 +41,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly CryptoPositionFacade $cryptoPositionFacade,
 		private readonly CryptoAssetRepository $cryptoAssetRepository,
 		private readonly StockAssetRepository $stockAssetRepository,
+		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 		private readonly LinkGenerator $linkGenerator,
 		private readonly DatetimeFactory $datetimeFactory,
 	)
@@ -308,7 +312,90 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					$diff->getTrend()->getSvgIcon(),
 					type: PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE,
 				),
+				...$this->buildPortfolioPerformanceValues(),
 			],
+		);
+	}
+
+	/**
+	 * @return array<DashboardValue>
+	 */
+	private function buildPortfolioPerformanceValues(): array
+	{
+		$value = $this->portfolioStatisticTotalValueProvider->getAllTimeValue();
+		if ($value === null) {
+			return [];
+		}
+
+		$values = [
+			$this->createPerformanceDashboardValue(
+				'Výkonnost portfolia (TWR)',
+				'Bez vlivu vkladů/výběrů',
+				$value->getTimeWeightedReturn(),
+				$value,
+			),
+		];
+
+		$annualizedTwr = $value->getAnnualizedTwr();
+		if ($annualizedTwr !== null) {
+			$values[] = $this->createPerformanceDashboardValue(
+				'Annualizovaný TWR',
+				'Přepočteno na roční bázi',
+				$annualizedTwr,
+				$value,
+			);
+		}
+
+		$moneyWeightedReturn = $value->getMoneyWeightedReturn();
+		if ($moneyWeightedReturn !== null) {
+			$values[] = $this->createPerformanceDashboardValue(
+				'MWR (Modified Dietz)',
+				'Výnos s ohledem na timing vkladů',
+				$moneyWeightedReturn,
+				$value,
+			);
+		}
+
+		$xirr = $value->getXirr();
+		if ($xirr !== null) {
+			$values[] = $this->createPerformanceDashboardValue(
+				'XIRR',
+				'Přesný výnos za období',
+				$xirr,
+				$value,
+			);
+		}
+
+		return $values;
+	}
+
+	private function createPerformanceDashboardValue(
+		string $label,
+		string $description,
+		float $performance,
+		PortfolioStatisticTotalValue $value,
+	): DashboardValue
+	{
+		$trend = match (true) {
+			$performance > 0 => AssetPriceEnum::UP,
+			$performance < 0 => AssetPriceEnum::DOWN,
+			default => AssetPriceEnum::SAME,
+		};
+		$startDate = $value->getStartDate();
+		$endDate = $value->getEndDate();
+		assert($startDate !== null && $endDate !== null);
+
+		return new DashboardValue(
+			$label,
+			PercentageFilter::format($performance),
+			$trend->getTailwindColor(),
+			$trend->getSvgIcon(),
+			sprintf(
+				'%s · %s–%s',
+				$description,
+				$startDate->format(DatetimeConst::SYSTEM_DATE_FORMAT),
+				$endDate->format(DatetimeConst::SYSTEM_DATE_FORMAT),
+			),
 		);
 	}
 

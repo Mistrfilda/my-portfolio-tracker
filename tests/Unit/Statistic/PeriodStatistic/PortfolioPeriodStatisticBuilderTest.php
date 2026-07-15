@@ -67,9 +67,9 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 		$recordRepository = $this->createStub(PortfolioStatisticRecordRepository::class);
 		$recordRepository->method('findFirstBetweenDates')->willReturn($startRecord);
 		$recordRepository->method('findLastBetweenDates')->willReturn($endRecord);
-		$recordRepository->method('findDailyInvestedCzkBetweenDates')->willReturn([
-			['date' => $startRecord->getCreatedAt(), 'amount' => 100.0],
-			['date' => $endRecord->getCreatedAt(), 'amount' => 150.0],
+		$recordRepository->method('findDailyPerformanceValuesBetweenDates')->willReturn([
+			['date' => $startRecord->getCreatedAt(), 'amount' => 100.0, 'portfolioValue' => 120.0],
+			['date' => $endRecord->getCreatedAt(), 'amount' => 150.0, 'portfolioValue' => 190.0],
 		]);
 		$recordRepository->method('findDailyChartValuesBetweenDates')->willReturn([
 			[
@@ -97,7 +97,7 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 		self::assertEqualsWithDelta(58.3333, $result->summary->valueDifferencePercentage, 0.0001);
 		self::assertSame(20.0, $result->summary->periodProfit);
 		self::assertSame(20.0, $result->summary->totalPeriodProfit);
-		self::assertEqualsWithDelta(11.7647, $result->summary->timeWeightedReturn, 0.0001);
+		self::assertEqualsWithDelta(16.6667, $result->summary->timeWeightedReturn, 0.0001);
 		self::assertFalse($result->summary->partial);
 		self::assertSame([
 			'Začátek byl posunut na první dostupný snapshot 2026-01-02.',

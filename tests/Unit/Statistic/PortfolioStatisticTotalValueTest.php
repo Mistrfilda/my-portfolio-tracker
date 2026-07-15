@@ -223,6 +223,37 @@ class PortfolioStatisticTotalValueTest extends TestCase
 		self::assertEqualsWithDelta(5.0, $value->getTimeWeightedReturn(), 0.0001);
 	}
 
+	public function testGetTimeWeightedReturnChainsDailyReturnsAroundCashFlows(): void
+	{
+		$cashFlowData = [
+			[
+				'date' => new ImmutableDateTime('2024-01-01'),
+				'amount' => 100_000.0,
+				'portfolioValue' => 100_000.0,
+			],
+			[
+				'date' => new ImmutableDateTime('2024-01-02'),
+				'amount' => 100_000.0,
+				'portfolioValue' => 110_000.0,
+			],
+			[
+				'date' => new ImmutableDateTime('2024-01-03'),
+				'amount' => 200_000.0,
+				'portfolioValue' => 220_000.0,
+			],
+		];
+
+		$value = $this->createValue(
+			investedAtStart: 100_000,
+			investedAtEnd: 200_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 220_000,
+			cashFlowData: $cashFlowData,
+		);
+
+		self::assertEqualsWithDelta(20.0, $value->getTimeWeightedReturn(), 0.0001);
+	}
+
 	public function testGetTimeWeightedReturnNegative(): void
 	{
 		// Hodnota klesla z 100k na 90k → TWR -10%
