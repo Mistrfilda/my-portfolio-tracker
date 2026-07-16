@@ -55,7 +55,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		150,
 		155,
 		160,
-		165
+		165,
 	];
 
 	#[Persistent]
