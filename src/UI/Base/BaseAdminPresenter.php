@@ -38,7 +38,7 @@ abstract class BaseAdminPresenter extends BasePresenter
 		}
 
 		if (
-			$this->presenter->getName() !== 'Admin:AppAdminChangePassword'
+			$this->getPresenter()->getName() !== 'Admin:AppAdminChangePassword'
 			&& $this->currentAppAdminGetter->getAppAdmin()->isNewPasswordForced()
 		) {
 			$this->redirect('AppAdminChangePassword:default');

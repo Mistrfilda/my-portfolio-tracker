@@ -10,12 +10,13 @@ use App\Home\HomeRepository;
 use App\UI\Base\BaseSysadminPresenter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
+use Nette\Application\Attributes\Persistent;
 use Ramsey\Uuid\Uuid;
 
 class HomeDeviceEditPresenter extends BaseSysadminPresenter
 {
 
-	/** @persistent */
+	#[Persistent]
 	public string $homeId;
 
 	private Home $home;

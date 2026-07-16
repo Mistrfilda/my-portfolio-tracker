@@ -7,11 +7,12 @@ namespace App\Login\UI;
 use App\Login\UI\Form\LoginFormFactory;
 use App\UI\Base\BaseFrontPresenter;
 use App\UI\Control\Form\AdminForm;
+use Nette\Application\Attributes\Persistent;
 
 class LoginPresenter extends BaseFrontPresenter
 {
 
-	/** @persistent */
+	#[Persistent]
 	public string $backlink = '';
 
 	public function __construct(private LoginFormFactory $loginFormFactory)

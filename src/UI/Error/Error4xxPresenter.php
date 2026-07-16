@@ -16,7 +16,7 @@ final class Error4xxPresenter extends Presenter
 	public function startup(): void
 	{
 		parent::startup();
-		if ($this->getRequest() !== null && !$this->getRequest()->isMethod(Request::FORWARD)) {
+		if (!$this->getRequest()->isMethod(Request::FORWARD)) {
 			$this->error();
 		}
 	}

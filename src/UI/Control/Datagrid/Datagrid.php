@@ -29,6 +29,7 @@ use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
+use Nette\Application\Attributes\Persistent;
 use Nette\Application\UI\Control;
 
 class Datagrid extends Control
@@ -36,24 +37,18 @@ class Datagrid extends Control
 
 	public const NULLABLE_PLACEHOLDER = '----';
 
-	/** @persistent */
+	#[Persistent]
 	public int $offset;
 
-	/** @persistent */
+	#[Persistent]
 	public int $limit;
 
-	/**
-	 * @var array<string, string|int>
-	 *
-	 * @persistent
-	 */
+	/** @var array<string, string|int> */
+	#[Persistent]
 	public array $parameterFilters = [];
 
-	/**
-	 * @var array<string, string|null>
-	 *
-	 * @persistent
-	 */
+	/** @var array<string, string|null> */
+	#[Persistent]
 	public array $sortFilters = [];
 
 	/** @var ArrayCollection<int, IColumn> */
