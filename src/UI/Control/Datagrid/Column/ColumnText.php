@@ -5,6 +5,8 @@ declare(strict_types = 1);
 namespace App\UI\Control\Datagrid\Column;
 
 use App\UI\Control\Datagrid\Datagrid;
+use App\UI\Control\Datagrid\Filter\FilterBoolean;
+use App\UI\Control\Datagrid\Filter\FilterSelect;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Sort\Sort;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
@@ -25,6 +27,14 @@ class ColumnText implements IColumn
 	private Sort|null $sort;
 
 	private string|null $referencedColumn;
+
+	private bool $defaultVisible = true;
+
+	private bool $mobileVisible = true;
+
+	private bool $hideable = true;
+
+	private ColumnAlignmentEnum $alignment = ColumnAlignmentEnum::LEFT;
 
 	public function __construct(
 		protected Datagrid $datagrid,
@@ -59,6 +69,19 @@ class ColumnText implements IColumn
 		return $this->datagrid->setFilterText($this);
 	}
 
+	/**
+	 * @param array<string|int, string> $options
+	 */
+	public function setFilterSelect(array $options): FilterSelect
+	{
+		return $this->datagrid->setFilterSelect($this, $options);
+	}
+
+	public function setFilterBoolean(): FilterBoolean
+	{
+		return $this->datagrid->setFilterBoolean($this);
+	}
+
 	public function setSortable(SortDirectionEnum|null $defaultDirection = null): Sort
 	{
 		$sort = $this->datagrid->setSortable($this, $defaultDirection);
@@ -90,6 +113,54 @@ class ColumnText implements IColumn
 	public function getReferencedColumn(): string|null
 	{
 		return $this->referencedColumn;
+	}
+
+	public function setDefaultVisible(bool $defaultVisible): static
+	{
+		$this->defaultVisible = $defaultVisible;
+
+		return $this;
+	}
+
+	public function isDefaultVisible(): bool
+	{
+		return $this->defaultVisible;
+	}
+
+	public function setMobileVisible(bool $mobileVisible): static
+	{
+		$this->mobileVisible = $mobileVisible;
+
+		return $this;
+	}
+
+	public function isMobileVisible(): bool
+	{
+		return $this->mobileVisible;
+	}
+
+	public function setHideable(bool $hideable): static
+	{
+		$this->hideable = $hideable;
+
+		return $this;
+	}
+
+	public function isHideable(): bool
+	{
+		return $this->hideable;
+	}
+
+	public function setAlignment(ColumnAlignmentEnum $alignment): static
+	{
+		$this->alignment = $alignment;
+
+		return $this;
+	}
+
+	public function getAlignment(): ColumnAlignmentEnum
+	{
+		return $this->alignment;
 	}
 
 	public function processValue(

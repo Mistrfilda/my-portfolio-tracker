@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid;
 
+use App\UI\Base\BaseControl;
 use App\UI\Control\Datagrid\Action\DatagridAction;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
 use App\UI\Control\Datagrid\Action\IDatagridAction;
@@ -13,7 +14,11 @@ use App\UI\Control\Datagrid\Column\ColumnDatetime;
 use App\UI\Control\Datagrid\Column\ColumnText;
 use App\UI\Control\Datagrid\Column\IColumn;
 use App\UI\Control\Datagrid\Datasource\IDataSource;
+use App\UI\Control\Datagrid\Filter\FilterBoolean;
+use App\UI\Control\Datagrid\Filter\FilterDateRange;
 use App\UI\Control\Datagrid\Filter\FilterForm;
+use App\UI\Control\Datagrid\Filter\FilterNullState;
+use App\UI\Control\Datagrid\Filter\FilterSelect;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Filter\FilterValue;
 use App\UI\Control\Datagrid\Filter\IFilter;
@@ -30,9 +35,9 @@ use App\UI\Tailwind\TailwindColorConstant;
 use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Application\Attributes\Persistent;
-use Nette\Application\UI\Control;
+use Nette\Utils\Json;
 
-class Datagrid extends Control
+class Datagrid extends BaseControl
 {
 
 	public const NULLABLE_PLACEHOLDER = '----';
@@ -73,7 +78,16 @@ class Datagrid extends Control
 
 	private RowRenderer|null $rowRenderer = null;
 
-	public function __construct(private IDataSource $datasource)
+	private bool $columnSelectionEnabled = false;
+
+	private bool $compact = false;
+
+	private bool $actionsInDropdown = false;
+
+	public function __construct(
+		private IDataSource $datasource,
+		private FilterForm $filterForm,
+	)
 	{
 		$this->setPagination();
 		$this->paginationService = new PaginationService();
@@ -208,8 +222,122 @@ class Datagrid extends Control
 
 	public function setFilterText(ColumnText $column): FilterText
 	{
-		$filter = new FilterText($column);
-		$this->filters->set($filter->getColumn()->getColumn(), $filter);
+		return $this->addFilterText(
+			$column->getColumn(),
+			$column->getLabel(),
+			$column->getColumn(),
+			$column->getReferencedColumn(),
+		);
+	}
+
+	/**
+	 * @param array<string|int, string> $options
+	 */
+	public function setFilterSelect(ColumnText $column, array $options): FilterSelect
+	{
+		return $this->addFilterSelect(
+			$column->getColumn(),
+			$column->getLabel(),
+			$column->getColumn(),
+			$options,
+			$column->getReferencedColumn(),
+		);
+	}
+
+	public function setFilterBoolean(ColumnText $column): FilterBoolean
+	{
+		return $this->addFilterBoolean(
+			$column->getColumn(),
+			$column->getLabel(),
+			$column->getColumn(),
+			$column->getReferencedColumn(),
+		);
+	}
+
+	public function setFilterDateRange(ColumnDatetime $column): FilterDateRange
+	{
+		return $this->addFilterDateRange(
+			$column->getColumn(),
+			$column->getLabel(),
+			$column->getColumn(),
+			$column->getReferencedColumn(),
+		);
+	}
+
+	public function addFilterText(
+		string $key,
+		string $label,
+		string $column,
+		string|null $referencedColumn = null,
+	): FilterText
+	{
+		$filter = new FilterText($key, $label, $column, $referencedColumn);
+		$this->filters->set($key, $filter);
+
+		return $filter;
+	}
+
+	/**
+	 * @param array<string|int, string> $options
+	 */
+	public function addFilterSelect(
+		string $key,
+		string $label,
+		string $column,
+		array $options,
+		string|null $referencedColumn = null,
+	): FilterSelect
+	{
+		$filter = new FilterSelect($key, $label, $column, $options, $referencedColumn);
+		$this->filters->set($key, $filter);
+
+		return $filter;
+	}
+
+	public function addFilterBoolean(
+		string $key,
+		string $label,
+		string $column,
+		string|null $referencedColumn = null,
+	): FilterBoolean
+	{
+		$filter = new FilterBoolean($key, $label, $column, $referencedColumn);
+		$this->filters->set($key, $filter);
+
+		return $filter;
+	}
+
+	public function addFilterDateRange(
+		string $key,
+		string $label,
+		string $column,
+		string|null $referencedColumn = null,
+	): FilterDateRange
+	{
+		$filter = new FilterDateRange($key, $label, $column, $referencedColumn);
+		$this->filters->set($key, $filter);
+
+		return $filter;
+	}
+
+	public function addFilterNullState(
+		string $key,
+		string $label,
+		string $column,
+		string $nullLabel,
+		string $notNullLabel,
+		string|null $referencedColumn = null,
+	): FilterNullState
+	{
+		$filter = new FilterNullState(
+			$key,
+			$label,
+			$column,
+			$nullLabel,
+			$notNullLabel,
+			$referencedColumn,
+		);
+		$this->filters->set($key, $filter);
 
 		return $filter;
 	}
@@ -250,6 +378,30 @@ class Datagrid extends Control
 	public function handleResetFilters(): void
 	{
 		$this->parameterFilters = [];
+		foreach ($this->filters as $filter) {
+			$filter->clear();
+		}
+
+		$this->resetPagination();
+		$this->filterApplied = true;
+		$this->redrawControl('filters');
+		$this->redrawGridData();
+	}
+
+	public function handleRemoveFilter(string $key): void
+	{
+		$filter = $this->filters->get($key);
+		if ($filter === null) {
+			return;
+		}
+
+		foreach ($filter->getParameterKeys() as $parameter) {
+			unset($this->parameterFilters[$parameter]);
+		}
+
+		$filter->clear();
+		$this->resetPagination();
+		$this->filterApplied = true;
 		$this->redrawControl('filters');
 		$this->redrawGridData();
 	}
@@ -329,6 +481,22 @@ class Datagrid extends Control
 		$template->columns = $this->columns;
 		$template->actions = $this->actions;
 		$template->rowRenderer = $this->rowRenderer;
+		$template->columnSelectionEnabled = $this->columnSelectionEnabled;
+		$template->compact = $this->compact;
+		$template->actionsInDropdown = $this->actionsInDropdown;
+		$defaultVisibleColumns = [];
+		foreach ($this->columns as $column) {
+			if ($column->isDefaultVisible()) {
+				$defaultVisibleColumns[] = $column->getColumn();
+			}
+		}
+
+		$template->defaultVisibleColumnsJson = Json::encode($defaultVisibleColumns);
+
+		$template->activeFilterCount = count(array_filter(
+			$this->filters->toArray(),
+			static fn (IFilter $filter): bool => $filter->isValueSet(),
+		));
 
 		$template->pagination = new Pagination(
 			$this->limit,
@@ -376,21 +544,30 @@ class Datagrid extends Control
 	 */
 	public function filter(array $values): void
 	{
+		$this->parameterFilters = [];
+		foreach ($this->filters as $filter) {
+			$filter->clear();
+		}
+
 		foreach ($values as $value) {
-			$filter = $this->filters->get($value->getKey());
-			if ($filter !== null) {
-				$filter->setValue($value->getValue());
-				$this->parameterFilters[$value->getKey()] = $value->getValue();
+			foreach ($this->filters as $filter) {
+				if ($filter->hasParameter($value->getKey())) {
+					$filter->setValue($value->getKey(), $value->getValue());
+					$this->parameterFilters[$value->getKey()] = $value->getValue();
+
+					break;
+				}
 			}
 		}
 
 		$this->filterApplied = true;
+		$this->redrawControl('filters');
 		$this->redrawGridData();
 	}
 
 	protected function createComponentFilterForm(): AdminForm
 	{
-		return (new FilterForm())->createForm($this);
+		return $this->filterForm->createForm($this);
 	}
 
 	public function resetPagination(): void
@@ -401,6 +578,21 @@ class Datagrid extends Control
 	public function setRowRender(RowRenderer $rowRenderer): void
 	{
 		$this->rowRenderer = $rowRenderer;
+	}
+
+	public function enableColumnSelection(): void
+	{
+		$this->columnSelectionEnabled = true;
+	}
+
+	public function setCompact(bool $compact = true): void
+	{
+		$this->compact = $compact;
+	}
+
+	public function setActionsInDropdown(bool $actionsInDropdown = true): void
+	{
+		$this->actionsInDropdown = $actionsInDropdown;
 	}
 
 	private function setPagination(): void

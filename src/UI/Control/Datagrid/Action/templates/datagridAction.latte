@@ -7,13 +7,15 @@
 }
 
 <a href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-   class="{if $action->isAjax()}ajax {/if}"
+   n:class="$action->isAjax() ? 'ajax',
+        'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
+        'focus:ring-' . $action->getColor() . '-500 text-white bg-' . $action->getColor() . '-600 hover:bg-' . $action->getColor() . '-700'"
         {if $action->getConfirmation() !== null}
             onclick="return confirm({$action->getConfirmation()})"
         {/if}
 >
-    <button type="button"
-            class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-{$action->getColor()}-500 text-white bg-{$action->getColor()}-600 hover:bg-{$action->getColor()}-700">
-        {$action->getLabel()}
-    </button>
+    {if $action->getIcon() !== null}
+        {renderSvg $action->getIcon(), ['class' => 'h-3.5 w-3.5']}
+    {/if}
+    {$action->getLabel()}
 </a>

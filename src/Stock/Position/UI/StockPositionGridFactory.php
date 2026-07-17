@@ -8,9 +8,11 @@ use App\Asset\Price\AssetPriceRenderer;
 use App\Asset\Price\AssetPriceService;
 use App\Asset\Price\PriceDiff;
 use App\Currency\CurrencyConversionFacade;
+use App\Currency\CurrencyEnum;
 use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
+use App\UI\Control\Datagrid\Column\ColumnAlignmentEnum;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
@@ -43,6 +45,9 @@ class StockPositionGridFactory
 		);
 
 		$grid->setLimit(30);
+		$grid->enableColumnSelection();
+		$grid->setCompact();
+		$grid->setActionsInDropdown();
 
 		$stockAsset = $grid->addColumnText(
 			'stockAsset',
@@ -54,16 +59,19 @@ class StockPositionGridFactory
 		$stockAsset->setFilterText();
 		$stockAsset->setSortable();
 
-		$grid->addColumnDate('orderDate', 'Datum nákupu')
-			->setSortable();
+		$orderDate = $grid->addColumnDate('orderDate', 'Datum nákupu');
+		$orderDate->setFilterDateRange();
+		$orderDate->setSortable();
 
 		$grid->addColumnDate(
 			'closedDate',
 			'Uzavřena dne',
 			static fn (StockPosition $stockPosition): ImmutableDateTime|null => $stockPosition->getStockClosedPosition()?->getDate(),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
 
-		$grid->addColumnBadge(
+		$status = $grid->addColumnBadge(
 			'isOpen',
 			'Stav pozice',
 			TailwindColorConstant::GREEN,
@@ -89,12 +97,21 @@ class StockPositionGridFactory
 				return SvgIcon::EYE;
 			},
 		);
+		$status->setAlignment(ColumnAlignmentEnum::CENTER);
+
+		$grid->addFilterNullState(
+			'status',
+			'Stav pozice',
+			'stockClosedPosition',
+			'Otevřené',
+			'Uzavřené',
+		);
 
 		$grid->addColumnBadge(
 			'orderPiecesCount',
 			'Počet kusů',
 			TailwindColorConstant::BLUE,
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$pricePerPiece = $grid->addColumnText(
 			'pricePerPiece',
@@ -102,22 +119,31 @@ class StockPositionGridFactory
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getPricePerPiece(),
 			),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'pricePerPieceFinal',
 			'Konečná cena za kus',
 			static fn (StockPosition $stockPosition): float|null => $stockPosition->getStockClosedPosition()?->getClosePricePerPiece()->getPrice(),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$pricePerPiece->setSortable();
 
-		$grid->addColumnText(
+		$currency = $grid->addColumnText(
 			'currency',
 			'Měna',
 			static fn (StockPosition $stockPosition): string => $stockPosition->getAsset()->getCurrency()->format(),
 			'stockAsset.currency',
-		)->setSortable();
+		);
+		$currency->setFilterSelect(CurrencyEnum::getOptionsForAdminSelect());
+		$currency->setSortable();
+		$currency->setDefaultVisible(false)->setMobileVisible(false);
 
 		$grid->addColumnText(
 			'totalInvestedAmount',
@@ -125,15 +151,18 @@ class StockPositionGridFactory
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getTotalInvestedAmount(),
 			),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
-			'totalInvestedAmount',
+			'totalInvestedAmountBroker',
 			'Celková investovaná částka v měně brokera',
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getTotalInvestedAmountInBrokerCurrency(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'currentTotalAmount',
@@ -141,7 +170,10 @@ class StockPositionGridFactory
 			fn (StockPosition $stockPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$stockPosition->getCurrentTotalAmount(),
 			),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'totalFinalInvestedAmount',
@@ -155,7 +187,10 @@ class StockPositionGridFactory
 
 				return Datagrid::NULLABLE_PLACEHOLDER;
 			},
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$summaryPriceCallback = fn (StockPosition $stockPosition): PriceDiff => $this->assetPriceService->getAssetPriceDiff(
 			$this->currencyConversionFacade->getConvertedAssetPrice(
@@ -165,7 +200,7 @@ class StockPositionGridFactory
 			$stockPosition->getTotalInvestedAmountInBrokerCurrency(),
 		);
 
-		$grid->addColumnBadge(
+		$summaryPrice = $grid->addColumnBadge(
 			'summaryPrice',
 			'Zisk/ztráta',
 			TailwindColorConstant::GREEN,
@@ -177,8 +212,9 @@ class StockPositionGridFactory
 			static fn (StockPosition $stockPosition): string => $summaryPriceCallback($stockPosition)->getTrend()->getTailwindColor(),
 			static fn (StockPosition $stockPosition): SvgIcon => $summaryPriceCallback($stockPosition)->getTrend()->getSvgIcon(),
 		);
+		$summaryPrice->setAlignment(ColumnAlignmentEnum::RIGHT);
 
-		$grid->addColumnBadge(
+		$summaryPricePercentage = $grid->addColumnBadge(
 			'summaryPricePercentage',
 			'Zisk/ztráta v %',
 			TailwindColorConstant::GREEN,
@@ -190,6 +226,7 @@ class StockPositionGridFactory
 			static fn (StockPosition $stockPosition): string => $summaryPriceCallback($stockPosition)->getTrend()->getTailwindColor(),
 			static fn (StockPosition $stockPosition): SvgIcon => $summaryPriceCallback($stockPosition)->getTrend()->getSvgIcon(),
 		);
+		$summaryPricePercentage->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addAction(
 			'edit',
@@ -209,15 +246,15 @@ class StockPositionGridFactory
 			[
 				new DatagridActionParameter('stockPositionId', 'id'),
 			],
-			SvgIcon::PENCIL,
+			SvgIcon::SCISSORS,
 			TailwindColorConstant::EMERALD,
 		)->setConditionCallback(
 			static fn (StockPosition $stockPosition): bool => $stockPosition->isPositionClosed() === false,
 		);
 
 		$grid->addAction(
-			'closePosition',
-			'Uzavřít pozici',
+			'editClosedPosition',
+			'Upravit uzavření',
 			'StockPositionEdit:closePosition',
 			[
 				new DatagridActionParameter('stockPositionId', 'id'),
@@ -232,10 +269,10 @@ class StockPositionGridFactory
 			new BaseRowRenderer(
 				static function (StockPosition $stockPosition): string {
 					if ($stockPosition->isPositionClosed()) {
-						return 'bg-emerald-100';
+						return 'bg-gray-50';
 					}
 
-					return 'bg-gray-100';
+					return 'bg-white';
 				},
 			),
 		);

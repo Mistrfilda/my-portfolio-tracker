@@ -5,9 +5,12 @@
 {parameters
     string $value,
     App\UI\Control\Datagrid\Column\ColumnText $column,
-    App\Doctrine\Entity $item
+    App\Doctrine\Entity $item,
+    bool $compact
 }
 
-<td class="px-5 py-4 whitespace-nowrap text-sm text-gray-700">
+<td
+        x-show="isColumnVisible('{$column->getColumn()}')"
+        n:class="$compact ? 'px-3 py-2.5' : 'px-5 py-4', 'whitespace-nowrap text-sm text-gray-700', $column->getAlignment()->getCellClass()">
     {$value}
 </td>

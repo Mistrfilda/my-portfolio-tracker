@@ -6,9 +6,13 @@ namespace App\UI\Control\Datagrid\Datasource;
 
 use App\Doctrine\Entity;
 use App\UI\Control\Datagrid\Column\IColumn;
+use App\UI\Control\Datagrid\Filter\FilterDateRange;
+use App\UI\Control\Datagrid\Filter\FilterNullState;
+use App\UI\Control\Datagrid\Filter\FilterSelect;
 use App\UI\Control\Datagrid\Filter\FilterText;
 use App\UI\Control\Datagrid\Filter\IFilter;
 use App\UI\Control\Datagrid\Sort\Sort;
+use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 use Nette\Utils\Strings;
@@ -124,20 +128,49 @@ class DoctrineDataSource implements IDataSource
 				continue;
 			}
 
-			if ($filter instanceof FilterText) {
-				$key = ':param_' . $index;
-				$value = $filter->getValue();
+			$column = $filter->getReferencedColumn() ?? $rootAlias . '.' . $filter->getColumn();
 
-				$x = $filter->getColumn()->getReferencedColumn() !== null
-					? $filter->getColumn()->getReferencedColumn()
-					: $rootAlias . '.' . $filter->getColumn()->getColumn();
+			if ($filter instanceof FilterText) {
+				$key = 'param_' . $index;
+				$value = $filter->getValue($filter->getKey());
 
 				$qb->andWhere($qb->expr()->like(
-					$x,
-					$key,
+					$column,
+					':' . $key,
 				));
 
 				$qb->setParameter($key, '%' . $value . '%');
+			}
+
+			if ($filter instanceof FilterDateRange) {
+				$from = $filter->getValue($filter->getFromParameter());
+				if ($from !== null) {
+					$key = 'param_' . $index . '_from';
+					$qb->andWhere($qb->expr()->gte($column, ':' . $key));
+					$qb->setParameter($key, new DateTimeImmutable((string) $from));
+				}
+
+				$to = $filter->getValue($filter->getToParameter());
+				if ($to !== null) {
+					$key = 'param_' . $index . '_to';
+					$qb->andWhere($qb->expr()->lt($column, ':' . $key));
+					$qb->setParameter($key, (new DateTimeImmutable((string) $to))->modify('+1 day'));
+				}
+			}
+
+			if ($filter instanceof FilterNullState) {
+				$value = $filter->getValue($filter->getKey());
+				if ($value === FilterNullState::NULL) {
+					$qb->andWhere($qb->expr()->isNull($column));
+				}
+
+				if ($value === FilterNullState::NOT_NULL) {
+					$qb->andWhere($qb->expr()->isNotNull($column));
+				}
+			} elseif ($filter instanceof FilterSelect) {
+				$key = 'param_' . $index;
+				$qb->andWhere($qb->expr()->eq($column, ':' . $key));
+				$qb->setParameter($key, $filter->getValue($filter->getKey()));
 			}
 
 			$index++;

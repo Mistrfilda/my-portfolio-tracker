@@ -32,4 +32,12 @@ interface IColumn
 
 	public function getReferencedColumn(): string|null;
 
+	public function isDefaultVisible(): bool;
+
+	public function isMobileVisible(): bool;
+
+	public function isHideable(): bool;
+
+	public function getAlignment(): ColumnAlignmentEnum;
+
 }

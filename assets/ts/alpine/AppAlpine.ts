@@ -171,11 +171,25 @@ Alpine.data('select', (config: any) => ({
     }
 }));
 
-Alpine.data('datagridFilter', () => ({
-    show: false,
+Alpine.data('datagrid', (defaultVisibleColumns: string[]) => ({
+    filterOpen: false,
 
-    click() {
-        this.show = !this.show;
+    columnOpen: false,
+
+    visibleColumns: [...defaultVisibleColumns],
+
+    isColumnVisible(column: string): boolean {
+        return this.visibleColumns.includes(column);
+    },
+
+    toggleColumn(column: string): void {
+        if (this.isColumnVisible(column)) {
+            this.visibleColumns = this.visibleColumns.filter((visibleColumn: string) => visibleColumn !== column);
+
+            return;
+        }
+
+        this.visibleColumns.push(column);
     }
 }));
 

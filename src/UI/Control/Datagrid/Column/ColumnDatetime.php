@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\UI\Control\Datagrid\Column;
 
 use App\UI\Control\Datagrid\Datagrid;
+use App\UI\Control\Datagrid\Filter\FilterDateRange;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
@@ -41,6 +42,11 @@ class ColumnDatetime extends ColumnText
 	public function getMobileTemplate(): string
 	{
 		return self::MOBILE_TEMPLATE_FILE;
+	}
+
+	public function setFilterDateRange(): FilterDateRange
+	{
+		return $this->datagrid->setFilterDateRange($this);
 	}
 
 	public function processValue(

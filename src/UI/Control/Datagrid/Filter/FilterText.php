@@ -4,40 +4,25 @@ declare(strict_types = 1);
 
 namespace App\UI\Control\Datagrid\Filter;
 
-use App\UI\Control\Datagrid\Column\ColumnText;
-
-class FilterText implements IFilter
+class FilterText extends Filter
 {
-
-	private string|int|null $value = null;
-
-	public function __construct(private ColumnText $column)
-	{
-	}
-
-	public function setValue(int|string $value): void
-	{
-		$this->value = $value;
-	}
 
 	public function getType(): string
 	{
 		return FilterType::FILTER_TEXT;
 	}
 
-	public function getColumn(): ColumnText
+	/**
+	 * @return array<string>
+	 */
+	public function getParameterKeys(): array
 	{
-		return $this->column;
+		return [$this->getKey()];
 	}
 
-	public function getValue(): int|string|null
+	public function getActiveValueLabel(): string
 	{
-		return $this->value;
-	}
-
-	public function isValueSet(): bool
-	{
-		return $this->value !== null && $this->value !== '';
+		return sprintf('%s: %s', $this->getLabel(), $this->getValue($this->getKey()));
 	}
 
 }

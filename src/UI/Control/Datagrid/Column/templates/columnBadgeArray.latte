@@ -5,10 +5,13 @@
 {parameters
     string $value,
     App\UI\Control\Datagrid\Column\ColumnBadgeArray $column,
-    App\Doctrine\Entity $item
+    App\Doctrine\Entity $item,
+    bool $compact
 }
 
-<td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+<td
+        x-show="isColumnVisible('{$column->getColumn()}')"
+        n:class="$compact ? 'px-3 py-2.5' : 'px-6 py-4', 'whitespace-nowrap text-sm font-medium text-gray-500', $column->getAlignment()->getCellClass()">
     {if $column->isNull($value)}
         {$value}
     {else}
