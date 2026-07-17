@@ -13,6 +13,9 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class CurrencyConversionFacade
 {
 
+	/** @var array<string, CurrencyConversion> */
+	private array $currencyConversions = [];
+
 	public function __construct(
 		private readonly CurrencyConversionRepository $currencyConversionRepository,
 	)
@@ -29,18 +32,11 @@ class CurrencyConversionFacade
 			return $assetPriceForConvert;
 		}
 
-		if ($forDate === null) {
-			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-				$assetPriceForConvert->getCurrency(),
-				$toCurrency,
-			);
-		} else {
-			$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
-				$assetPriceForConvert->getCurrency(),
-				$toCurrency,
-				$forDate,
-			);
-		}
+		$currencyConversion = $this->getCurrencyConversion(
+			$assetPriceForConvert->getCurrency(),
+			$toCurrency,
+			$forDate,
+		);
 
 		return new AssetPrice(
 			$assetPriceForConvert->getAsset(),
@@ -59,18 +55,11 @@ class CurrencyConversionFacade
 			return $summaryPrice;
 		}
 
-		if ($forDate === null) {
-			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-				$summaryPrice->getCurrency(),
-				$toCurrency,
-			);
-		} else {
-			$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
-				$summaryPrice->getCurrency(),
-				$toCurrency,
-				$forDate,
-			);
-		}
+		$currencyConversion = $this->getCurrencyConversion(
+			$summaryPrice->getCurrency(),
+			$toCurrency,
+			$forDate,
+		);
 
 		return new SummaryPrice(
 			$toCurrency,
@@ -88,9 +77,10 @@ class CurrencyConversionFacade
 			return $priceDiff;
 		}
 
-		$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+		$currencyConversion = $this->getCurrencyConversion(
 			$priceDiff->getCurrencyEnum(),
 			$toCurrency,
+			null,
 		);
 
 		return new PriceDiff(
@@ -108,23 +98,51 @@ class CurrencyConversionFacade
 	): float
 	{
 		try {
-			if ($forDate === null) {
-				$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
-					$fromCurrency,
-					$toCurrency,
-				);
-			} else {
-				$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
-					$fromCurrency,
-					$toCurrency,
-					$forDate,
-				);
-			}
+			$currencyConversion = $this->getCurrencyConversion(
+				$fromCurrency,
+				$toCurrency,
+				$forDate,
+			);
 		} catch (NoResultException $e) {
 			throw new MissingCurrencyPairException(previous: $e);
 		}
 
 		return $this->convertPrice($price, $currencyConversion);
+	}
+
+	private function getCurrencyConversion(
+		CurrencyEnum $fromCurrency,
+		CurrencyEnum $toCurrency,
+		ImmutableDateTime|null $forDate,
+	): CurrencyConversion
+	{
+		$key = sprintf(
+			'%s:%s:%s',
+			$fromCurrency->value,
+			$toCurrency->value,
+			$forDate?->format('Y-m-d H:i:s.uP') ?? 'current',
+		);
+
+		if (isset($this->currencyConversions[$key])) {
+			return $this->currencyConversions[$key];
+		}
+
+		if ($forDate === null) {
+			$currencyConversion = $this->currencyConversionRepository->getCurrentCurrencyPairConversion(
+				$fromCurrency,
+				$toCurrency,
+			);
+		} else {
+			$currencyConversion = $this->currencyConversionRepository->findCurrencyPairConversionForClosestDate(
+				$fromCurrency,
+				$toCurrency,
+				$forDate,
+			);
+		}
+
+		$this->currencyConversions[$key] = $currencyConversion;
+
+		return $currencyConversion;
 	}
 
 	private function convertPrice(float $price, CurrencyConversion $currencyConversion): float
