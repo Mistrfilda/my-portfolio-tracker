@@ -15,5 +15,4 @@ extends = ":workspace"
 enabled = true
 
 [permissions.portfolio-workspace.network.domains]
-"localhost" = "allow"
-"127.0.0.1" = "allow"
+"*" = "allow"
