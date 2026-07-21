@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y \
     git \
     zip \
     unzip \
+    libzip-dev \
     libxml2-dev \
     libicu-dev \
     nano \
@@ -15,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install simplexml pdo_mysql intl sockets
+RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip
 
 WORKDIR /var
 

@@ -10,8 +10,12 @@ use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiJsonNormalizer;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
+use App\Stock\AiAnalysis\StockAiAnalysisProcessingSourceEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ResponseValidator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -20,6 +24,7 @@ use Mockery;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use Throwable;
 
 class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
@@ -489,6 +494,102 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				$run->getGeminiProcessingError(),
 			);
 			self::assertFileDoesNotExist($tempDir . '/stock-ai-analysis/gemini/' . $runId . '/manual.json');
+		} finally {
+			$this->deleteTempDir($tempDir);
+		}
+	}
+
+	public function testProcessV2UsesStrictSchemaAndProcessingSource(): void
+	{
+		$runId = Uuid::uuid4();
+		$snapshot = [
+			'schemaVersion' => 2,
+			'runId' => $runId->toString(),
+			'analysisAsOf' => '2026-07-21T10:00:00+02:00',
+			'scope' => [
+				'includesPortfolio' => false,
+				'includesWatchlist' => false,
+				'includesMarketOverview' => true,
+				'includesStockAnalysis' => false,
+				'portfolioPromptType' => null,
+			],
+			'portfolio' => [],
+			'watchlist' => [],
+			'portfolioContext' => [],
+			'singleStock' => null,
+		];
+		$run = new StockAiAnalysisRun(
+			'Generated v2 prompt',
+			false,
+			false,
+			true,
+			null,
+			new ImmutableDateTime('2026-07-21 10:00:00'),
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+			id: $runId,
+		);
+		$response = [
+			'schemaVersion' => 2,
+			'runId' => $runId->toString(),
+			'analysisAsOf' => $snapshot['analysisAsOf'],
+			'marketOverview' => [
+				'summary' => 'Trh je stabilní.',
+				'sentiment' => 'neutral',
+				'keyDrivers' => [],
+				'upcomingEvents' => [],
+				'geopoliticalRisks' => [],
+			],
+		];
+		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$followUpFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
+		$legacyPromptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
+		$geminiClient = Mockery::mock(GeminiClient::class);
+		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
+		$entityManager = Mockery::mock(EntityManagerInterface::class);
+		$logger = Mockery::mock(LoggerInterface::class);
+		$tempDir = $this->createTempDir();
+		$schemaFactory = new StockAiAnalysisV2SchemaFactory();
+		$v2PromptGenerator = new StockAiAnalysisV2PromptGenerator($schemaFactory);
+
+		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
+		$geminiClient->shouldReceive('generateContent')
+			->with('Generated v2 prompt', Mockery::type('string'), Mockery::type('array'))
+			->once()
+			->andReturn(Json::encode($response));
+		$stockAiAnalysisFacade->shouldReceive('processResponse')
+			->with($runId->toString(), Json::encode($response), StockAiAnalysisProcessingSourceEnum::GEMINI)
+			->once();
+		$datetimeFactory->shouldReceive('createNow')
+			->twice()
+			->andReturn(
+				new ImmutableDateTime('2026-07-21 10:01:00'),
+				new ImmutableDateTime('2026-07-21 10:02:00'),
+			);
+		$entityManager->shouldReceive('flush')->twice();
+
+		$processor = new StockAiAnalysisGeminiProcessorFacade(
+			$stockAiAnalysisFacade,
+			$followUpFacade,
+			$legacyPromptGenerator,
+			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
+			$datetimeFactory,
+			$entityManager,
+			$logger,
+			$tempDir,
+			$v2PromptGenerator,
+			$schemaFactory,
+			new StockAiAnalysisV2ResponseValidator($schemaFactory),
+		);
+
+		try {
+			$processor->process($runId->toString());
+
+			self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED, $run->getGeminiProcessingStatus());
+			self::assertFileExists(
+				$tempDir . '/stock-ai-analysis/gemini/v2/' . $runId->toString() . '/manual.json',
+			);
 		} finally {
 			$this->deleteTempDir($tempDir);
 		}

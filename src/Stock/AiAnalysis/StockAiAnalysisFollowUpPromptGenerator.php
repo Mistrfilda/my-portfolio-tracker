@@ -11,6 +11,10 @@ class StockAiAnalysisFollowUpPromptGenerator
 
 	public function generate(StockAiAnalysisRun $run, string $question): string
 	{
+		if ($run->isV2()) {
+			return $this->generateV2($run, $question);
+		}
+
 		$context = [
 			'analysisMetadata' => [
 				'includesPortfolio' => $run->includesPortfolio(),
@@ -37,6 +41,28 @@ class StockAiAnalysisFollowUpPromptGenerator
 			'Kontext původní analýzy:',
 			Json::encode($context, pretty: true),
 			'Doplňující dotaz uživatele:',
+			$question,
+		]);
+	}
+
+	private function generateV2(StockAiAnalysisRun $run, string $question): string
+	{
+		$context = [
+			'analysisMetadata' => [
+				'schemaVersion' => $run->getAnalysisSchemaVersion(),
+				'processingSource' => $run->getProcessingSource()?->value,
+			],
+			'inputSnapshot' => $run->getInputSnapshot(),
+			'runAnalysis' => $run->getStructuredData(),
+			'stockResults' => $this->buildStockResults($run),
+		];
+
+		return implode("\n\n", [
+			'Continue from the completed investment analysis. Answer only the user follow-up using the persisted structured context.',
+			'If the context is insufficient, state exactly what is missing. Return normal Czech prose, not JSON.',
+			'Original analysis context:',
+			Json::encode($context, pretty: true),
+			'User follow-up question:',
 			$question,
 		]);
 	}
@@ -69,6 +95,14 @@ class StockAiAnalysisFollowUpPromptGenerator
 	{
 		$stockResults = [];
 		foreach ($run->getResults() as $result) {
+			if ($run->isV2() && $result->getStructuredData() !== null) {
+				$stockResults[] = [
+					'type' => $result->getType()->value,
+					'analysis' => $result->getStructuredData(),
+				];
+				continue;
+			}
+
 			$stockResults[] = array_filter([
 				'type' => $result->getType()->value,
 				'stockTicker' => $result->getStockTicker(),

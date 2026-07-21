@@ -14,19 +14,29 @@ use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
+use App\Stock\AiAnalysis\StockAiAnalysisProcessingSourceEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisRunRepository;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2CompanyAnalysis;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2Response;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ResponseValidator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SnapshotFactory;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2Valuation;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Test\UpdatedTestCase;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Mockery;
 use Nette\Utils\Json;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 use Throwable;
 
 class StockAiAnalysisFacadeTest extends TestCase
@@ -44,6 +54,12 @@ class StockAiAnalysisFacadeTest extends TestCase
 
 	private DatetimeFactory $datetimeFactory;
 
+	private StockAiAnalysisV2SnapshotFactory $v2SnapshotFactory;
+
+	private StockAiAnalysisV2PromptGenerator $v2PromptGenerator;
+
+	private StockAiAnalysisV2ResponseValidator $v2ResponseValidator;
+
 	public function setUp(): void
 	{
 		$this->promptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisPromptGenerator::class);
@@ -53,6 +69,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 		$this->stockAssetRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAssetRepository::class);
 		$this->entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$this->datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
+		$this->v2SnapshotFactory = UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisV2SnapshotFactory::class,
+		);
+		$this->v2PromptGenerator = UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisV2PromptGenerator::class,
+		);
+		$this->v2ResponseValidator = UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisV2ResponseValidator::class,
+		);
 		$this->createFacade($this->createStub(RabbitMQPublisher::class));
 	}
 
@@ -70,6 +95,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$this->entityManager,
 			$this->datetimeFactory,
 			$stockAiAnalysisGeminiProcessProducer,
+			$this->v2SnapshotFactory,
+			$this->v2PromptGenerator,
+			$this->v2ResponseValidator,
 		);
 	}
 
@@ -77,8 +105,16 @@ class StockAiAnalysisFacadeTest extends TestCase
 	{
 		$now = new ImmutableDateTime();
 
-		$this->promptGenerator->shouldReceive('generate')
-			->with(true, true, false, null, null, null)
+		$snapshot = $this->createV2Snapshot(true, true, false, null);
+		$this->v2SnapshotFactory->shouldReceive('create')
+			->once()
+			->andReturnUsing(static function (UuidInterface $runId) use (&$snapshot): array {
+				$snapshot['runId'] = $runId->toString();
+
+				return $snapshot;
+			});
+		$this->v2PromptGenerator->shouldReceive('generateManualPrompt')
+			->with(Mockery::type('array'))
 			->once()
 			->andReturn('Generated prompt text');
 
@@ -99,6 +135,8 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertTrue($run->includesWatchlist());
 		self::assertFalse($run->includesMarketOverview());
 		self::assertNull($run->getPortfolioPromptType());
+		self::assertTrue($run->isV2());
+		self::assertSame($snapshot, $run->getInputSnapshot());
 	}
 
 	public function testGetGeneratedPromptForDisplayIncludesSystemInstruction(): void
@@ -204,15 +242,21 @@ class StockAiAnalysisFacadeTest extends TestCase
 	{
 		$now = new ImmutableDateTime();
 
-		$this->promptGenerator->shouldReceive('generate')
-			->with(
-				true,
-				true,
-				true,
-				StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
-				null,
-				null,
-			)
+		$snapshot = $this->createV2Snapshot(
+			true,
+			true,
+			true,
+			StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF,
+		);
+		$this->v2SnapshotFactory->shouldReceive('create')
+			->once()
+			->andReturnUsing(static function (UuidInterface $runId) use (&$snapshot): array {
+				$snapshot['runId'] = $runId->toString();
+
+				return $snapshot;
+			});
+		$this->v2PromptGenerator->shouldReceive('generateManualPrompt')
+			->with(Mockery::type('array'))
 			->once()
 			->andReturn('Generated daily brief prompt');
 
@@ -236,6 +280,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame('Generated daily brief prompt', $run->getGeneratedPrompt());
 		self::assertSame(StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF, $run->getPortfolioPromptType());
 		self::assertTrue($run->isDailyBrief());
+		self::assertTrue($run->isV2());
 	}
 
 	public function testProcessResponseWithMarketOverview(): void
@@ -272,6 +317,97 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$run->getMarketOverviewGeopoliticalContext(),
 		);
 		self::assertSame($now, $run->getProcessedAt());
+	}
+
+	public function testProcessV2ResponsePersistsStructuredResultInTransaction(): void
+	{
+		$now = new ImmutableDateTime('2026-07-21 10:00:00');
+		$stockAssetId = Uuid::uuid4();
+		$snapshot = [
+			'portfolio' => [[
+				'stockAssetId' => $stockAssetId->toString(),
+				'stockAssetName' => 'Example Corp',
+				'stockAssetTicker' => 'EXM',
+				'currency' => 'USD',
+				'currentPrice' => 80.0,
+			]],
+			'watchlist' => [],
+		];
+		$run = new StockAiAnalysisRun(
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+		);
+		$analysis = new StockAiAnalysisV2CompanyAnalysis(
+			$stockAssetId->toString(),
+			'Example Corp',
+			'EXM',
+			'Stabilní firma.',
+			['status' => 'sufficient', 'issues' => []],
+			[],
+			['latestPeriod' => null, 'resultVsExpectations' => 'met', 'nextEarningsDate' => null, 'summary' => 'OK'],
+			['status' => 'stable', 'summary' => 'Stabilní'],
+			[],
+			[],
+			new StockAiAnalysisV2Valuation(
+				'undervalued',
+				90.0,
+				100.0,
+				110.0,
+				'USD',
+				'DCF',
+				'Atraktivní ocenění.',
+			),
+			['action' => 'hold', 'confidence' => 'high', 'reasoning' => 'Držet.', 'watchConditions' => []],
+			'Cena je stabilní.',
+		);
+		$response = new StockAiAnalysisV2Response(
+			2,
+			$run->getId()->toString(),
+			'2026-07-21T10:00:00+02:00',
+			[$analysis],
+		);
+		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$runIdMatcher = Mockery::on(
+			static fn (UuidInterface $id): bool => $id->equals($run->getId()),
+		);
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->with($runIdMatcher)
+			->ordered()
+			->andReturn($run);
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->with($runIdMatcher, LockMode::PESSIMISTIC_WRITE)
+			->ordered()
+			->andReturn($run);
+		$this->v2ResponseValidator->shouldReceive('validate')->once()->with('{}', $snapshot)->andReturn($response);
+		$this->entityManager->shouldReceive('wrapInTransaction')
+			->once()
+			->andReturnUsing(static fn (callable $callback): mixed => $callback());
+		$this->datetimeFactory->shouldReceive('createNow')->once()->andReturn($now);
+		$this->stockAssetRepository->shouldReceive('getById')->once()->andReturn($stockAsset);
+		$this->entityManager->shouldReceive('persist')->once();
+
+		$this->facade->processResponse(
+			$run->getId()->toString(),
+			'{}',
+			StockAiAnalysisProcessingSourceEnum::CODEX,
+		);
+
+		self::assertSame(StockAiAnalysisProcessingSourceEnum::CODEX, $run->getProcessingSource());
+		self::assertSame($now, $run->getProcessedAt());
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertSame(100.0, $result->getFairPrice());
+		self::assertSame(20.0, $result->getV2MarginOfSafetyPercent());
 	}
 
 	public function testProcessResponseWithPortfolioAnalysis(): void
@@ -703,6 +839,34 @@ class StockAiAnalysisFacadeTest extends TestCase
 			'Portfolio vzrostlo o 2.5% za posledních 7 dní',
 			$run->getPortfolioPerformance7DaysSummary(),
 		);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function createV2Snapshot(
+		bool $includesPortfolio,
+		bool $includesWatchlist,
+		bool $includesMarketOverview,
+		StockAiAnalysisPortfolioPromptTypeEnum|null $portfolioPromptType,
+	): array
+	{
+		return [
+			'schemaVersion' => 2,
+			'runId' => Uuid::uuid4()->toString(),
+			'analysisAsOf' => '2026-07-21T10:00:00+02:00',
+			'scope' => [
+				'includesPortfolio' => $includesPortfolio,
+				'includesWatchlist' => $includesWatchlist,
+				'includesMarketOverview' => $includesMarketOverview,
+				'includesStockAnalysis' => false,
+				'portfolioPromptType' => $portfolioPromptType?->value,
+			],
+			'portfolio' => [],
+			'watchlist' => [],
+			'portfolioContext' => [],
+			'singleStock' => null,
+		];
 	}
 
 }

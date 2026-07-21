@@ -15,6 +15,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\Uuid;
+use Ramsey\Uuid\UuidInterface;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'stock_ai_analysis_run')]
@@ -30,6 +31,20 @@ class StockAiAnalysisRun implements Entity
 
 	#[ORM\Column(type: Types::TEXT, nullable: true)]
 	private string|null $rawResponse = null;
+
+	#[ORM\Column(type: Types::INTEGER, options: ['default' => 1])]
+	private int $analysisSchemaVersion = 1;
+
+	/** @var array<string, mixed>|null */
+	#[ORM\Column(type: Types::JSON, nullable: true)]
+	private array|null $inputSnapshot = null;
+
+	/** @var array<string, mixed>|null */
+	#[ORM\Column(type: Types::JSON, nullable: true)]
+	private array|null $structuredData = null;
+
+	#[ORM\Column(type: Types::STRING, nullable: true, enumType: StockAiAnalysisProcessingSourceEnum::class)]
+	private StockAiAnalysisProcessingSourceEnum|null $processingSource = null;
 
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $includesPortfolio;
@@ -114,6 +129,9 @@ class StockAiAnalysisRun implements Entity
 	)]
 	private Collection $results;
 
+	/**
+	 * @param array<string, mixed>|null $inputSnapshot
+	 */
 	public function __construct(
 		string $generatedPrompt,
 		bool $includesPortfolio,
@@ -124,9 +142,12 @@ class StockAiAnalysisRun implements Entity
 		string|null $stockTicker = null,
 		string|null $stockName = null,
 		StockAsset|null $stockAsset = null,
+		int $analysisSchemaVersion = 1,
+		array|null $inputSnapshot = null,
+		UuidInterface|null $id = null,
 	)
 	{
-		$this->id = Uuid::uuid4();
+		$this->id = $id ?? Uuid::uuid4();
 		$this->generatedPrompt = $generatedPrompt;
 		$this->includesPortfolio = $includesPortfolio;
 		$this->includesWatchlist = $includesWatchlist;
@@ -135,9 +156,28 @@ class StockAiAnalysisRun implements Entity
 		$this->stockTicker = $stockTicker;
 		$this->stockName = $stockName;
 		$this->stockAsset = $stockAsset;
+		$this->analysisSchemaVersion = $analysisSchemaVersion;
+		$this->inputSnapshot = $inputSnapshot;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->results = new ArrayCollection();
+	}
+
+	/**
+	 * @param array<string, mixed> $structuredData
+	 */
+	public function setV2Response(
+		string $rawResponse,
+		array $structuredData,
+		StockAiAnalysisProcessingSourceEnum $processingSource,
+		ImmutableDateTime $now,
+	): void
+	{
+		$this->rawResponse = $rawResponse;
+		$this->structuredData = $structuredData;
+		$this->processingSource = $processingSource;
+		$this->processedAt = $now;
+		$this->updatedAt = $now;
 	}
 
 	public function setResponse(
@@ -214,6 +254,37 @@ class StockAiAnalysisRun implements Entity
 	public function getRawResponse(): string|null
 	{
 		return $this->rawResponse;
+	}
+
+	public function getAnalysisSchemaVersion(): int
+	{
+		return $this->analysisSchemaVersion;
+	}
+
+	public function isV2(): bool
+	{
+		return $this->analysisSchemaVersion === 2;
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	public function getInputSnapshot(): array|null
+	{
+		return $this->inputSnapshot;
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	public function getStructuredData(): array|null
+	{
+		return $this->structuredData;
+	}
+
+	public function getProcessingSource(): StockAiAnalysisProcessingSourceEnum|null
+	{
+		return $this->processingSource;
 	}
 
 	public function includesPortfolio(): bool
@@ -339,6 +410,32 @@ class StockAiAnalysisRun implements Entity
 				StockAiAnalysisGeminiProcessingStatusEnum::PROCESSING,
 				StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED,
 			], true);
+	}
+
+	public function canImportCodexResponse(): bool
+	{
+		return $this->isV2()
+			&& $this->processedAt === null
+			&& !in_array($this->geminiProcessingStatus, [
+				StockAiAnalysisGeminiProcessingStatusEnum::QUEUED,
+				StockAiAnalysisGeminiProcessingStatusEnum::PROCESSING,
+			], true);
+	}
+
+	public function getCodexCompanyTaskCount(): int
+	{
+		if (!$this->isV2() || $this->inputSnapshot === null) {
+			return 0;
+		}
+
+		$portfolio = is_array($this->inputSnapshot['portfolio'] ?? null)
+			? $this->inputSnapshot['portfolio']
+			: [];
+		$watchlist = is_array($this->inputSnapshot['watchlist'] ?? null)
+			? $this->inputSnapshot['watchlist']
+			: [];
+
+		return count($portfolio) + count($watchlist) + ($this->stockTicker !== null ? 1 : 0);
 	}
 
 	/**

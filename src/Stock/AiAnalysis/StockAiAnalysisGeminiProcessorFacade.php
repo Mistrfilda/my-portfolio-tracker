@@ -5,6 +5,10 @@ declare(strict_types = 1);
 namespace App\Stock\AiAnalysis;
 
 use App\Ai\Gemini\GeminiClient;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ResponseValidator;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory;
+use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ValidationException;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
@@ -31,6 +35,9 @@ class StockAiAnalysisGeminiProcessorFacade
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
 		private readonly string $tempDir,
+		private readonly StockAiAnalysisV2PromptGenerator|null $v2PromptGenerator = null,
+		private readonly StockAiAnalysisV2SchemaFactory|null $v2SchemaFactory = null,
+		private readonly StockAiAnalysisV2ResponseValidator|null $v2ResponseValidator = null,
 	)
 	{
 	}
@@ -47,7 +54,16 @@ class StockAiAnalysisGeminiProcessorFacade
 
 		try {
 			$response = $this->createGeminiResponse($run);
-			$this->stockAiAnalysisFacade->processResponse($runId, Json::encode($response));
+			if ($run->isV2()) {
+				$this->stockAiAnalysisFacade->processResponse(
+					$runId,
+					Json::encode($response),
+					StockAiAnalysisProcessingSourceEnum::GEMINI,
+				);
+			} else {
+				$this->stockAiAnalysisFacade->processResponse($runId, Json::encode($response));
+			}
+
 			$run->markGeminiCompleted($this->datetimeFactory->createNow());
 			$this->entityManager->flush();
 		} catch (Throwable $exception) {
@@ -91,6 +107,10 @@ class StockAiAnalysisGeminiProcessorFacade
 	 */
 	private function createGeminiResponse(StockAiAnalysisRun $run): array
 	{
+		if ($run->isV2()) {
+			return $this->createV2GeminiResponse($run);
+		}
+
 		$systemInstruction = $this->promptGenerator->generateSystemInstruction();
 
 		if (!$run->includesPortfolio() && !$run->includesWatchlist()) {
@@ -195,6 +215,267 @@ class StockAiAnalysisGeminiProcessorFacade
 		return $mergedResponse;
 	}
 
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function createV2GeminiResponse(StockAiAnalysisRun $run): array
+	{
+		if (
+			$this->v2PromptGenerator === null
+			|| $this->v2SchemaFactory === null
+			|| $this->v2ResponseValidator === null
+		) {
+			throw new Exception('V2 Gemini services are not configured.');
+		}
+
+		$snapshot = $run->getInputSnapshot();
+		if ($snapshot === null) {
+			throw new Exception('V2 analysis run is missing its input snapshot.');
+		}
+
+		$systemInstruction = $this->v2PromptGenerator->generateSystemInstruction($snapshot);
+		$portfolioData = $this->getSnapshotList($snapshot, 'portfolio');
+		$watchlistData = $this->getSnapshotList($snapshot, 'watchlist');
+
+		if ($portfolioData === [] && $watchlistData === []) {
+			$schema = $this->v2SchemaFactory->createFullSchema($snapshot);
+
+			return $this->loadOrCreateV2GeminiResponse(
+				$run,
+				'manual.json',
+				$run->getGeneratedPrompt(),
+				$systemInstruction,
+				$schema,
+				fullSnapshot: $snapshot,
+			);
+		}
+
+		$portfolioAnalysis = $this->createV2CompanyAnalyses(
+			$run,
+			$snapshot,
+			$portfolioData,
+			'portfolioAnalysis',
+			'portfolio',
+			$systemInstruction,
+		);
+		$watchlistAnalysis = $this->createV2CompanyAnalyses(
+			$run,
+			$snapshot,
+			$watchlistData,
+			'watchlistAnalysis',
+			'watchlist',
+			$systemInstruction,
+		);
+
+		$mergedResponse = [
+			'schemaVersion' => 2,
+			'runId' => $snapshot['runId'],
+			'analysisAsOf' => $snapshot['analysisAsOf'],
+		];
+		$reduceSchema = $this->v2SchemaFactory->createReduceSchema($snapshot);
+		if (is_array($reduceSchema['required'] ?? null) && $reduceSchema['required'] !== []) {
+			$reduceResponse = $this->loadOrCreateV2GeminiResponse(
+				$run,
+				'reduce.json',
+				$this->v2PromptGenerator->generateReducePrompt(
+					$snapshot,
+					$portfolioAnalysis,
+					$watchlistAnalysis,
+				),
+				$systemInstruction,
+				$reduceSchema,
+			);
+			$mergedResponse = [...$mergedResponse, ...$reduceResponse];
+		}
+
+		if ($run->includesPortfolio()) {
+			$mergedResponse['portfolioAnalysis'] = $portfolioAnalysis;
+		}
+
+		if ($run->includesWatchlist()) {
+			$mergedResponse['watchlistAnalysis'] = $watchlistAnalysis;
+		}
+
+		return $mergedResponse;
+	}
+
+	/**
+	 * @param array<string, mixed> $snapshot
+	 * @param array<int, mixed> $items
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function createV2CompanyAnalyses(
+		StockAiAnalysisRun $run,
+		array $snapshot,
+		array $items,
+		string $rootKey,
+		string $filePrefix,
+		string $systemInstruction,
+	): array
+	{
+		assert($this->v2PromptGenerator !== null);
+		assert($this->v2SchemaFactory !== null);
+		$schema = $this->v2SchemaFactory->createCompanySchema($rootKey);
+		$analyses = [];
+		$itemNumber = 1;
+		foreach ($items as $item) {
+			$item = $this->validateStringKeyArray(TypeValidator::validateArray($item));
+			$response = $this->loadOrCreateV2GeminiResponse(
+				$run,
+				sprintf(
+					'%s-%03d-%s.json',
+					$filePrefix,
+					$itemNumber,
+					TypeValidator::validateString($item['stockAssetId'] ?? null),
+				),
+				$this->v2PromptGenerator->generateCompanyPrompt($snapshot, $rootKey, $item),
+				$systemInstruction,
+				$schema,
+				$rootKey,
+				$item,
+			);
+			$rootValue = TypeValidator::validateArray($response[$rootKey] ?? null);
+			$analysis = $rootKey === 'stockAnalysis' ? $rootValue : TypeValidator::validateArray($rootValue[0] ?? null);
+			$analyses[] = $this->validateStringKeyArray($analysis);
+			$itemNumber++;
+		}
+
+		return $analyses;
+	}
+
+	/**
+	 * @param array<string, mixed> $schema
+	 * @param array<string, mixed>|null $expectedItem
+	 * @param array<string, mixed>|null $fullSnapshot
+	 * @return array<string, mixed>
+	 */
+	private function loadOrCreateV2GeminiResponse(
+		StockAiAnalysisRun $run,
+		string $fileName,
+		string $prompt,
+		string $systemInstruction,
+		array $schema,
+		string|null $rootKey = null,
+		array|null $expectedItem = null,
+		array|null $fullSnapshot = null,
+	): array
+	{
+		assert($this->v2SchemaFactory !== null);
+		$filePath = $this->getGeminiResponseFilePath($run, $fileName);
+		if (is_file($filePath)) {
+			try {
+				$cached = $this->decodeStrictJsonObject(FileSystem::read($filePath));
+				$errors = $this->getV2ValidationErrors($cached, $schema, $rootKey, $expectedItem, $fullSnapshot);
+				if ($errors === []) {
+					return $cached;
+				}
+			} catch (Throwable $exception) {
+				$this->logger->warning('Cached v2 Gemini response is invalid and will be regenerated.', [
+					'fileName' => $fileName,
+					'exception' => $exception,
+				]);
+			}
+		}
+
+		$geminiSchema = $this->v2SchemaFactory->toGeminiResponseSchema($schema);
+		$lastErrors = [];
+		for ($attempt = 1; $attempt <= 2; $attempt++) {
+			$requestPrompt = $attempt === 1
+				? $prompt
+				: $this->createV2RetryPrompt($prompt, $lastErrors);
+			$rawResponse = $this->geminiClient->generateContent(
+				$requestPrompt,
+				$systemInstruction,
+				$geminiSchema,
+			);
+
+			try {
+				$response = $this->decodeStrictJsonObject($rawResponse);
+				$lastErrors = $this->getV2ValidationErrors(
+					$response,
+					$schema,
+					$rootKey,
+					$expectedItem,
+					$fullSnapshot,
+				);
+				if ($lastErrors === []) {
+					$this->writeGeminiResponseFile($filePath, $response);
+
+					return $response;
+				}
+			} catch (Throwable $exception) {
+				$lastErrors = [$exception->getMessage()];
+			}
+
+			$this->logger->warning('V2 Gemini response validation failed.', [
+				'fileName' => $fileName,
+				'attempt' => $attempt,
+				'errors' => $lastErrors,
+			]);
+		}
+
+		throw new Exception(sprintf(
+			'Gemini response file "%s" is invalid after retry: %s',
+			$fileName,
+			implode('; ', $lastErrors),
+		));
+	}
+
+	/**
+	 * @param array<string, mixed> $response
+	 * @param array<string, mixed> $schema
+	 * @param array<string, mixed>|null $expectedItem
+	 * @param array<string, mixed>|null $fullSnapshot
+	 * @return array<int, string>
+	 */
+	private function getV2ValidationErrors(
+		array $response,
+		array $schema,
+		string|null $rootKey,
+		array|null $expectedItem,
+		array|null $fullSnapshot,
+	): array
+	{
+		assert($this->v2ResponseValidator !== null);
+		if ($fullSnapshot !== null) {
+			try {
+				$this->v2ResponseValidator->validate(Json::encode($response), $fullSnapshot);
+
+				return [];
+			} catch (StockAiAnalysisV2ValidationException $exception) {
+				return $exception->getErrors();
+			}
+		}
+
+		return $this->v2ResponseValidator->validatePartial($response, $schema, $rootKey, $expectedItem);
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function decodeStrictJsonObject(string $rawResponse): array
+	{
+		$data = Json::decode($rawResponse, forceArrays: true);
+		if (!is_array($data)) {
+			throw new Exception('Gemini response is not a JSON object.');
+		}
+
+		return $this->validateStringKeyArray($data);
+	}
+
+	/**
+	 * @param array<int, string> $errors
+	 */
+	private function createV2RetryPrompt(string $prompt, array $errors): string
+	{
+		return implode("\n\n", [
+			$prompt,
+			'Your previous response failed validation. Return only corrected JSON with no markdown or explanation.',
+			'Validation errors:',
+			implode("\n", array_map(static fn (string $error): string => '- ' . $error, $errors)),
+		]);
+	}
+
 	private function needsReduceStep(StockAiAnalysisRun $run): bool
 	{
 		return $run->includesMarketOverview() || $run->includesPortfolio();
@@ -276,12 +557,18 @@ class StockAiAnalysisGeminiProcessorFacade
 
 	private function getGeminiResponseDirectory(StockAiAnalysisRun $run): string
 	{
-		return FileSystem::joinPaths(
+		$parts = [
 			$this->tempDir,
 			'stock-ai-analysis',
 			'gemini',
-			$run->getId()->toString(),
-		);
+		];
+		if ($run->isV2()) {
+			$parts[] = 'v2';
+		}
+
+		$parts[] = $run->getId()->toString();
+
+		return FileSystem::joinPaths(...$parts);
 	}
 
 	private function getGeminiResponseFilePath(StockAiAnalysisRun $run, string $fileName): string
@@ -373,6 +660,20 @@ class StockAiAnalysisGeminiProcessorFacade
 		}
 
 		return $result;
+	}
+
+	/**
+	 * @param array<string, mixed> $snapshot
+	 * @return array<int, mixed>
+	 */
+	private function getSnapshotList(array $snapshot, string $key): array
+	{
+		$value = $snapshot[$key] ?? null;
+		if (!is_array($value) || !array_is_list($value)) {
+			throw new Exception(sprintf('Snapshot key %s must contain a list.', $key));
+		}
+
+		return $value;
 	}
 
 }

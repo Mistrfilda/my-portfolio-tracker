@@ -40,12 +40,18 @@
 							⏳ Čeká na zpracování
 						</span>
 					{/if}
+					{if $run->getProcessingSource() !== null}
+						<span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-slate-100 text-slate-800 ring-1 ring-inset ring-slate-200">
+							Zdroj: {$run->getProcessingSource()->getLabel()}
+						</span>
+					{/if}
 				</div>
 			</div>
 		</div>
 
-		{* Vygenerovaný prompt *}
-		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
+		{if !$run->getProcessedAt()}
+			{* Vygenerovaný prompt *}
+			<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
 			<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
 				<h2 class="text-lg font-semibold text-gray-900">Vygenerovaný prompt</h2>
 			</div>
@@ -93,10 +99,74 @@
 					}
 				</script>
 			</div>
-		</div>
+			</div>
 
-		{* Automatické zpracování přes Gemini *}
-		<div class="bg-white shadow-sm rounded-lg border border-violet-200 overflow-hidden mb-6">
+			{if $run->isV2()}
+				<div class="bg-white shadow-sm rounded-lg border border-sky-200 overflow-hidden mb-6">
+				<div class="px-6 py-4 border-b border-sky-200 bg-sky-50">
+					<h2 class="text-lg font-semibold text-sky-900">Zpracování přes Codex</h2>
+				</div>
+				<div class="px-6 py-5">
+					<p class="max-w-3xl text-sm leading-6 text-gray-600">
+						ZIP obsahuje instrukce, schémata a {$run->getCodexCompanyTaskCount()} samostatných firemních úkolů. Celý postup dokončíte ve třech krocích.
+					</p>
+					<ol class="mt-5 divide-y divide-gray-200 overflow-hidden rounded-lg border border-gray-200">
+						<li class="flex gap-4 p-5 sm:p-6">
+							<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">1</span>
+							<div class="min-w-0">
+								<h3 class="text-sm font-semibold text-gray-900">Stáhnout a rozbalit projekt</h3>
+								<p class="mt-1 text-sm leading-6 text-gray-600">Stáhněte ZIP a rozbalte jej do samostatné složky.</p>
+								<a n:href="downloadCodexBundle id: $run->getId()->toString()" class="mt-3 inline-flex items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600">
+									Stáhnout Codex projekt
+								</a>
+							</div>
+						</li>
+						<li class="flex gap-4 p-5 sm:p-6">
+							<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">2</span>
+							<div class="min-w-0 flex-1">
+								<h3 class="text-sm font-semibold text-gray-900">Otevřít složku v Codexu</h3>
+								<p class="mt-1 text-sm leading-6 text-gray-600">Otevřete rozbalenou složku v Codexu, povolte webové vyhledávání a pošlete mu přesně tuto zprávu:</p>
+								<pre class="mt-3 overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-sm text-gray-100"><code>{$codexStartPrompt}</code></pre>
+								<p class="mt-2 text-xs leading-5 text-gray-500">Codex si načte AGENTS.md, zpracuje všechny firmy a vytvoří result.json v kořeni složky.</p>
+							</div>
+						</li>
+						<li class="flex gap-4 p-5 sm:p-6">
+							<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">3</span>
+							<div class="min-w-0 flex-1">
+								<h3 class="text-sm font-semibold text-gray-900">Nahrát hotový result.json</h3>
+								<p class="mt-1 text-sm leading-6 text-gray-600">Po dokončení vyberte soubor result.json vytvořený Codexem.</p>
+								{if $run->canImportCodexResponse()}
+									<form n:name="codexResultForm" class="mt-4 max-w-2xl space-y-3">
+										{if $form->hasErrors()}
+											<div role="alert" class="rounded-md border border-red-200 bg-red-50 p-4">
+												<p class="font-medium text-red-800">Výsledek se nepodařilo importovat.</p>
+												<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-red-700">
+													{foreach $form->getErrors() as $error}
+														<li>{$error}</li>
+													{/foreach}
+												</ul>
+											</div>
+										{/if}
+										<div>
+											<label n:name="resultFile" class="sr-only">Hotový result.json</label>
+											<input n:name="resultFile" class="block w-full rounded-md border-gray-300 text-sm shadow-xs file:mr-3 file:rounded-md file:border-0 file:bg-sky-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-sky-700 hover:file:bg-sky-100">
+										</div>
+										<button n:name="submit" class="inline-flex items-center justify-center rounded-md bg-green-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-green-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600">
+											Importovat výsledek
+										</button>
+									</form>
+								{elseif !$run->getProcessedAt()}
+									<p class="mt-3 text-sm text-amber-700">Import není dostupný, protože běh právě zpracovává Gemini.</p>
+								{/if}
+							</div>
+						</li>
+					</ol>
+				</div>
+				</div>
+			{/if}
+
+			{* Automatické zpracování přes Gemini *}
+			<div class="bg-white shadow-sm rounded-lg border border-violet-200 overflow-hidden mb-6">
 			<div class="px-6 py-4 border-b border-violet-200 bg-violet-50">
 				<div class="flex items-center justify-between gap-4">
 					<h2 class="text-lg font-semibold text-violet-900">Automatické zpracování přes Gemini</h2>
@@ -156,7 +226,8 @@
 					<p class="text-sm text-gray-600">Analýza už byla zpracována, automatické zařazení není dostupné.</p>
 				{/if}
 			</div>
-		</div>
+			</div>
+		{/if}
 
 		{* Nahrání odpovědi *}
 		{if !$run->getProcessedAt()}
@@ -178,6 +249,47 @@
 					</form>
 				</div>
 			</div>
+		{/if}
+
+		{if $run->getProcessedAt() && (count($portfolioResults) > 0 || count($watchlistResults) > 0)}
+			<section aria-labelledby="recommendations-summary" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
+					<h2 id="recommendations-summary" class="text-base font-semibold text-gray-900">Rychlý souhrn doporučení</h2>
+					<p class="mt-1 text-sm text-gray-500">Kliknutím přejdete na detail konkrétní akcie.</p>
+				</div>
+				<div class="space-y-5 px-5 py-5 sm:px-6">
+					{if count($portfolioResults) > 0}
+						<div>
+							<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">Portfolio</h3>
+							<ul role="list" class="mt-3 flex flex-wrap gap-2">
+								{foreach $portfolioResults as $result}
+									<li>
+										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 hover:bg-gray-50">
+											<span class="truncate text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
+											{include #actionBadge, action: $result->getActionSuggestion(), compact: true}
+										</a>
+									</li>
+								{/foreach}
+							</ul>
+						</div>
+					{/if}
+					{if count($watchlistResults) > 0}
+						<div>
+							<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">Watchlist</h3>
+							<ul role="list" class="mt-3 flex flex-wrap gap-2">
+								{foreach $watchlistResults as $result}
+									<li>
+										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 hover:bg-gray-50">
+											<span class="truncate text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
+											{include #actionBadge, action: $result->getActionSuggestion(), compact: true}
+										</a>
+									</li>
+								{/foreach}
+							</ul>
+						</div>
+					{/if}
+				</div>
+			</section>
 		{/if}
 
 		{* Doplňující dotazy *}
@@ -317,6 +429,239 @@
 
 		{* Výsledky analýzy *}
 		{if $run->getProcessedAt()}
+			{if $run->isV2()}
+				{var $runData = $run->getStructuredData()}
+				{if isset($runData['marketOverview'])}
+					{var $marketOverview = $runData['marketOverview']}
+					<div class="mb-6 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+						<div class="border-b border-gray-200 bg-indigo-50 px-6 py-4">
+							<div class="flex items-center justify-between gap-4">
+								<h2 class="text-lg font-semibold text-gray-900">Přehled trhu</h2>
+								{include #marketSentimentBadge, sentiment: $marketOverview['sentiment']}
+							</div>
+						</div>
+						<div class="space-y-5 px-6 py-5">
+							<p class="text-sm leading-relaxed text-gray-700">{$marketOverview['summary']}</p>
+							{if count($marketOverview['keyDrivers']) > 0}
+								<div>
+									<h3 class="mb-2 text-sm font-semibold text-gray-900">Klíčové faktory</h3>
+									<ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+										{foreach $marketOverview['keyDrivers'] as $driver}
+											<li class="px-4 py-3 text-sm">
+										<div class="flex items-center justify-between gap-3"><span class="font-medium text-gray-900">{$driver['title']}</span>{include #directionBadge, direction: $driver['direction']}</div>
+												<p class="mt-1 text-gray-600">{$driver['impact']}</p>
+											</li>
+										{/foreach}
+									</ul>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/if}
+
+				{if isset($runData['portfolioEvaluation'])}
+					{var $portfolioEvaluation = $runData['portfolioEvaluation']}
+					<div class="mb-6 overflow-hidden rounded-lg border border-emerald-200 bg-white shadow-sm">
+						<div class="border-b border-emerald-200 bg-emerald-50 px-6 py-4"><h2 class="text-lg font-semibold text-emerald-900">Zhodnocení portfolia</h2></div>
+						<div class="space-y-4 px-6 py-5">
+							<p class="text-sm leading-relaxed text-gray-700">{$portfolioEvaluation['summary']}</p>
+							<p class="text-sm leading-relaxed text-gray-700">{$portfolioEvaluation['performance7DaysSummary']}</p>
+							{if count($portfolioEvaluation['concentrationRisks']) > 0}
+								<ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+									{foreach $portfolioEvaluation['concentrationRisks'] as $risk}
+										<li class="px-4 py-3 text-sm"><span class="font-medium text-gray-900">{$risk['sector']} ({$risk['allocationPercent']|percentage})</span><p class="mt-1 text-gray-600">{$risk['assessment']}</p></li>
+									{/foreach}
+								</ul>
+							{/if}
+						</div>
+					</div>
+				{/if}
+
+				{if isset($runData['dailyBrief'])}
+					{var $dailyBrief = $runData['dailyBrief']}
+					<div class="mb-6 overflow-hidden rounded-lg border border-cyan-200 bg-white shadow-sm">
+						<div class="border-b border-cyan-200 bg-cyan-50 px-6 py-4"><div class="flex items-center justify-between"><h2 class="text-lg font-semibold text-cyan-900">Denní briefing</h2>{include #dailyActionBadge, action: $dailyBrief['actionNeeded']}</div></div>
+						<div class="space-y-5 px-6 py-5">
+							<p class="text-sm leading-relaxed text-gray-700">{$dailyBrief['summary']}</p>
+							<p class="text-sm leading-relaxed text-gray-700">{$dailyBrief['marketPulse']}</p>
+							{if count($dailyBrief['alerts']) > 0}
+								<ul role="list" class="divide-y divide-gray-100 rounded-md border border-gray-200">
+									{foreach $dailyBrief['alerts'] as $alert}
+									<li class="px-4 py-3 text-sm"><div class="flex items-center justify-between gap-3"><span class="font-medium text-gray-900">{$alert['title']}</span>{include #priorityBadge, priority: $alert['severity']}</div><p class="mt-1 text-gray-600">{$alert['detail']}</p></li>
+									{/foreach}
+								</ul>
+							{/if}
+							{if count($dailyBrief['checklist']) > 0}
+								<div><h3 class="mb-2 text-sm font-semibold text-gray-900">Akční checklist</h3><ul role="list" class="space-y-2">
+									{foreach $dailyBrief['checklist'] as $item}
+									<li class="rounded-md border border-gray-200 bg-gray-50 px-4 py-3 text-sm"><div class="flex items-center justify-between gap-3"><span class="font-medium text-gray-900">{$item['action']}</span>{include #priorityBadge, priority: $item['priority']}</div><p class="mt-1 text-gray-600">{$item['reason']}</p></li>
+									{/foreach}
+								</ul></div>
+							{/if}
+						</div>
+					</div>
+				{/if}
+
+				{foreach [$portfolioResults, $watchlistResults, $singleStockResults] as $resultGroup}
+					{foreach $resultGroup as $result}
+						{var $analysis = $result->getStructuredData()}
+						{var $valuation = $analysis['valuation']}
+						{var $recommendation = $analysis['recommendation']}
+						<article id="analysis-{$result->getId()}" class="mb-5 scroll-mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+							<header class="border-b border-gray-100 px-5 py-4 sm:px-6">
+								<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+									<div class="min-w-0">
+										<p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{include #resultTypeLabel, type: $result->getType()}</p>
+										<h2 class="mt-1 text-lg font-semibold text-gray-900">
+											{$result->getStockName()}
+											<span class="font-medium text-gray-500">({$result->getStockTicker()})</span>
+										</h2>
+									</div>
+									<div class="flex flex-wrap items-center gap-2">
+										{include #actionBadge, action: $result->getActionSuggestion(), compact: false}
+										{include #confidenceBadge, confidence: $result->getConfidenceLevel()}
+									</div>
+								</div>
+							</header>
+
+							<div class="space-y-6 px-5 py-5 sm:px-6">
+								<p class="text-sm leading-6 text-gray-700">{$analysis['summary']}</p>
+
+								{if isset($analysis['businessSummary']) || isset($analysis['moatAnalysis']) || isset($analysis['financialHealth'])}
+									<dl class="grid overflow-hidden rounded-lg border border-gray-200 bg-gray-50/60 md:grid-cols-3 md:divide-x md:divide-gray-200">
+										{if isset($analysis['businessSummary'])}
+											<div class="p-4">
+												<dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Byznys</dt>
+												<dd class="mt-2 text-sm leading-6 text-gray-700">{$analysis['businessSummary']}</dd>
+											</div>
+										{/if}
+										{if isset($analysis['moatAnalysis'])}
+											<div class="border-t border-gray-200 p-4 md:border-t-0">
+												<dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Konkurenční výhoda</dt>
+												<dd class="mt-2 text-sm leading-6 text-gray-700">{$analysis['moatAnalysis']}</dd>
+											</div>
+										{/if}
+										{if isset($analysis['financialHealth'])}
+											<div class="border-t border-gray-200 p-4 md:border-t-0">
+												<dt class="text-xs font-semibold uppercase tracking-wide text-gray-500">Finanční zdraví</dt>
+												<dd class="mt-2 text-sm leading-6 text-gray-700">{$analysis['financialHealth']}</dd>
+											</div>
+										{/if}
+									</dl>
+								{/if}
+
+								{if count($analysis['materialEvents']) > 0}
+									<section>
+										<h3 class="text-sm font-semibold text-gray-900">Důležité události</h3>
+										<ul role="list" class="mt-3 divide-y divide-gray-100 overflow-hidden rounded-lg border border-gray-200">
+											{foreach $analysis['materialEvents'] as $event}
+												<li class="px-4 py-3.5">
+													<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+														<p class="text-sm font-medium text-gray-900">{$event['headline']}</p>
+														<div class="flex shrink-0 items-center gap-2">
+															{if $event['date'] !== null}<time class="text-xs text-gray-500">{$event['date']}</time>{/if}
+															{include #sentimentBadge, sentiment: $event['sentiment']}
+														</div>
+													</div>
+													<p class="mt-1 text-sm leading-6 text-gray-600">{$event['impact']}</p>
+												</li>
+											{/foreach}
+										</ul>
+									</section>
+								{/if}
+
+								<div class="grid gap-4 md:grid-cols-2">
+									<section class="rounded-lg border border-gray-200 p-4">
+										<h3 class="text-sm font-semibold text-gray-900">Výsledky hospodaření</h3>
+										<p class="mt-2 text-sm leading-6 text-gray-600">{$analysis['earnings']['summary']}</p>
+									</section>
+									<section class="rounded-lg border border-gray-200 p-4">
+										<h3 class="text-sm font-semibold text-gray-900">Dividenda</h3>
+										<p class="mt-2 text-sm leading-6 text-gray-600">{$analysis['dividend']['summary']}</p>
+									</section>
+								</div>
+
+								{if count($analysis['catalysts']) > 0 || count($analysis['risks']) > 0}
+									<div class="grid gap-5 md:grid-cols-2">
+										{if count($analysis['catalysts']) > 0}
+											<section>
+												<h3 class="text-sm font-semibold text-gray-900">Katalyzátory</h3>
+												<ul role="list" class="mt-3 space-y-2">
+													{foreach $analysis['catalysts'] as $catalyst}
+														<li class="border-l-2 border-emerald-400 pl-3">
+															<p class="text-sm font-medium text-gray-900">{$catalyst['title']}</p>
+															<p class="mt-1 text-sm leading-6 text-gray-600">{$catalyst['rationale']}</p>
+														</li>
+													{/foreach}
+												</ul>
+											</section>
+										{/if}
+										{if count($analysis['risks']) > 0}
+											<section>
+												<h3 class="text-sm font-semibold text-gray-900">Rizika</h3>
+												<ul role="list" class="mt-3 space-y-2">
+													{foreach $analysis['risks'] as $risk}
+														<li class="border-l-2 border-rose-400 pl-3">
+															<div class="flex flex-wrap items-center gap-2">
+																<p class="text-sm font-medium text-gray-900">{$risk['title']}</p>
+																{include #riskImpactBadge, impact: $risk['impact']}
+															</div>
+															<p class="mt-1 text-sm leading-6 text-gray-600">{$risk['rationale']}</p>
+														</li>
+													{/foreach}
+												</ul>
+											</section>
+										{/if}
+									</div>
+								{/if}
+
+								<div class="grid gap-4 lg:grid-cols-2">
+									<section class="rounded-lg bg-sky-50/70 p-4 ring-1 ring-inset ring-sky-200">
+										<div class="flex flex-wrap items-center justify-between gap-2">
+											<h3 class="text-sm font-semibold text-sky-950">Ocenění</h3>
+											{include #valuationBadge, assessment: $valuation['assessment']}
+										</div>
+										<p class="mt-2 text-sm leading-6 text-sky-900">{$valuation['summary']}</p>
+										{if $result->getFairPriceCurrency() !== null && $result->getFairPrice() !== null && $result->getV2FairValueLow() !== null && $result->getV2FairValueHigh() !== null}
+											<dl class="mt-3 border-t border-sky-200 pt-3">
+												<div class="flex flex-wrap items-baseline justify-between gap-2">
+													<dt class="text-xs font-medium text-sky-700">Férové rozpětí</dt>
+													<dd class="text-sm font-semibold text-sky-950">{$result->getV2FairValueLow()|currency:$result->getFairPriceCurrency()} – {$result->getFairPrice()|currency:$result->getFairPriceCurrency()} – {$result->getV2FairValueHigh()|currency:$result->getFairPriceCurrency()}</dd>
+												</div>
+												{if $result->getV2MarginOfSafetyPercent() !== null}
+													<div class="mt-1 flex items-baseline justify-between gap-2">
+														<dt class="text-xs font-medium text-sky-700">Bezpečnostní rezerva</dt>
+														<dd class="text-sm font-semibold text-sky-950">{$result->getV2MarginOfSafetyPercent()|percentage}</dd>
+													</div>
+												{/if}
+											</dl>
+										{/if}
+									</section>
+									<section class="rounded-lg bg-indigo-50/70 p-4 ring-1 ring-inset ring-indigo-200">
+										<h3 class="text-sm font-semibold text-indigo-950">Doporučení</h3>
+										<p class="mt-2 text-sm leading-6 text-indigo-900">{$recommendation['reasoning']}</p>
+										{if count($recommendation['watchConditions']) > 0}
+											<div class="mt-3 border-t border-indigo-200 pt-3">
+												<p class="text-xs font-semibold uppercase tracking-wide text-indigo-700">Co sledovat</p>
+												<ul role="list" class="mt-2 list-disc space-y-1 pl-4 text-sm text-indigo-900">
+													{foreach $recommendation['watchConditions'] as $condition}<li>{$condition}</li>{/foreach}
+												</ul>
+											</div>
+										{/if}
+									</section>
+								</div>
+
+								{if isset($analysis['conclusion'])}
+									<section class="border-t border-gray-100 pt-5">
+										<h3 class="text-sm font-semibold text-gray-900">Závěr</h3>
+										<p class="mt-2 text-sm leading-6 text-gray-700">{$analysis['conclusion']}</p>
+									</section>
+								{/if}
+							</div>
+						</article>
+					{/foreach}
+				{/foreach}
+			{else}
 			{* Přehled trhu *}
 			{if $run->getMarketOverviewSummary()}
 				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -450,76 +795,6 @@
 					{/if}
 				</div>
 			{/if}
-
- 		{* Rychlý souhrn *}
-			{if count($portfolioResults) > 0 || count($watchlistResults) > 0}
-				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
-					<div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
-						<h2 class="text-lg font-semibold text-gray-900">📝 Rychlý souhrn doporučení</h2>
-					</div>
-					<div class="px-6 py-4">
-						{if count($portfolioResults) > 0}
-							<div class="mb-3">
-								<h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Portfolio</h3>
-								<div class="flex flex-wrap gap-2">
-									{foreach $portfolioResults as $result}
-										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors">
-											<span class="font-medium text-gray-900">{$result->getStockAsset()->getTicker()}</span>
-											{if $result->getActionSuggestion()}
-												{if $result->getActionSuggestion()->value === 'add_more'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">📈 Přikoupit</span>
-												{elseif $result->getActionSuggestion()->value === 'consider_buying'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">🛒 Zvážit nákup</span>
-												{elseif $result->getActionSuggestion()->value === 'consider_selling'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800">📉 Zvážit prodej</span>
-												{elseif $result->getActionSuggestion()->value === 'hold'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">✊ Držet</span>
-												{elseif $result->getActionSuggestion()->value === 'watch_closely'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">👁️ Sledovat</span>
-												{elseif $result->getActionSuggestion()->value === 'wait'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">⏳ Vyčkat</span>
-												{elseif $result->getActionSuggestion()->value === 'not_interesting'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">❌ Nezajímavé</span>
-												{/if}
-											{/if}
-										</a>
-									{/foreach}
-								</div>
-							</div>
-						{/if}
-						{if count($watchlistResults) > 0}
-							<div>
-								<h3 class="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">Watchlist</h3>
-								<div class="flex flex-wrap gap-2">
-									{foreach $watchlistResults as $result}
-										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm hover:bg-gray-50 transition-colors">
-											<span class="font-medium text-gray-900">{$result->getStockAsset()->getTicker()}</span>
-											{if $result->getActionSuggestion()}
-												{if $result->getActionSuggestion()->value === 'add_more'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">📈 Přikoupit</span>
-												{elseif $result->getActionSuggestion()->value === 'consider_buying'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800">🛒 Zvážit nákup</span>
-												{elseif $result->getActionSuggestion()->value === 'consider_selling'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-red-100 text-red-800">📉 Zvážit prodej</span>
-												{elseif $result->getActionSuggestion()->value === 'hold'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">✊ Držet</span>
-												{elseif $result->getActionSuggestion()->value === 'watch_closely'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-amber-100 text-amber-800">👁️ Sledovat</span>
-												{elseif $result->getActionSuggestion()->value === 'wait'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">⏳ Vyčkat</span>
-												{elseif $result->getActionSuggestion()->value === 'not_interesting'}
-													<span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800">❌ Nezajímavé</span>
-												{/if}
-											{/if}
-										</a>
-									{/foreach}
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
-			{/if}
-
 			{* Single Stock výsledky *}
 			{if count($singleStockResults) > 0}
 				<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden mb-6">
@@ -877,6 +1152,112 @@
 					</div>
 				</div>
 			{/if}
+			{/if}
 		{/if}
 	{/if}
 {/block}
+
+{define actionBadge App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum|null $action, bool $compact}
+	<span n:class="'inline-flex shrink-0 items-center rounded-full font-medium ring-1 ring-inset',
+		$compact ? 'px-2 py-0.5 text-xs' : 'px-2.5 py-1 text-xs',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::ADD_MORE ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::CONSIDER_SELLING ? 'bg-rose-50 text-rose-700 ring-rose-600/20',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::HOLD ? 'bg-blue-50 text-blue-700 ring-blue-600/20',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::WATCH_CLOSELY ? 'bg-amber-50 text-amber-700 ring-amber-600/20',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::WAIT ? 'bg-gray-100 text-gray-700 ring-gray-600/10',
+		$action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::NOT_INTERESTING || $action === null ? 'bg-gray-100 text-gray-600 ring-gray-600/10'">
+		{if $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::ADD_MORE}Přikoupit
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING}Zvážit nákup
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::CONSIDER_SELLING}Zvážit prodej
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::HOLD}Držet
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::WATCH_CLOSELY}Sledovat
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::WAIT}Vyčkat
+		{elseif $action === App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum::NOT_INTERESTING}Nezajímavé
+		{else}Bez doporučení{/if}
+	</span>
+{/define}
+
+{define confidenceBadge App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum|null $confidence}
+	{if $confidence !== null}
+		<span n:class="'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset',
+			$confidence === App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum::HIGH ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+			$confidence === App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum::MEDIUM ? 'bg-amber-50 text-amber-700 ring-amber-600/20',
+			$confidence === App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum::LOW ? 'bg-rose-50 text-rose-700 ring-rose-600/20'">
+			Jistota: {if $confidence === App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum::HIGH}vysoká{elseif $confidence === App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum::MEDIUM}střední{else}nízká{/if}
+		</span>
+	{/if}
+{/define}
+
+{define resultTypeLabel App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum $type}
+	{if $type === App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum::PORTFOLIO}Portfolio
+	{elseif $type === App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum::WATCHLIST}Watchlist
+	{else}Samostatná analýza{/if}
+{/define}
+
+{define sentimentBadge string $sentiment}
+	<span n:class="'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+		$sentiment === 'positive' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$sentiment === 'negative' ? 'bg-rose-50 text-rose-700 ring-rose-600/20',
+		$sentiment === 'mixed' ? 'bg-amber-50 text-amber-700 ring-amber-600/20',
+		$sentiment === 'neutral' ? 'bg-gray-100 text-gray-600 ring-gray-600/10'">
+		{if $sentiment === 'positive'}Pozitivní{elseif $sentiment === 'negative'}Negativní{elseif $sentiment === 'mixed'}Smíšený dopad{else}Neutrální{/if}
+	</span>
+{/define}
+
+{define riskImpactBadge string $impact}
+	<span n:class="'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+		$impact === 'high' ? 'bg-rose-50 text-rose-700',
+		$impact === 'medium' ? 'bg-amber-50 text-amber-700',
+		$impact === 'low' ? 'bg-gray-100 text-gray-600'">
+		{if $impact === 'high'}Vysoký dopad{elseif $impact === 'medium'}Střední dopad{else}Nízký dopad{/if}
+	</span>
+{/define}
+
+{define valuationBadge string $assessment}
+	<span n:class="'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset',
+		$assessment === 'undervalued' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$assessment === 'fairly_valued' ? 'bg-blue-50 text-blue-700 ring-blue-600/20',
+		$assessment === 'overvalued' ? 'bg-rose-50 text-rose-700 ring-rose-600/20',
+		$assessment === 'uncertain' ? 'bg-gray-100 text-gray-600 ring-gray-600/10'">
+		{if $assessment === 'undervalued'}Podhodnocená{elseif $assessment === 'fairly_valued'}Férově oceněná{elseif $assessment === 'overvalued'}Nadhodnocená{else}Nejisté ocenění{/if}
+	</span>
+{/define}
+
+{define marketSentimentBadge string $sentiment}
+	<span n:class="'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset',
+		$sentiment === 'bullish' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$sentiment === 'bearish' ? 'bg-rose-50 text-rose-700 ring-rose-600/20',
+		$sentiment === 'neutral' ? 'bg-gray-100 text-gray-600 ring-gray-600/10'">
+		{if $sentiment === 'bullish'}Růstový{elseif $sentiment === 'bearish'}Poklesový{else}Neutrální{/if}
+	</span>
+{/define}
+
+{define directionBadge string $direction}
+	<span n:class="'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
+		$direction === 'positive' ? 'bg-emerald-50 text-emerald-700',
+		$direction === 'negative' ? 'bg-rose-50 text-rose-700',
+		$direction === 'mixed' ? 'bg-amber-50 text-amber-700',
+		$direction === 'neutral' ? 'bg-gray-100 text-gray-600'">
+		{if $direction === 'positive'}Pozitivní{elseif $direction === 'negative'}Negativní{elseif $direction === 'mixed'}Smíšený dopad{else}Neutrální{/if}
+	</span>
+{/define}
+
+{define priorityBadge string $priority}
+	<span n:class="'inline-flex shrink-0 items-center rounded-full px-2 py-0.5 text-xs font-medium',
+		$priority === 'high' ? 'bg-rose-50 text-rose-700',
+		$priority === 'medium' ? 'bg-amber-50 text-amber-700',
+		$priority === 'low' ? 'bg-gray-100 text-gray-600'">
+		{if $priority === 'high'}Vysoká{elseif $priority === 'medium'}Střední{else}Nízká{/if}
+	</span>
+{/define}
+
+{define dailyActionBadge string $action}
+	<span n:class="'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset',
+		$action === 'none' ? 'bg-emerald-50 text-emerald-700 ring-emerald-600/20',
+		$action === 'monitor' ? 'bg-amber-50 text-amber-700 ring-amber-600/20',
+		$action === 'review_positions' ? 'bg-rose-50 text-rose-700 ring-rose-600/20',
+		$action === 'review_watchlist' ? 'bg-purple-50 text-purple-700 ring-purple-600/20'">
+		{if $action === 'none'}Bez akce{elseif $action === 'monitor'}Sledovat{elseif $action === 'review_positions'}Prověřit pozice{else}Prověřit watchlist{/if}
+	</span>
+{/define}

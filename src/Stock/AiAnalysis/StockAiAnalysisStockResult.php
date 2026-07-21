@@ -104,6 +104,13 @@ class StockAiAnalysisStockResult implements Entity
 	#[ORM\Column(type: Types::STRING, nullable: true, enumType: CurrencyEnum::class)]
 	private CurrencyEnum|null $fairPriceCurrency = null;
 
+	/** @var array<string, mixed>|null */
+	#[ORM\Column(type: Types::JSON, nullable: true)]
+	private array|null $structuredData = null;
+
+	/**
+	 * @param array<string, mixed>|null $structuredData
+	 */
 	public function __construct(
 		StockAiAnalysisRun $stockAiAnalysisRun,
 		StockAsset|null $stockAsset,
@@ -132,6 +139,7 @@ class StockAiAnalysisStockResult implements Entity
 		float|null $fairPrice,
 		CurrencyEnum|null $fairPriceCurrency,
 		ImmutableDateTime $now,
+		array|null $structuredData = null,
 	)
 	{
 		$this->id = Uuid::uuid4();
@@ -161,6 +169,7 @@ class StockAiAnalysisStockResult implements Entity
 		$this->confidenceLevel = $confidenceLevel;
 		$this->fairPrice = $fairPrice;
 		$this->fairPriceCurrency = $fairPriceCurrency;
+		$this->structuredData = $structuredData;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 	}
@@ -293,6 +302,41 @@ class StockAiAnalysisStockResult implements Entity
 	public function getFairPriceCurrency(): CurrencyEnum|null
 	{
 		return $this->fairPriceCurrency;
+	}
+
+	/**
+	 * @return array<string, mixed>|null
+	 */
+	public function getStructuredData(): array|null
+	{
+		return $this->structuredData;
+	}
+
+	public function getV2FairValueLow(): float|null
+	{
+		return $this->getV2ValuationFloat('fairValueLow');
+	}
+
+	public function getV2FairValueHigh(): float|null
+	{
+		return $this->getV2ValuationFloat('fairValueHigh');
+	}
+
+	public function getV2MarginOfSafetyPercent(): float|null
+	{
+		$value = $this->structuredData['marginOfSafetyPercent'] ?? null;
+
+		return is_float($value) || is_int($value) ? (float) $value : null;
+	}
+
+	private function getV2ValuationFloat(string $key): float|null
+	{
+		$valuation = is_array($this->structuredData['valuation'] ?? null)
+			? $this->structuredData['valuation']
+			: [];
+		$value = $valuation[$key] ?? null;
+
+		return is_float($value) || is_int($value) ? (float) $value : null;
 	}
 
 }

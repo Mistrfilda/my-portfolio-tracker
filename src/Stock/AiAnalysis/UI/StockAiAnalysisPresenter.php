@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\AiAnalysis\UI;
 
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
+use App\Stock\AiAnalysis\Codex\StockAiAnalysisCodexBundleFactory;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
@@ -16,10 +17,17 @@ use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use App\Stock\Asset\StockAssetRepository;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
+use App\UI\Control\Form\AdminForm;
 use App\Utils\TypeValidator;
 use Nette\Application\AbortException;
+use Nette\Application\Responses\CallbackResponse;
+use Nette\Application\Responses\FileResponse;
 use Nette\Application\UI\Form;
+use Nette\Http\IRequest;
+use Nette\Http\IResponse;
+use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use RuntimeException;
 use Throwable;
 
 /**
@@ -37,6 +45,8 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAiAnalysisActionChecklistProvider $stockAiAnalysisActionChecklistProvider,
 		private readonly StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
 		private readonly StockAiAnalysisFollowUpQuestionFacade $stockAiAnalysisFollowUpQuestionFacade,
+		private readonly StockAiAnalysisCodexBundleFactory $stockAiAnalysisCodexBundleFactory,
+		private readonly StockAiAnalysisCodexResultFormFactory $stockAiAnalysisCodexResultFormFactory,
 	)
 	{
 		parent::__construct();
@@ -112,6 +122,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay(
 			$this->run,
 		);
+		$this->template->codexStartPrompt = StockAiAnalysisCodexBundleFactory::START_PROMPT;
 		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade
 			->getCachedGeminiResponseFileCount($this->run);
 		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
@@ -120,6 +131,32 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->followUpQuestions = $this->stockAiAnalysisFollowUpQuestionFacade->getQuestionsForRun(
 			$this->run,
 		);
+	}
+
+	public function actionDownloadCodexBundle(string $id): void
+	{
+		$run = $this->stockAiAnalysisFacade->getRun($id);
+		$bundle = $this->stockAiAnalysisCodexBundleFactory->create($run);
+		$fileResponse = new FileResponse(
+			$bundle->filePath,
+			$bundle->downloadName,
+			'application/zip',
+		);
+
+		$this->sendResponse(new CallbackResponse(static function (
+			IRequest $httpRequest,
+			IResponse $httpResponse,
+		) use (
+			$bundle,
+			$fileResponse
+): void {
+			$httpResponse->setHeader('Cache-Control', 'private, no-store');
+			try {
+				$fileResponse->send($httpRequest, $httpResponse);
+			} finally {
+				FileSystem::delete($bundle->filePath);
+			}
+		}));
 	}
 
 	public function handleEnqueueFollowUpGemini(string $questionId): void
@@ -302,6 +339,22 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		};
 
 		return $form;
+	}
+
+	protected function createComponentCodexResultForm(): AdminForm
+	{
+		if ($this->run === null) {
+			throw new RuntimeException('No stock AI analysis run is selected.');
+		}
+
+		return $this->stockAiAnalysisCodexResultFormFactory->create($this->run, function (): void {
+			if ($this->run === null) {
+				return;
+			}
+
+			$this->flashMessage('Výsledek z Codexu byl úspěšně importován.', 'success');
+			$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
+		});
 	}
 
 	protected function createComponentFollowUpQuestionForm(): Form

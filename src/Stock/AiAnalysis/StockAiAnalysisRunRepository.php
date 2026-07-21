@@ -6,6 +6,7 @@ namespace App\Stock\AiAnalysis;
 
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Ramsey\Uuid\UuidInterface;
@@ -16,7 +17,7 @@ use Ramsey\Uuid\UuidInterface;
 class StockAiAnalysisRunRepository extends BaseRepository
 {
 
-	public function getById(UuidInterface $id, int|null $lockMode = null): StockAiAnalysisRun
+	public function getById(UuidInterface $id, LockMode|null $lockMode = null): StockAiAnalysisRun
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');
 		$qb->where($qb->expr()->eq('stockAiAnalysisRun.id', ':id'));

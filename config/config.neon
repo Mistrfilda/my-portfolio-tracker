@@ -337,16 +337,22 @@ services:
 	#Stock AI analysis
 	- App\Ai\Gemini\GeminiClient(apiKey: %gemini.apiKey%, model: %gemini.model%)
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
+	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory
+	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SnapshotFactory
+	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator
+	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2ResponseValidator
 	- App\Stock\AiAnalysis\StockAiAnalysisFollowUpPromptGenerator
 	- App\Stock\AiAnalysis\StockAiAnalysisFacade
 	- App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade
 	- App\Stock\AiAnalysis\StockAiAnalysisGeminiJsonNormalizer
 	- App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade(tempDir: %gemini.geminiFolder%)
+	- App\Stock\AiAnalysis\Codex\StockAiAnalysisCodexBundleFactory(tempDir: %tempDir%)
 	- App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider
 	- App\Stock\AiAnalysis\StockAiAnalysisRunRepository(App\Stock\AiAnalysis\StockAiAnalysisRun)
 	- App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository(App\Stock\AiAnalysis\StockAiAnalysisStockResult)
 	- App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionRepository(App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestion)
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisGridFactory
+	- App\Stock\AiAnalysis\UI\StockAiAnalysisCodexResultFormFactory
 	- App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlFactory
 	- App\Stock\AiAnalysis\UI\Control\StockAiValuationComparisonControlFactory
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter

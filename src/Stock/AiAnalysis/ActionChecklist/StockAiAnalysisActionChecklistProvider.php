@@ -15,6 +15,10 @@ class StockAiAnalysisActionChecklistProvider
 	 */
 	public function getForRun(StockAiAnalysisRun $run): array
 	{
+		if ($run->isV2()) {
+			return $this->getForV2Run($run);
+		}
+
 		$actionNeeded = $run->getDailyBriefActionNeeded();
 		if ($run->getDailyBriefNextDaysChecklist() === null && $actionNeeded === null) {
 			return [];
@@ -31,6 +35,38 @@ class StockAiAnalysisActionChecklistProvider
 		}
 
 		return [new StockAiAnalysisActionChecklistItem($this->getFallbackText($actionNeeded), $priority)];
+	}
+
+	/**
+	 * @return array<int, StockAiAnalysisActionChecklistItem>
+	 */
+	private function getForV2Run(StockAiAnalysisRun $run): array
+	{
+		$structuredData = $run->getStructuredData();
+		$dailyBrief = is_array($structuredData['dailyBrief'] ?? null) ? $structuredData['dailyBrief'] : [];
+		$checklist = is_array($dailyBrief['checklist'] ?? null) ? $dailyBrief['checklist'] : [];
+		$items = [];
+		foreach ($checklist as $checklistItem) {
+			if (!is_array($checklistItem)) {
+				continue;
+			}
+
+			$action = is_string($checklistItem['action'] ?? null) ? trim($checklistItem['action']) : '';
+			$reason = is_string($checklistItem['reason'] ?? null) ? trim($checklistItem['reason']) : '';
+			$priority = is_string($checklistItem['priority'] ?? null)
+				? StockAiAnalysisActionChecklistPriorityEnum::tryFrom($checklistItem['priority'])
+				: null;
+			if ($action === '' || $priority === null) {
+				continue;
+			}
+
+			$items[] = new StockAiAnalysisActionChecklistItem(
+				$reason !== '' ? sprintf('%s — %s', $action, $reason) : $action,
+				$priority,
+			);
+		}
+
+		return $items;
 	}
 
 	/**

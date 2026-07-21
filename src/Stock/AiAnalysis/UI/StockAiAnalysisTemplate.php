@@ -17,6 +17,8 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 
 	public string $generatedPromptForDisplay = '';
 
+	public string $codexStartPrompt = '';
+
 	public string $manualOpenPositionsPrompt = '';
 
 	/** @var array<int, StockAiAnalysisStockResult> */
