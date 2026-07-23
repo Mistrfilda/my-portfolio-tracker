@@ -110,48 +110,6 @@ class XirrCalculatorTest extends TestCase
 	}
 
 	// -------------------------------------------------------------------------
-	// adjustForPeriod - přepočet na období
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Test přepočtu XIRR na období dle Excel vzorce:
-	 * Posledni rok: (1+0.2672536388)^((2023-03-01 - 2022-03-01)/365)-1 = 0.2672536388
-	 */
-	public function testAdjustForPeriodLastYear(): void
-	{
-		$result = XirrCalculator::adjustForPeriod(0.2672536388, 365);
-		self::assertEqualsWithDelta(0.2672536388, $result, 0.001);
-	}
-
-	/**
-	 * Test přepočtu XIRR na období dle Excel vzorce:
-	 * Posledni 3 mesice: (1+0.8910827559)^((2023-03-01 - 2022-12-01)/365)-1 = 0.1701189016
-	 */
-	public function testAdjustForPeriodLast3Months(): void
-	{
-		// 2022-12-01 to 2023-03-01 = 90 dní
-		$result = XirrCalculator::adjustForPeriod(0.8910827559, 90);
-		self::assertEqualsWithDelta(0.1701189016, $result, 0.001);
-	}
-
-	/**
-	 * Test přepočtu XIRR na období dle Excel vzorce:
-	 * Posledni mesic: (1+5.703390907)^((2023-03-01 - 2023-02-01)/365)-1 = 0.1571428571
-	 */
-	public function testAdjustForPeriodLastMonth(): void
-	{
-		// 2023-02-01 to 2023-03-01 = 28 dní
-		$result = XirrCalculator::adjustForPeriod(5.703390907, 28);
-		self::assertEqualsWithDelta(0.1571428571, $result, 0.001);
-	}
-
-	public function testAdjustForPeriodZeroDays(): void
-	{
-		$result = XirrCalculator::adjustForPeriod(0.25, 0);
-		self::assertSame(0.0, $result);
-	}
-
-	// -------------------------------------------------------------------------
 	// Okrajové případy
 	// -------------------------------------------------------------------------
 

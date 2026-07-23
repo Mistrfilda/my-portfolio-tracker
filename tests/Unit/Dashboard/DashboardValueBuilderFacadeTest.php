@@ -150,11 +150,19 @@ class DashboardValueBuilderFacadeTest extends TestCase
 		self::assertSame('10.00 %', $values[4]->getValue());
 		self::assertSame('Annualizovaný TWR', $values[5]->getLabel());
 		self::assertSame('MWR (Modified Dietz)', $values[6]->getLabel());
-		self::assertSame('XIRR', $values[7]->getLabel());
+		self::assertSame('XIRR (p.a.)', $values[7]->getLabel());
 		self::assertSame(
-			'Bez vlivu vkladů/výběrů · 01. 01. 2024–31. 12. 2024',
+			'Měsíční rekonstrukce bez vlivu vkladů · 01. 01. 2024–31. 12. 2024',
 			$values[4]->getDescription(),
 		);
+		self::assertSame(
+			'Kumulovaná výkonnost portfolia za celé zobrazené období. '
+				. 'Vklady výsledek neovlivňují a jednotlivé měsíční výnosy se násobí. Nejde o roční výnos.',
+			$values[4]->getHelpText(),
+		);
+		self::assertNotNull($values[5]->getHelpText());
+		self::assertNotNull($values[6]->getHelpText());
+		self::assertNotNull($values[7]->getHelpText());
 	}
 
 	public function testBuildStockValuesIncludesTopAndBottomDailyPerformanceTables(): void

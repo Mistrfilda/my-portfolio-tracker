@@ -12,6 +12,7 @@ use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticDividendDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticDividendSectionDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticSummaryDTO;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatistic;
+use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticJson;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticStatusEnum;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
@@ -121,6 +122,34 @@ class PortfolioPeriodStatisticTest extends TestCase
 		$report->markQueued($now);
 		self::assertTrue($report->isPending());
 		self::assertNull($report->getProcessingError());
+	}
+
+	public function testLegacySummaryWithoutCalculationMethodCanStillBeRead(): void
+	{
+		$summary = PortfolioPeriodStatisticJson::decode(
+			'{
+				"investedAtStart": 100,
+				"investedAtEnd": 120,
+				"investedDifference": 20,
+				"valueAtStart": 150,
+				"valueAtEnd": 180,
+				"valueDifference": 30,
+				"valueDifferencePercentage": 20,
+				"periodProfit": 10,
+				"closedPositionsProfit": 5,
+				"netDividends": 10,
+				"totalPeriodProfit": 25,
+				"timeWeightedReturn": 6.67,
+				"annualizedTimeWeightedReturn": null,
+				"moneyWeightedReturn": 6.5,
+				"xirr": 6.4,
+				"warnings": [],
+				"partial": false
+			}',
+			PortfolioPeriodStatisticSummaryDTO::class,
+		);
+
+		self::assertSame('legacy', $summary->performanceCalculationMethod);
 	}
 
 }

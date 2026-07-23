@@ -51,10 +51,10 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	/**
 	 * @return array<int, DashboardValueGroup>
 	 */
-	public function buildValues(): array
+	public function buildValues(bool $includePortfolioPerformance = true): array
 	{
 		return [
-			$this->getTotalValues(),
+			$this->getTotalValues($includePortfolioPerformance),
 			$this->getStockValues(),
 			$this->getPortuValues(),
 			$this->dashboardDividendvalueBuilderFacade->buildDividendValues(),
@@ -254,7 +254,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		);
 	}
 
-	private function getTotalValues(): DashboardValueGroup
+	private function getTotalValues(bool $includePortfolioPerformance = true): DashboardValueGroup
 	{
 		$totalInvestedAmount = $this->assetPriceSummaryFacade->getTotalInvestedAmount(
 			CurrencyEnum::CZK,
@@ -296,23 +296,25 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					PortolioStatisticType::TOTAL_VALUE_IN_CZK,
 				),
 				new DashboardValue(
-					'Celkový zisk/ztráta ve všech assetech',
+					'Nerealizovaný zisk/ztráta ve všech assetech',
 					CurrencyFilter::format(
 						$diff->getPriceDifference(),
 						$diff->getCurrencyEnum(),
 					),
 					$diff->getTrend()->getTailwindColor(),
 					$diff->getTrend()->getSvgIcon(),
-					type: PortolioStatisticType::TOTAL_PROFIT,
+					'Pouze otevřené pozice',
+					PortolioStatisticType::TOTAL_PROFIT,
 				),
 				new DashboardValue(
-					'Celkový zisk/ztráta ve všech assetech',
+					'Nerealizovaný zisk/ztráta ve všech assetech',
 					PercentageFilter::format($diff->getPercentageDifference()),
 					$diff->getTrend()->getTailwindColor(),
 					$diff->getTrend()->getSvgIcon(),
-					type: PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE,
+					'Pouze otevřené pozice',
+					PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE,
 				),
-				...$this->buildPortfolioPerformanceValues(),
+				...($includePortfolioPerformance ? $this->buildPortfolioPerformanceValues() : []),
 			],
 		);
 	}
@@ -320,7 +322,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	/**
 	 * @return array<DashboardValue>
 	 */
-	private function buildPortfolioPerformanceValues(): array
+	public function buildPortfolioPerformanceValues(): array
 	{
 		$value = $this->portfolioStatisticTotalValueProvider->getAllTimeValue();
 		if ($value === null) {
@@ -330,9 +332,11 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		$values = [
 			$this->createPerformanceDashboardValue(
 				'Výkonnost portfolia (TWR)',
-				'Bez vlivu vkladů/výběrů',
+				'Měsíční rekonstrukce bez vlivu vkladů',
 				$value->getTimeWeightedReturn(),
 				$value,
+				'Kumulovaná výkonnost portfolia za celé zobrazené období. '
+					. 'Vklady výsledek neovlivňují a jednotlivé měsíční výnosy se násobí. Nejde o roční výnos.',
 			),
 		];
 
@@ -340,9 +344,11 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		if ($annualizedTwr !== null) {
 			$values[] = $this->createPerformanceDashboardValue(
 				'Annualizovaný TWR',
-				'Přepočteno na roční bázi',
+				'Měsíční rekonstrukce, přepočteno na roční bázi',
 				$annualizedTwr,
 				$value,
+				'Kumulované TWR převedené na průměrné složené zhodnocení za jeden rok. '
+					. 'Umožňuje porovnávat různě dlouhá období.',
 			);
 		}
 
@@ -350,19 +356,23 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		if ($moneyWeightedReturn !== null) {
 			$values[] = $this->createPerformanceDashboardValue(
 				'MWR (Modified Dietz)',
-				'Výnos s ohledem na timing vkladů',
+				'Měsíční odhad s ohledem na timing vkladů',
 				$moneyWeightedReturn,
 				$value,
+				'Odhad vašeho annualizovaného výnosu s ohledem na velikost a načasování vkladů. '
+					. 'Používá měsíční metodu Modified Dietz a cash flow umisťuje doprostřed měsíce.',
 			);
 		}
 
 		$xirr = $value->getXirr();
 		if ($xirr !== null) {
 			$values[] = $this->createPerformanceDashboardValue(
-				'XIRR',
-				'Přesný výnos za období',
+				'XIRR (p.a.)',
+				'Měsíční odhad annualizovaného výnosu podle cash flow',
 				$xirr,
 				$value,
+				'Odhad vašeho osobního annualizovaného výnosu z externích vkladů a konečné hodnoty portfolia. '
+					. 'Cash flow je kvůli měsíční rekonstrukci umístěno doprostřed měsíce.',
 			);
 		}
 
@@ -374,6 +384,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		string $description,
 		float $performance,
 		PortfolioStatisticTotalValue $value,
+		string $helpText,
 	): DashboardValue
 	{
 		$trend = match (true) {
@@ -396,6 +407,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 				$startDate->format(DatetimeConst::SYSTEM_DATE_FORMAT),
 				$endDate->format(DatetimeConst::SYSTEM_DATE_FORMAT),
 			),
+			helpText: $helpText,
 		);
 	}
 

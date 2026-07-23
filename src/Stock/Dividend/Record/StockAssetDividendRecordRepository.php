@@ -203,6 +203,42 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
+	public function findCashReceivedBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->orX(
+				$qb->expr()->andX(
+					$qb->expr()->isNotNull('stockAssetDividend.paymentDate'),
+					$qb->expr()->gte('stockAssetDividend.paymentDate', ':start'),
+					$qb->expr()->lte('stockAssetDividend.paymentDate', ':end'),
+				),
+				$qb->expr()->andX(
+					$qb->expr()->isNull('stockAssetDividend.paymentDate'),
+					$qb->expr()->gte('stockAssetDividend.exDate', ':start'),
+					$qb->expr()->lte('stockAssetDividend.exDate', ':end'),
+				),
+			),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$records = $qb->getQuery()->getResult();
+		usort(
+			$records,
+			static fn (StockAssetDividendRecord $left, StockAssetDividendRecord $right): int =>
+				($left->getStockAssetDividend()->getPaymentDate()
+					?? $left->getStockAssetDividend()->getExDate())
+				<=>
+				($right->getStockAssetDividend()->getPaymentDate()
+					?? $right->getStockAssetDividend()->getExDate()),
+		);
+
+		return $records;
+	}
+
+	/**
+	 * @return array<StockAssetDividendRecord>
+	 */
 	public function findLastDividendRecords(int $limit = 8): array
 	{
 		$qb = $this->createQueryBuilder();

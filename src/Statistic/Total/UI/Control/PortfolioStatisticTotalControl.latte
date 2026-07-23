@@ -113,7 +113,7 @@
                 <div class="flex justify-between gap-x-4 py-2">
                     <dt class="text-gray-900 font-semibold">
                         Výkonnost období (TWR)
-                        <span class="block text-xs text-gray-500 font-normal mt-0.5">Bez vlivu vkladů/výběrů</span>
+                        <span class="block text-xs text-gray-500 font-normal mt-0.5">Měsíční rekonstrukce bez vlivu vkladů</span>
                     </dt>
                     <dd>{include #box, amount: $value->getTimeWeightedReturn(), suffix: '%'}</dd>
                 </div>
@@ -121,7 +121,7 @@
                     <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
                         <dt class="text-gray-900 font-semibold">
                             Annualizovaný TWR
-                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Přepočteno na roční bázi</span>
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Měsíční rekonstrukce, přepočteno na roční bázi</span>
                         </dt>
                         <dd>{include #box, amount: $value->getAnnualizedTwr(), suffix: '%'}</dd>
                     </div>
@@ -130,7 +130,7 @@
                     <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
                         <dt class="text-gray-900 font-semibold">
                             MWR (Modified Dietz)
-                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Výnos s ohledem na timing vkladů</span>
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Měsíční odhad s ohledem na timing vkladů</span>
                         </dt>
                         <dd>{include #box, amount: $value->getMoneyWeightedReturn(), suffix: '%'}</dd>
                     </div>
@@ -138,8 +138,8 @@
                 {if $value->getXirr() !== null}
                     <div class="flex justify-between gap-x-4 py-2 border-t border-gray-100">
                         <dt class="text-gray-900 font-semibold">
-                            XIRR
-                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Přesný výnos za období</span>
+                            XIRR (p.a.)
+                            <span class="block text-xs text-gray-500 font-normal mt-0.5">Měsíční odhad annualizovaného výnosu podle cash flow</span>
                         </dt>
                         <dd>{include #box, amount: $value->getXirr(), suffix: '%'}</dd>
                     </div>

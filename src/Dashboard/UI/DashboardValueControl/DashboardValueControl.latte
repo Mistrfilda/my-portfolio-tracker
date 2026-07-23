@@ -1,6 +1,7 @@
 {templateType App\Dashboard\UI\DashboardValueControl\DashboardValueControlTemplate}
 
 {foreach $dashboardValueGroups as $dasboardValueGroup}
+    {var $dashboardValueGroupIndex = $iterator->counter}
     <div x-data="{
             open: true,
             toggle() {
@@ -46,15 +47,37 @@
             <dl class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 {foreach $dasboardValueGroup->getPositions() as $dashboardValue}
                     {varType App\Dashboard\DashboardValue $dashboardValue}
-                    <div class="relative flex h-full flex-col overflow-hidden rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 transition hover:-translate-y-0.5 hover:shadow-md sm:p-5">
-                        <div class="absolute inset-x-0 top-0 h-1 bg-{$dashboardValue->getColor()}-500"></div>
+                    <div class="relative flex h-full flex-col overflow-visible rounded-xl bg-white px-4 py-5 shadow-sm ring-1 ring-gray-900/5 transition hover:z-20 hover:-translate-y-0.5 hover:shadow-md focus-within:z-20 sm:p-5">
+                        <div class="absolute inset-x-0 top-0 h-1 rounded-t-xl bg-{$dashboardValue->getColor()}-500"></div>
                         <div class="flex min-h-12 items-start gap-4">
                             <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-{$dashboardValue->getColor()}-500 shadow-sm">
                                 {if $dashboardValue->getSvgIcon() !== null}
                                     {renderSvg $dashboardValue->getSvgIcon(), ['class' => 'h-5 w-5 text-white']}
                                 {/if}
                             </div>
-                            <dt class="pt-1 text-sm font-medium leading-6 text-gray-500 break-words">{$dashboardValue->getLabel()}</dt>
+                            <dt class="flex min-w-0 flex-1 items-start gap-2 pt-1 text-sm font-medium leading-6 text-gray-500">
+                                <span class="min-w-0 break-words">{$dashboardValue->getLabel()}</span>
+                                {if $dashboardValue->getHelpText() !== null}
+                                    {var $helpId = 'dashboard-statistic-help-' . $dashboardValueGroupIndex . '-' . $iterator->counter}
+                                    <span class="relative mt-0.5 shrink-0">
+                                        <button
+                                                type="button"
+                                                class="peer inline-flex h-5 w-5 items-center justify-center rounded-full text-gray-400 transition hover:text-gray-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                                                aria-label="Informace o statistice {$dashboardValue->getLabel()}"
+                                                aria-describedby="{$helpId}"
+                                        >
+                                            {renderSvg App\UI\Icon\SvgIcon::INFORMATION_CIRCLE->value, ['class' => 'h-5 w-5', 'aria-hidden' => 'true']}
+                                        </button>
+                                        <span
+                                                id="{$helpId}"
+                                                role="tooltip"
+                                                class="pointer-events-none invisible absolute top-full right-0 z-30 mt-2 w-72 rounded-lg bg-gray-900 px-3 py-2 text-xs leading-5 font-normal text-white opacity-0 shadow-lg transition peer-hover:visible peer-hover:opacity-100 peer-focus:visible peer-focus:opacity-100"
+                                        >
+                                            {$dashboardValue->getHelpText()}
+                                        </span>
+                                    </span>
+                                {/if}
+                            </dt>
                         </div>
                         <dd class="mt-4 text-2xl font-semibold leading-tight tracking-tight text-gray-900">{$dashboardValue->getValue()}</dd>
                         {if $dashboardValue->getDescription() !== null}

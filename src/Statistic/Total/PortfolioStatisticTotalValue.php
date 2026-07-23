@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Total;
 
+use App\Statistic\Performance\PortfolioPerformanceSummary;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class PortfolioStatisticTotalValue
@@ -24,6 +25,7 @@ class PortfolioStatisticTotalValue
 		private ImmutableDateTime|null $startDate = null,
 		private ImmutableDateTime|null $endDate = null,
 		private array|null $cashFlowData = null,
+		private PortfolioPerformanceSummary|null $performanceSummary = null,
 	)
 	{
 	}
@@ -129,6 +131,10 @@ class PortfolioStatisticTotalValue
 	 */
 	public function getTimeWeightedReturn(): float
 	{
+		if ($this->performanceSummary !== null) {
+			return $this->performanceSummary->getTimeWeightedReturn();
+		}
+
 		$chainedReturn = $this->getChainedTimeWeightedReturn();
 		if ($chainedReturn !== null) {
 			return $chainedReturn;
@@ -184,6 +190,10 @@ class PortfolioStatisticTotalValue
 	 */
 	public function getAnnualizedTwr(): float|null
 	{
+		if ($this->performanceSummary !== null) {
+			return $this->performanceSummary->getAnnualizedTimeWeightedReturn();
+		}
+
 		if ($this->startDate === null || $this->endDate === null) {
 			return null;
 		}
@@ -218,6 +228,10 @@ class PortfolioStatisticTotalValue
 	 */
 	public function getMoneyWeightedReturn(): float|null
 	{
+		if ($this->performanceSummary !== null) {
+			return $this->performanceSummary->getMoneyWeightedReturn();
+		}
+
 		if ($this->startDate === null || $this->endDate === null) {
 			return null;
 		}
@@ -315,17 +329,17 @@ class PortfolioStatisticTotalValue
 
 	/**
 	 * XIRR (Money-Weighted Return) - exact return accounting for timing and size of deposits.
-	 * Returns annualized XIRR adjusted for the given period using the formula:
-	 * (1 + xirr) ^ (days / 365) - 1
-	 *
-	 * For "all time" periods, XIRR is returned directly.
-	 * For shorter periods, XIRR is adjusted to the period return.
+	 * Returns the annualized rate calculated from irregular cash flows.
 	 *
 	 * Cash flows are built from cashFlowData (investment deltas as negative values)
 	 * and the final record (valueAtEnd as a positive value).
 	 */
 	public function getXirr(): float|null
 	{
+		if ($this->performanceSummary !== null) {
+			return $this->performanceSummary->getXirr();
+		}
+
 		if ($this->startDate === null || $this->endDate === null) {
 			return null;
 		}
@@ -339,17 +353,12 @@ class PortfolioStatisticTotalValue
 			return null;
 		}
 
-		$annualizedXirr = XirrCalculator::calculate($xirrCashFlows);
-		if ($annualizedXirr === null) {
+		$xirr = XirrCalculator::calculate($xirrCashFlows);
+		if ($xirr === null) {
 			return null;
 		}
 
-		$days = $this->getDaysInPeriod();
-
-		// Adjust for period: (1 + xirr) ^ (days / 365) - 1
-		$periodReturn = XirrCalculator::adjustForPeriod($annualizedXirr, $days);
-
-		return $periodReturn * 100;
+		return $xirr * 100;
 	}
 
 	/**

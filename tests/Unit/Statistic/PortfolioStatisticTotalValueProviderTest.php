@@ -5,6 +5,8 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Statistic;
 
 use App\Dashboard\DashboardValueGroupEnum;
+use App\Statistic\Performance\PortfolioPerformanceProvider;
+use App\Statistic\Performance\PortfolioPerformanceSummary;
 use App\Statistic\PortfolioStatistic;
 use App\Statistic\PortfolioStatisticControlTypeEnum;
 use App\Statistic\PortfolioStatisticRecord;
@@ -24,25 +26,17 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 		$repository = $this->createStub(PortfolioStatisticRecordRepository::class);
 		$repository->method('findFirst')->willReturn($startRecord);
 		$repository->method('findLast')->willReturn($endRecord);
-		$repository->method('findDailyPerformanceValuesBetweenDates')->willReturn([
-			[
-				'date' => new ImmutableDateTime('2024-01-01'),
-				'amount' => 100_000.0,
-				'portfolioValue' => 100_000.0,
-			],
-			[
-				'date' => new ImmutableDateTime('2024-01-02'),
-				'amount' => 100_000.0,
-				'portfolioValue' => 110_000.0,
-			],
-			[
-				'date' => new ImmutableDateTime('2024-01-03'),
-				'amount' => 200_000.0,
-				'portfolioValue' => 220_000.0,
-			],
-		]);
+		$performanceProvider = $this->createStub(PortfolioPerformanceProvider::class);
+		$performanceProvider->method('getAllTimeSummary')->willReturn(new PortfolioPerformanceSummary(
+			new ImmutableDateTime('2024-01-01'),
+			new ImmutableDateTime('2024-01-03'),
+			20.0,
+			null,
+			19.0,
+			18.0,
+		));
 
-		$value = (new PortfolioStatisticTotalValueProvider($repository))->getAllTimeValue();
+		$value = (new PortfolioStatisticTotalValueProvider($repository, $performanceProvider))->getAllTimeValue();
 
 		self::assertNotNull($value);
 		self::assertSame('2024-01-01', $value->getStartDate()?->format('Y-m-d'));
@@ -56,8 +50,11 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 		$repository = $this->createStub(PortfolioStatisticRecordRepository::class);
 		$repository->method('findFirst')->willReturn($record);
 		$repository->method('findLast')->willReturn($record);
+		$performanceProvider = $this->createStub(PortfolioPerformanceProvider::class);
 
-		self::assertNull((new PortfolioStatisticTotalValueProvider($repository))->getAllTimeValue());
+		self::assertNull(
+			(new PortfolioStatisticTotalValueProvider($repository, $performanceProvider))->getAllTimeValue(),
+		);
 	}
 
 	private function createRecord(string $date, float $invested, float $portfolioValue): PortfolioStatisticRecord

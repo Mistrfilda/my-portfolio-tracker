@@ -5,12 +5,14 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
 use App\Crypto\Asset\CryptoAssetRepository;
-use App\Crypto\Position\Closed\CryptoClosedPositionRepository;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
+use App\Statistic\Performance\PortfolioPerformanceIncome;
+use App\Statistic\Performance\PortfolioPerformanceProvider;
+use App\Statistic\Performance\PortfolioPerformanceSummary;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticChartPointDTO;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatistic;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticBuilder;
@@ -22,7 +24,6 @@ use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
-use App\Stock\Position\Closed\StockClosedPositionRepository;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
@@ -137,11 +138,25 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 		PortfolioStatisticRecordRepository $recordRepository,
 	): PortfolioPeriodStatisticBuilder
 	{
+		$performanceProvider = $this->createStub(PortfolioPerformanceProvider::class);
+		$performanceProvider->method('getIncomeBetween')->willReturn(
+			new PortfolioPerformanceIncome(0.0, 0.0),
+		);
+		$performanceProvider->method('getSummaryBetween')->willReturn(
+			new PortfolioPerformanceSummary(
+				new ImmutableDateTime('2026-01-02 10:00:00'),
+				new ImmutableDateTime('2026-01-30 20:00:00'),
+				16.6667,
+				null,
+				16.6667,
+				16.6667,
+			),
+		);
+
 		return new PortfolioPeriodStatisticBuilder(
 			$recordRepository,
 			$this->createStub(StockAssetDividendRecordRepository::class),
-			$this->createStub(StockClosedPositionRepository::class),
-			$this->createStub(CryptoClosedPositionRepository::class),
+			$performanceProvider,
 			$this->createStub(CurrencyConversionFacade::class),
 			$this->createStub(StockAssetRepository::class),
 			$this->createStub(CryptoAssetRepository::class),

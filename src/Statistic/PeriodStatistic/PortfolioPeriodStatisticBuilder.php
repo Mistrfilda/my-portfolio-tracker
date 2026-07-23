@@ -10,7 +10,6 @@ use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceRecord;
 use App\Crypto\Asset\CryptoAssetRepository;
-use App\Crypto\Position\Closed\CryptoClosedPositionRepository;
 use App\Crypto\Position\CryptoPosition;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Currency\CurrencyConversionFacade;
@@ -20,6 +19,7 @@ use App\Portu\Asset\PortuAsset;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Position\PortuPosition;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
+use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetSectionDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticChartPointDTO;
@@ -33,7 +33,6 @@ use App\Statistic\PortolioStatisticType;
 use App\Statistic\Total\PortfolioStatisticTotalValue;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
-use App\Stock\Position\Closed\StockClosedPositionRepository;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use Doctrine\ORM\NoResultException;
@@ -45,8 +44,7 @@ class PortfolioPeriodStatisticBuilder
 	public function __construct(
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
-		private StockClosedPositionRepository $stockClosedPositionRepository,
-		private CryptoClosedPositionRepository $cryptoClosedPositionRepository,
+		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
 		private CurrencyConversionFacade $currencyConversionFacade,
 		private StockAssetRepository $stockAssetRepository,
 		private CryptoAssetRepository $cryptoAssetRepository,
@@ -123,11 +121,15 @@ class PortfolioPeriodStatisticBuilder
 		$valueAtStart = $this->getRecordValue($startRecord, PortolioStatisticType::TOTAL_VALUE_IN_CZK);
 		$valueAtEnd = $this->getRecordValue($endRecord, PortolioStatisticType::TOTAL_VALUE_IN_CZK);
 
-		[$closedPositionsProfit, $closedWarnings] = $this->calculateClosedPositionsProfit(
+		$income = $this->portfolioPerformanceProvider->getIncomeBetween(
 			$startRecord->getCreatedAt(),
 			$endRecord->getCreatedAt(),
 		);
-		$warnings = array_merge($warnings, $closedWarnings, $dividendSection->warnings);
+		$warnings = array_merge($warnings, $dividendSection->warnings);
+		$performanceSummary = $this->portfolioPerformanceProvider->getSummaryBetween(
+			$startRecord->getCreatedAt(),
+			$endRecord->getCreatedAt(),
+		);
 
 		$value = new PortfolioStatisticTotalValue(
 			month: null,
@@ -136,14 +138,11 @@ class PortfolioPeriodStatisticBuilder
 			investedAtEnd: $investedAtEnd,
 			valueAtStart: $valueAtStart,
 			valueAtEnd: $valueAtEnd,
-			closedPositionsProfitInPeriod: $closedPositionsProfit,
-			dividendsInPeriod: $dividendSection->netTotalCzk,
+			closedPositionsProfitInPeriod: $income->realizedProfit,
+			dividendsInPeriod: $income->netDividends,
 			startDate: $startRecord->getCreatedAt(),
 			endDate: $endRecord->getCreatedAt(),
-			cashFlowData: $this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
-				$startRecord->getCreatedAt(),
-				$endRecord->getCreatedAt(),
-			),
+			performanceSummary: $performanceSummary,
 		);
 
 		$valueDifference = $valueAtEnd - $valueAtStart;
@@ -160,15 +159,16 @@ class PortfolioPeriodStatisticBuilder
 			valueDifference: $valueDifference,
 			valueDifferencePercentage: $valueDifferencePercentage,
 			periodProfit: $value->getPeriodProfit(),
-			closedPositionsProfit: $closedPositionsProfit,
-			netDividends: $dividendSection->netTotalCzk,
+			closedPositionsProfit: $income->realizedProfit,
+			netDividends: $income->netDividends,
 			totalPeriodProfit: $value->getPeriodProfitWithClosedPositionsAndDividends(),
 			timeWeightedReturn: $value->getTimeWeightedReturn(),
 			annualizedTimeWeightedReturn: $value->getAnnualizedTwr(),
 			moneyWeightedReturn: $value->getMoneyWeightedReturn(),
 			xirr: $value->getXirr(),
 			warnings: array_values(array_unique($warnings)),
-			partial: $dividendSection->partial || $closedWarnings !== [],
+			partial: $dividendSection->partial,
+			performanceCalculationMethod: 'monthly_reconstruction_v1',
 		);
 	}
 
@@ -183,8 +183,9 @@ class PortfolioPeriodStatisticBuilder
 		$netTotalCzk = 0.0;
 		$partial = false;
 
-		foreach ($this->stockAssetDividendRecordRepository->findBetweenDates($start, $end) as $record) {
+		foreach ($this->stockAssetDividendRecordRepository->findCashReceivedBetweenDates($start, $end) as $record) {
 			$dividend = $record->getStockAssetDividend();
+			$paymentDate = $dividend->getPaymentDate() ?? $dividend->getExDate();
 			$gross = $record->getSummaryPrice(false);
 			$net = $record->getSummaryPrice(true);
 			$itemWarnings = [];
@@ -195,12 +196,12 @@ class PortfolioPeriodStatisticBuilder
 				$grossCzk = $this->currencyConversionFacade->getConvertedSummaryPrice(
 					$gross,
 					CurrencyEnum::CZK,
-					$dividend->getExDate(),
+					$paymentDate,
 				)->getPrice();
 				$netCzk = $this->currencyConversionFacade->getConvertedSummaryPrice(
 					$net,
 					CurrencyEnum::CZK,
-					$dividend->getExDate(),
+					$paymentDate,
 				)->getPrice();
 				$grossTotalCzk += $grossCzk;
 				$netTotalCzk += $netCzk;
@@ -663,46 +664,6 @@ class PortfolioPeriodStatisticBuilder
 			$investedValues,
 			$dividendPoints,
 		);
-	}
-
-	/**
-	 * @return array{float, array<string>}
-	 */
-	private function calculateClosedPositionsProfit(
-		ImmutableDateTime $start,
-		ImmutableDateTime $end,
-	): array
-	{
-		$profit = 0.0;
-		$warnings = [];
-		$closedPositions = array_merge(
-			$this->stockClosedPositionRepository->findBetweenDates($start, $end),
-			$this->cryptoClosedPositionRepository->findBetweenDates($start, $end),
-		);
-
-		foreach ($closedPositions as $closedPosition) {
-			$position = $closedPosition->getAssetPositon();
-			try {
-				$sellPrice = $this->currencyConversionFacade->getConvertedAssetPrice(
-					$closedPosition->getTotalCloseAmountInBrokerCurrency(),
-					CurrencyEnum::CZK,
-					$closedPosition->getDate(),
-				)->getPrice();
-				$buyPrice = $this->currencyConversionFacade->getConvertedAssetPrice(
-					$position->getTotalInvestedAmountInBrokerCurrency(),
-					CurrencyEnum::CZK,
-					$position->getOrderDate(),
-				)->getPrice();
-				$profit += $sellPrice - $buyPrice;
-			} catch (MissingCurrencyPairException | NoResultException) {
-				$warnings[] = sprintf(
-					'Uzavřenou pozici %s nebylo možné převést do CZK.',
-					$position->getAsset()->getName(),
-				);
-			}
-		}
-
-		return [$profit, $warnings];
 	}
 
 	private function getRecordValue(

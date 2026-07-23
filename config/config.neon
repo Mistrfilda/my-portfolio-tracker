@@ -377,6 +377,13 @@ services:
 	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
+	- App\Statistic\Performance\PortfolioPerformanceCalculator
+	- App\Statistic\Performance\PortfolioPerformanceEventProvider
+	- App\Statistic\Performance\PortfolioPerformanceMonthRepository(App\Statistic\Performance\PortfolioPerformanceMonth)
+	- App\Statistic\Performance\PortfolioPerformanceProvider
+	- App\Statistic\Performance\PortfolioPerformanceRebuildFacade
+	- App\Statistic\Performance\PortfolioPerformanceReconstructor
+	- App\Statistic\Performance\Command\PortfolioPerformanceRebuildCommand
 	- App\Statistic\UI\Record\PortfolioStatisticRecordGridFactory
 	- App\Statistic\PeriodStatistic\PortfolioPeriodStatisticRepository(App\Statistic\PeriodStatistic\PortfolioPeriodStatistic)
 	- App\Statistic\PeriodStatistic\PortfolioPeriodStatisticBuilder
@@ -426,7 +433,6 @@ services:
 	- App\Stock\Position\Closed\StockClosedPositionRepository(App\Stock\Position\Closed\StockClosedPosition)
 	- App\Stock\Position\Closed\StockClosedPositionFormFactory
 	- App\Stock\Position\Closed\UI\StockAssetClosedPositionListControlFactory
-	- App\Stock\Position\Closed\StockClosedPositionStatisticFacade
 
 	- App\UI\Control\Chart\ChartControlFactory
 	- App\Statistic\UI\Chart\StockDividendByMonthChartDataProvider

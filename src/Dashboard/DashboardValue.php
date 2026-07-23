@@ -18,6 +18,7 @@ class DashboardValue implements JsonSerializable
 		private readonly SvgIcon|null $svgIcon = null,
 		private readonly string|null $description = null,
 		private readonly PortolioStatisticType|null $type = null,
+		private readonly string|null $helpText = null,
 	)
 	{
 	}
@@ -70,6 +71,11 @@ class DashboardValue implements JsonSerializable
 	public function getType(): PortolioStatisticType|null
 	{
 		return $this->type;
+	}
+
+	public function getHelpText(): string|null
+	{
+		return $this->helpText;
 	}
 
 }

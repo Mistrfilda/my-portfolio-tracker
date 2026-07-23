@@ -623,10 +623,30 @@ class PortfolioStatisticTotalValueTest extends TestCase
 	// XIRR
 	// -------------------------------------------------------------------------
 
-	public function testGetXirrMonthlyPeriodCloseToMwr(): void
+	public function testGetXirrReturnsAnnualizedRateForMultiYearPeriod(): void
 	{
-		// Měsíční období: XIRR by měl být blízko TWR/MWR
-		// Investováno 100k, žádné nové investice, hodnota vzrostla na 105k → 5% za měsíc
+		$cashFlowData = [
+			['date' => new ImmutableDateTime('2022-01-01'), 'amount' => 100_000.0],
+			['date' => new ImmutableDateTime('2024-01-01'), 'amount' => 100_000.0],
+		];
+
+		$value = $this->createValue(
+			investedAtStart: 100_000,
+			investedAtEnd: 100_000,
+			valueAtStart: 100_000,
+			valueAtEnd: 121_000,
+			startDate: new ImmutableDateTime('2022-01-01'),
+			endDate: new ImmutableDateTime('2024-01-01'),
+			cashFlowData: $cashFlowData,
+		);
+
+		$xirr = $value->getXirr();
+		self::assertNotNull($xirr);
+		self::assertEqualsWithDelta(10.0, $xirr, 0.01);
+	}
+
+	public function testGetXirrMonthlyReturnsAnnualizedRate(): void
+	{
 		$cashFlowData = [
 			['date' => new ImmutableDateTime('2024-06-01'), 'amount' => 100_000.0],
 			['date' => new ImmutableDateTime('2024-06-30'), 'amount' => 100_000.0],
@@ -644,17 +664,11 @@ class PortfolioStatisticTotalValueTest extends TestCase
 
 		$xirr = $value->getXirr();
 		self::assertNotNull($xirr);
-		// Pro měsíční období bez nových vkladů by XIRR měl být blízko 5%
-		self::assertGreaterThan(4.5, $xirr);
-		self::assertLessThan(5.5, $xirr);
+		self::assertEqualsWithDelta(84.7961, $xirr, 0.001);
 	}
 
-	public function testGetXirrMonthlyWithNewInvestment(): void
+	public function testGetXirrMonthlyWithNewInvestmentReturnsAnnualizedRate(): void
 	{
-		// Měsíční období s novým vkladem uprostřed
-		// Start: value 1_949_196, invested 1_761_535
-		// Mid-month: invested goes to 1_834_959
-		// End: value 2_032_078, invested 1_834_959
 		$cashFlowData = [
 			['date' => new ImmutableDateTime('2024-06-01'), 'amount' => 1_761_535.0],
 			['date' => new ImmutableDateTime('2024-06-15'), 'amount' => 1_834_959.0],
@@ -673,9 +687,7 @@ class PortfolioStatisticTotalValueTest extends TestCase
 
 		$xirr = $value->getXirr();
 		self::assertNotNull($xirr);
-		// XIRR by měl být blízko TWR (0.47%) a MWR (0.48%), ne 10%+
-		self::assertGreaterThan(-2.0, $xirr);
-		self::assertLessThan(3.0, $xirr);
+		self::assertEqualsWithDelta(6.1585, $xirr, 0.001);
 	}
 
 	public function testGetXirrNegativeReturn(): void

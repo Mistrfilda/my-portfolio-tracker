@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Statistic;
 
 use App\Dashboard\DashboardValueBuilderFacade;
+use App\Dashboard\DashboardValueGroupEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
@@ -22,9 +23,9 @@ class PortfolioStatisticFacade
 	{
 	}
 
-	public function saveCurrentDashboardValues(): void
+	public function saveCurrentDashboardValues(bool $includePortfolioPerformance = true): PortfolioStatisticRecord
 	{
-		$dashboardValues = $this->dashboardValueBuilder->buildValues();
+		$dashboardValues = $this->dashboardValueBuilder->buildValues($includePortfolioPerformance);
 		$this->logger->info('Saving current dashboard values');
 
 		$this->entityManager->beginTransaction();
@@ -83,6 +84,31 @@ class PortfolioStatisticFacade
 		}
 
 		$this->logger->info('Saving of current dashboard values finished successfully');
+		return $portfolioStatisticRecord;
+	}
+
+	public function appendPortfolioPerformanceValues(PortfolioStatisticRecord $record): void
+	{
+		$now = $this->datetimeFactory->createNow();
+		foreach ($this->dashboardValueBuilder->buildPortfolioPerformanceValues() as $dashboardValue) {
+			$this->entityManager->persist(
+				new PortfolioStatistic(
+					$record,
+					$now,
+					DashboardValueGroupEnum::TOTAL_VALUES,
+					$dashboardValue->getLabel(),
+					$dashboardValue->getValue(),
+					$dashboardValue->getColor(),
+					$dashboardValue->getSvgIconEnum(),
+					$dashboardValue->getDescription(),
+					$dashboardValue->getType(),
+					PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
+					null,
+				),
+			);
+		}
+
+		$this->entityManager->flush();
 	}
 
 }

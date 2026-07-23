@@ -67,17 +67,26 @@
 				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
 					<dt class="text-sm font-medium text-gray-500">Čisté dividendy</dt>
 					<dd class="mt-2 text-2xl font-semibold text-green-600">{$summary->netDividends|currency:App\Currency\CurrencyEnum::CZK}</dd>
-					<p class="mt-2 text-sm text-gray-500">{$dividendSection->count} plateb podle ex-date</p>
+					<p class="mt-2 text-sm text-gray-500">{$dividendSection->count} plateb podle data výplaty</p>
 				</div>
 			</dl>
 
 			<section class="mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
-				<div class="border-b border-gray-100 px-6 py-5"><h2 class="text-lg font-semibold text-gray-900">Výnosové metriky</h2></div>
+				<div class="border-b border-gray-100 px-6 py-5">
+					<h2 class="text-lg font-semibold text-gray-900">Výnosové metriky</h2>
+					<p class="mt-1 text-sm text-gray-500">
+						{if $summary->performanceCalculationMethod === 'monthly_reconstruction_v1'}
+							Měsíční rekonstrukce s peněžními toky umístěnými doprostřed období.
+						{else}
+							Původní metoda výpočtu. Pro měsíční rekonstrukci report regenerujte.
+						{/if}
+					</p>
+				</div>
 				<dl class="grid grid-cols-2 gap-px bg-gray-100 sm:grid-cols-4">
 					<div class="bg-white p-5"><dt class="text-sm text-gray-500">TWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{$summary->timeWeightedReturn|percentage}</dd></div>
 					<div class="bg-white p-5"><dt class="text-sm text-gray-500">Annualizovaný TWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->annualizedTimeWeightedReturn !== null}{$summary->annualizedTimeWeightedReturn|percentage}{else}N/A{/if}</dd></div>
 					<div class="bg-white p-5"><dt class="text-sm text-gray-500">MWR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->moneyWeightedReturn !== null}{$summary->moneyWeightedReturn|percentage}{else}N/A{/if}</dd></div>
-					<div class="bg-white p-5"><dt class="text-sm text-gray-500">XIRR</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->xirr !== null}{$summary->xirr|percentage}{else}N/A{/if}</dd></div>
+					<div class="bg-white p-5"><dt class="text-sm text-gray-500">XIRR (p.a.)</dt><dd class="mt-1 text-lg font-semibold text-gray-900">{if $summary->xirr !== null}{$summary->xirr|percentage}{else}N/A{/if}</dd></div>
 				</dl>
 			</section>
 

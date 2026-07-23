@@ -124,6 +124,60 @@ class StockAssetDividendRecordFacadeTest extends IntegrationTestCase
 		}
 	}
 
+	public function testFindCashReceivedBetweenDatesUsesPaymentDateWithExDateFallback(): void
+	{
+		$paidLater = new StockAssetDividend(
+			$this->stockAsset,
+			new ImmutableDateTime('2097-01-05'),
+			new ImmutableDateTime('2097-02-10'),
+			null,
+			CurrencyEnum::CZK,
+			1.0,
+			new ImmutableDateTime(),
+			StockAssetDividendTypeEnum::REGULAR,
+		);
+		$withoutPaymentDate = new StockAssetDividend(
+			$this->stockAsset,
+			new ImmutableDateTime('2097-02-15'),
+			null,
+			null,
+			CurrencyEnum::CZK,
+			2.0,
+			new ImmutableDateTime(),
+			StockAssetDividendTypeEnum::REGULAR,
+		);
+		$this->entityManager->persist($paidLater);
+		$this->entityManager->persist($withoutPaymentDate);
+		foreach ([$paidLater, $withoutPaymentDate] as $dividend) {
+			$this->entityManager->persist(new StockAssetDividendRecord(
+				$dividend,
+				10,
+				10.0,
+				CurrencyEnum::CZK,
+				null,
+				null,
+				new ImmutableDateTime(),
+			));
+		}
+
+		$this->entityManager->flush();
+
+		$records = $this->dividendRecordRepository->findCashReceivedBetweenDates(
+			new ImmutableDateTime('2097-02-01'),
+			new ImmutableDateTime('2097-02-28 23:59:59'),
+		);
+
+		self::assertSame(
+			['2097-02-10', '2097-02-15'],
+			array_map(
+				static fn (StockAssetDividendRecord $record): string =>
+					($record->getStockAssetDividend()->getPaymentDate()
+						?? $record->getStockAssetDividend()->getExDate())->format('Y-m-d'),
+				$records,
+			),
+		);
+	}
+
 	/**
 	 * @param array<ImmutableDateTime> $exDates
 	 */

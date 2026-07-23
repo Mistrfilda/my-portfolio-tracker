@@ -4,15 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Total;
 
-use App\Currency\CurrencyConversionFacade;
-use App\Currency\CurrencyEnum;
+use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
-use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
-use App\Stock\Position\Closed\StockClosedPositionStatisticFacade;
 use InvalidArgumentException;
 use Mistrfilda\Datetime\DatetimeFactory;
-use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 class PortfolioTotalStatisticControlFacade
 {
@@ -21,9 +17,7 @@ class PortfolioTotalStatisticControlFacade
 		private int $startYear,
 		private DatetimeFactory $datetimeFactory,
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
-		private StockClosedPositionStatisticFacade $stockClosedPositionStatisticFacade,
-		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
-		private CurrencyConversionFacade $currencyConversionFacade,
+		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
 	)
 	{
 
@@ -68,6 +62,10 @@ class PortfolioTotalStatisticControlFacade
 					throw new InvalidArgumentException();
 				}
 
+				$income = $this->portfolioPerformanceProvider->getIncomeBetween(
+					$firstMonthValue->getCreatedAt(),
+					$portfolioStatisticRecord->getCreatedAt(),
+				);
 				$group->addValue(
 					new PortfolioStatisticTotalValue(
 						$month,
@@ -96,17 +94,11 @@ class PortfolioTotalStatisticControlFacade
 								PortolioStatisticType::TOTAL_VALUE_IN_CZK,
 							)?->getValue(),
 						),
-						$this->stockClosedPositionStatisticFacade->calculateProfitInPeriod(
-							$firstMonthValue->getCreatedAt(),
-							$portfolioStatisticRecord->getCreatedAt(),
-						),
-						$this->calculateDividendsInPeriod(
-							$firstMonthValue->getCreatedAt(),
-							$portfolioStatisticRecord->getCreatedAt(),
-						),
+						$income->realizedProfit,
+						$income->netDividends,
 						$firstMonthValue->getCreatedAt(),
 						$portfolioStatisticRecord->getCreatedAt(),
-						$this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
+						performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
 							$firstMonthValue->getCreatedAt(),
 							$portfolioStatisticRecord->getCreatedAt(),
 						),
@@ -124,6 +116,10 @@ class PortfolioTotalStatisticControlFacade
 				throw new InvalidArgumentException();
 			}
 
+			$income = $this->portfolioPerformanceProvider->getIncomeBetween(
+				$firstYearValue->getCreatedAt(),
+				$lastYearValue->getCreatedAt(),
+			);
 			$group->setYearValue(
 				new PortfolioStatisticTotalValue(
 					null,
@@ -151,17 +147,11 @@ class PortfolioTotalStatisticControlFacade
 							PortolioStatisticType::TOTAL_VALUE_IN_CZK,
 						)?->getValue(),
 					),
-					$this->stockClosedPositionStatisticFacade->calculateProfitInPeriod(
-						$firstYearValue->getCreatedAt(),
-						$lastYearValue->getCreatedAt(),
-					),
-					$this->calculateDividendsInPeriod(
-						$firstYearValue->getCreatedAt(),
-						$lastYearValue->getCreatedAt(),
-					),
+					$income->realizedProfit,
+					$income->netDividends,
 					$firstYearValue->getCreatedAt(),
 					$lastYearValue->getCreatedAt(),
-					$this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
+					performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
 						$firstYearValue->getCreatedAt(),
 						$lastYearValue->getCreatedAt(),
 					),
@@ -174,32 +164,6 @@ class PortfolioTotalStatisticControlFacade
 		}
 
 		return $groups;
-	}
-
-	private function calculateDividendsInPeriod(
-		ImmutableDateTime $start,
-		ImmutableDateTime $end,
-	): float
-	{
-		$dividendRecords = $this->stockAssetDividendRecordRepository->findBetweenDates($start, $end);
-
-		$totalDividends = 0.0;
-		foreach ($dividendRecords as $dividendRecord) {
-			$dividendPrice = $dividendRecord->getSummaryPrice(true);
-
-			// Konverze do CZK
-			if ($dividendPrice->getCurrency() !== CurrencyEnum::CZK) {
-				$dividendPrice = $this->currencyConversionFacade->getConvertedSummaryPrice(
-					$dividendPrice,
-					CurrencyEnum::CZK,
-					$dividendRecord->getStockAssetDividend()->getExDate(),
-				);
-			}
-
-			$totalDividends += $dividendPrice->getPrice();
-		}
-
-		return $totalDividends;
 	}
 
 	private function parseStatisticIntoFloat(string|null $value, bool $isPercentage = false): int

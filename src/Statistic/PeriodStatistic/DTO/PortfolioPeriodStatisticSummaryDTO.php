@@ -28,6 +28,7 @@ class PortfolioPeriodStatisticSummaryDTO
 		public float|null $xirr,
 		public array $warnings = [],
 		public bool $partial = false,
+		public string $performanceCalculationMethod = 'legacy',
 	)
 	{
 	}

@@ -86,19 +86,6 @@ class XirrCalculator
 	}
 
 	/**
-	 * Adjusts annualized XIRR to the return for a given period.
-	 * Formula: (1 + xirr) ^ (days / 365) - 1
-	 */
-	public static function adjustForPeriod(float $annualizedXirr, int $days): float
-	{
-		if ($days <= 0) {
-			return 0.0;
-		}
-
-		return ((1 + $annualizedXirr) ** ($days / 365)) - 1;
-	}
-
-	/**
 	 * f(r) = Σ CF_i / (1 + r) ^ (d_i / 365)
 	 *
 	 * @param array<array{days: float, amount: float}> $normalized

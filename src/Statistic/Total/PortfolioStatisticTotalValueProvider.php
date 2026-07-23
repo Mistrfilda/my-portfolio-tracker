@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Total;
 
+use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatistic;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
@@ -13,6 +14,7 @@ class PortfolioStatisticTotalValueProvider
 
 	public function __construct(
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
+		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
 	)
 	{
 	}
@@ -47,11 +49,8 @@ class PortfolioStatisticTotalValueProvider
 			return null;
 		}
 
-		$dailyValues = $this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
-			$firstRecord->getCreatedAt(),
-			$lastRecord->getCreatedAt(),
-		);
-		if (count($dailyValues) < 2) {
+		$performanceSummary = $this->portfolioPerformanceProvider->getAllTimeSummary();
+		if ($performanceSummary === null) {
 			return null;
 		}
 
@@ -64,7 +63,7 @@ class PortfolioStatisticTotalValueProvider
 			valueAtEnd: $this->parseCzkValue($valueAtEnd),
 			startDate: $firstRecord->getCreatedAt(),
 			endDate: $lastRecord->getCreatedAt(),
-			cashFlowData: $dailyValues,
+			performanceSummary: $performanceSummary,
 		);
 	}
 
