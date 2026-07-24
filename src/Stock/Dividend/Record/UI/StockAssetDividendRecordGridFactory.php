@@ -6,14 +6,15 @@ namespace App\Stock\Dividend\Record\UI;
 
 use App\Stock\Dividend\Record\StockAssetDividendRecord;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
+use App\UI\Control\Datagrid\Column\ColumnAlignmentEnum;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
-use App\UI\Control\Datagrid\Row\BaseRowRenderer;
 use App\UI\Control\Datagrid\Sort\SortDirectionEnum;
 use App\UI\Filter\BooleanFilter;
 use App\UI\Filter\CurrencyFilter;
 use App\UI\Filter\SummaryPriceFilter;
+use App\UI\Tailwind\TailwindColorConstant;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
@@ -43,6 +44,8 @@ class StockAssetDividendRecordGridFactory
 		$grid = $this->gridFactory->create(
 			new DoctrineDataSource($qb),
 		);
+		$grid->enableColumnSelection();
+		$grid->setCompact();
 
 		$stockAsset = $grid->addColumnText(
 			'stockAsset',
@@ -57,22 +60,26 @@ class StockAssetDividendRecordGridFactory
 		$stockAsset->setFilterText();
 		$stockAsset->setSortable();
 
-		$grid->addColumnDatetime(
+		$exDate = $grid->addColumnDatetime(
 			'exDate',
 			'Ex date',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): ImmutableDateTime => $stockAssetDividendRecord
 				->getStockAssetDividend()
 				->getExDate(),
 			'stockAssetDividend.exDate',
-		)->setSortable(SortDirectionEnum::DESC);
+		);
+		$exDate->setFormat(DatetimeFactory::DEFAULT_DATE_FORMAT);
+		$exDate->setSortable(SortDirectionEnum::DESC);
 
-		$grid->addColumnDatetime(
+		$grid->addColumnDate(
 			'paymentDate',
 			'Datum vyplacení',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): ImmutableDateTime|null => $stockAssetDividendRecord
 				->getStockAssetDividend()
 				->getPaymentDate(),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
 
 		$grid->addColumnText(
 			'dividendPerShare',
@@ -85,29 +92,35 @@ class StockAssetDividendRecordGridFactory
 					->getStockAssetDividend()
 					->getCurrency(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'totalPiecesHeldAtExDate',
 			'Počet držených akcií (ex date)',
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
-			'totalAmount',
+			'totalAmountGross',
 			'Celková hodnota před zdaněním',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => CurrencyFilter::format(
 				$stockAssetDividendRecord->getTotalAmount(),
 				$stockAssetDividendRecord->getStockAssetDividend()->getCurrency(),
 			),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
-			'totalAmount',
+			'totalAmountNet',
 			'Celková hodnota po zdanění',
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => SummaryPriceFilter::format(
 				$stockAssetDividendRecord->getSummaryPrice(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'reinvested',
@@ -115,20 +128,25 @@ class StockAssetDividendRecordGridFactory
 			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => BooleanFilter::format(
 				$stockAssetDividendRecord->isReinvested(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::CENTER);
 
 		$now = $this->datetimeFactory->createNow();
-		$grid->setRowRender(
-			new BaseRowRenderer(
-				static function (StockAssetDividendRecord $stockAssetDividendRecord) use ($now): string {
-					if ($stockAssetDividendRecord->getStockAssetDividend()->isPaid($now)) {
-						return 'bg-blue-300';
-					}
-
-					return 'bg-emerald-300';
-				},
-			),
+		$status = $grid->addColumnBadge(
+			'status',
+			'Stav',
+			TailwindColorConstant::EMERALD,
+			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => $stockAssetDividendRecord
+				->getStockAssetDividend()
+				->isPaid($now)
+					? 'Očekávaná'
+					: 'Vyplacená',
+			static fn (StockAssetDividendRecord $stockAssetDividendRecord): string => $stockAssetDividendRecord
+				->getStockAssetDividend()
+				->isPaid($now)
+					? TailwindColorConstant::BLUE
+					: TailwindColorConstant::EMERALD,
 		);
+		$status->setAlignment(ColumnAlignmentEnum::CENTER);
 
 		return $grid;
 	}

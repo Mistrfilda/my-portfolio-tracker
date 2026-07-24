@@ -310,15 +310,31 @@ Alpine.data('removeOtherTag', (expenseId: string, handleLink: string) => ({
 
 Alpine.data('currencyConvert', (handleLink: string, amount: string, fromCurrency: string) => ({
     fromCurrency: fromCurrency,
-    amount: parseFloat(amount),
+    amount: amount,
 
-    click() {
-        handleLink = handleLink.replace("replaceFromCurrency", this.fromCurrency);
-        handleLink = handleLink.replace("replaceAmount", this.amount);
+    isValidAmount(): boolean {
+        const normalizedAmount = String(this.amount).trim();
+        if (normalizedAmount === '') {
+            return false;
+        }
+
+        const parsedAmount = Number(normalizedAmount);
+
+        return Number.isFinite(parsedAmount) && parsedAmount >= 0;
+    },
+
+    submit() {
+        if (!this.isValidAmount()) {
+            return;
+        }
+
+        const requestLink = handleLink
+            .replace("replaceFromCurrency", encodeURIComponent(this.fromCurrency))
+            .replace("replaceAmount", encodeURIComponent(String(this.amount)));
 
         naja.makeRequest(
             'GET',
-            handleLink,
+            requestLink,
             null,
             {
                 history: false,
@@ -326,6 +342,18 @@ Alpine.data('currencyConvert', (handleLink: string, amount: string, fromCurrency
                 unique: false
             },
         );
+    }
+}));
+
+Alpine.data('currencyQuickConversions', (initialCurrency: string) => ({
+    activeCurrency: initialCurrency,
+
+    isActive(currency: string): boolean {
+        return this.activeCurrency === currency;
+    },
+
+    selectCurrency(currency: string): void {
+        this.activeCurrency = currency;
     }
 }));
 

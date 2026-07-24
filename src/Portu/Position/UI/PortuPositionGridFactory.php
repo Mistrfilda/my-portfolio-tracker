@@ -11,6 +11,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Portu\Position\PortuPosition;
 use App\Portu\Position\PortuPositionRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
+use App\UI\Control\Datagrid\Column\ColumnAlignmentEnum;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
@@ -42,6 +43,9 @@ class PortuPositionGridFactory
 		);
 
 		$grid->setLimit(30);
+		$grid->enableColumnSelection();
+		$grid->setCompact();
+		$grid->setActionsInDropdown();
 
 		$grid->addColumnDate('startDate', 'Datum vzniku')
 			->setSortable();
@@ -53,6 +57,10 @@ class PortuPositionGridFactory
 				$portuPosition->getStartInvestment(),
 			),
 		);
+		$pricePerPiece
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 		$pricePerPiece->setSortable();
 
 		$grid->addColumnText(
@@ -61,7 +69,10 @@ class PortuPositionGridFactory
 			fn (PortuPosition $portuPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$portuPosition->getMonthlyIncrease(),
 			),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'totalInvestedToThisDate',
@@ -69,7 +80,7 @@ class PortuPositionGridFactory
 			fn (PortuPosition $portuPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$portuPosition->getTotalInvestedAmount(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addColumnText(
 			'currentValue',
@@ -77,7 +88,7 @@ class PortuPositionGridFactory
 			fn (PortuPosition $portuPosition): string => $this->assetPriceRenderer->getGridAssetPriceValue(
 				$portuPosition->getCurrentTotalAmount(),
 			),
-		);
+		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$summaryPriceCallback = fn (PortuPosition $portuPosition): PriceDiff => $this->assetPriceService->getAssetPriceDiff(
 			$this->currencyConversionFacade->getConvertedAssetPrice(
@@ -87,7 +98,7 @@ class PortuPositionGridFactory
 			$portuPosition->getTotalInvestedAmountInBrokerCurrency(),
 		);
 
-		$grid->addColumnBadge(
+		$summaryPrice = $grid->addColumnBadge(
 			'summaryPrice',
 			'Zisk/ztráta',
 			TailwindColorConstant::GREEN,
@@ -99,8 +110,9 @@ class PortuPositionGridFactory
 			static fn (PortuPosition $portuPosition): string => $summaryPriceCallback($portuPosition)->getTrend()->getTailwindColor(),
 			static fn (PortuPosition $portuPosition): SvgIcon => $summaryPriceCallback($portuPosition)->getTrend()->getSvgIcon(),
 		);
+		$summaryPrice->setAlignment(ColumnAlignmentEnum::RIGHT);
 
-		$grid->addColumnBadge(
+		$summaryPricePercentage = $grid->addColumnBadge(
 			'summaryPricePercentage',
 			'Zisk/ztráta v %',
 			TailwindColorConstant::GREEN,
@@ -112,6 +124,7 @@ class PortuPositionGridFactory
 			static fn (PortuPosition $portuPosition): string => $summaryPriceCallback($portuPosition)->getTrend()->getTailwindColor(),
 			static fn (PortuPosition $portuPosition): SvgIcon => $summaryPriceCallback($portuPosition)->getTrend()->getSvgIcon(),
 		);
+		$summaryPricePercentage->setAlignment(ColumnAlignmentEnum::RIGHT);
 
 		$grid->addAction(
 			'edit',

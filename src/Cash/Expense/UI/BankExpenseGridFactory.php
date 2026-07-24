@@ -7,6 +7,7 @@ namespace App\Cash\Expense\UI;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\UI\Control\Datagrid\Action\DatagridActionParameter;
+use App\UI\Control\Datagrid\Column\ColumnAlignmentEnum;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Datagrid\DatagridFactory;
 use App\UI\Control\Datagrid\Datasource\DoctrineDataSource;
@@ -36,23 +37,19 @@ class BankExpenseGridFactory
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource($qb),
 		);
+		$grid->enableColumnSelection();
+		$grid->setCompact();
+		$grid->setActionsInDropdown();
 
-		$grid->addColumnText('source', 'Zdroj');
-		$grid->addColumnDate('settlementDate', 'Datum zúčtování')->setSortable();
 		$grid->addColumnDate('transactionDate', 'Datum transakce')->setSortable();
 
-		$grid->addColumnText('bankTransactionType', 'Typ transakce')->setSortable();
-		$grid->addColumnText(
-			'bankAccount',
-			'Z bankovního účtu',
-			static fn (BankExpense $bankExpense): string => $bankExpense->getBankAccount()->getFormattedName(),
-		);
-
-		$grid->addColumnText(
+		$amount = $grid->addColumnText(
 			'amount',
 			'Hodnota',
 			static fn (BankExpense $bankExpense): string => CashPriceFilter::format($bankExpense->getExpensePrice()),
-		)->setSortable();
+		);
+		$amount->setAlignment(ColumnAlignmentEnum::RIGHT);
+		$amount->setSortable();
 
 		$grid->addColumnText('mainTag', 'Hlavní tag', static function (BankExpense $bankExpense): string {
 			if ($bankExpense->getMainTag() !== null) {
@@ -66,11 +63,31 @@ class BankExpenseGridFactory
 			return Datagrid::NULLABLE_PLACEHOLDER;
 		}, 'mainTag.name')->setFilterText();
 
+		$grid->addColumnText('bankTransactionType', 'Typ transakce')->setSortable();
+		$grid->addColumnText(
+			'bankAccount',
+			'Z bankovního účtu',
+			static fn (BankExpense $bankExpense): string => $bankExpense->getBankAccount()->getFormattedName(),
+		)->setMobileVisible(false);
+
+		$settlementDate = $grid->addColumnDate('settlementDate', 'Datum zúčtování');
+		$settlementDate
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
+		$settlementDate->setSortable();
+
+		$grid->addColumnText('source', 'Zdroj')
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
+
 		$grid->addColumnText(
 			'otherTags',
 			'Počet ostatních tagů',
 			static fn (BankExpense $bankExpense): string => (string) count($bankExpense->getOtherTags()),
-		);
+		)
+			->setDefaultVisible(false)
+			->setMobileVisible(false)
+			->setAlignment(ColumnAlignmentEnum::CENTER);
 
 		$grid->addAction(
 			'detail',
@@ -96,7 +113,7 @@ class BankExpenseGridFactory
 			'Duplikovat',
 			'Expense:form',
 			[new DatagridActionParameter('duplicateId', 'id')],
-			SvgIcon::PENCIL,
+			SvgIcon::DOCUMENT_DUPLICATE,
 			TailwindColorConstant::TEAL,
 		);
 

@@ -1,189 +1,282 @@
-
 {templateType App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomeTemplate}
 {block #content}
-    {snippet pageSnippet}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
-                    <div class="p-6">
-                        <h2 class="text-lg font-semibold text-gray-900">Aktuální měsíc</h2>
-                        <p class="mt-1 text-sm text-gray-500">
-                            Aktualizováno {$currentMonthWorkIncome->getUpdatedAt()|datetimeFormat}
-                        </p>
+	{snippet pageSnippet}
+		<div class="space-y-6">
+			<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="current-month-heading">
+				<div class="border-b border-gray-100 px-4 py-5 sm:px-6">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h2 id="current-month-heading" class="text-lg font-semibold text-gray-900">Aktuální měsíc</h2>
+							<p class="mt-1 text-sm text-gray-500">
+								Aktualizováno {$currentMonthWorkIncome->getUpdatedAt()|datetimeFormat}
+							</p>
+						</div>
+						<div class="inline-flex w-fit items-center gap-2 rounded-full bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-700">
+							{renderSvg App\UI\Icon\SvgIcon::BRIEFCASE->value, ['class' => 'h-4 w-4']}
+							{$currentMonthWorkIncome->getFormatedName()}
+						</div>
+					</div>
+				</div>
 
-                        {* Hero stats *}
-                        <div class="mt-6 grid grid-cols-2 gap-4">
-                            <div class="rounded-xl bg-gradient-to-br from-blue-50 to-blue-50 p-4">
-                                <p class="text-sm font-medium text-blue-600">Odpracováno</p>
-                                <p class="mt-1 text-2xl font-bold text-gray-900">{$currentMonthWorkIncome->getHours()} h</p>
-                            </div>
-                            <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 p-4">
-                                <p class="text-sm font-medium text-emerald-600">Vyděláno</p>
-                                <p class="mt-1 text-2xl font-bold text-gray-900">{$currentMonthWorkIncome->getSummaryPrice()|summaryPriceFormat}</p>
-                            </div>
-                        </div>
+				<div class="grid grid-cols-1 divide-y divide-gray-100 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+					<div class="px-4 py-5 sm:px-6">
+						<div class="flex items-center gap-2 text-sm font-medium text-gray-500">
+							{renderSvg App\UI\Icon\SvgIcon::INCOME_SIGN->value, ['class' => 'h-5 w-5 text-emerald-500']}
+							Vyděláno
+						</div>
+						<p class="mt-2 whitespace-nowrap text-2xl font-semibold tracking-tight text-gray-900 tabular-nums sm:text-3xl">
+							{$currentMonthWorkIncome->getSummaryPrice()|summaryPriceFormat}
+						</p>
+					</div>
+					<div class="px-4 py-5 sm:px-6">
+						<div class="flex items-center gap-2 text-sm font-medium text-gray-500">
+							{renderSvg App\UI\Icon\SvgIcon::CHART_BAR_SQUARE->value, ['class' => 'h-5 w-5 text-blue-500']}
+							Odpracováno
+						</div>
+						<p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums sm:text-3xl">
+							{$currentMonthWorkIncome->getHours()|number:1, ',', ' '} h
+						</p>
+					</div>
+					<div class="px-4 py-5 sm:px-6">
+						<div class="flex items-center gap-2 text-sm font-medium text-gray-500">
+							{renderSvg App\UI\Icon\SvgIcon::BANKNOTES->value, ['class' => 'h-5 w-5 text-violet-500']}
+							Hodinová sazba
+						</div>
+						<p class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums sm:text-3xl">
+							{$currentMonthWorkIncome->getHourlyRate()|currency:App\Currency\CurrencyEnum::CZK}
+						</p>
+					</div>
+				</div>
 
-                        {var $progressPercent = min(100, round(($currentMonthWorkIncome->getSummaryPrice()->getPrice() / $activeIncomeGoal->getGoal()) * 100))}
-                        <div class="mt-6">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="font-medium text-gray-700">Progress k cíli {$activeIncomeGoal->getGoal()|number:0, ' ', ' '} CZK</span>
-                                <span class="font-semibold text-gray-900">{$progressPercent} %</span>
-                            </div>
-                            <div class="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
-                                <div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-500" style="width: {$progressPercent}%"></div>
-                            </div>
-                        </div>
+				<div class="grid gap-6 border-t border-gray-100 px-4 py-6 lg:grid-cols-[minmax(0,2fr)_minmax(16rem,1fr)] sm:px-6">
+					<div>
+						{if $activeIncomeGoal !== null && $activeGoalProgressPercentage !== null && $activeGoalProgressBarPercentage !== null && $activeGoalDifference !== null}
+							<div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+								<div>
+									<p class="text-sm font-medium text-gray-600">Aktivní cíl</p>
+									<p class="mt-1 text-lg font-semibold text-gray-900">
+										{$activeIncomeGoal->getGoal()|currency:App\Currency\CurrencyEnum::CZK}
+									</p>
+								</div>
+								<div class="sm:text-right">
+									<p class="text-2xl font-semibold text-blue-600 tabular-nums">{$activeGoalProgressPercentage|number:1, ',', ' '} %</p>
+									<p n:class="'mt-1 text-sm font-medium', $activeGoalDifference >= 0 ? 'text-emerald-600' : 'text-gray-500'">
+										{if $activeGoalDifference >= 0}
+											Nad cílem o {$activeGoalDifference|currency:App\Currency\CurrencyEnum::CZK}
+										{else}
+											Zbývá {$activeGoalDifference * -1|currency:App\Currency\CurrencyEnum::CZK}
+										{/if}
+									</p>
+								</div>
+							</div>
+							<div class="mt-4 h-3 overflow-hidden rounded-full bg-gray-100" role="progressbar" aria-label="Plnění aktivního cíle" aria-valuenow="{$activeGoalProgressBarPercentage}" aria-valuemin="0" aria-valuemax="100">
+								<div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500" style="width: {$activeGoalProgressBarPercentage}%"></div>
+							</div>
+						{else}
+							<div class="rounded-xl bg-gray-50 p-4">
+								<div class="flex gap-3">
+									{renderSvg App\UI\Icon\SvgIcon::INFORMATION_CIRCLE->value, ['class' => 'mt-0.5 h-5 w-5 shrink-0 text-gray-400']}
+									<div>
+										<p class="text-sm font-semibold text-gray-900">Aktivní měsíční cíl není nastavený</p>
+										<p class="mt-1 text-sm text-gray-500">Aktuální příjem a orientační cíle zůstávají dostupné níže.</p>
+									</div>
+								</div>
+							</div>
+						{/if}
+					</div>
 
-                        {* Time remaining *}
-                        <div class="mt-6 flex items-center gap-4">
-                            <div class="flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2">
-                                <svg class="h-5 w-5 text-amber-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
-                                </svg>
-                                <div>
-                                    <p class="text-xs text-amber-700">Pracovní dny</p>
-                                    <p class="text-sm font-semibold text-amber-900">{$workingDaysTillEndOfMonth}</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-2 rounded-lg bg-gray-50 px-3 py-2">
-                                <svg class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                                <div>
-                                    <p class="text-xs text-gray-500">Celkem dnů</p>
-                                    <p class="text-sm font-semibold text-gray-700">{$daysTillEndOfMonth}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+					<div class="grid grid-cols-2 gap-3 lg:grid-cols-1">
+						<div class="rounded-xl bg-amber-50 p-4">
+							<p class="text-xs font-medium uppercase tracking-wide text-amber-700">Pracovní dny do konce</p>
+							<p class="mt-1 text-2xl font-semibold text-amber-950 tabular-nums">{$workingDaysTillEndOfMonth}</p>
+							<p class="mt-1 text-xs text-amber-700">z {$daysTillEndOfMonth} kalendářních dnů</p>
+						</div>
+						<div class="rounded-xl bg-blue-50 p-4">
+							<p class="text-xs font-medium uppercase tracking-wide text-blue-700">Další orientační cíl</p>
+							{if $nextGoal !== null}
+								<p class="mt-1 text-lg font-semibold text-blue-950">{$nextGoal['amount']}</p>
+								<p class="mt-1 text-xs text-blue-700">zbývá {$nextGoal['remainingHours']} h</p>
+							{else}
+								<p class="mt-1 text-lg font-semibold text-emerald-700">Vše splněno</p>
+								<p class="mt-1 text-xs text-blue-700">Gratulace, všechny milníky jsou dosažené.</p>
+							{/if}
+						</div>
+					</div>
+				</div>
+			</section>
 
-                    {* Goals table - full view *}
-                    <div class="border-t border-gray-100 px-6 py-4">
-                        <h3 class="text-sm font-semibold text-gray-900 mb-3">Cíle</h3>
-                        <table class="min-w-full text-sm">
-                            <thead>
-                            <tr class="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <th class="pb-2">Částka</th>
-                                <th class="pb-2 text-right">Zbývá hodin</th>
-                                <th class="pb-2 text-right">Ø/prac. den</th>
-                            </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-50">
-                            {foreach $goals as $goal}
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="py-2 font-medium text-gray-900">{$goal['amount']}</td>
-                                    <td class="py-2 text-right">
-                                        {if $goal['remainingHours'] <= 0}
-                                            <span class="inline-flex items-center text-green-600">
-                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                                                </svg>
-                                            </span>
-                                        {else}
-                                            <span class="text-gray-600">{$goal['remainingHours']}</span>
-                                        {/if}
-                                    </td>
-                                    <td class="py-2 text-right text-gray-500">
-                                        {$goal['workDaysAverage'] === null ? '—' : $goal['workDaysAverage']}
-                                    </td>
-                                </tr>
-                            {/foreach}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+			<section class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="goals-heading">
+				<div class="border-b border-gray-100 px-4 py-5 sm:px-6">
+					<h2 id="goals-heading" class="text-lg font-semibold text-gray-900">Nejbližší cíle</h2>
+					<p class="mt-1 text-sm text-gray-500">Poslední splněný milník a tři následující cíle.</p>
+				</div>
+				<div class="hidden overflow-x-auto sm:block">
+					<table class="min-w-full divide-y divide-gray-100">
+						<thead class="bg-gray-50">
+							<tr>
+								<th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Cíl</th>
+								<th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Zbývá hodin</th>
+								<th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Na pracovní den</th>
+								<th scope="col" class="py-3.5 pl-3 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pr-6">Stav</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $visibleGoals as $goal}
+								<tr>
+									<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-semibold text-gray-900 sm:pl-6">{$goal['amount']}</td>
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-600 tabular-nums">
+										{$goal['remainingHours']} h
+									</td>
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-600 tabular-nums">
+										{$goal['workDaysAverage'] === null ? '—' : $goal['workDaysAverage'] . ' h'}
+									</td>
+									<td class="whitespace-nowrap py-4 pl-3 pr-4 text-right sm:pr-6">
+										{if $goal['reached']}
+											<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+												{renderSvg App\UI\Icon\SvgIcon::CHECK_CIRCLE->value, ['class' => 'h-4 w-4']}
+												Splněno
+											</span>
+										{else}
+											<span class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Před vámi</span>
+										{/if}
+									</td>
+								</tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
+				<ul class="divide-y divide-gray-100 sm:hidden" role="list">
+					{foreach $visibleGoals as $goal}
+						<li class="p-4">
+							<div class="flex items-center justify-between gap-3">
+								<p class="font-semibold text-gray-900">{$goal['amount']}</p>
+								{if $goal['reached']}
+									<span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700">
+										{renderSvg App\UI\Icon\SvgIcon::CHECK_CIRCLE->value, ['class' => 'h-4 w-4']}
+										Splněno
+									</span>
+								{else}
+									<span class="inline-flex rounded-full bg-blue-50 px-2.5 py-1 text-xs font-medium text-blue-700">Před vámi</span>
+								{/if}
+							</div>
+							<dl class="mt-4 grid grid-cols-2 gap-3">
+								<div class="rounded-lg bg-gray-50 p-3">
+									<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Zbývá hodin</dt>
+									<dd class="mt-1 font-semibold text-gray-900 tabular-nums">{$goal['remainingHours']} h</dd>
+								</div>
+								<div class="rounded-lg bg-gray-50 p-3">
+									<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Na pracovní den</dt>
+									<dd class="mt-1 font-semibold text-gray-900 tabular-nums">
+										{$goal['workDaysAverage'] === null ? '—' : $goal['workDaysAverage'] . ' h'}
+									</dd>
+								</div>
+							</dl>
+						</li>
+					{/foreach}
+				</ul>
+			</section>
 
-            {* Income calculator - full grid *}
-            <div>
-                <div class="rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
-                    <div class="p-6">
-                        <h2 class="text-lg font-semibold text-gray-900">Kalkulačka příjmu</h2>
-                        <p class="mt-1 text-sm text-gray-500">Přehled výdělku podle odpracovaných hodin</p>
+			<div class="grid gap-4 lg:grid-cols-2">
+				<details class="group rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-5 sm:px-6">
+						<div>
+							<h2 class="text-base font-semibold text-gray-900">Kompletní plán cílů</h2>
+							<p class="mt-1 text-sm text-gray-500">Požadované hodiny a tempo pro všechny částky.</p>
+						</div>
+						{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+					</summary>
+					<div class="overflow-x-auto border-t border-gray-100">
+						<table class="min-w-full divide-y divide-gray-100 text-sm">
+							<thead class="bg-gray-50 text-xs font-semibold uppercase tracking-wide text-gray-500">
+								<tr>
+									<th class="py-3 pl-4 pr-3 text-left sm:pl-6">Částka</th>
+									<th class="px-3 py-3 text-right">Celkem h</th>
+									<th class="px-3 py-3 text-right">Zbývá h</th>
+									<th class="py-3 pl-3 pr-4 text-right sm:pr-6">Ø / den</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-gray-100">
+								{foreach $goals as $goal}
+									<tr>
+										<td class="whitespace-nowrap py-3 pl-4 pr-3 font-medium text-gray-900 sm:pl-6">{$goal['amount']}</td>
+										<td class="whitespace-nowrap px-3 py-3 text-right text-gray-600">{$goal['requiredHours']}</td>
+										<td class="whitespace-nowrap px-3 py-3 text-right text-gray-600">{$goal['remainingHours']}</td>
+										<td class="whitespace-nowrap py-3 pl-3 pr-4 text-right text-gray-600 sm:pr-6">{$goal['allDaysAverage'] === null ? '—' : $goal['allDaysAverage']}</td>
+									</tr>
+								{/foreach}
+							</tbody>
+						</table>
+					</div>
+				</details>
 
-                        <div class="mt-6 grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            {foreach $hours as $hour}
-                                <div class="rounded-xl border border-gray-200 p-4 hover:border-blue-300 hover:bg-blue-50/50 transition-all">
-                                    <p class="text-2xl font-bold text-gray-900">{$hour['hour']}</p>
-                                    <p class="text-xs text-gray-500">hodin</p>
-                                    <p class="mt-2 text-sm font-semibold text-blue-600">{$hour['amount']}</p>
-                                </div>
-                            {/foreach}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+				<details class="group rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-5 sm:px-6">
+						<div>
+							<h2 class="text-base font-semibold text-gray-900">Kalkulačka příjmu</h2>
+							<p class="mt-1 text-sm text-gray-500">Výdělek pro všechny původní hodinové scénáře.</p>
+						</div>
+						{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+					</summary>
+					<div class="grid grid-cols-2 gap-3 border-t border-gray-100 p-4 sm:grid-cols-3 sm:p-6">
+						{foreach $hours as $hour}
+							<div class="rounded-xl border border-gray-200 p-3">
+								<p class="text-lg font-semibold text-gray-900 tabular-nums">{$hour['hour']} h</p>
+								<p class="mt-1 text-sm font-medium text-blue-600">{$hour['amount']}</p>
+							</div>
+						{/foreach}
+					</div>
+				</details>
+			</div>
 
-        <div class="mt-8 bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-            <div class="flex items-center justify-between mb-3">
-                <h3 class="text-sm font-medium text-gray-500">Rok</h3>
-            </div>
-            <div class="flex flex-wrap gap-2">
-                {foreach $yearOptions as $yearOption}
-                    <a
-                            n:href="setYear! selectedYear: $yearOption"
-                            n:class="'ajax inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-full transition-all duration-200',
-                            $selectedYear === $yearOption
-                            ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'"
-                    >
-                        {$yearOption}
-                    </a>
-                {/foreach}
-            </div>
-        </div>
-
-        {* Monthly overview *}
-        <div class="mt-6 rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 overflow-hidden">
-            <div class="px-6 py-5 border-b border-gray-100">
-                <h3 class="text-lg font-semibold text-gray-900">Přehled za rok {$selectedYear}</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-100">
-                    <thead class="bg-gray-50">
-                    <tr>
-                        <th scope="col" class="py-3.5 pl-6 pr-3 text-left text-xs font-semibold uppercase tracking-wider text-gray-500">
-                            Měsíc
-                        </th>
-                        <th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                            Hodiny
-                        </th>
-                        <th scope="col" class="py-3.5 pl-3 pr-6 text-right text-xs font-semibold uppercase tracking-wider text-gray-500">
-                            Příjem
-                        </th>
-                    </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-50 bg-white">
-                    {foreach $workMonthlyIncomes as $workMonthlyIncome}
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="whitespace-nowrap py-4 pl-6 pr-3 text-sm font-medium text-gray-900">
-                                {$workMonthlyIncome->getFormatedName()}
-                            </td>
-                            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500 text-right">
-                                {$workMonthlyIncome->getHours()} h
-                            </td>
-                            <td class="whitespace-nowrap py-4 pl-3 pr-6 text-sm font-semibold text-gray-900 text-right">
-                                {$workMonthlyIncome->getSummaryPrice()|summaryPriceFormat}
-                            </td>
-                        </tr>
-                    {/foreach}
-                    </tbody>
-                    <tfoot class="bg-gray-50">
-                    <tr>
-                        <th scope="row" class="py-4 pl-6 pr-3 text-left text-sm font-semibold text-gray-900">
-                            Celkem
-                        </th>
-                        <td class="px-3 py-4 text-right text-sm font-semibold text-gray-900">
-                            {$totalSummaryPrice->getCounter()} h
-                        </td>
-                        <td class="py-4 pl-3 pr-6 text-right text-sm font-bold text-blue-600">
-                            {$totalSummaryPrice|summaryPriceFormat}
-                        </td>
-                    </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    {/snippet}
+			<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="year-overview-heading">
+				<div class="flex flex-col gap-4 border-b border-gray-100 px-4 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+					<div>
+						<h2 id="year-overview-heading" class="text-lg font-semibold text-gray-900">Přehled za rok {$selectedYear}</h2>
+						<p class="mt-1 text-sm text-gray-500">Měsíční výkon a celkový příjem.</p>
+					</div>
+					<div class="flex gap-2 overflow-x-auto pb-1" aria-label="Výběr roku">
+						{foreach $yearOptions as $yearOption}
+							<a
+								n:href="setYear! selectedYear: $yearOption"
+								n:class="'ajax inline-flex shrink-0 items-center justify-center rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+									$selectedYear === $yearOption
+										? 'bg-blue-600 text-white'
+										: 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900'"
+								aria-current="{$selectedYear === $yearOption ? 'true' : 'false'}"
+							>
+								{$yearOption}
+							</a>
+						{/foreach}
+					</div>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-100">
+						<thead class="bg-gray-50">
+							<tr>
+								<th scope="col" class="py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Měsíc</th>
+								<th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Hodiny</th>
+								<th scope="col" class="py-3.5 pl-3 pr-4 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pr-6">Příjem</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $workMonthlyIncomes as $workMonthlyIncome}
+								<tr>
+									<td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">{$workMonthlyIncome->getFormatedName()}</td>
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-500 tabular-nums">{$workMonthlyIncome->getHours()} h</td>
+									<td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-semibold text-gray-900 tabular-nums sm:pr-6">{$workMonthlyIncome->getSummaryPrice()|summaryPriceFormat}</td>
+								</tr>
+							{/foreach}
+						</tbody>
+						<tfoot class="bg-gray-50">
+							<tr>
+								<th scope="row" class="py-4 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Celkem</th>
+								<td class="whitespace-nowrap px-3 py-4 text-right text-sm font-semibold text-gray-900 tabular-nums">{$totalSummaryPrice->getCounter()} h</td>
+								<td class="whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-bold text-blue-600 tabular-nums sm:pr-6">{$totalSummaryPrice|summaryPriceFormat}</td>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</section>
+		</div>
+	{/snippet}
 {/block}

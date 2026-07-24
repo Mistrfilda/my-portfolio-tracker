@@ -127,6 +127,8 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		$this->template->workingDaysTillEndOfMonth = $workingDaysTillEndOfMonth;
 		$goals = [];
 		$hours = [];
+		$lastReachedGoal = null;
+		$pendingGoals = [];
 
 		foreach (self::MONEY_GOALS as $moneyGoal) {
 			$remainingAmount = $moneyGoal - $currentMonthWorkIncome->getSummaryPrice()->getPrice();
@@ -144,13 +146,21 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 
 			$requiredHours = $moneyGoal / $currentMonthWorkIncome->getHourlyRate();
 
-			$goals[] = [
+			$currentGoal = [
 				'amount' => CurrencyFilter::format($moneyGoal, CurrencyEnum::CZK),
 				'requiredHours' => round($requiredHours, 1),
 				'remainingHours' => round($remainingHours, 1),
 				'workDaysAverage' => $workDaysAverage === null ? null : round($workDaysAverage, 1),
 				'allDaysAverage' => $allDaysAverage === null ? null : round($allDaysAverage, 1),
+				'reached' => $remainingAmount <= 0,
 			];
+
+			$goals[] = $currentGoal;
+			if ($currentGoal['reached']) {
+				$lastReachedGoal = $currentGoal;
+			} else {
+				$pendingGoals[] = $currentGoal;
+			}
 		}
 
 		foreach (self::HOURS as $hour) {
@@ -163,9 +173,31 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			];
 		}
 
-		$this->template->activeIncomeGoal = $this->portfolioGoalRepository->findFirstActiveByType(
+		$activeIncomeGoal = $this->portfolioGoalRepository->findFirstActiveByType(
 			PortfolioGoalTypeEnum::MONTHLY_INCOME,
 		);
+		$this->template->activeIncomeGoal = $activeIncomeGoal;
+		$this->template->activeGoalProgressPercentage = null;
+		$this->template->activeGoalProgressBarPercentage = null;
+		$this->template->activeGoalDifference = null;
+		if ($activeIncomeGoal !== null && $activeIncomeGoal->getGoal() > 0) {
+			$currentIncome = $currentMonthWorkIncome->getSummaryPrice()->getPrice();
+			$progressPercentage = $currentIncome / $activeIncomeGoal->getGoal() * 100;
+			$this->template->activeGoalProgressPercentage = round($progressPercentage, 1);
+			$this->template->activeGoalProgressBarPercentage = max(
+				0.0,
+				min(100.0, round($progressPercentage, 1)),
+			);
+			$this->template->activeGoalDifference = $currentIncome - $activeIncomeGoal->getGoal();
+		}
+
+		$visibleGoals = array_slice($pendingGoals, 0, 3);
+		if ($lastReachedGoal !== null) {
+			array_unshift($visibleGoals, $lastReachedGoal);
+		}
+
+		$this->template->nextGoal = $pendingGoals[0] ?? null;
+		$this->template->visibleGoals = $visibleGoals;
 		$this->template->hours = $hours;
 		$this->template->goals = $goals;
 	}

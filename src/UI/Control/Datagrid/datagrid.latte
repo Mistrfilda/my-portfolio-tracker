@@ -221,23 +221,20 @@
                                     {if $actions->count() > 0}
                                         <td n:class="$compact ? 'px-3 py-2.5' : 'px-5 py-4', 'whitespace-nowrap text-right text-sm'">
                                             {if $actionsInDropdown}
-                                                <div class="relative inline-block text-left" x-data="dropdown()" @click.outside="open = false">
+                                                <el-dropdown class="relative inline-block text-left">
                                                     <button
                                                             type="button"
-                                                            @click="toggle()"
-                                                            :aria-expanded="open"
                                                             aria-haspopup="menu"
                                                             class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                                     >
                                                         Akce
                                                         {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
                                                     </button>
-                                                    <div
-                                                            x-show="open"
-                                                            x-cloak
-                                                            x-transition
+                                                    <el-menu
+                                                            anchor="bottom end"
+                                                            popover
                                                             role="menu"
-                                                            class="absolute right-0 z-20 mt-2 w-52 origin-top-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                                                            class="m-0 w-52 origin-top-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                                                     >
                                                         {foreach $actions as $action}
                                                             {if $action->getConditionCallback() !== null}
@@ -245,7 +242,7 @@
                                                             {/if}
                                                             <a
                                                                     href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-                                                                    n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50'"
+                                                                    n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 focus:outline-hidden'"
                                                                     role="menuitem"
                                                                     {if $action->getConfirmation() !== null}
                                                                         onclick="return confirm({$action->getConfirmation()})"
@@ -257,8 +254,8 @@
                                                                 {$action->getLabel()}
                                                             </a>
                                                         {/foreach}
-                                                    </div>
-                                                </div>
+                                                    </el-menu>
+                                                </el-dropdown>
                                             {else}
                                                 <div class="flex items-center justify-end gap-2">
                                                     {foreach $actions as $action}
@@ -307,23 +304,20 @@
                                 {if $actions->count() > 0}
                                     <div class="flex justify-end border-t border-gray-100 pt-3">
                                         {if $actionsInDropdown}
-                                            <div class="relative" x-data="dropdown()" @click.outside="open = false">
+                                            <el-dropdown class="relative">
                                                 <button
                                                         type="button"
-                                                        @click="toggle()"
-                                                        :aria-expanded="open"
                                                         aria-haspopup="menu"
                                                         class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs"
                                                 >
                                                     Akce
                                                     {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
                                                 </button>
-                                                <div
-                                                        x-show="open"
-                                                        x-cloak
-                                                        x-transition
+                                                <el-menu
+                                                        anchor="top end"
+                                                        popover
                                                         role="menu"
-                                                        class="absolute bottom-full right-0 z-20 mb-2 w-52 rounded-lg border border-gray-200 bg-white py-1 shadow-lg"
+                                                        class="m-0 w-52 origin-bottom-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
                                                 >
                                                     {foreach $actions as $action}
                                                         {if $action->getConditionCallback() !== null}
@@ -331,7 +325,7 @@
                                                         {/if}
                                                         <a
                                                                 href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-                                                                n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50'"
+                                                                n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 focus:outline-hidden'"
                                                                 role="menuitem"
                                                                 {if $action->getConfirmation() !== null}
                                                                     onclick="return confirm({$action->getConfirmation()})"
@@ -343,8 +337,8 @@
                                                             {$action->getLabel()}
                                                         </a>
                                                     {/foreach}
-                                                </div>
-                                            </div>
+                                                </el-menu>
+                                            </el-dropdown>
                                         {else}
                                             <div class="flex flex-wrap justify-end gap-2">
                                                 {foreach $actions as $action}
