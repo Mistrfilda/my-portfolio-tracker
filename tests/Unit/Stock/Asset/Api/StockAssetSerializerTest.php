@@ -157,7 +157,7 @@ class StockAssetSerializerTest extends TestCase
 		}
 
 		$stockValuationPriceProvider = $this->createMock(StockValuationPriceProvider::class);
-		$stockValuationPriceProvider->method('getAverageModelPrice')->willReturn(
+		$stockValuationPriceProvider->method('getModelConsensusPrice')->willReturn(
 			$this->createAssetPrice($priceFromAllModels),
 		);
 		$stockValuationPriceProvider->method('getAnalyticsPrice')->willReturn(

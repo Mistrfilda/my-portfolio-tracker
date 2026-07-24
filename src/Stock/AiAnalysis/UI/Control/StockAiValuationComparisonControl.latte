@@ -56,19 +56,30 @@
                                     </td>
                                 </tr>
 
-                                <!-- Average Model Price -->
+                                <!-- Model family consensus -->
                                 <tr class="bg-gray-50 font-semibold">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        Průměr modelů
+                                        Konsenzus modelových rodin
+                                        <span class="block text-xs text-gray-500 font-normal">
+                                            Rodiny {$modelConsensus->getValidFamiliesCount()}/{$modelConsensus->getTotalFamiliesCount()} · {$modelConsensus->getConfidence()->getLabel()}
+                                        </span>
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                        {$averageModelPrice|assetPriceFormat}
+                                        {if $modelConsensus->getPrice() !== null}
+                                            {$modelConsensus->getPrice()|assetPriceFormat}
+                                        {else}
+                                            <span class="text-gray-400">N/A</span>
+                                        {/if}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                        {var $diff = (($averageModelPrice->getPrice() - $stockAsset->getAssetCurrentPrice()->getPrice()) / $stockAsset->getAssetCurrentPrice()->getPrice()) * 100}
-                                        <span n:class="$diff > 0 ? 'text-green-600' : 'text-red-600'">
-                                            {if $diff > 0}+{/if}{$diff|number:2}%
-                                        </span>
+                                        {if $modelConsensus->getPercentage() !== null}
+                                            {var $diff = $modelConsensus->getPercentage()}
+                                            <span n:class="$diff > 0 ? 'text-green-600' : ($diff < 0 ? 'text-red-600' : 'text-gray-600')">
+                                                {if $diff > 0}+{/if}{$diff|number:2}%
+                                            </span>
+                                        {else}
+                                            -
+                                        {/if}
                                     </td>
                                 </tr>
 

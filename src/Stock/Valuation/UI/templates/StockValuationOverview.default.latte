@@ -73,6 +73,7 @@
 
 					{foreach $rows as $row}
 						{var $stockAsset = $row->getStockAsset()}
+						{var $modelConsensus = $row->getModelConsensus()}
 						{var $marginOfSafety = $row->getMarginOfSafety()}
 						{var $dividendSafetyScore = $row->getDividendSafetyScore()}
 						<tbody
@@ -137,7 +138,7 @@
 										{$marginOfSafety->getStatus()->getLabel()}
 									</span>
 									<span class="text-xs text-gray-500">
-										{$marginOfSafety->getConfidence()->getLabel()} · {$marginOfSafety->getSourcesCount()} zdroje
+										{$marginOfSafety->getConfidence()->getLabel()} · skupiny {$marginOfSafety->getSourceGroupsCount()} · odhady {$marginOfSafety->getInputEstimatesCount()}
 									</span>
 								</div>
 							</td>
@@ -168,10 +169,23 @@
 							<td colspan="7" class="bg-gray-50 px-4 py-5 sm:px-6">
 								<div class="grid gap-6 lg:grid-cols-2">
 									<div>
-										<h3 class="text-sm font-semibold text-gray-900">Společný odhad</h3>
+										<h3 class="text-sm font-semibold text-gray-900">Vyvážený odhad</h3>
+										<p class="mt-1 text-xs text-gray-500">
+											Analytici a AI tvoří jednu externí skupinu se stejnou vahou jako konsenzus modelových rodin.
+										</p>
 										<dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
 											<div>
-												<dt class="text-xs text-gray-500">Rozpětí zdrojů</dt>
+												<dt class="text-xs text-gray-500">Externí odhad</dt>
+												<dd class="mt-1 font-medium text-gray-900">
+													{if $marginOfSafety->getExternalEstimate() !== null}
+														{$marginOfSafety->getExternalEstimate()|assetPriceFormat}
+													{else}
+														N/A
+													{/if}
+												</dd>
+											</div>
+											<div>
+												<dt class="text-xs text-gray-500">Rozpětí skupin</dt>
 												<dd class="mt-1 font-medium text-gray-900">
 													{if $marginOfSafety->getSourceSpreadPercentage() !== null}
 														{$marginOfSafety->getSourceSpreadPercentage()|number:2} %
@@ -181,14 +195,31 @@
 												</dd>
 											</div>
 											<div>
-												<dt class="text-xs text-gray-500">Počet zdrojů</dt>
-												<dd class="mt-1 font-medium text-gray-900">{$marginOfSafety->getSourcesCount()}</dd>
+												<dt class="text-xs text-gray-500">Pokrytí zdrojů</dt>
+												<dd class="mt-1 font-medium text-gray-900">Skupiny {$marginOfSafety->getSourceGroupsCount()} · odhady {$marginOfSafety->getInputEstimatesCount()}</dd>
 											</div>
 											<div>
 												<dt class="text-xs text-gray-500">Spolehlivost</dt>
 												<dd class="mt-1 font-medium text-gray-900">{$marginOfSafety->getConfidence()->getLabel()}</dd>
 											</div>
+											<div>
+												<dt class="text-xs text-gray-500">Modelové rodiny</dt>
+												<dd class="mt-1 font-medium text-gray-900">{$modelConsensus->getValidFamiliesCount()} / {$modelConsensus->getTotalFamiliesCount()}</dd>
+											</div>
+											<div>
+												<dt class="text-xs text-gray-500">Nejistota modelů</dt>
+												<dd class="mt-1 font-medium text-gray-900">
+													{if $modelConsensus->getNormalizedIqrPercentage() !== null}
+														IQR {$modelConsensus->getNormalizedIqrPercentage()|number:1} %
+													{else}
+														N/A
+													{/if}
+												</dd>
+											</div>
 										</dl>
+										{if $modelConsensus->getOutlierCount() > 0}
+											<p class="mt-3 text-xs text-amber-700">Extrémní modelové výstupy: {$modelConsensus->getOutlierCount()}. Jsou označené v detailu modelů.</p>
+										{/if}
 										{if count($marginOfSafety->getReasons()) > 0}
 											<ul class="mt-4 space-y-1 text-xs text-gray-600">
 												{foreach $marginOfSafety->getReasons() as $reason}

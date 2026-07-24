@@ -9,43 +9,34 @@ use App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Data\StockValuationData;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusProvider;
 
 class StockValuationPriceProvider
 {
 
 	public function __construct(
 		private readonly StockValuationFacade $stockValuationFacade,
+		private readonly StockValuationModelConsensusProvider $stockValuationModelConsensusProvider,
 		private readonly StockValuationDataRepository $stockValuationDataRepository,
 		private readonly StockAiAnalysisStockResultRepository $stockAiAnalysisStockResultRepository,
 	)
 	{
 	}
 
-	public function getAverageModelPrice(StockAsset $stockAsset): AssetPrice|null
+	public function getModelConsensus(StockAsset $stockAsset): StockValuationModelConsensus
 	{
 		$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset($stockAsset);
-		$averagePrice = 0.0;
-		$calculatedModelsCount = 0;
 
-		foreach ($modelResponses as $modelResponse) {
-			$assetPrice = $modelResponse->getAssetPrice();
-			if ($assetPrice === null) {
-				continue;
-			}
-
-			$averagePrice += $assetPrice->getPrice();
-			$calculatedModelsCount++;
-		}
-
-		if ($calculatedModelsCount === 0) {
-			return null;
-		}
-
-		return new AssetPrice(
+		return $this->stockValuationModelConsensusProvider->getForStockAsset(
 			$stockAsset,
-			$averagePrice / $calculatedModelsCount,
-			$stockAsset->getCurrency(),
+			$modelResponses,
 		);
+	}
+
+	public function getModelConsensusPrice(StockAsset $stockAsset): AssetPrice|null
+	{
+		return $this->getModelConsensus($stockAsset)->getPrice();
 	}
 
 	public function getAnalyticsPrice(StockAsset $stockAsset): AssetPrice|null

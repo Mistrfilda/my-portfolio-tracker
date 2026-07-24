@@ -21,38 +21,25 @@ class PegRatioValuationModel extends BasePriceModel
 
 	private const FAIR_VALUE_THRESHOLD = 8.0;
 
+	private float|null $currentPegRatio = null;
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();
 		$currentPrice = $stockValuation->getStockAsset()->getAssetCurrentPrice()->getPrice();
-		$dilutedEps = $stockValuation->getValuationDataByType(StockValuationTypeEnum::DILUTED_EPS)?->getFloatValue();
-		$earningsGrowth = $stockValuation->getValuationDataByType(
-			StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
+		$currentPegRatio = $stockValuation->getValuationDataByType(
+			StockValuationTypeEnum::PEG_RATIO,
 		)?->getFloatValue();
+		$this->currentPegRatio = $currentPegRatio;
 
-		if ($dilutedEps === null || $dilutedEps <= 0 || $earningsGrowth === null || $earningsGrowth <= 0) {
+		if ($currentPrice <= 0.0 || $currentPegRatio === null || $currentPegRatio <= 0.0) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		// Convert percentage to absolute value (if it's stored as 5.0 for 5%)
-		$growthRate = abs($earningsGrowth);
-
-		// Fair P/E based on PEG = 1.0
-		$fairPE = self::FAIR_PEG_RATIO * $growthRate;
-
-		// Fair price
-		$fairPrice = $dilutedEps * $fairPE;
-
-		$assetPrice = null;
-		$percentage = null;
-		$state = StockValuationModelState::NEUTRAL;
-
-		if ($currentPrice > 0) {
-			$assetPrice = new AssetPrice($stockAsset, $fairPrice, $stockAsset->getCurrency());
-			$percentage = ($fairPrice - $currentPrice) / $currentPrice * 100;
-
-			$state = $this->determineState($percentage);
-		}
+		$fairPrice = $currentPrice * self::FAIR_PEG_RATIO / $currentPegRatio;
+		$assetPrice = new AssetPrice($stockAsset, $fairPrice, $stockAsset->getCurrency());
+		$percentage = ($fairPrice - $currentPrice) / $currentPrice * 100;
+		$state = $this->determineState($percentage);
 
 		return new StockValuationPriceModelResponse(
 			stockValuationModel: $this,
@@ -80,8 +67,7 @@ class PegRatioValuationModel extends BasePriceModel
 	{
 		return [
 			StockValuationTypeEnum::CURRENT_PRICE,
-			StockValuationTypeEnum::DILUTED_EPS,
-			StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
+			StockValuationTypeEnum::PEG_RATIO,
 		];
 	}
 
@@ -90,12 +76,18 @@ class PegRatioValuationModel extends BasePriceModel
 	 */
 	protected function getModelUsedValues(): array
 	{
-		return [
+		$values = [
 			new StockValuationModelUsedValue('FAIR_PEG_RATIO', self::FAIR_PEG_RATIO),
 			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
 			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
 			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
 		];
+
+		if ($this->currentPegRatio !== null) {
+			$values[] = new StockValuationModelUsedValue('Current PEG Ratio', $this->currentPegRatio);
+		}
+
+		return $values;
 	}
 
 	private function determineState(float|null $percentage): StockValuationModelState
@@ -122,7 +114,7 @@ class PegRatioValuationModel extends BasePriceModel
 	protected function getDescription(): string
 	{
 		//phpcs:disable
-		return 'Kombinuje P/E ratio s růstem zisků. PEG = 1 značí férové ocenění, nižší hodnota naznačuje podhodnocení vzhledem k růstovému potenciálu.';
+		return 'Porovnává aktuální pětileté očekávané PEG s férovou hodnotou 1. Férovou cenu odvozuje poměrem cílového a aktuálního PEG, takže nepoužívá krátkodobý růst jako cenový násobek.';
 		//phpcs:enable
 	}
 

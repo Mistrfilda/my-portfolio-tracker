@@ -39,7 +39,7 @@ class DebtAdjustedValuationModelTest extends UpdatedTestCase
 
 		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
 		$debtEquityDataMock->shouldReceive('getFloatValue')
-			->andReturn(0.2); // Very low debt
+			->andReturn(20.0); // 20% = 0.2 ratio
 
 		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
 		$currentRatioDataMock->shouldReceive('getFloatValue')
@@ -87,7 +87,7 @@ class DebtAdjustedValuationModelTest extends UpdatedTestCase
 
 		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
 		$debtEquityDataMock->shouldReceive('getFloatValue')
-			->andReturn(4.0); // Extreme debt
+			->andReturn(400.0); // 400% = 4.0 ratio
 
 		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
 		$currentRatioDataMock->shouldReceive('getFloatValue')
@@ -114,6 +114,47 @@ class DebtAdjustedValuationModelTest extends UpdatedTestCase
 
 		$this->assertEquals(84.0, $response->getCalculatedValue());
 		$this->assertEquals(StockValuationModelState::OVERPRICED, $response->getStockValuationModelTrend());
+	}
+
+	public function testNormalizesProviderDebtEquityPercentageBeforeApplyingThresholds(): void
+	{
+		$model = new DebtAdjustedValuationModel();
+
+		$stockAssetMock = Mockery::mock(StockAsset::class);
+		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
+			->andReturn(100.0);
+		$stockAssetMock->shouldReceive('getCurrency')
+			->zeroOrMoreTimes()
+			->andReturn(CurrencyEnum::USD);
+
+		$bookValueDataMock = Mockery::mock(StockValuationData::class);
+		$bookValueDataMock->shouldReceive('getFloatValue')
+			->andReturn(100.0);
+
+		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
+		$debtEquityDataMock->shouldReceive('getFloatValue')
+			->andReturn(59.71);
+
+		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
+		$currentRatioDataMock->shouldReceive('getFloatValue')
+			->andReturn(1.0);
+
+		$stockValuationMock = Mockery::mock(StockValuation::class);
+		$stockValuationMock->shouldReceive('getStockAsset')
+			->andReturn($stockAssetMock);
+		$stockValuationMock->shouldReceive('getValuationDataByType')
+			->with(StockValuationTypeEnum::BOOK_VALUE_PER_SHARE)
+			->andReturn($bookValueDataMock);
+		$stockValuationMock->shouldReceive('getValuationDataByType')
+			->with(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)
+			->andReturn($debtEquityDataMock);
+		$stockValuationMock->shouldReceive('getValuationDataByType')
+			->with(StockValuationTypeEnum::CURRENT_RATIO)
+			->andReturn($currentRatioDataMock);
+
+		$response = $model->calculateResponse($stockValuationMock);
+
+		$this->assertEqualsWithDelta(121.54, $response->getCalculatedValue() ?? 0.0, 0.01);
 	}
 
 	public function testCalculateResponseUnableToCalculateNoBookValue(): void

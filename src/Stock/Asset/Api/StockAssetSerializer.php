@@ -83,7 +83,7 @@ class StockAssetSerializer
 		$oneDayChange = $stockAsset->getTrend($now->deductDaysFromDatetime(1));
 		$sevenDayChange = $stockAsset->getTrend($now->deductDaysFromDatetime(7));
 		$thirtyDayChange = $stockAsset->getTrend($now->deductDaysFromDatetime(30));
-		$priceFromAllModels = $this->stockValuationPriceProvider->getAverageModelPrice($stockAsset);
+		$priceFromAllModels = $this->stockValuationPriceProvider->getModelConsensusPrice($stockAsset);
 		$analyticsPrice = $this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset);
 		$aiAnalysisPrice = $this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset);
 

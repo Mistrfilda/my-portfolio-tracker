@@ -7,6 +7,7 @@ namespace App\Stock\Valuation\UI;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Safety\StockDividendSafetyScore;
 use App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafety;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
 
 class StockValuationOverviewRow
 {
@@ -16,6 +17,7 @@ class StockValuationOverviewRow
 	 */
 	public function __construct(
 		private StockAsset $stockAsset,
+		private StockValuationModelConsensus $modelConsensus,
 		private array $values,
 		private StockValuationMarginOfSafety $marginOfSafety,
 		private StockDividendSafetyScore $dividendSafetyScore,
@@ -26,6 +28,11 @@ class StockValuationOverviewRow
 	public function getStockAsset(): StockAsset
 	{
 		return $this->stockAsset;
+	}
+
+	public function getModelConsensus(): StockValuationModelConsensus
+	{
+		return $this->modelConsensus;
 	}
 
 	/**

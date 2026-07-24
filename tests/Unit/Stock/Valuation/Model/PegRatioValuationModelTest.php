@@ -25,109 +25,74 @@ class PegRatioValuationModelTest extends UpdatedTestCase
 	public function testCalculateResponseUnderpriced(): void
 	{
 		$model = new PegRatioValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-		$stockAssetMock->shouldReceive('getCurrency')
-			->zeroOrMoreTimes()
-			->andReturn(CurrencyEnum::USD);
-
-		$epsDataMock = Mockery::mock(StockValuationData::class);
-		$epsDataMock->shouldReceive('getFloatValue')
-			->andReturn(5.0);
-
-		$growthDataMock = Mockery::mock(StockValuationData::class);
-		$growthDataMock->shouldReceive('getFloatValue')
-			->andReturn(25.0); // 25% growth
-
-		// Fair P/E = 1.0 * 25 = 25, Fair Price = 5 * 25 = 125
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::DILUTED_EPS)
-			->andReturn($epsDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH)
-			->andReturn($growthDataMock);
-
-		$response = $model->calculateResponse($stockValuationMock);
+		$response = $model->calculateResponse($this->createStockValuation(100.0, 0.8));
 
 		$this->assertNotNull($response->getAssetPrice());
 		$this->assertEquals(125.0, $response->getCalculatedValue());
-		$this->assertEquals(25.0, $response->getCalculatedPercentage()); // (125 - 100) / 100 * 100
+		$this->assertEquals(25.0, $response->getCalculatedPercentage());
 		$this->assertEquals(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
 		$this->assertEquals('PEG Ratio Model', $response->getLabel());
+		$this->assertSame(
+			[StockValuationTypeEnum::CURRENT_PRICE, StockValuationTypeEnum::PEG_RATIO],
+			$response->getUsedStockValuationDataTypes(),
+		);
 	}
 
 	public function testCalculateResponseOverpriced(): void
 	{
 		$model = new PegRatioValuationModel();
+		$response = $model->calculateResponse($this->createStockValuation(100.0, 2.0));
 
+		$this->assertEquals(50.0, $response->getCalculatedValue());
+		$this->assertEquals(-50.0, $response->getCalculatedPercentage());
+		$this->assertEquals(StockValuationModelState::OVERPRICED, $response->getStockValuationModelTrend());
+	}
+
+	public function testUsesCurrentPegRatioInsteadOfQuarterlyGrowthForAgcoLikeData(): void
+	{
+		$model = new PegRatioValuationModel();
+		$response = $model->calculateResponse($this->createStockValuation(117.19, 1.14));
+
+		$this->assertEqualsWithDelta(102.80, $response->getCalculatedValue() ?? 0.0, 0.01);
+		$this->assertEqualsWithDelta(-12.28, $response->getCalculatedPercentage() ?? 0.0, 0.01);
+		$this->assertEquals(StockValuationModelState::NEUTRAL, $response->getStockValuationModelTrend());
+	}
+
+	public function testCalculateResponseUnableToCalculateWithoutPositivePeg(): void
+	{
+		$model = new PegRatioValuationModel();
+
+		$response = $model->calculateResponse($this->createStockValuation(100.0, null));
+		$this->assertEquals(StockValuationModelState::UNABLE_TO_CALCULATE, $response->getStockValuationModelTrend());
+
+		$response = $model->calculateResponse($this->createStockValuation(100.0, 0.0));
+		$this->assertEquals(StockValuationModelState::UNABLE_TO_CALCULATE, $response->getStockValuationModelTrend());
+	}
+
+	private function createStockValuation(float $currentPrice, float|null $pegRatio): StockValuation
+	{
 		$stockAssetMock = Mockery::mock(StockAsset::class);
 		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(200.0);
+			->andReturn($currentPrice);
 		$stockAssetMock->shouldReceive('getCurrency')
 			->zeroOrMoreTimes()
 			->andReturn(CurrencyEnum::USD);
 
-		$epsDataMock = Mockery::mock(StockValuationData::class);
-		$epsDataMock->shouldReceive('getFloatValue')
-			->andReturn(5.0);
-
-		$growthDataMock = Mockery::mock(StockValuationData::class);
-		$growthDataMock->shouldReceive('getFloatValue')
-			->andReturn(10.0); // 10% growth
-
-		// Fair P/E = 1.0 * 10 = 10, Fair Price = 5 * 10 = 50
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::DILUTED_EPS)
-			->andReturn($epsDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH)
-			->andReturn($growthDataMock);
-
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertEquals(50.0, $response->getCalculatedValue());
-		$this->assertEquals(-75.0, $response->getCalculatedPercentage());
-		$this->assertEquals(StockValuationModelState::OVERPRICED, $response->getStockValuationModelTrend());
-	}
-
-	public function testCalculateResponseUnableToCalculateNegativeGrowth(): void
-	{
-		$model = new PegRatioValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldIgnoreMissing();
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-
-		$epsDataMock = Mockery::mock(StockValuationData::class);
-		$epsDataMock->shouldReceive('getFloatValue')
-			->andReturn(5.0);
-
-		$growthDataMock = Mockery::mock(StockValuationData::class);
-		$growthDataMock->shouldReceive('getFloatValue')
-			->andReturn(-10.0); // Negative growth
+		$pegDataMock = null;
+		if ($pegRatio !== null) {
+			$pegDataMock = Mockery::mock(StockValuationData::class);
+			$pegDataMock->shouldReceive('getFloatValue')
+				->andReturn($pegRatio);
+		}
 
 		$stockValuationMock = Mockery::mock(StockValuation::class);
 		$stockValuationMock->shouldReceive('getStockAsset')
 			->andReturn($stockAssetMock);
 		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::DILUTED_EPS)
-			->andReturn($epsDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH)
-			->andReturn($growthDataMock);
+			->with(StockValuationTypeEnum::PEG_RATIO)
+			->andReturn($pegDataMock);
 
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertEquals(StockValuationModelState::UNABLE_TO_CALCULATE, $response->getStockValuationModelTrend());
+		return $stockValuationMock;
 	}
 
 }

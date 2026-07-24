@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\Model\UI;
 
-use App\Stock\Valuation\Model\StockValuationModelState;
 use App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlItem;
 
 class StockValuationModelSortService
@@ -98,29 +97,6 @@ class StockValuationModelSortService
 		}
 
 		return $items;
-	}
-
-	/**
-	 * Vrátí průměrné procento pro akci napříč všemi modely
-	 */
-	public function getAveragePercentage(StockValuationModelTableControlItem $item): float|null
-	{
-		$percentages = [];
-
-		foreach ($item->getModelResponses() as $modelResponse) {
-			if (
-				$modelResponse->getStockValuationModelTrend() !== StockValuationModelState::UNABLE_TO_CALCULATE
-				&& $modelResponse->getCalculatedPercentage() !== null
-			) {
-				$percentages[] = $modelResponse->getCalculatedPercentage();
-			}
-		}
-
-		if (count($percentages) === 0) {
-			return null;
-		}
-
-		return array_sum($percentages) / count($percentages);
 	}
 
 }

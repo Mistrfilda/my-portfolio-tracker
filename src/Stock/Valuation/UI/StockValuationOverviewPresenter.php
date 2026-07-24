@@ -39,16 +39,18 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 		);
 
 		foreach ($stockAssets as $stockAsset) {
-			$averageModelPrice = $this->stockValuationPriceProvider->getAverageModelPrice($stockAsset);
+			$modelConsensus = $this->stockValuationPriceProvider->getModelConsensus($stockAsset);
+			$modelConsensusPrice = $modelConsensus->getPrice();
 			$analyticsPrice = $this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset);
 			$aiAnalysisPrice = $this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset);
 
 			$this->template->rows[] = new StockValuationOverviewRow(
 				$stockAsset,
+				$modelConsensus,
 				[
 					$this->createOverviewValue(
-						'Modely',
-						$averageModelPrice,
+						'Konsenzus',
+						$modelConsensusPrice,
 						$stockAsset,
 					),
 					$this->createOverviewValue(
@@ -64,7 +66,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 				],
 				$this->stockValuationMarginOfSafetyProvider->getForStockAsset(
 					$stockAsset,
-					$averageModelPrice,
+					$modelConsensus,
 					$analyticsPrice,
 					$aiAnalysisPrice,
 				),

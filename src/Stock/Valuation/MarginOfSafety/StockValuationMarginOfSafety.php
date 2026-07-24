@@ -16,7 +16,9 @@ class StockValuationMarginOfSafety
 		private AssetPrice|null $fairPriceEstimate,
 		private float|null $marginPercentage,
 		private float|null $sourceSpreadPercentage,
-		private int $sourcesCount,
+		private AssetPrice|null $externalEstimate,
+		private int $sourceGroupsCount,
+		private int $inputEstimatesCount,
 		private StockValuationMarginOfSafetyStatusEnum $status,
 		private StockValuationMarginOfSafetyConfidenceEnum $confidence,
 		private array $reasons,
@@ -39,9 +41,19 @@ class StockValuationMarginOfSafety
 		return $this->sourceSpreadPercentage;
 	}
 
-	public function getSourcesCount(): int
+	public function getExternalEstimate(): AssetPrice|null
 	{
-		return $this->sourcesCount;
+		return $this->externalEstimate;
+	}
+
+	public function getSourceGroupsCount(): int
+	{
+		return $this->sourceGroupsCount;
+	}
+
+	public function getInputEstimatesCount(): int
+	{
+		return $this->inputEstimatesCount;
 	}
 
 	public function getStatus(): StockValuationMarginOfSafetyStatusEnum

@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\UI\Control\Detail;
 
-use App\Asset\Price\AssetPrice;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparison;
 use App\Stock\Valuation\Data\StockValuationData;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use App\Stock\Valuation\StockValuation;
 use App\UI\Base\BaseControlTemplate;
@@ -28,7 +28,7 @@ class StockValuationDetailControlTemplate extends BaseControlTemplate
 	/** @var array<StockValuationData> */
 	public array $stockValuationAnalyticsPrices;
 
-	public AssetPrice $averagePrice;
+	public StockValuationModelConsensus $modelConsensus;
 
 	public StockIndustryComparison $stockIndustryComparison;
 

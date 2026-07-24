@@ -56,20 +56,26 @@
 
         <tr class="bg-blue-50 font-semibold">
             <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
-                Průměrná cena z modelů
+                Konsenzus modelových rodin
+                <span class="block text-xs text-gray-500 font-normal">
+                    Rodiny {$modelConsensus->getValidFamiliesCount()}/{$modelConsensus->getTotalFamiliesCount()} · {$modelConsensus->getConfidence()->getLabel()}
+                </span>
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-blue-700">
-                {$averagePrice|assetPriceFormat}
+                {if $modelConsensus->getPrice() !== null}
+                    {$modelConsensus->getPrice()|assetPriceFormat}
+                {else}
+                    <span class="text-gray-400 italic">N/A</span>
+                {/if}
             </td>
             <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
-                {if $averagePrice->getPrice() > 0}
-                    {var $currentPrice = $stockAsset->getAssetCurrentPrice()->getPrice()}
-                    {var $avgPercentage = (($averagePrice->getPrice() - $currentPrice) / $currentPrice) * 100}
-                    <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $avgPercentage > 0}bg-green-50 text-green-700{elseif $avgPercentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
-                            {if $avgPercentage > 0}
-                                +{$avgPercentage|number:2} %
-                            {elseif $avgPercentage < 0}
-                                {$avgPercentage|number:2} %
+                {if $modelConsensus->getPercentage() !== null}
+                    {var $consensusPercentage = $modelConsensus->getPercentage()}
+                    <span class="inline-flex items-center gap-x-1 rounded-md px-2 py-1 text-xs font-semibold {if $consensusPercentage > 0}bg-green-50 text-green-700{elseif $consensusPercentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
+                            {if $consensusPercentage > 0}
+                                +{$consensusPercentage|number:2} %
+                            {elseif $consensusPercentage < 0}
+                                {$consensusPercentage|number:2} %
                             {else}
                                 0.00 %
                             {/if}
@@ -138,6 +144,58 @@
         {/if}
         </tbody>
     </table>
+</div>
+
+<div class="mb-6 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
+    <div class="border-b border-gray-200 px-4 py-3">
+        <h3 class="text-sm font-semibold text-gray-900">Diagnostika modelového konsenzu</h3>
+        <p class="mt-1 text-xs text-gray-500">Výsledek je mediánem odhadů modelových rodin; aritmetický průměr slouží jen ke kontrole extrémů.</p>
+    </div>
+    <dl class="grid grid-cols-2 divide-x divide-y divide-gray-200 lg:grid-cols-4 lg:divide-y-0">
+        <div class="px-4 py-3">
+            <dt class="text-xs text-gray-500">Medián všech modelů</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900">
+                {if $modelConsensus->getRawMedianPrice() !== null}
+                    {$modelConsensus->getRawMedianPrice()|assetPriceFormat}
+                {else}
+                    N/A
+                {/if}
+            </dd>
+        </div>
+        <div class="px-4 py-3">
+            <dt class="text-xs text-gray-500">Aritmetický průměr</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900">
+                {if $modelConsensus->getArithmeticMeanPrice() !== null}
+                    {$modelConsensus->getArithmeticMeanPrice()|assetPriceFormat}
+                {else}
+                    N/A
+                {/if}
+            </dd>
+        </div>
+        <div class="px-4 py-3">
+            <dt class="text-xs text-gray-500">Pásmo rodin Q1–Q3</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900">
+                {if $modelConsensus->getLowerQuartilePrice() !== null && $modelConsensus->getUpperQuartilePrice() !== null}
+                    {$modelConsensus->getLowerQuartilePrice()|assetPriceFormat} – {$modelConsensus->getUpperQuartilePrice()|assetPriceFormat}
+                {else}
+                    N/A
+                {/if}
+            </dd>
+        </div>
+        <div class="px-4 py-3">
+            <dt class="text-xs text-gray-500">Nejistota</dt>
+            <dd class="mt-1 text-sm font-semibold text-gray-900">
+                {if $modelConsensus->getNormalizedIqrPercentage() !== null}
+                    IQR {$modelConsensus->getNormalizedIqrPercentage()|number:1} %
+                {else}
+                    N/A
+                {/if}
+            </dd>
+            {if $modelConsensus->getNormalizedMadPercentage() !== null}
+                <div class="mt-0.5 text-xs text-gray-500">MAD {$modelConsensus->getNormalizedMadPercentage()|number:1} % · extrémy {$modelConsensus->getOutlierCount()}</div>
+            {/if}
+        </div>
+    </dl>
 </div>
 
 {if $aiResult}

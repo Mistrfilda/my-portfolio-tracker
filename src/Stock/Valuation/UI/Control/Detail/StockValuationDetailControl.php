@@ -4,11 +4,11 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\UI\Control\Detail;
 
-use App\Asset\Price\AssetPrice;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusProvider;
 use App\Stock\Valuation\StockValuationFacade;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use App\UI\Base\BaseControl;
@@ -20,6 +20,7 @@ class StockValuationDetailControl extends BaseControl
 	public function __construct(
 		private UuidInterface $stockAssetId,
 		private StockValuationFacade $stockValuationFacade,
+		private StockValuationModelConsensusProvider $stockValuationModelConsensusProvider,
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationDataRepository $stockValuationDataRepository,
 		private StockIndustryComparisonFacade $stockIndustryComparisonFacade,
@@ -52,25 +53,9 @@ class StockValuationDetailControl extends BaseControl
 
 		$aiResults = $this->stockAiAnalysisStockResultRepository->findLatestForStockAsset($stockAsset, 1);
 		$template->aiResult = count($aiResults) > 0 ? $aiResults[0] : null;
-
-		$averagePrice = 0;
-		$calculatedModelsCount = 0;
-		foreach ($modelResponses as $modelResponse) {
-			$assetPrice = $modelResponse->getAssetPrice();
-			if ($assetPrice !== null) {
-				$averagePrice += $assetPrice->getPrice();
-				$calculatedModelsCount++;
-			}
-		}
-
-		if ($calculatedModelsCount > 0) {
-			$averagePrice /= $calculatedModelsCount;
-		}
-
-		$template->averagePrice = new AssetPrice(
+		$template->modelConsensus = $this->stockValuationModelConsensusProvider->getForStockAsset(
 			$stockAsset,
-			$averagePrice,
-			$stockAsset->getCurrency(),
+			$modelResponses,
 		);
 
 		$template->stockIndustryComparison = $this->stockIndustryComparisonFacade->getComparison($stockValuation);

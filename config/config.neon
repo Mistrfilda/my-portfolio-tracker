@@ -553,6 +553,7 @@ services:
 	- App\Stock\Valuation\Data\StockValuationDataFacade
 	- App\Stock\Valuation\StockValuationFacade(typed(App\Stock\Valuation\Model\StockValuationModel))
 	- App\Stock\Valuation\StockValuationPriceProvider
+	- App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusProvider
 	- App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafetyProvider
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand

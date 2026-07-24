@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Valuation\Model\UI\Control;
 
 use App\Stock\Asset\StockAssetRepository;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusProvider;
 use App\Stock\Valuation\Model\UI\StockValuationModelSortService;
 use App\Stock\Valuation\StockValuationFacade;
 use App\UI\Base\BaseControl;
@@ -18,6 +19,7 @@ class StockValuationModelTableControl extends BaseControl
 
 	public function __construct(
 		private StockValuationFacade $stockValuationFacade,
+		private StockValuationModelConsensusProvider $stockValuationModelConsensusProvider,
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationModelSortService $sortService,
 	)
@@ -38,9 +40,11 @@ class StockValuationModelTableControl extends BaseControl
 		$stockAssets = [];
 
 		foreach ($this->stockAssetRepository->getAllActiveValuationAssets() as $stockAsset) {
+			$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset($stockAsset);
 			$items[] = new StockValuationModelTableControlItem(
 				$stockAsset,
-				$this->stockValuationFacade->getStockValuationsModelsForStockAsset($stockAsset),
+				$modelResponses,
+				$this->stockValuationModelConsensusProvider->getForStockAsset($stockAsset, $modelResponses),
 			);
 
 			$stockAssets[] = $stockAsset;

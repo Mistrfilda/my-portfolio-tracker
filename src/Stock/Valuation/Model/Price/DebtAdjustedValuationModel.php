@@ -44,6 +44,8 @@ class DebtAdjustedValuationModel extends BasePriceModel
 
 	private const FAIR_VALUE_THRESHOLD = 7.0;
 
+	private float|null $debtEquityPercentage = null;
+
 	private float|null $debtEquityRatio = null;
 
 	private float|null $currentRatio = null;
@@ -59,14 +61,16 @@ class DebtAdjustedValuationModel extends BasePriceModel
 			StockValuationTypeEnum::BOOK_VALUE_PER_SHARE,
 		)?->getFloatValue();
 
-		$debtEquityRatio = $stockValuation->getValuationDataByType(
+		$debtEquityPercentage = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::TOTAL_DEBT_EQUITY,
 		)?->getFloatValue();
+		$debtEquityRatio = $debtEquityPercentage === null ? null : $debtEquityPercentage / 100;
 
 		$currentRatio = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::CURRENT_RATIO,
 		)?->getFloatValue();
 
+		$this->debtEquityPercentage = $debtEquityPercentage;
 		$this->debtEquityRatio = $debtEquityRatio;
 		$this->currentRatio = $currentRatio;
 
@@ -192,8 +196,18 @@ class DebtAdjustedValuationModel extends BasePriceModel
 			new StockValuationModelUsedValue('HIGH_DEBT_EQUITY', self::HIGH_DEBT_EQUITY),
 		];
 
+		if ($this->debtEquityPercentage !== null) {
+			$values[] = new StockValuationModelUsedValue(
+				'Current Debt/Equity (%)',
+				$this->debtEquityPercentage,
+			);
+		}
+
 		if ($this->debtEquityRatio !== null) {
-			$values[] = new StockValuationModelUsedValue('Current Debt/Equity', $this->debtEquityRatio);
+			$values[] = new StockValuationModelUsedValue(
+				'Normalized Debt/Equity Ratio',
+				$this->debtEquityRatio,
+			);
 		}
 
 		if ($this->currentRatio !== null) {

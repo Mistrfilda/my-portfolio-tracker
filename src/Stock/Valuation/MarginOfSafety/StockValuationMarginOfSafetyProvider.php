@@ -6,65 +6,130 @@ namespace App\Stock\Valuation\MarginOfSafety;
 
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusConfidenceEnum;
 
 class StockValuationMarginOfSafetyProvider
 {
 
 	public function getForStockAsset(
 		StockAsset $stockAsset,
-		AssetPrice|null $averageModelPrice,
+		StockValuationModelConsensus $modelConsensus,
 		AssetPrice|null $analyticsPrice,
 		AssetPrice|null $aiAnalysisPrice,
 	): StockValuationMarginOfSafety
 	{
 		$currentPrice = $stockAsset->getAssetCurrentPrice();
-		$sourcePrices = [];
 		$reasons = [];
+		$inputEstimatesCount = 0;
+		$groupPrices = [];
 
-		foreach ([$averageModelPrice, $analyticsPrice, $aiAnalysisPrice] as $sourcePrice) {
-			if ($sourcePrice === null) {
-				continue;
-			}
-
-			if ($sourcePrice->getCurrency() !== $currentPrice->getCurrency()) {
-				$reasons[] = sprintf(
-					'Zdroj v měně %s byl vynechán, protože aktuální cena je v měně %s.',
-					$sourcePrice->getCurrency()->value,
-					$currentPrice->getCurrency()->value,
-				);
-
-				continue;
-			}
-
-			$sourcePrices[] = $sourcePrice->getPrice();
+		$modelPrice = $this->getComparablePrice(
+			$modelConsensus->getPrice(),
+			'Modelový konsenzus',
+			$currentPrice,
+			$reasons,
+		);
+		if ($modelPrice !== null) {
+			$groupPrices[] = $modelPrice;
+			$inputEstimatesCount++;
 		}
 
-		$sourcesCount = count($sourcePrices);
-		if ($sourcesCount === 0 || $currentPrice->getPrice() <= 0.0) {
+		$externalPrices = [];
+		foreach (['Analytici' => $analyticsPrice, 'AI' => $aiAnalysisPrice] as $label => $sourcePrice) {
+			$comparablePrice = $this->getComparablePrice(
+				$sourcePrice,
+				$label,
+				$currentPrice,
+				$reasons,
+			);
+			if ($comparablePrice === null) {
+				continue;
+			}
+
+			$externalPrices[] = $comparablePrice;
+			$inputEstimatesCount++;
+		}
+
+		$externalEstimate = null;
+		if ($externalPrices !== []) {
+			$externalEstimateValue = array_sum($externalPrices) / count($externalPrices);
+			$externalEstimate = new AssetPrice(
+				$stockAsset,
+				$externalEstimateValue,
+				$currentPrice->getCurrency(),
+			);
+			$groupPrices[] = $externalEstimateValue;
+		}
+
+		$sourceGroupsCount = count($groupPrices);
+		if ($sourceGroupsCount === 0 || $currentPrice->getPrice() <= 0.0) {
 			return new StockValuationMarginOfSafety(
 				null,
 				null,
 				null,
-				$sourcesCount,
+				$externalEstimate,
+				$sourceGroupsCount,
+				$inputEstimatesCount,
 				StockValuationMarginOfSafetyStatusEnum::UNKNOWN,
 				StockValuationMarginOfSafetyConfidenceEnum::UNKNOWN,
 				$reasons === [] ? ['Nejsou dostupné žádné porovnatelné zdroje férové ceny.'] : $reasons,
 			);
 		}
 
-		$fairPrice = array_sum($sourcePrices) / $sourcesCount;
+		$fairPrice = array_sum($groupPrices) / $sourceGroupsCount;
 		$marginPercentage = ($fairPrice - $currentPrice->getPrice()) / $currentPrice->getPrice() * 100;
-		$sourceSpreadPercentage = $this->calculateSourceSpreadPercentage($sourcePrices, $fairPrice);
+		$sourceSpreadPercentage = $this->calculateSourceSpreadPercentage($groupPrices, $fairPrice);
 
 		return new StockValuationMarginOfSafety(
 			new AssetPrice($stockAsset, $fairPrice, $currentPrice->getCurrency()),
 			$marginPercentage,
 			$sourceSpreadPercentage,
-			$sourcesCount,
+			$externalEstimate,
+			$sourceGroupsCount,
+			$inputEstimatesCount,
 			$this->getStatus($marginPercentage),
-			$this->getConfidence($sourcesCount, $sourceSpreadPercentage),
+			$this->getConfidence(
+				$sourceGroupsCount,
+				$sourceSpreadPercentage,
+				$modelConsensus->getConfidence(),
+			),
 			$reasons,
 		);
+	}
+
+	/**
+	 * @param array<string> $reasons
+	 */
+	private function getComparablePrice(
+		AssetPrice|null $sourcePrice,
+		string $label,
+		AssetPrice $currentPrice,
+		array &$reasons,
+	): float|null
+	{
+		if ($sourcePrice === null) {
+			return null;
+		}
+
+		if ($sourcePrice->getCurrency() !== $currentPrice->getCurrency()) {
+			$reasons[] = sprintf(
+				'%s v měně %s byl vynechán, protože aktuální cena je v měně %s.',
+				$label,
+				$sourcePrice->getCurrency()->value,
+				$currentPrice->getCurrency()->value,
+			);
+
+			return null;
+		}
+
+		if (!is_finite($sourcePrice->getPrice()) || $sourcePrice->getPrice() <= 0.0) {
+			$reasons[] = sprintf('%s byl vynechán, protože neobsahuje platnou kladnou cenu.', $label);
+
+			return null;
+		}
+
+		return $sourcePrice->getPrice();
 	}
 
 	/**
@@ -93,15 +158,33 @@ class StockValuationMarginOfSafetyProvider
 	}
 
 	private function getConfidence(
-		int $sourcesCount,
+		int $sourceGroupsCount,
 		float|null $sourceSpreadPercentage,
+		StockValuationModelConsensusConfidenceEnum $modelConfidence,
 	): StockValuationMarginOfSafetyConfidenceEnum
 	{
-		if ($sourcesCount >= 3 && $sourceSpreadPercentage !== null && $sourceSpreadPercentage <= 15.0) {
+		if (
+			$sourceGroupsCount === 2
+			&& $sourceSpreadPercentage !== null
+			&& $sourceSpreadPercentage <= 15.0
+			&& $modelConfidence === StockValuationModelConsensusConfidenceEnum::HIGH
+		) {
 			return StockValuationMarginOfSafetyConfidenceEnum::HIGH;
 		}
 
-		if ($sourcesCount >= 2 && ($sourceSpreadPercentage === null || $sourceSpreadPercentage <= 30.0)) {
+		if (
+			$sourceGroupsCount === 2
+			&& $sourceSpreadPercentage !== null
+			&& $sourceSpreadPercentage <= 30.0
+			&& in_array(
+				$modelConfidence,
+				[
+					StockValuationModelConsensusConfidenceEnum::HIGH,
+					StockValuationModelConsensusConfidenceEnum::MEDIUM,
+				],
+				true,
+			)
+		) {
 			return StockValuationMarginOfSafetyConfidenceEnum::MEDIUM;
 		}
 

@@ -7,6 +7,7 @@ namespace App\Test\Unit\Stock\Valuation\Model\UI\Control;
 use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use App\Stock\Valuation\Model\StockValuationModelState;
 use App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlItem;
@@ -21,6 +22,10 @@ class StockValuationModelTableControlItemTest extends TestCase
 		$stockAsset->method('getAssetCurrentPrice')->willReturn(
 			new AssetPrice($stockAsset, 100.0, CurrencyEnum::USD),
 		);
+		$consensus = $this->createStub(StockValuationModelConsensus::class);
+		$consensus->method('getValidModelsCount')->willReturn(2);
+		$consensus->method('getTotalModelsCount')->willReturn(3);
+		$consensus->method('getPrice')->willReturn(new AssetPrice($stockAsset, 120.0, CurrencyEnum::USD));
 
 		$item = new StockValuationModelTableControlItem(
 			$stockAsset,
@@ -29,14 +34,13 @@ class StockValuationModelTableControlItemTest extends TestCase
 				$this->createResponse($stockAsset, 130.0, -10.0, StockValuationModelState::OVERPRICED),
 				$this->createResponse($stockAsset, null, null, StockValuationModelState::UNABLE_TO_CALCULATE),
 			],
+			$consensus,
 		);
 
 		self::assertSame(2, $item->getCalculatedModelsCount());
 		self::assertSame(3, $item->getModelsCount());
-		self::assertSame(120.0, $item->getAverageModelPrice()?->getPrice());
-		self::assertSame(5.0, $item->getAveragePercentage());
-		self::assertSame(-10.0, $item->getMinimumPercentage());
-		self::assertSame(20.0, $item->getMaximumPercentage());
+		self::assertSame(120.0, $item->getConsensusPrice()?->getPrice());
+		self::assertSame($consensus, $item->getModelConsensus());
 	}
 
 	public function testReturnsNullSummaryWhenNoModelCanBeCalculated(): void
@@ -45,17 +49,19 @@ class StockValuationModelTableControlItemTest extends TestCase
 		$stockAsset->method('getAssetCurrentPrice')->willReturn(
 			new AssetPrice($stockAsset, 100.0, CurrencyEnum::USD),
 		);
+		$consensus = $this->createStub(StockValuationModelConsensus::class);
+		$consensus->method('getValidModelsCount')->willReturn(0);
+		$consensus->method('getTotalModelsCount')->willReturn(1);
+		$consensus->method('getPrice')->willReturn(null);
 
 		$item = new StockValuationModelTableControlItem(
 			$stockAsset,
 			[$this->createResponse($stockAsset, null, null, StockValuationModelState::UNABLE_TO_CALCULATE)],
+			$consensus,
 		);
 
 		self::assertSame(0, $item->getCalculatedModelsCount());
-		self::assertNull($item->getAverageModelPrice());
-		self::assertNull($item->getAveragePercentage());
-		self::assertNull($item->getMinimumPercentage());
-		self::assertNull($item->getMaximumPercentage());
+		self::assertNull($item->getConsensusPrice());
 	}
 
 	private function createResponse(
