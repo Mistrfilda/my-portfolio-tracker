@@ -75,26 +75,26 @@ class StockDividendSafetyScoreProvider
 	private function scorePayoutRatio(float|null $payoutRatio, array &$reasons): int
 	{
 		if ($payoutRatio === null) {
-			$reasons['Payout ratio'] = 'Missing payout ratio';
+			$reasons['Výplatní poměr'] = 'Chybí údaj o výplatním poměru';
 			return -8;
 		}
 
 		if ($payoutRatio <= 0.0) {
-			$reasons['Payout ratio'] = 'Negative or zero payout ratio';
+			$reasons['Výplatní poměr'] = 'Výplatní poměr je záporný nebo nulový';
 			return -25;
 		}
 
 		if ($payoutRatio <= 70.0) {
-			$reasons['Payout ratio'] = sprintf('Healthy payout ratio %.1f %%', $payoutRatio);
+			$reasons['Výplatní poměr'] = sprintf('Udržitelný výplatní poměr %.1f %%', $payoutRatio);
 			return 0;
 		}
 
 		if ($payoutRatio <= 90.0) {
-			$reasons['Payout ratio'] = sprintf('Elevated payout ratio %.1f %%', $payoutRatio);
+			$reasons['Výplatní poměr'] = sprintf('Zvýšený výplatní poměr %.1f %%', $payoutRatio);
 			return -18;
 		}
 
-		$reasons['Payout ratio'] = sprintf('High payout ratio %.1f %%', $payoutRatio);
+		$reasons['Výplatní poměr'] = sprintf('Vysoký výplatní poměr %.1f %%', $payoutRatio);
 		return -35;
 	}
 
@@ -102,16 +102,16 @@ class StockDividendSafetyScoreProvider
 	private function scoreFreeCashFlow(float|null $freeCashFlow, array &$reasons): int
 	{
 		if ($freeCashFlow === null) {
-			$reasons['Free cash flow'] = 'Missing free cash flow';
+			$reasons['Volné cash flow'] = 'Chybí údaj o volném cash flow';
 			return -5;
 		}
 
 		if ($freeCashFlow < 0.0) {
-			$reasons['Free cash flow'] = 'Negative free cash flow';
+			$reasons['Volné cash flow'] = 'Volné cash flow je záporné';
 			return -20;
 		}
 
-		$reasons['Free cash flow'] = 'Positive free cash flow';
+		$reasons['Volné cash flow'] = 'Volné cash flow je kladné';
 		return 0;
 	}
 
@@ -119,21 +119,21 @@ class StockDividendSafetyScoreProvider
 	private function scoreDebtToEquity(float|null $debtToEquity, array &$reasons): int
 	{
 		if ($debtToEquity === null) {
-			$reasons['Debt to equity'] = 'Missing debt to equity';
+			$reasons['Dluh / vlastní kapitál'] = 'Chybí údaj o zadlužení';
 			return -5;
 		}
 
 		if ($debtToEquity <= 100.0) {
-			$reasons['Debt to equity'] = sprintf('Low debt to equity %.1f %%', $debtToEquity);
+			$reasons['Dluh / vlastní kapitál'] = sprintf('Nízké zadlužení %.1f %%', $debtToEquity);
 			return 0;
 		}
 
 		if ($debtToEquity <= 200.0) {
-			$reasons['Debt to equity'] = sprintf('Elevated debt to equity %.1f %%', $debtToEquity);
+			$reasons['Dluh / vlastní kapitál'] = sprintf('Zvýšené zadlužení %.1f %%', $debtToEquity);
 			return -12;
 		}
 
-		$reasons['Debt to equity'] = sprintf('High debt to equity %.1f %%', $debtToEquity);
+		$reasons['Dluh / vlastní kapitál'] = sprintf('Vysoké zadlužení %.1f %%', $debtToEquity);
 		return -22;
 	}
 
@@ -141,21 +141,21 @@ class StockDividendSafetyScoreProvider
 	private function scoreEarningsGrowth(float|null $earningsGrowth, array &$reasons): int
 	{
 		if ($earningsGrowth === null) {
-			$reasons['Earnings growth'] = 'Missing quarterly earnings growth';
+			$reasons['Růst zisku'] = 'Chybí údaj o čtvrtletním růstu zisku';
 			return -5;
 		}
 
 		if ($earningsGrowth < -20.0) {
-			$reasons['Earnings growth'] = sprintf('Earnings are falling %.1f %%', $earningsGrowth);
+			$reasons['Růst zisku'] = sprintf('Zisk klesá o %.1f %%', abs($earningsGrowth));
 			return -18;
 		}
 
 		if ($earningsGrowth < 0.0) {
-			$reasons['Earnings growth'] = sprintf('Earnings are slightly falling %.1f %%', $earningsGrowth);
+			$reasons['Růst zisku'] = sprintf('Zisk mírně klesá o %.1f %%', abs($earningsGrowth));
 			return -8;
 		}
 
-		$reasons['Earnings growth'] = sprintf('Positive earnings growth %.1f %%', $earningsGrowth);
+		$reasons['Růst zisku'] = sprintf('Zisk roste o %.1f %%', $earningsGrowth);
 		return 0;
 	}
 
@@ -177,7 +177,7 @@ class StockDividendSafetyScoreProvider
 
 		ksort($regularDividendsByYear);
 		if (count($regularDividendsByYear) < 2) {
-			$reasons['Dividend history'] = 'Short dividend history';
+			$reasons['Historie dividend'] = 'Krátká historie dividend';
 			return -8;
 		}
 
@@ -192,11 +192,11 @@ class StockDividendSafetyScoreProvider
 		}
 
 		if ($cutsCount === 0) {
-			$reasons['Dividend history'] = 'No dividend cut in available history';
+			$reasons['Historie dividend'] = 'V dostupné historii nedošlo ke snížení dividendy';
 			return 0;
 		}
 
-		$reasons['Dividend history'] = sprintf('%d dividend cut(s) in available history', $cutsCount);
+		$reasons['Historie dividend'] = sprintf('Počet snížení dividendy v dostupné historii: %d', $cutsCount);
 		return min(0, -15 * $cutsCount);
 	}
 

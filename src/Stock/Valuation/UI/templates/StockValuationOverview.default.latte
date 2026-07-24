@@ -1,153 +1,235 @@
 {templateType App\Stock\Valuation\UI\StockValuationOverviewTemplate}
 
 {block #content}
-    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
-        <div class="border-b border-gray-200 px-4 py-5 sm:px-6">
-            <h2 class="text-base font-semibold text-gray-900">All stock valuation prices</h2>
-            <p class="mt-1 text-sm text-gray-500">
-                Comparison of the current stock price against price from all models, analytics price, AI analysis price,
-                and the combined margin of safety signal.
-            </p>
-        </div>
+	{include './@valuationNavigation.latte', activeSection: 'overview'}
 
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-300">
-                <thead>
-                <tr>
-                    <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">
-                        Stock
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Current price
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Price from all models
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Analytics price
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        AI analysis price
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Margin of safety
-                    </th>
-                    <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Dividend safety score
-                    </th>
-                </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200 bg-white">
-                {foreach $rows as $row}
-                    {var $marginOfSafety = $row->getMarginOfSafety()}
-                    {var $dividendSafetyScore = $row->getDividendSafetyScore()}
-                    <tr>
-                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                            <div class="font-medium text-gray-900">{$row->getStockAsset()->getName()}</div>
-                            <div class="text-gray-500">{$row->getStockAsset()->getTicker()}</div>
-                        </td>
-                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                            {$row->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
-                        </td>
-                        {foreach $row->getValues() as $value}
-                            <td class="px-3 py-4 text-sm text-gray-900 align-top">
-                                {if $value->getAssetPrice() !== null}
-                                    <div class="font-medium text-gray-900">{$value->getAssetPrice()|assetPriceFormat}</div>
-                                    <div class="mt-2 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold {$value->getBadgeClasses()}">
-                                        {if $value->getDiffPercentage() !== null}
-                                            {if $value->isPositive()}+{/if}{$value->getDiffPercentage()|number:2}%
-                                        {else}
-                                            N/A
-                                        {/if}
-                                    </div>
-                                {else}
-                                    <span class="text-gray-400">N/A</span>
-                                {/if}
-                            </td>
-                        {/foreach}
-                        <td class="px-3 py-4 text-sm text-gray-900 align-top min-w-64">
-                            <div class="flex flex-wrap items-center gap-2">
-				<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$marginOfSafety->getStatus()->getBadgeClasses()}">
-					{$marginOfSafety->getStatus()->getLabel()}
-				</span>
-                                <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$marginOfSafety->getConfidence()->getBadgeClasses()}">
-					{$marginOfSafety->getConfidence()->getLabel()}
-				</span>
-                            </div>
-                            {if $marginOfSafety->getFairPriceEstimate() !== null}
-                                <div class="mt-2 text-gray-900">
-                                    Fair estimate: <span
-                                            class="font-medium">{$marginOfSafety->getFairPriceEstimate()|assetPriceFormat}</span>
-                                </div>
-                            {/if}
-                            {if $marginOfSafety->getMarginPercentage() !== null}
-                                <div class="mt-1 text-gray-600">
-                                    Margin: <span
-                                            class="font-medium">{if $marginOfSafety->getMarginPercentage() > 0}+{/if}{$marginOfSafety->getMarginPercentage()|number:2}%</span>
-                                    <span class="text-gray-400">({$marginOfSafety->getSourcesCount()} zdroje)</span>
-                                </div>
-                            {/if}
-                            {if $marginOfSafety->getSourceSpreadPercentage() !== null}
-                                <div class="mt-1 text-xs text-gray-500">
-                                    Model disagreement: {$marginOfSafety->getSourceSpreadPercentage()|number:2}%
-                                </div>
-                            {/if}
-                            {if count($marginOfSafety->getReasons()) > 0}
-                                <ul class="mt-2 list-disc pl-4 text-xs text-gray-500">
-                                    {foreach $marginOfSafety->getReasons() as $reason}
-                                        <li>{$reason}</li>
-                                    {/foreach}
-                                </ul>
-                            {/if}
-                        </td>
-                        <td class="px-3 py-4 text-sm text-gray-900 align-top min-w-72">
-                            <div class="rounded-lg bg-gray-50 p-3 ring-1 ring-inset ring-gray-200">
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <div class="text-xs font-medium uppercase tracking-wide text-gray-500">
-                                            Dividend safety
-                                        </div>
-                                        <div class="mt-1 flex items-baseline gap-1">
-                                            <span class="text-2xl font-semibold text-gray-900">{$dividendSafetyScore->getScore()}</span>
-                                            <span class="text-sm text-gray-500">/100</span>
-                                        </div>
-                                    </div>
-                                    <span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$dividendSafetyScore->getStatus()->getBadgeClass()}">
-						{$dividendSafetyScore->getStatus()->getLabel()}
+	<div x-data="valuationTable()">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+			<div>
+				<h2 class="text-base font-semibold text-gray-900">Souhrn férových cen</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					Rychlé srovnání ceny, společného odhadu a bezpečnosti dividendy.
+				</p>
+			</div>
+
+			<div class="flex flex-col gap-2 sm:flex-row">
+				<label class="relative block">
+					<span class="sr-only">Hledat akcii</span>
+					<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+						{renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'size-4 text-gray-400']}
 					</span>
-                                </div>
+					<input
+						x-model.debounce.150ms="query"
+						type="search"
+						placeholder="Hledat akcii…"
+						class="block w-full rounded-md border-0 py-2 pl-9 pr-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:w-56"
+					>
+				</label>
 
-                                <div class="mt-3 h-2 overflow-hidden rounded-full bg-gray-200">
-                                    <div
-                                            class="h-full rounded-full bg-current {$dividendSafetyScore->getStatus()->getBadgeClass()}"
-                                            style="width: {$dividendSafetyScore->getScore()}%"
-                                    ></div>
-                                </div>
+				<label>
+					<span class="sr-only">Filtrovat podle ocenění</span>
+					<select
+						x-model="statusFilter"
+						class="block w-full rounded-md border-0 py-2 pl-3 pr-8 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600"
+					>
+						<option value="all">Všechna ocenění</option>
+						<option value="undervalued">Podhodnocené</option>
+						<option value="fair">Férově oceněné</option>
+						<option value="overvalued">Nadhodnocené</option>
+						<option value="unknown">Bez hodnocení</option>
+					</select>
+				</label>
+			</div>
+		</div>
 
-                                {if count($dividendSafetyScore->getReasons()) > 0}
-                                    <details class="group mt-3">
-                                        <summary
-                                                class="flex cursor-pointer list-none items-center justify-between gap-2 text-xs font-medium text-gray-500 hover:text-gray-700">
-                                            <span>Show details</span>
-                                            <span class="text-gray-400 transition group-open:rotate-180">⌄</span>
-                                        </summary>
+		<div class="overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+			<div class="relative max-h-[70vh] overflow-auto">
+				<table class="min-w-[72rem] divide-y divide-gray-200">
+					<thead class="bg-gray-50">
+					<tr>
+						<th scope="col" class="sticky left-0 top-0 z-30 min-w-56 bg-gray-50 py-3.5 pl-4 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 sm:pl-6">
+							Akcie
+						</th>
+						<th scope="col" class="sticky top-0 z-20 min-w-32 bg-gray-50 px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+							Aktuální cena
+						</th>
+						<th scope="col" class="sticky top-0 z-20 min-w-40 bg-gray-50 px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-600">
+							Férová cena
+						</th>
+						<th scope="col" class="sticky top-0 z-20 min-w-72 bg-gray-50 px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+							Zdroje odhadu
+						</th>
+						<th scope="col" class="sticky top-0 z-20 min-w-40 bg-gray-50 px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+							Spolehlivost
+						</th>
+						<th scope="col" class="sticky top-0 z-20 min-w-40 bg-gray-50 px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-600">
+							Dividenda
+						</th>
+						<th scope="col" class="sticky top-0 z-20 w-12 bg-gray-50 py-3.5 pl-3 pr-4 sm:pr-6">
+							<span class="sr-only">Detail</span>
+						</th>
+					</tr>
+					</thead>
 
-                                        <dl class="mt-3 space-y-2 border-t border-gray-200 pt-3 text-xs">
-                                            {foreach $dividendSafetyScore->getReasons() as $reasonTitle => $reason}
-                                                <div>
-                                                    <dt class="font-medium text-gray-700">{$reasonTitle}</dt>
-                                                    <dd class="mt-0.5 text-gray-500">{$reason}</dd>
-                                                </div>
-                                            {/foreach}
-                                        </dl>
-                                    </details>
-                                {/if}
-                            </div>
-                        </td>
-                    </tr>
-                {/foreach}
-                </tbody>
-            </table>
-        </div>
-    </div>
+					{foreach $rows as $row}
+						{var $stockAsset = $row->getStockAsset()}
+						{var $marginOfSafety = $row->getMarginOfSafety()}
+						{var $dividendSafetyScore = $row->getDividendSafetyScore()}
+						<tbody
+							x-data="{ detailOpen: false }"
+							x-show="matches($el.dataset.search, $el.dataset.status)"
+							x-cloak
+							data-search="{$stockAsset->getName()} {$stockAsset->getTicker()}"
+							data-status="{$marginOfSafety->getStatus()->value}"
+							class="border-t border-gray-200 bg-white"
+						>
+						<tr class="group hover:bg-gray-50">
+							<td class="sticky left-0 z-10 bg-white py-4 pl-4 pr-3 text-sm group-hover:bg-gray-50 sm:pl-6">
+								<a
+									n:href="StockAssetDetail:detail id: $stockAsset->getId()->toString()"
+									class="font-medium text-gray-900 hover:text-blue-600"
+								>
+									{$stockAsset->getName()}
+								</a>
+								<div class="mt-0.5 text-xs text-gray-500">{$stockAsset->getTicker()}</div>
+							</td>
+							<td class="whitespace-nowrap px-3 py-4 text-right text-sm font-medium text-gray-900">
+								{$stockAsset->getAssetCurrentPrice()|assetPriceFormat}
+							</td>
+							<td class="whitespace-nowrap px-3 py-4 text-right text-sm">
+								{if $marginOfSafety->getFairPriceEstimate() !== null}
+									<div class="font-semibold text-gray-900">
+										{$marginOfSafety->getFairPriceEstimate()|assetPriceFormat}
+									</div>
+									{if $marginOfSafety->getMarginPercentage() !== null}
+										<div n:class="'mt-1 text-xs font-medium', $marginOfSafety->getMarginPercentage() > 0 ? 'text-green-700' : ($marginOfSafety->getMarginPercentage() < 0 ? 'text-red-700' : 'text-gray-600')">
+											{if $marginOfSafety->getMarginPercentage() > 0}+{/if}{$marginOfSafety->getMarginPercentage()|number:2} %
+										</div>
+									{/if}
+								{else}
+									<span class="text-gray-400">N/A</span>
+								{/if}
+							</td>
+							<td class="px-3 py-4 text-sm">
+								<dl class="grid grid-cols-3 gap-x-3">
+									{foreach $row->getValues() as $value}
+										<div class="min-w-0">
+											<dt class="truncate text-xs text-gray-500">{$value->getLabel()}</dt>
+											<dd class="mt-1">
+												{if $value->getAssetPrice() !== null}
+													<div class="truncate font-medium text-gray-900">{$value->getAssetPrice()|assetPriceFormat}</div>
+													{if $value->getDiffPercentage() !== null}
+														<div n:class="'mt-0.5 text-xs font-medium', $value->isPositive() ? 'text-green-700' : 'text-red-700'">
+															{if $value->isPositive()}+{/if}{$value->getDiffPercentage()|number:2} %
+														</div>
+													{/if}
+												{else}
+													<span class="text-gray-400">N/A</span>
+												{/if}
+											</dd>
+										</div>
+									{/foreach}
+								</dl>
+							</td>
+							<td class="px-3 py-4 text-sm">
+								<div class="flex flex-col items-start gap-1.5">
+									<span class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$marginOfSafety->getStatus()->getBadgeClasses()}">
+										{$marginOfSafety->getStatus()->getLabel()}
+									</span>
+									<span class="text-xs text-gray-500">
+										{$marginOfSafety->getConfidence()->getLabel()} · {$marginOfSafety->getSourcesCount()} zdroje
+									</span>
+								</div>
+							</td>
+							<td class="px-3 py-4 text-sm">
+								<div class="flex items-center gap-2">
+									<span class="text-lg font-semibold text-gray-900">{$dividendSafetyScore->getScore()}</span>
+									<span class="text-xs text-gray-500">/ 100</span>
+								</div>
+								<span class="mt-1 inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$dividendSafetyScore->getStatus()->getBadgeClass()}">
+									{$dividendSafetyScore->getStatus()->getLabel()}
+								</span>
+							</td>
+							<td class="py-4 pl-3 pr-4 text-right sm:pr-6">
+								<button
+									type="button"
+									x-on:click="detailOpen = !detailOpen"
+									:aria-expanded="detailOpen"
+									class="rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-600"
+								>
+									<span class="sr-only">Zobrazit podrobnosti</span>
+									<span class="block transition" :class="detailOpen && 'rotate-180'">
+										{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'size-5']}
+									</span>
+								</button>
+							</td>
+						</tr>
+						<tr x-show="detailOpen" x-cloak>
+							<td colspan="7" class="bg-gray-50 px-4 py-5 sm:px-6">
+								<div class="grid gap-6 lg:grid-cols-2">
+									<div>
+										<h3 class="text-sm font-semibold text-gray-900">Společný odhad</h3>
+										<dl class="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
+											<div>
+												<dt class="text-xs text-gray-500">Rozpětí zdrojů</dt>
+												<dd class="mt-1 font-medium text-gray-900">
+													{if $marginOfSafety->getSourceSpreadPercentage() !== null}
+														{$marginOfSafety->getSourceSpreadPercentage()|number:2} %
+													{else}
+														N/A
+													{/if}
+												</dd>
+											</div>
+											<div>
+												<dt class="text-xs text-gray-500">Počet zdrojů</dt>
+												<dd class="mt-1 font-medium text-gray-900">{$marginOfSafety->getSourcesCount()}</dd>
+											</div>
+											<div>
+												<dt class="text-xs text-gray-500">Spolehlivost</dt>
+												<dd class="mt-1 font-medium text-gray-900">{$marginOfSafety->getConfidence()->getLabel()}</dd>
+											</div>
+										</dl>
+										{if count($marginOfSafety->getReasons()) > 0}
+											<ul class="mt-4 space-y-1 text-xs text-gray-600">
+												{foreach $marginOfSafety->getReasons() as $reason}
+													<li>• {$reason}</li>
+												{/foreach}
+											</ul>
+										{/if}
+									</div>
+
+									<div>
+										<h3 class="text-sm font-semibold text-gray-900">Bezpečnost dividendy</h3>
+										{if count($dividendSafetyScore->getReasons()) > 0}
+											<dl class="mt-3 grid gap-3 sm:grid-cols-2">
+												{foreach $dividendSafetyScore->getReasons() as $reasonTitle => $reason}
+													<div>
+														<dt class="text-xs font-medium text-gray-700">{$reasonTitle}</dt>
+														<dd class="mt-0.5 text-xs text-gray-500">{$reason}</dd>
+													</div>
+												{/foreach}
+											</dl>
+										{else}
+											<p class="mt-2 text-sm text-gray-500">Bez dalších poznámek.</p>
+										{/if}
+									</div>
+								</div>
+
+								<div class="mt-5 border-t border-gray-200 pt-4">
+									<a
+										n:href="StockAssetDetail:detail id: $stockAsset->getId()->toString()"
+										class="text-sm font-semibold text-blue-600 hover:text-blue-500"
+									>
+										Otevřít kompletní detail akcie
+										<span aria-hidden="true">→</span>
+									</a>
+								</div>
+							</td>
+						</tr>
+						</tbody>
+					{/foreach}
+				</table>
+			</div>
+		</div>
+	</div>
 {/block}

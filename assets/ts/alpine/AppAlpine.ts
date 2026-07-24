@@ -357,6 +357,21 @@ Alpine.data('currencyQuickConversions', (initialCurrency: string) => ({
     }
 }));
 
+Alpine.data('valuationTable', () => ({
+    query: '',
+    currencyMode: 'original',
+    statusFilter: 'all',
+    matrixOpen: false,
+
+    matches(value: string, status: string = ''): boolean {
+        const normalizedQuery = this.query.trim().toLocaleLowerCase();
+        const matchesQuery = normalizedQuery === '' || value.toLocaleLowerCase().includes(normalizedQuery);
+        const matchesStatus = this.statusFilter === 'all' || status === this.statusFilter;
+
+        return matchesQuery && matchesStatus;
+    }
+}));
+
 Alpine.data('stockValuationModelData', (totalColumns: number) => ({
     open: false,
     hiddenColumns: [] as number[],

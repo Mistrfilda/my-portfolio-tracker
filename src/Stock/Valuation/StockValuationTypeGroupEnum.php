@@ -36,14 +36,14 @@ enum StockValuationTypeGroupEnum: string
 	public function format(): string
 	{
 		return match ($this) {
-			StockValuationTypeGroupEnum::BASIC_INFO => 'Basic Info',
-			StockValuationTypeGroupEnum::VALUATION => 'Valuation',
-			StockValuationTypeGroupEnum::FINANCIAL_HIGHLIGHTS => 'Financial Highlights',
-			StockValuationTypeGroupEnum::BALANCE_SHEET => 'Balance Sheet',
-			StockValuationTypeGroupEnum::CASH_FLOW => 'Cash Flow',
-			StockValuationTypeGroupEnum::TRADING_INFO => 'Trading Info',
-			StockValuationTypeGroupEnum::DIVIDENDS => 'Dividends',
-			StockValuationTypeGroupEnum::ANALYST_INSIGHT => 'Analyst Insight',
+			StockValuationTypeGroupEnum::BASIC_INFO => 'Základní údaje',
+			StockValuationTypeGroupEnum::VALUATION => 'Valuační násobky',
+			StockValuationTypeGroupEnum::FINANCIAL_HIGHLIGHTS => 'Hospodaření',
+			StockValuationTypeGroupEnum::BALANCE_SHEET => 'Rozvaha',
+			StockValuationTypeGroupEnum::CASH_FLOW => 'Cash flow',
+			StockValuationTypeGroupEnum::TRADING_INFO => 'Tržní data',
+			StockValuationTypeGroupEnum::DIVIDENDS => 'Dividendy',
+			StockValuationTypeGroupEnum::ANALYST_INSIGHT => 'Analytici',
 		};
 	}
 

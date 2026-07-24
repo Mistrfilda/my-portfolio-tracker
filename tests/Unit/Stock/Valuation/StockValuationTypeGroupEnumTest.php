@@ -33,14 +33,14 @@ class StockValuationTypeGroupEnumTest extends TestCase
 
 	public function testFormat(): void
 	{
-		self::assertSame('Basic Info', StockValuationTypeGroupEnum::BASIC_INFO->format());
-		self::assertSame('Valuation', StockValuationTypeGroupEnum::VALUATION->format());
-		self::assertSame('Financial Highlights', StockValuationTypeGroupEnum::FINANCIAL_HIGHLIGHTS->format());
-		self::assertSame('Balance Sheet', StockValuationTypeGroupEnum::BALANCE_SHEET->format());
-		self::assertSame('Cash Flow', StockValuationTypeGroupEnum::CASH_FLOW->format());
-		self::assertSame('Trading Info', StockValuationTypeGroupEnum::TRADING_INFO->format());
-		self::assertSame('Dividends', StockValuationTypeGroupEnum::DIVIDENDS->format());
-		self::assertSame('Analyst Insight', StockValuationTypeGroupEnum::ANALYST_INSIGHT->format());
+		self::assertSame('Základní údaje', StockValuationTypeGroupEnum::BASIC_INFO->format());
+		self::assertSame('Valuační násobky', StockValuationTypeGroupEnum::VALUATION->format());
+		self::assertSame('Hospodaření', StockValuationTypeGroupEnum::FINANCIAL_HIGHLIGHTS->format());
+		self::assertSame('Rozvaha', StockValuationTypeGroupEnum::BALANCE_SHEET->format());
+		self::assertSame('Cash flow', StockValuationTypeGroupEnum::CASH_FLOW->format());
+		self::assertSame('Tržní data', StockValuationTypeGroupEnum::TRADING_INFO->format());
+		self::assertSame('Dividendy', StockValuationTypeGroupEnum::DIVIDENDS->format());
+		self::assertSame('Analytici', StockValuationTypeGroupEnum::ANALYST_INSIGHT->format());
 	}
 
 	public function testGetTypes(): void

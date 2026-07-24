@@ -1,141 +1,160 @@
 {templateType App\Stock\Valuation\UI\StockValuationTemplate}
+
 {block #content}
+	{include './@valuationNavigation.latte', activeSection: 'data'}
 
-    {snippet valuationPage}
-        <ul role="list" class="divide-y divide-gray-200">
-            <li class="px-4 py-4 sm:px-0">
-                <div>
-                    <div class="block">
-                        <nav class="isolate flex divide-x divide-gray-200 rounded-lg shadow-sm" aria-label="Tabs">
-                            {foreach $renderableTypeGroups as $typeGroup}
-                                <a
-                                        n:href="default typeGroupEnum: $typeGroup->value, sortBy: null"
-                                        n:class="'ajax group relative min-w-0 flex-1 overflow-hidden bg-white py-4 px-4 text-center text-sm font-medium hover:bg-gray-50 focus:z-10', $typeGroup->value === $currentTypeGroup ? 'text-gray-900' : 'text-gray-500 hover:text-gray-700', $iterator->first ? 'rounded-l-lg', $iterator->last ? 'rounded-r-lg'"
-                                        aria-current="page"
-                                >
-                                    <span>{$typeGroup->format()}</span>
-                                    {if $typeGroup->value === $currentTypeGroup}
-                                        <span aria-hidden="true"
-                                              class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {else}
-                                        <span aria-hidden="true"
-                                              class="bg-transparent absolute inset-x-0 bottom-0 h-0.5"></span>
-                                    {/if}
-                                </a>
-                            {/foreach}
-                        </nav>
-                    </div>
-                </div>
-            </li>
-        </ul>
+	<div x-data="valuationTable()">
+		<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+			<div>
+				<h2 class="text-base font-semibold text-gray-900">Finanční data</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					Porovnání ukazatelů napříč akciemi. Hlavička i názvy akcií zůstávají při posunu viditelné.
+				</p>
+			</div>
 
-        <div class="bg-white py-10">
-            <h2 class="px-4 text-base/7 font-semibold text-gray-900 sm:px-6 lg:px-8">
-                {$currentTypeGroupEnum->format()}
-            </h2>
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+				<label class="relative block">
+					<span class="sr-only">Hledat akcii</span>
+					<span class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+						{renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'size-4 text-gray-400']}
+					</span>
+					<input
+						x-model.debounce.150ms="query"
+						type="search"
+						placeholder="Hledat akcii…"
+						class="block w-full rounded-md border-0 py-2 pl-9 pr-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:w-56"
+					>
+				</label>
 
-            <div class="mt-6 overflow-x-auto"
-                 x-data="dragScroll()"
-                 x-on:mousedown="startDrag($event)"
-                 x-on:mouseleave="stopDrag()"
-                 x-on:mousemove="drag($event)"
-            >
-                <div class="min-w-full inline-block align-middle">
-                    <table class="min-w-full whitespace-nowrap text-left">
-                        <thead class="border-b border-gray-200 text-sm/6 text-gray-900">
-                        <tr>
-                            <th scope="col"
-                                class="py-2 pl-4 pr-8 font-semibold sm:pl-6 lg:pl-8 sticky left-0 bg-white min-w-48">
-                                <a n:href="default typeGroupEnum: $currentTypeGroup, sortBy: 'name', sortDirection: ($currentSortBy === 'name' && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
-                                        class="ajax group flex items-center gap-x-1 hover:text-blue-600">
-                                    <span>Akcie</span>
-                                    {if $currentSortBy === 'name'}
-                                        {if $currentSortDirection === 'asc'}
-                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500']}
-                                        {else}
-                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500']}
-                                        {/if}
-                                    {else}
-                                        {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400']}
-                                    {/if}
-                                </a>
-                            </th>
-                            {foreach $typesForGroup as $type}
-                                <th scope="col" class="py-2 px-4 text-center font-semibold min-w-32">
-                                    <a n:href="default typeGroupEnum: $currentTypeGroup, sortBy: $type->value, sortDirection: ($currentSortBy === $type->value && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
-                                            class="ajax group flex items-center justify-center gap-x-1 hover:text-blue-600">
-                                        <span class="truncate">{$type->format()}</span>
-                                        {if $currentSortBy === $type->value}
-                                            {if $currentSortDirection === 'asc'}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
-                                            {else}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'w-4 h-4 text-blue-500 shrink-0']}
-                                            {/if}
-                                        {else}
-                                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'w-4 h-4 text-gray-300 group-hover:text-blue-400 shrink-0']}
-                                        {/if}
-                                    </a>
-                                </th>
-                            {/foreach}
-                        </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                        {foreach $stockValuations as $stockValuation}
-                            <tr>
-                                <td class="py-4 pl-4 pr-8 sm:pl-6 lg:pl-8 sticky left-0 bg-white">
-                                    <div class="flex items-center gap-x-4">
-                                        <div class="truncate text-sm/6 font-medium text-gray-900 min-w-0">
-                                            {$stockValuation->getStockAsset()->getName()}
-                                        </div>
-                                    </div>
-                                </td>
-                                {foreach $typesForGroup as $type}
-                                    <td class="py-4 px-4 text-sm/6 text-center">
-                                        {var $valuationData = $stockValuation->getCurrentStockValuationData()[$type->value] ?? null}
-                                        {varType App\Stock\Valuation\Data\StockValuationData $valuationData}
-                                        {if $valuationData !== null}
-                                            {if $valuationData->getFloatValue() !== null}
-                                                <div class="text-gray-900">
-                                                    {if $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::FLOAT}
-                                                        {if $type->isCurrencyValue()}
-                                                            <div class="font-medium">
-                                                                {$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
-                                                            </div>
-                                                            <div class="text-xs text-gray-500 mt-1">
-                                                                {$valuationData->getFloatValue()|currencyConvert:$stockValuation->getStockAsset()->getCurrency(),App\Currency\CurrencyEnum::CZK|compactCurrency:App\Currency\CurrencyEnum::CZK}
-                                                            </div>
-                                                        {else}
-                                                            <span class="font-medium">
-                                                            {$valuationData->getFloatValue()}
-                                                        </span>
-                                                        {/if}
-                                                    {elseif $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
-                                                        <span class="font-medium">
-                                                        {$valuationData->getFloatValue()|number:2}%
-                                                    </span>
-                                                    {else}
-                                                        <span class="font-medium">
-                                                        {$valuationData->getFloatValue()|number:2}
-                                                    </span>
-                                                    {/if}
-                                                </div>
-                                            {elseif $valuationData->getStringValue()}
-                                                <span class="text-gray-900 font-medium">{$valuationData->getStringValue()}</span>
-                                            {else}
-                                                <span class="text-gray-500">N/A</span>
-                                            {/if}
-                                        {else}
-                                            <span class="text-gray-500">N/A</span>
-                                        {/if}
-                                    </td>
-                                {/foreach}
-                            </tr>
-                        {/foreach}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    {/snippet}
+				<div class="inline-flex rounded-md bg-gray-100 p-1" aria-label="Měna finančních údajů">
+					<button
+						type="button"
+						x-on:click="currencyMode = 'original'"
+						:aria-pressed="currencyMode === 'original'"
+						:class="currencyMode === 'original' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+						class="rounded px-3 py-1.5 text-xs font-medium"
+					>
+						Původní měna
+					</button>
+					<button
+						type="button"
+						x-on:click="currencyMode = 'czk'"
+						:aria-pressed="currencyMode === 'czk'"
+						:class="currencyMode === 'czk' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'"
+						class="rounded px-3 py-1.5 text-xs font-medium"
+					>
+						CZK
+					</button>
+				</div>
+			</div>
+		</div>
 
+		{snippet valuationPage}
+			<div class="mb-4 overflow-x-auto">
+				<nav class="flex min-w-max gap-2" aria-label="Skupiny finančních údajů">
+					{foreach $renderableTypeGroups as $typeGroup}
+						<a
+							n:href="default typeGroupEnum: $typeGroup->value, sortBy: 'name', sortDirection: 'asc'"
+							n:class="'ajax rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-inset', $typeGroup->value === $currentTypeGroup ? 'bg-blue-50 text-blue-700 ring-blue-600/20' : 'bg-white text-gray-600 ring-gray-300 hover:bg-gray-50 hover:text-gray-900'"
+							aria-current={$typeGroup->value === $currentTypeGroup ? 'page' : 'false'}
+						>
+							{$typeGroup->format()}
+						</a>
+					{/foreach}
+				</nav>
+			</div>
+
+			<div class="overflow-hidden bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+				<div class="relative max-h-[70vh] overflow-auto">
+					<table class="min-w-max divide-y divide-gray-200 whitespace-nowrap text-left">
+						<thead class="bg-gray-50">
+						<tr>
+							<th scope="col" class="sticky left-0 top-0 z-30 min-w-56 bg-gray-50 py-3.5 pl-4 pr-8 text-sm font-semibold text-gray-900 sm:pl-6">
+								<a
+									n:href="default typeGroupEnum: $currentTypeGroup, sortBy: 'name', sortDirection: ($currentSortBy === 'name' && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
+									class="ajax group flex items-center gap-x-1 hover:text-blue-600"
+								>
+									<span>Akcie</span>
+									{if $currentSortBy === 'name'}
+										{renderSvg ($currentSortDirection === 'asc' ? App\UI\Icon\SvgIcon::CHEVRON_UP : App\UI\Icon\SvgIcon::CHEVRON_DOWN)->value, ['class' => 'size-4 text-blue-500']}
+									{else}
+										{renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'size-4 text-gray-300 group-hover:text-blue-400']}
+									{/if}
+								</a>
+							</th>
+							{foreach $typesForGroup as $type}
+								<th scope="col" class="sticky top-0 z-20 min-w-36 bg-gray-50 px-4 py-3.5 text-right text-sm font-semibold text-gray-900">
+									<a
+										n:href="default typeGroupEnum: $currentTypeGroup, sortBy: $type->value, sortDirection: ($currentSortBy === $type->value && $currentSortDirection === 'asc') ? 'desc' : 'asc'"
+										class="ajax group flex items-center justify-end gap-x-1 hover:text-blue-600"
+									>
+										<span>{$type->format()}</span>
+										{if $currentSortBy === $type->value}
+											{renderSvg ($currentSortDirection === 'asc' ? App\UI\Icon\SvgIcon::CHEVRON_UP : App\UI\Icon\SvgIcon::CHEVRON_DOWN)->value, ['class' => 'size-4 shrink-0 text-blue-500']}
+										{else}
+											{renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'size-4 shrink-0 text-gray-300 group-hover:text-blue-400']}
+										{/if}
+									</a>
+								</th>
+							{/foreach}
+						</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+						{foreach $stockValuations as $stockValuation}
+							{var $stockAsset = $stockValuation->getStockAsset()}
+							<tr
+								x-show="matches($el.dataset.search)"
+								x-cloak
+								data-search="{$stockAsset->getName()} {$stockAsset->getTicker()}"
+								class="group hover:bg-gray-50"
+							>
+								<td class="sticky left-0 z-10 bg-white py-3 pl-4 pr-8 group-hover:bg-gray-50 sm:pl-6">
+									<a
+										n:href="StockAssetDetail:detail id: $stockAsset->getId()->toString()"
+										class="block max-w-52 truncate text-sm font-medium text-gray-900 hover:text-blue-600"
+									>
+										{$stockAsset->getName()}
+									</a>
+									<div class="mt-0.5 text-xs text-gray-500">{$stockAsset->getTicker()}</div>
+								</td>
+								{foreach $typesForGroup as $type}
+									<td class="px-4 py-3 text-right text-sm">
+										{var $valuationData = $stockValuation->getCurrentStockValuationData()[$type->value] ?? null}
+										{varType App\Stock\Valuation\Data\StockValuationData $valuationData}
+										{if $valuationData !== null}
+											{if $valuationData->getFloatValue() !== null}
+												{if $type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
+													<span class="font-medium text-gray-900">
+														{$valuationData->getFloatValue()|number:2} %
+													</span>
+												{elseif $type->isCurrencyValue()}
+													<span x-show="currencyMode === 'original'" class="font-medium text-gray-900">
+														{$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
+													</span>
+													<span x-show="currencyMode === 'czk'" x-cloak class="font-medium text-gray-900">
+														{$valuationData->getFloatValue()|currencyConvert:$valuationData->getCurrency(), App\Currency\CurrencyEnum::CZK|compactCurrency:App\Currency\CurrencyEnum::CZK}
+													</span>
+												{else}
+													<span class="font-medium text-gray-900">
+														{$valuationData->getFloatValue()|number:2}
+													</span>
+												{/if}
+											{elseif $valuationData->getStringValue() !== null}
+												<span class="font-medium text-gray-900">{$valuationData->getStringValue()}</span>
+											{else}
+												<span class="text-gray-400">N/A</span>
+											{/if}
+										{else}
+											<span class="text-gray-400">N/A</span>
+										{/if}
+									</td>
+								{/foreach}
+							</tr>
+						{/foreach}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		{/snippet}
+	</div>
 {/block}

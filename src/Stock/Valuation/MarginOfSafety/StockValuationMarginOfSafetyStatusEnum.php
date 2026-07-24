@@ -15,10 +15,10 @@ enum StockValuationMarginOfSafetyStatusEnum: string
 	public function getLabel(): string
 	{
 		return match ($this) {
-			self::UNDERVALUED => 'Undervalued',
-			self::FAIR => 'Fair',
-			self::OVERVALUED => 'Overvalued',
-			self::UNKNOWN => 'N/A',
+			self::UNDERVALUED => 'Podhodnocená',
+			self::FAIR => 'Férově oceněná',
+			self::OVERVALUED => 'Nadhodnocená',
+			self::UNKNOWN => 'Bez hodnocení',
 		};
 	}
 

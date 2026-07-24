@@ -32,4 +32,12 @@ class StockValuationTypeEnumTest extends TestCase
 		$this->assertFalse(StockValuationTypeEnum::AVG_VOLUME_3M->isCurrencyValue());
 	}
 
+	public function testFormatReturnsCzechUiLabels(): void
+	{
+		self::assertSame('Tržní kapitalizace', StockValuationTypeEnum::MARKET_CAP->format());
+		self::assertSame('Čtvrtletní růst zisku', StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH->format());
+		self::assertSame('Volné cash flow (FCF)', StockValuationTypeEnum::LEVERED_FREE_CASH_FLOW->format());
+		self::assertSame('Průměrná cílová cena', StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE->format());
+	}
+
 }

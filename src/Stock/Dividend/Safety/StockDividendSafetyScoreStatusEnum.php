@@ -14,9 +14,9 @@ enum StockDividendSafetyScoreStatusEnum: string
 	public function getLabel(): string
 	{
 		return match ($this) {
-			self::SAFE => 'Safe',
-			self::WATCH => 'Watch',
-			self::RISKY => 'Risky',
+			self::SAFE => 'Bezpečná',
+			self::WATCH => 'Ke sledování',
+			self::RISKY => 'Riziková',
 		};
 	}
 

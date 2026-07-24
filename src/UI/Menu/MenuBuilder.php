@@ -46,9 +46,13 @@ class MenuBuilder
 					['StockAssetEdit', 'StockAssetDividend'],
 				),
 				new MenuItem('StockAssetIndustry', 'default', SvgIcon::BUILDING_STOREFRONT, 'Odvětví'),
-				new MenuItem('StockValuation', 'default', SvgIcon::ACADEMIC_CAP, 'Valuace'),
-				new MenuItem('StockValuationOverview', 'default', SvgIcon::TABLE_CELLS, 'Valuační přehled'),
-				new MenuItem('StockValuationModel', 'default', SvgIcon::COLLECTION, 'Valuační modely'),
+				new MenuItem(
+					'StockValuationOverview',
+					'default',
+					SvgIcon::ACADEMIC_CAP,
+					'Valuace',
+					['StockValuation', 'StockValuationModel'],
+				),
 				new MenuItem('StockPosition', 'default', SvgIcon::DOCUMENT_DUPLICATE, 'Pozice', ['StockPositionEdit']),
 				new MenuItem(
 					'StockAssetPositionDetail',

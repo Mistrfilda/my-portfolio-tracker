@@ -8,12 +8,15 @@ use App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControl;
 use App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlFactory;
 use App\UI\Base\BaseAdminPresenter;
 
+/**
+ * @property-read StockValuationModelTemplate $template
+ */
 class StockValuationModelPresenter extends BaseAdminPresenter
 {
 
-	private string|null $sortBy = null;
+	private string|null $sortBy = 'name';
 
-	private string $sortDirection = 'desc';
+	private string $sortDirection = 'asc';
 
 	public function __construct(
 		private StockValuationModelTableControlFactory $stockValuationModelTableControlFactory,
@@ -23,8 +26,8 @@ class StockValuationModelPresenter extends BaseAdminPresenter
 	}
 
 	public function actionDefault(
-		string|null $sortBy = null,
-		string $sortDirection = 'desc',
+		string|null $sortBy = 'name',
+		string $sortDirection = 'asc',
 	): void
 	{
 		$this->sortBy = $sortBy;
@@ -33,7 +36,7 @@ class StockValuationModelPresenter extends BaseAdminPresenter
 
 	public function renderDefault(): void
 	{
-		$this->template->heading = 'Valuační modely akcií';
+		$this->template->heading = 'Valuace akcií';
 		$this->template->sortBy = $this->sortBy;
 		$this->template->sortDirection = $this->sortDirection;
 

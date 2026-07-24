@@ -15,10 +15,10 @@ enum StockValuationMarginOfSafetyConfidenceEnum: string
 	public function getLabel(): string
 	{
 		return match ($this) {
-			self::HIGH => 'High confidence',
-			self::MEDIUM => 'Medium confidence',
-			self::LOW => 'Low confidence',
-			self::UNKNOWN => 'Unknown confidence',
+			self::HIGH => 'Vysoká spolehlivost',
+			self::MEDIUM => 'Střední spolehlivost',
+			self::LOW => 'Nízká spolehlivost',
+			self::UNKNOWN => 'Neznámá spolehlivost',
 		};
 	}
 

@@ -49,7 +49,10 @@ class StockValuationMarginOfSafetyProviderTest extends TestCase
 		self::assertSame(StockValuationMarginOfSafetyStatusEnum::UNKNOWN, $marginOfSafety->getStatus());
 		self::assertSame(StockValuationMarginOfSafetyConfidenceEnum::UNKNOWN, $marginOfSafety->getConfidence());
 		self::assertNull($marginOfSafety->getFairPriceEstimate());
-		self::assertSame(['No comparable fair price sources are available.'], $marginOfSafety->getReasons());
+		self::assertSame(
+			['Nejsou dostupné žádné porovnatelné zdroje férové ceny.'],
+			$marginOfSafety->getReasons(),
+		);
 	}
 
 	public function testIgnoresPriceSourcesInDifferentCurrency(): void

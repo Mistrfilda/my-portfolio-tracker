@@ -4,8 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation;
 
-use Nette\Utils\Strings;
-
 enum StockValuationTypeEnum: string
 {
 
@@ -237,7 +235,67 @@ enum StockValuationTypeEnum: string
 
 	public function format(): string
 	{
-		return Strings::capitalize(str_replace('_', ' ', $this->value));
+		return match ($this) {
+			self::SYMBOL => 'Ticker',
+			self::COMPANY_NAME => 'Název společnosti',
+			self::CURRENT_PRICE => 'Aktuální cena',
+			self::PRICE_CHANGE => 'Změna ceny',
+			self::PRICE_CHANGE_PERCENT => 'Změna ceny (%)',
+			self::AFTER_HOURS_PRICE => 'Cena po uzavření trhu',
+			self::AFTER_HOURS_CHANGE => 'Změna po uzavření',
+			self::AFTER_HOURS_CHANGE_PERCENT => 'Změna po uzavření (%)',
+			self::MARKET_CAP => 'Tržní kapitalizace',
+			self::ENTERPRISE_VALUE => 'Hodnota podniku (EV)',
+			self::TRAILING_PE => 'P/E (historické)',
+			self::FORWARD_PE => 'P/E (očekávané)',
+			self::PEG_RATIO => 'PEG',
+			self::PRICE_SALES => 'P/S',
+			self::PRICE_BOOK => 'P/B',
+			self::EV_REVENUE => 'EV / tržby',
+			self::EV_EBITDA => 'EV / EBITDA',
+			self::REVENUE_TTM => 'Tržby (TTM)',
+			self::REVENUE_PER_SHARE => 'Tržby na akcii',
+			self::QUARTERLY_REVENUE_GROWTH => 'Čtvrtletní růst tržeb',
+			self::GROSS_PROFIT => 'Hrubý zisk',
+			self::EBITDA => 'EBITDA',
+			self::NET_INCOME => 'Čistý zisk',
+			self::DILUTED_EPS => 'Zředěný zisk na akcii',
+			self::QUARTERLY_EARNINGS_GROWTH => 'Čtvrtletní růst zisku',
+			self::PROFIT_MARGIN => 'Čistá marže',
+			self::OPERATING_MARGIN => 'Provozní marže',
+			self::RETURN_ON_ASSETS => 'ROA',
+			self::RETURN_ON_EQUITY => 'ROE',
+			self::TOTAL_CASH => 'Hotovost celkem',
+			self::TOTAL_CASH_PER_SHARE => 'Hotovost na akcii',
+			self::TOTAL_DEBT => 'Dluh celkem',
+			self::TOTAL_DEBT_EQUITY => 'Dluh / vlastní kapitál',
+			self::CURRENT_RATIO => 'Běžná likvidita',
+			self::BOOK_VALUE_PER_SHARE => 'Účetní hodnota na akcii',
+			self::OPERATING_CASH_FLOW => 'Provozní cash flow',
+			self::LEVERED_FREE_CASH_FLOW => 'Volné cash flow (FCF)',
+			self::BETA => 'Beta',
+			self::WEEK_52_CHANGE => 'Změna za 52 týdnů',
+			self::WEEK_52_HIGH => '52týdenní maximum',
+			self::WEEK_52_LOW => '52týdenní minimum',
+			self::DAY_52_MA => '50denní průměr',
+			self::DAY_200_MA => '200denní průměr',
+			self::AVG_VOLUME_3M => 'Průměrný objem (3M)',
+			self::SHARES_OUTSTANDING => 'Počet akcií',
+			self::FLOAT => 'Volně obchodované akcie',
+			self::HELD_BY_INSIDERS => 'Podíl insiderů',
+			self::HELD_BY_INSTITUTIONS => 'Podíl institucí',
+			self::FORWARD_ANNUAL_DIVIDEND_RATE => 'Očekávaná roční dividenda',
+			self::FORWARD_ANNUAL_DIVIDEND_YIELD => 'Očekávaný dividendový výnos',
+			self::TRAILING_ANNUAL_DIVIDEND_RATE => 'Historická roční dividenda',
+			self::TRAILING_ANNUAL_DIVIDEND_YIELD => 'Historický dividendový výnos',
+			self::PAYOUT_RATIO => 'Výplatní poměr',
+			self::DIVIDEND_DATE => 'Datum výplaty dividendy',
+			self::EX_DIVIDEND_DATE => 'Ex-dividend datum',
+			self::ANALYST_PRICE_TARGET_LOW => 'Nejnižší cílová cena',
+			self::ANALYST_PRICE_TARGET_AVERAGE => 'Průměrná cílová cena',
+			self::ANALYST_PRICE_TARGET_CURRENT => 'Aktuální cílová cena',
+			self::ANALYST_PRICE_TARGET_HIGH => 'Nejvyšší cílová cena',
+		};
 	}
 
 }

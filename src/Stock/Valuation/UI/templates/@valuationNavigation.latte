@@ -1,0 +1,27 @@
+{varType string $activeSection}
+
+<div class="mb-6 overflow-x-auto border-b border-gray-200">
+	<nav class="-mb-px flex min-w-max gap-x-8" aria-label="Sekce valuací">
+		<a
+			n:href="StockValuationOverview:default"
+			n:class="'whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium', $activeSection === 'overview' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+			aria-current={$activeSection === 'overview' ? 'page' : 'false'}
+		>
+			Přehled
+		</a>
+		<a
+			n:href="StockValuation:default"
+			n:class="'whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium', $activeSection === 'data' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+			aria-current={$activeSection === 'data' ? 'page' : 'false'}
+		>
+			Finanční data
+		</a>
+		<a
+			n:href="StockValuationModel:default"
+			n:class="'whitespace-nowrap border-b-2 px-1 pb-4 text-sm font-medium', $activeSection === 'models' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
+			aria-current={$activeSection === 'models' ? 'page' : 'false'}
+		>
+			Modely
+		</a>
+	</nav>
+</div>

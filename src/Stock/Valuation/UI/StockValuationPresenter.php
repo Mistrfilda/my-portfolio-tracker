@@ -24,7 +24,7 @@ class StockValuationPresenter extends BaseAdminPresenter
 
 	public function renderDefault(
 		string $typeGroupEnum = StockValuationTypeGroupEnum::VALUATION->value,
-		string|null $sortBy = null,
+		string|null $sortBy = 'name',
 		string $sortDirection = 'asc',
 	): void
 	{

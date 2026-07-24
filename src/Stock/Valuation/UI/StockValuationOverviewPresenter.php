@@ -30,7 +30,7 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 
 	public function renderDefault(): void
 	{
-		$this->template->heading = 'Valuační přehled akcií';
+		$this->template->heading = 'Valuace akcií';
 		$this->template->rows = [];
 		$stockAssets = $this->stockAssetRepository->getAllActiveValuationAssets();
 		usort(
@@ -47,17 +47,17 @@ class StockValuationOverviewPresenter extends BaseAdminPresenter
 				$stockAsset,
 				[
 					$this->createOverviewValue(
-						'Price from all models',
+						'Modely',
 						$averageModelPrice,
 						$stockAsset,
 					),
 					$this->createOverviewValue(
-						'Analytics price',
+						'Analytici',
 						$analyticsPrice,
 						$stockAsset,
 					),
 					$this->createOverviewValue(
-						'AI analysis price',
+						'AI',
 						$aiAnalysisPrice,
 						$stockAsset,
 					),

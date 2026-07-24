@@ -1,7 +1,11 @@
+{templateType App\Stock\Valuation\Model\UI\StockValuationModelTemplate}
+
 {block #content}
+	{include '../../../UI/templates/@valuationNavigation.latte', activeSection: 'models'}
 
-    {snippet modelTable}
-        {control stockValuationTable}
-    {/snippet}
-
+	<div x-data="valuationTable()">
+		{snippet modelTable}
+			{control stockValuationTable}
+		{/snippet}
+	</div>
 {/block}

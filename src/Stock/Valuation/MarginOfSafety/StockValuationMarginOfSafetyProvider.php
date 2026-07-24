@@ -28,7 +28,7 @@ class StockValuationMarginOfSafetyProvider
 
 			if ($sourcePrice->getCurrency() !== $currentPrice->getCurrency()) {
 				$reasons[] = sprintf(
-					'Source in %s was ignored because current price is in %s.',
+					'Zdroj v měně %s byl vynechán, protože aktuální cena je v měně %s.',
 					$sourcePrice->getCurrency()->value,
 					$currentPrice->getCurrency()->value,
 				);
@@ -48,7 +48,7 @@ class StockValuationMarginOfSafetyProvider
 				$sourcesCount,
 				StockValuationMarginOfSafetyStatusEnum::UNKNOWN,
 				StockValuationMarginOfSafetyConfidenceEnum::UNKNOWN,
-				$reasons === [] ? ['No comparable fair price sources are available.'] : $reasons,
+				$reasons === [] ? ['Nejsou dostupné žádné porovnatelné zdroje férové ceny.'] : $reasons,
 			);
 		}
 
