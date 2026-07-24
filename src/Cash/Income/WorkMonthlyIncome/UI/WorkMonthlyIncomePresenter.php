@@ -35,11 +35,11 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		125000,
 		130000,
 		135000,
+		140000,
+		145000,
 	];
 
 	public const HOURS = [
-		60,
-		70,
 		80,
 		90,
 		100,
@@ -56,6 +56,8 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		155,
 		160,
 		165,
+		170,
+		175,
 	];
 
 	#[Persistent]
