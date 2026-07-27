@@ -178,4 +178,33 @@ class XirrCalculatorTest extends TestCase
 		self::assertEqualsWithDelta(-0.10, $result, 0.001);
 	}
 
+	public function testCalculateUsesBisectionWhenNewtonMethodDiverges(): void
+	{
+		$cashFlows = [
+			['date' => new ImmutableDateTime('2020-01-01'), 'amount' => -56446.0],
+			['date' => new ImmutableDateTime('2020-07-15'), 'amount' => -22775.0],
+			['date' => new ImmutableDateTime('2020-09-26'), 'amount' => -91255.0],
+			['date' => new ImmutableDateTime('2020-12-02'), 'amount' => -9624.0],
+			['date' => new ImmutableDateTime('2021-12-19'), 'amount' => 46224.0],
+		];
+
+		$result = XirrCalculator::calculate($cashFlows);
+
+		self::assertNotNull($result);
+		self::assertEqualsWithDelta(-0.6148413643, $result, 0.0000001);
+	}
+
+	public function testCalculateReturnsNullWhenBisectionCannotBracketRoot(): void
+	{
+		$cashFlows = [
+			['date' => new ImmutableDateTime('2020-01-01'), 'amount' => 86519.0],
+			['date' => new ImmutableDateTime('2020-09-21'), 'amount' => 27060.0],
+			['date' => new ImmutableDateTime('2022-05-17'), 'amount' => -53840.0],
+			['date' => new ImmutableDateTime('2023-09-12'), 'amount' => 34929.0],
+			['date' => new ImmutableDateTime('2024-07-21'), 'amount' => 96876.0],
+		];
+
+		self::assertNull(XirrCalculator::calculate($cashFlows));
+	}
+
 }

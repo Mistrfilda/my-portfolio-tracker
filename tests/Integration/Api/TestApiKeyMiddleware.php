@@ -35,16 +35,18 @@ class TestApiKeyMiddleware implements MiddlewareInterface
 			throw new HttpUnauthorizedException($request, 'Invalid API key provided');
 		}
 
-		$testAppAdmin = new AppAdmin(
-			'Test Admin',
-			'test-admin',
-			'test@test.com',
-			'password',
-			new ImmutableDateTime(),
-			false,
-			false,
-		);
-		$this->currentAppAdminGetter->setApiAppAdmin($testAppAdmin);
+		if (!$this->currentAppAdminGetter->isLoggedIn()) {
+			$testAppAdmin = new AppAdmin(
+				'Test Admin',
+				'test-admin',
+				'test@test.com',
+				'password',
+				new ImmutableDateTime(),
+				false,
+				false,
+			);
+			$this->currentAppAdminGetter->setApiAppAdmin($testAppAdmin);
+		}
 
 		return $handler->handle($request);
 	}
