@@ -1,0 +1,17 @@
+{
+    "_hash": "9dc87c3588b51c3ad1d1bb4aa7ba8eb0caa0d7ec640b6b564bb4152471a8fee0",
+    "patches": {
+        "contributte/forms-multiplier": [
+            {
+                "package": "contributte/forms-multiplier",
+                "description": "Fix compatibility with nette/forms 3.3 (contributte/forms-multiplier#126)",
+                "url": "patches/forms-multiplier-nette-forms-3.3.patch",
+                "sha256": "982527cdbc690f77b8069f3dfeeeb744310c19b884cf72223a5812bc4fd9ef15",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ]
+    }
+}

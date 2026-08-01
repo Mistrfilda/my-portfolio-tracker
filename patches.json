@@ -1,0 +1,7 @@
+{
+	"patches": {
+		"contributte/forms-multiplier": {
+			"Fix compatibility with nette/forms 3.3 (contributte/forms-multiplier#126)": "patches/forms-multiplier-nette-forms-3.3.patch"
+		}
+	}
+}

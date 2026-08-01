@@ -1,0 +1,25 @@
+diff --git a/src/Multiplier.php b/src/Multiplier.php
+index 8be1d79..180e506 100644
+--- a/src/Multiplier.php
++++ b/src/Multiplier.php
+@@ -4,6 +4,7 @@ namespace Contributte\FormMultiplier;
+ 
+ use Contributte\FormMultiplier\Buttons\CreateButton;
+ use Contributte\FormMultiplier\Buttons\RemoveButton;
++use Generator;
+ use Iterator;
+ use Nette\ComponentModel\IComponent;
+ use Nette\Forms\Container;
+@@ -306,8 +307,11 @@ public function getValues(string|object|bool|null $returnType = null, ?array $co
+ 	public function getControls(): Iterator
+ 	{
+ 		$this->createCopies();
++		$controls = parent::getControls();
+ 
+-		return parent::getControls();
++		return (static function () use ($controls): Generator {
++			yield from $controls;
++		})();
+ 	}
+ 
+ 	/**
