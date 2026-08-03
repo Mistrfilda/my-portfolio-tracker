@@ -20,7 +20,7 @@ RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip
 
 WORKDIR /var
 
-COPY composer.json composer.lock ./
+COPY composer.json composer.lock patches.json patches.lock.json ./
 COPY patches/ ./patches
 COPY package.json package-lock.json .npmrc ./
 RUN curl -sS https://getcomposer.org/installer | php \
