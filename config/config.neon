@@ -63,6 +63,9 @@ parameters:
 		databag:
 			versionFile: %appDir%/../deploy-versions.txt
 
+	gotenberg:
+		url: http://gotenberg.gotenberg.svc.cluster.local:3000
+
 	notifications:
 		discord:
 			webhooks:
@@ -527,12 +530,16 @@ services:
 	- App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver
 	- App\System\Resolver\SystemValueEnabledStockValuationsAssetsResolver
 
+	#Gotenberg
+	- App\Gotenberg\GotenbergScreenshotService(baseUrl: %gotenberg.url%)
+
 	#Notifications
 	- App\Notification\NotificationFacade
 	- App\Notification\NotificationSenderFacade(typed(App\Notification\NotificationChannelSenderFacade))
 	- App\Notification\NotificationRepository(App\Notification\Notification)
 	- App\Notification\Discord\NotificationDiscordSenderFacade
 	- App\Notification\Discord\DiscordMessageService
+	- App\Notification\Discord\AssetTrendReportRenderer
 	- App\Notification\Discord\DiscordChannelService(discordWebhooksMapping: %notifications.discord.webhooks%)
 
 	#Goals

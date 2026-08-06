@@ -35,6 +35,7 @@
 		"doctrine/orm": "*",
 		"gedmo/doctrine-extensions": "^3.5",
 		"guzzlehttp/guzzle": "^7.4",
+		"guzzlehttp/psr7": "^2.13",
 		"justinrainbow/json-schema": "^6.10",
 		"latte/latte": "^3.0",
 		"league/openapi-psr7-validator": "^0.22",

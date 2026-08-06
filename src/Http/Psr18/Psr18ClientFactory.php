@@ -11,7 +11,7 @@ class Psr18ClientFactory
 {
 
 	/**
-	 * @param array<string, string|bool>|null $options
+	 * @param array<string, mixed>|null $options
 	 */
 	public function getClient(array|null $options = null): ClientInterface
 	{

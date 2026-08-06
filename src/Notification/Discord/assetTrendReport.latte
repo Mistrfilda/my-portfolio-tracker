@@ -1,0 +1,394 @@
+{parameters int $numberOfDaysToCompare, string $daysUnit, array $increasingTrendRows, array $decreasingTrendRows}
+<!doctype html>
+<html lang="cs">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Přehled trendů aktiv</title>
+	<style>
+		* {
+			box-sizing: border-box;
+		}
+
+		html,
+		body {
+			margin: 0;
+			min-height: 100%;
+			width: 1200px;
+		}
+
+		body {
+			background: #eff6ff;
+			color: #111827;
+			font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+			-webkit-font-smoothing: antialiased;
+		}
+
+		.report {
+			padding: 40px;
+		}
+
+		.hero {
+			background: linear-gradient(135deg, #1e40af 0%, #2563eb 58%, #3b82f6 100%);
+			border-radius: 28px;
+			box-shadow: 0 24px 60px rgba(30, 64, 175, 0.22);
+			color: #ffffff;
+			overflow: hidden;
+			padding: 34px 38px 32px;
+			position: relative;
+		}
+
+		.hero::after {
+			background: rgba(255, 255, 255, 0.08);
+			border-radius: 999px;
+			content: "";
+			height: 280px;
+			position: absolute;
+			right: -72px;
+			top: -150px;
+			width: 280px;
+		}
+
+		.brand {
+			align-items: center;
+			display: flex;
+			font-size: 13px;
+			font-weight: 700;
+			gap: 12px;
+			letter-spacing: 0.14em;
+			opacity: 0.9;
+			position: relative;
+			text-transform: uppercase;
+			z-index: 1;
+		}
+
+		.brand-mark {
+			align-items: flex-end;
+			background: rgba(255, 255, 255, 0.16);
+			border: 1px solid rgba(255, 255, 255, 0.32);
+			border-radius: 10px;
+			display: flex;
+			gap: 3px;
+			height: 34px;
+			justify-content: center;
+			padding: 7px;
+			width: 34px;
+		}
+
+		.brand-mark span {
+			background: #ffffff;
+			border-radius: 2px;
+			display: block;
+			width: 4px;
+		}
+
+		.brand-mark span:nth-child(1) {
+			height: 8px;
+		}
+
+		.brand-mark span:nth-child(2) {
+			height: 13px;
+		}
+
+		.brand-mark span:nth-child(3) {
+			height: 19px;
+		}
+
+		.hero-main {
+			align-items: flex-end;
+			display: flex;
+			justify-content: space-between;
+			margin-top: 30px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.eyebrow {
+			color: #bfdbfe;
+			font-size: 14px;
+			font-weight: 700;
+			letter-spacing: 0.1em;
+			margin: 0 0 8px;
+			text-transform: uppercase;
+		}
+
+		h1 {
+			font-size: 42px;
+			letter-spacing: -0.035em;
+			line-height: 1.08;
+			margin: 0;
+		}
+
+		.subtitle {
+			color: #dbeafe;
+			font-size: 17px;
+			margin: 12px 0 0;
+		}
+
+		.period {
+			align-items: baseline;
+			background: rgba(15, 23, 42, 0.2);
+			border: 1px solid rgba(255, 255, 255, 0.2);
+			border-radius: 18px;
+			display: flex;
+			gap: 9px;
+			min-width: 150px;
+			padding: 16px 20px;
+		}
+
+		.period strong {
+			font-size: 34px;
+			letter-spacing: -0.04em;
+		}
+
+		.period span {
+			color: #dbeafe;
+			font-size: 16px;
+			font-weight: 600;
+		}
+
+		.summary {
+			display: grid;
+			gap: 12px;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			margin-top: 28px;
+			position: relative;
+			z-index: 1;
+		}
+
+		.summary-item {
+			align-items: center;
+			background: rgba(255, 255, 255, 0.11);
+			border: 1px solid rgba(255, 255, 255, 0.16);
+			border-radius: 16px;
+			display: flex;
+			justify-content: space-between;
+			padding: 14px 17px;
+		}
+
+		.summary-label {
+			color: #dbeafe;
+			font-size: 14px;
+			font-weight: 600;
+		}
+
+		.summary-value {
+			font-size: 24px;
+			font-weight: 750;
+		}
+
+		.sections {
+			display: grid;
+			gap: 20px;
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			margin-top: 22px;
+		}
+
+		.section:only-child {
+			grid-column: 1 / -1;
+		}
+
+		.section {
+			background: #ffffff;
+			border: 1px solid #dbeafe;
+			border-radius: 22px;
+			box-shadow: 0 12px 34px rgba(30, 64, 175, 0.08);
+			overflow: hidden;
+		}
+
+		.section-heading {
+			align-items: center;
+			border-bottom: 1px solid #e5e7eb;
+			display: flex;
+			justify-content: space-between;
+			padding: 20px 22px 17px;
+		}
+
+		.section-title {
+			align-items: center;
+			display: flex;
+			font-size: 19px;
+			font-weight: 750;
+			gap: 11px;
+			margin: 0;
+		}
+
+		.section-indicator {
+			border-radius: 999px;
+			height: 10px;
+			width: 10px;
+		}
+
+		.section--up .section-indicator {
+			background: #16a34a;
+			box-shadow: 0 0 0 5px #dcfce7;
+		}
+
+		.section--down .section-indicator {
+			background: #dc2626;
+			box-shadow: 0 0 0 5px #fee2e2;
+		}
+
+		.count {
+			background: #eff6ff;
+			border-radius: 999px;
+			color: #1d4ed8;
+			font-size: 13px;
+			font-weight: 700;
+			padding: 5px 10px;
+		}
+
+		table {
+			border-collapse: collapse;
+			width: 100%;
+		}
+
+		th {
+			color: #6b7280;
+			font-size: 11px;
+			font-weight: 750;
+			letter-spacing: 0.09em;
+			padding: 13px 17px 11px;
+			text-align: left;
+			text-transform: uppercase;
+		}
+
+		th:nth-child(2),
+		th:nth-child(3),
+		td:nth-child(2),
+		td:nth-child(3) {
+			text-align: right;
+		}
+
+		td {
+			border-top: 1px solid #f3f4f6;
+			font-size: 14px;
+			padding: 14px 17px;
+			vertical-align: middle;
+		}
+
+		.asset-name {
+			color: #111827;
+			font-weight: 650;
+			line-height: 1.3;
+			max-width: 230px;
+		}
+
+		.price {
+			color: #4b5563;
+			font-variant-numeric: tabular-nums;
+			white-space: nowrap;
+		}
+
+		.change {
+			border-radius: 999px;
+			display: inline-block;
+			font-size: 13px;
+			font-variant-numeric: tabular-nums;
+			font-weight: 750;
+			padding: 6px 9px;
+			white-space: nowrap;
+		}
+
+		.change--up {
+			background: #dcfce7;
+			color: #15803d;
+		}
+
+		.change--down {
+			background: #fee2e2;
+			color: #b91c1c;
+		}
+
+		.footer {
+			align-items: center;
+			color: #64748b;
+			display: flex;
+			font-size: 12px;
+			justify-content: space-between;
+			padding: 17px 4px 0;
+		}
+
+		.footer strong {
+			color: #1d4ed8;
+			font-weight: 750;
+		}
+	</style>
+</head>
+<body>
+	<div class="report">
+		<header class="hero">
+			<div class="brand">
+				<span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></span>
+				my portfolio tracker
+			</div>
+			<div class="hero-main">
+				<div>
+					<p class="eyebrow">Cenové pohyby</p>
+					<h1>Přehled trendů aktiv</h1>
+					<p class="subtitle">Aktiva s výraznou změnou ceny ve vašem portfoliu</p>
+				</div>
+				<div class="period">
+					<strong>{$numberOfDaysToCompare}</strong>
+					<span>{$daysUnit}</span>
+				</div>
+			</div>
+			<div class="summary">
+				<div class="summary-item">
+					<span class="summary-label">Aktiva v růstu</span>
+					<span class="summary-value">{count($increasingTrendRows)}</span>
+				</div>
+				<div class="summary-item">
+					<span class="summary-label">Aktiva v poklesu</span>
+					<span class="summary-value">{count($decreasingTrendRows)}</span>
+				</div>
+			</div>
+		</header>
+
+		<main class="sections">
+			<section class="section section--up" n:if="$increasingTrendRows !== []">
+				<div class="section-heading">
+					<h2 class="section-title"><span class="section-indicator"></span>Růst</h2>
+					<span class="count">{count($increasingTrendRows)} aktiv</span>
+				</div>
+				<table>
+					<thead>
+						<tr><th scope="col">Aktivum</th><th scope="col">Cena</th><th scope="col">Změna</th></tr>
+					</thead>
+					<tbody>
+						<tr n:foreach="$increasingTrendRows as $trendRow">
+							<td class="asset-name">{$trendRow['name']}</td>
+							<td class="price">{$trendRow['currentPrice']}</td>
+							<td><span class="change change--up">▲ {$trendRow['change']}</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+
+			<section class="section section--down" n:if="$decreasingTrendRows !== []">
+				<div class="section-heading">
+					<h2 class="section-title"><span class="section-indicator"></span>Pokles</h2>
+					<span class="count">{count($decreasingTrendRows)} aktiv</span>
+				</div>
+				<table>
+					<thead>
+						<tr><th scope="col">Aktivum</th><th scope="col">Cena</th><th scope="col">Změna</th></tr>
+					</thead>
+					<tbody>
+						<tr n:foreach="$decreasingTrendRows as $trendRow">
+							<td class="asset-name">{$trendRow['name']}</td>
+							<td class="price">{$trendRow['currentPrice']}</td>
+							<td><span class="change change--down">▼ {$trendRow['change']}</span></td>
+						</tr>
+					</tbody>
+				</table>
+			</section>
+		</main>
+
+		<footer class="footer">
+			<span>Seřazeno podle velikosti cenové změny</span>
+			<strong>my-portfolio-tracker</strong>
+		</footer>
+	</div>
+</body>
+</html>
