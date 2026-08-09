@@ -1,8 +1,13 @@
 import {Naja, Payload} from "naja/dist/Naja";
-import {ChartData} from "./ChartData";
-import Chart, {ChartOptions, Colors, TooltipItem} from 'chart.js/auto';
+import {ChartData, ChartDataset} from "./ChartData";
+import Chart, {ChartOptions, ChartType, Colors, Plugin, TooltipItem} from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import {ChartInstance} from "./ChartInstance";
+
+interface LineChartState {
+    absoluteData: number[][];
+    changeFromStart: boolean;
+}
 
 
 export class ChartRenderer {
@@ -14,11 +19,14 @@ export class ChartRenderer {
 
     loadedCharts: Array<ChartInstance>;
 
+    lineChartStates: Map<Chart, LineChartState>;
+
     constructor(naja: Naja, loadedCharts: Array<ChartInstance>) {
         this.naja = naja;
         this.defaultBackgroundColor = '#111827';
         this.tooltipDefaults = this.getTooltipDefaults();
         this.loadedCharts = loadedCharts;
+        this.lineChartStates = new Map<Chart, LineChartState>();
 
         this.setDefaults();
     }
@@ -74,8 +82,19 @@ export class ChartRenderer {
         return {
             ...this.tooltipDefaults,
             callbacks: {
-                label(tooltipItem: TooltipItem<any>): string | string[] | void {
+                label: (tooltipItem: TooltipItem<ChartType>): string | string[] | void => {
                     let label = tooltipItem.dataset.label || '';
+                    const lineChartState = this.lineChartStates.get(tooltipItem.chart);
+                    const absoluteValue = lineChartState?.absoluteData[tooltipItem.datasetIndex]?.[tooltipItem.dataIndex];
+
+                    if (label && lineChartState?.changeFromStart && absoluteValue !== undefined) {
+                        const suffix = response.tooltipSuffix.trim();
+                        const suffixWithSpace = suffix === '' ? '' : ` ${suffix}`;
+                        const change = Number(tooltipItem.raw);
+
+                        return `${label}: ${this.formatNumber(absoluteValue)}${suffixWithSpace} (${this.formatSignedNumber(change)}${suffixWithSpace} od začátku)`;
+                    }
+
                     if (label) {
                         label = label + ' ' + tooltipItem.formattedValue + ' ' + response.tooltipSuffix;
                     }
@@ -84,6 +103,23 @@ export class ChartRenderer {
                 }
             }
         };
+    }
+
+    formatNumber(value: number): string {
+        return new Intl.NumberFormat('cs-CZ', {
+            maximumFractionDigits: 2,
+        }).format(value);
+    }
+
+    formatSignedNumber(value: number): string {
+        if (value === 0) {
+            return '0';
+        }
+
+        return new Intl.NumberFormat('cs-CZ', {
+            maximumFractionDigits: 2,
+            signDisplay: 'always',
+        }).format(value);
     }
 
     getBaseOptions(response: ChartData): ChartOptions {
@@ -178,15 +214,22 @@ export class ChartRenderer {
         };
     }
 
-    async createLineChart(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
+    async createLineChart(
+        graphCanvasElement: HTMLCanvasElement,
+        chartDataUrl: string,
+        chartId: string,
+        shouldUpdateOnAjaxRequestValue: boolean,
+        changeFromStart: boolean = false,
+    ): Promise<void> {
         const graphData = this.fetchData(chartDataUrl);
 
         graphData.then(function (response: ChartData) {
+            const absoluteData = this.getAbsoluteData(response.datasets);
             const myChart = new Chart(graphCanvasElement, {
                 type: 'line',
                 data: {
                     labels: response.labels,
-                    datasets: response.datasets
+                    datasets: this.getLineChartDatasets(response.datasets, absoluteData, changeFromStart),
                 },
                 options: {
                     ...this.getLineOptions(response),
@@ -202,7 +245,14 @@ export class ChartRenderer {
                         },
                     },
                 },
+                plugins: [this.getWeeklyValueLabelsPlugin()],
             });
+
+            this.lineChartStates.set(myChart, {
+                absoluteData: absoluteData,
+                changeFromStart: changeFromStart,
+            });
+            myChart.draw();
 
             if (shouldUpdateOnAjaxRequestValue) {
                 this.loadedCharts.push({
@@ -213,6 +263,161 @@ export class ChartRenderer {
 
             this.removeGraphSpinner(chartId);
         }.bind(this));
+    }
+
+    getAbsoluteData(datasets: ChartDataset[]): number[][] {
+        return datasets.map((dataset) => dataset.data.map((value) => Number(value)));
+    }
+
+    getLineChartDatasets(datasets: ChartDataset[], absoluteData: number[][], changeFromStart: boolean) {
+        return datasets.map((dataset, index) => ({
+            ...dataset,
+            data: changeFromStart
+                ? this.getChangeFromStartData(absoluteData[index])
+                : [...absoluteData[index]],
+        }));
+    }
+
+    getChangeFromStartData(data: number[]): number[] {
+        const initialValue = data[0];
+
+        if (initialValue === undefined) {
+            return [];
+        }
+
+        return data.map((value) => value - initialValue);
+    }
+
+    getWeeklyValueLabelsPlugin(): Plugin<'line'> {
+        return {
+            id: 'weeklyValueLabels',
+            afterDatasetsDraw: (chart) => this.drawWeeklyValueLabels(chart),
+        };
+    }
+
+    drawWeeklyValueLabels(chart: Chart<'line'>): void {
+        const lineChartState = this.lineChartStates.get(chart);
+
+        if (lineChartState === undefined) {
+            return;
+        }
+
+        const labels = (chart.data.labels ?? []).map((label) => String(label));
+        const weeklyClosingIndices = this.getVisibleWeeklyClosingIndices(
+            this.getWeeklyClosingIndices(labels),
+            chart.chartArea.right - chart.chartArea.left,
+        );
+
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+            const chartDataset = dataset as typeof dataset & ChartDataset;
+
+            if (!chartDataset.weeklyValueLabels || !chart.isDatasetVisible(datasetIndex)) {
+                return;
+            }
+
+            const absoluteData = lineChartState.absoluteData[datasetIndex] ?? [];
+            const datasetMeta = chart.getDatasetMeta(datasetIndex);
+            const context = chart.ctx;
+
+            context.save();
+            context.font = '600 10px ui-sans-serif, system-ui, sans-serif';
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+
+            weeklyClosingIndices.forEach((dataIndex) => {
+                const point = datasetMeta.data[dataIndex];
+                const value = absoluteData[dataIndex];
+
+                if (
+                    point === undefined
+                    || value === undefined
+                    || point.x < chart.chartArea.left
+                    || point.x > chart.chartArea.right
+                    || point.y < chart.chartArea.top
+                    || point.y > chart.chartArea.bottom
+                ) {
+                    return;
+                }
+
+                const text = this.formatWeeklyValue(value);
+                const labelWidth = Math.ceil(context.measureText(text).width) + 8;
+                const labelHeight = 16;
+                const x = Math.min(
+                    Math.max(point.x, chart.chartArea.left + labelWidth / 2),
+                    chart.chartArea.right - labelWidth / 2,
+                );
+                let y = point.y - 13;
+
+                if (y - labelHeight / 2 < chart.chartArea.top) {
+                    y = point.y + 13;
+                }
+
+                context.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                context.fillRect(x - labelWidth / 2, y - labelHeight / 2, labelWidth, labelHeight);
+                context.fillStyle = '#1d4ed8';
+                context.fillText(text, x, y);
+            });
+
+            context.restore();
+        });
+    }
+
+    getWeeklyClosingIndices(labels: string[]): number[] {
+        const weeklyClosingIndices = new Map<string, number>();
+
+        labels.forEach((label, index) => {
+            const dateParts = label.split('-').map((part) => Number(part));
+
+            if (dateParts.length !== 3 || dateParts.some((part) => !Number.isFinite(part))) {
+                return;
+            }
+
+            const date = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+            const daysSinceMonday = (date.getUTCDay() + 6) % 7;
+            date.setUTCDate(date.getUTCDate() - daysSinceMonday);
+            weeklyClosingIndices.set(date.toISOString().slice(0, 10), index);
+        });
+
+        return Array.from(weeklyClosingIndices.values());
+    }
+
+    getVisibleWeeklyClosingIndices(indices: number[], chartWidth: number): number[] {
+        const minimumLabelSpacing = 58;
+        const maximumLabelCount = Math.max(1, Math.floor(chartWidth / minimumLabelSpacing));
+        const interval = Math.max(1, Math.ceil(indices.length / maximumLabelCount));
+
+        return indices.filter((value, index) => index % interval === 0 || value === indices[indices.length - 1]);
+    }
+
+    formatWeeklyValue(value: number): string {
+        return new Intl.NumberFormat('cs-CZ', {
+            notation: 'compact',
+            maximumFractionDigits: 2,
+        }).format(value);
+    }
+
+    setLineChartChangeFromStart(chartId: string, changeFromStart: boolean): void {
+        const chart = Chart.getChart(chartId);
+
+        if (chart === undefined) {
+            return;
+        }
+
+        const lineChartState = this.lineChartStates.get(chart);
+
+        if (lineChartState === undefined || lineChartState.changeFromStart === changeFromStart) {
+            return;
+        }
+
+        lineChartState.changeFromStart = changeFromStart;
+        chart.data.datasets.forEach((dataset, index) => {
+            const absoluteData = lineChartState.absoluteData[index] ?? [];
+            dataset.data = changeFromStart
+                ? this.getChangeFromStartData(absoluteData)
+                : [...absoluteData];
+        });
+        chart.resetZoom();
+        chart.update();
     }
 
     async createBarCharts(graphCanvasElement: HTMLCanvasElement, chartDataUrl: string, chartId: string, shouldUpdateOnAjaxRequestValue: boolean): Promise<void> {
@@ -327,7 +532,19 @@ export class ChartRenderer {
 
         graphData.then(function (response: ChartData) {
             chart.data.labels = response.labels;
-            chart.data.datasets = response.datasets;
+            const lineChartState = this.lineChartStates.get(chart);
+
+            if (lineChartState === undefined) {
+                chart.data.datasets = response.datasets;
+            } else {
+                lineChartState.absoluteData = this.getAbsoluteData(response.datasets);
+                chart.data.datasets = this.getLineChartDatasets(
+                    response.datasets,
+                    lineChartState.absoluteData,
+                    lineChartState.changeFromStart,
+                );
+            }
+
             chart.update();
         }.bind(this));
     }

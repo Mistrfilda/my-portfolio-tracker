@@ -22,9 +22,9 @@ enum PortolioStatisticType: string
 	public function format(): string
 	{
 		return match ($this) {
-			PortolioStatisticType::TOTAL_INVESTED_IN_CZK => 'Celkově zainvestováno v CZK',
-			PortolioStatisticType::TOTAL_VALUE_IN_CZK => 'Celkově hodnota v CZK',
-			PortolioStatisticType::TOTAL_PROFIT => 'Celkově zisk v CZK',
+			PortolioStatisticType::TOTAL_INVESTED_IN_CZK => 'Celkem zainvestováno v CZK',
+			PortolioStatisticType::TOTAL_VALUE_IN_CZK => 'Celková hodnota v CZK',
+			PortolioStatisticType::TOTAL_PROFIT => 'Celkový zisk v CZK',
 			PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE => 'Celkový zisk v procentech',
 			PortolioStatisticType::CRYPTO_TOTAL_INVESTED_IN_CZK => 'Celkově zainvestováno v kryptoměnách v CZK',
 			PortolioStatisticType::CRYPTO_TOTAL_VALUE_IN_CZK => 'Celková hodnota v kryptoměnách v CZK',

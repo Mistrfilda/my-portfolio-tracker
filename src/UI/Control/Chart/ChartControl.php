@@ -17,6 +17,7 @@ class ChartControl extends BaseControl
 		private ChartType $type,
 		private ChartDataProvider $chartDataProvider,
 		private bool $shouldUpdateOnAjaxRequest = false,
+		private bool $changeFromStartEnabled = false,
 	)
 	{
 	}
@@ -32,6 +33,7 @@ class ChartControl extends BaseControl
 		}
 
 		$template->shouldUpdateOnAjaxRequest = (int) $this->shouldUpdateOnAjaxRequest;
+		$template->changeFromStartEnabled = (int) $this->changeFromStartEnabled;
 		$template->chartId = $this->getChartId();
 		$template->chartType = $this->type->value;
 		$template->setFile(str_replace('.php', '.latte', __FILE__));

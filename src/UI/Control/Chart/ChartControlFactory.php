@@ -11,6 +11,7 @@ interface ChartControlFactory
 		ChartType $type,
 		ChartDataProvider $chartDataProvider,
 		bool $shouldUpdateOnAjaxRequest = false,
+		bool $changeFromStartEnabled = false,
 	): ChartControl;
 
 }

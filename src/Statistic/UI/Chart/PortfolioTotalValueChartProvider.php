@@ -46,7 +46,11 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 
 		$allChartData = [];
 		foreach ($this->types as $type) {
-			$chartData = new ChartData($type->format());
+			$chartData = new ChartData(
+				$type->format(),
+				stepped: $type === PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
+				tension: 0.0,
+			);
 
 			/** @var array<string, int> $values */
 			$values = [];

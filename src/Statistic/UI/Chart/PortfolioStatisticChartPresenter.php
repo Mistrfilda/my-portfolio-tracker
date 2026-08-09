@@ -32,8 +32,8 @@ class PortfolioStatisticChartPresenter extends BaseAdminPresenter
 		$this->template->heading = 'Grafy';
 		$this->template->charts = [
 			new PortfolioStatisticChart(
-				'Celková hodnota portfolia za posledních 100 dní',
-				'Hodnota v CZK',
+				'Vývoj portfolia za posledních 100 dní',
+				'Hodnota portfolia a investovaná částka v CZK',
 				'portfolioTotalValueLastMonthChart',
 			),
 			new PortfolioStatisticChart(
@@ -151,7 +151,12 @@ class PortfolioStatisticChartPresenter extends BaseAdminPresenter
 		$provider = clone $this->portfolioTotalValueLastMonthChartProvider;
 		$provider->addType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
 		$provider->addType(PortolioStatisticType::TOTAL_INVESTED_IN_CZK);
-		return $this->chartControlFactory->create(ChartType::LINE, $provider);
+
+		return $this->chartControlFactory->create(
+			ChartType::LINE,
+			$provider,
+			changeFromStartEnabled: true,
+		);
 	}
 
 	protected function createComponentStockDividendsByCompanyAndMonthChart(): ChartControl

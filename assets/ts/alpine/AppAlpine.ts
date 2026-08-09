@@ -204,17 +204,28 @@ Alpine.data('modal', () => ({
     }
 }));
 
-Alpine.data('loadChart', () => ({
+Alpine.data('loadChart', (changeFromStartEnabled: number = 0) => ({
     show: true,
+    changeFromStart: Boolean(Number(changeFromStartEnabled)),
     resetGraphZoom(chartId: string): void {
         chartRenderer.resetZoom(chartId);
     },
-    loadGraph(chartId: any, chartDataUrl: string, type: ChartType, shouldUpdateOnAjaxRequest: number): boolean {
+    setGraphChangeFromStart(chartId: string, changeFromStart: boolean): void {
+        this.changeFromStart = changeFromStart;
+        chartRenderer.setLineChartChangeFromStart(chartId, changeFromStart);
+    },
+    loadGraph(chartId: string, chartDataUrl: string, type: ChartType, shouldUpdateOnAjaxRequest: number): boolean {
         const chartCanvasElement = <HTMLCanvasElement>document.getElementById(chartId);
         const shouldUpdateOnAjaxRequestValue = Boolean(Number(shouldUpdateOnAjaxRequest));
 
         if (type.valueOf() === ChartType.LINE.valueOf()) {
-            chartRenderer.createLineChart(chartCanvasElement, chartDataUrl, chartId, shouldUpdateOnAjaxRequestValue)
+            chartRenderer.createLineChart(
+                chartCanvasElement,
+                chartDataUrl,
+                chartId,
+                shouldUpdateOnAjaxRequestValue,
+                this.changeFromStart,
+            );
             return true;
         }
 

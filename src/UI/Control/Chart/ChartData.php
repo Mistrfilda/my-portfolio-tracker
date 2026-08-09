@@ -26,6 +26,9 @@ class ChartData implements JsonSerializable
 	public function __construct(
 		private string $label,
 		private bool $useBackgroundColors = true,
+		private bool $stepped = false,
+		private float|null $tension = null,
+		private bool $weeklyValueLabels = false,
 	)
 	{
 		$this->labels = [];
@@ -49,12 +52,20 @@ class ChartData implements JsonSerializable
 	 */
 	public function jsonSerialize(): array
 	{
-		return [
+		$data = [
 			'label' => $this->label,
 			'data' => $this->data,
 			'backgroundColors' => $this->backgroundColors,
 			'borderColors' => $this->borderColors,
+			'stepped' => $this->stepped,
+			'weeklyValueLabels' => $this->weeklyValueLabels,
 		];
+
+		if ($this->tension !== null) {
+			$data['tension'] = $this->tension;
+		}
+
+		return $data;
 	}
 
 	/**

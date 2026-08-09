@@ -1,13 +1,35 @@
 {templateType App\UI\Control\Chart\ChartControlTemplate}
 <div
         class="w-full h-full flex flex-col"
-        x-data="loadChart()"
+        x-data="loadChart({$changeFromStartEnabled})"
         x-init="() => { loadGraph('{$chartId}', '{link getChartData!}', '{$chartType}', '{$shouldUpdateOnAjaxRequest}') }"
 >
-    <div n:if="$chartType === 'line'" class="mb-2 flex justify-end">
+    <div n:if="$chartType === 'line'" class="mb-3 flex flex-wrap items-start justify-between gap-3">
+        <div n:if="$changeFromStartEnabled === 1" class="min-w-0">
+            <div class="inline-flex rounded-lg bg-gray-100 p-1" role="group" aria-label="Zobrazení hodnot grafu">
+                <button
+                        type="button"
+                        class="rounded-md px-2.5 py-1.5 text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        :class="changeFromStart ? 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-900/5' : 'text-gray-500 hover:text-gray-700'"
+                        :aria-pressed="changeFromStart"
+                        @click="setGraphChangeFromStart('{$chartId}', true)"
+                >Změna</button>
+                <button
+                        type="button"
+                        class="rounded-md px-2.5 py-1.5 text-xs font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        :class="changeFromStart ? 'text-gray-500 hover:text-gray-700' : 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-900/5'"
+                        :aria-pressed="!changeFromStart"
+                        @click="setGraphChangeFromStart('{$chartId}', false)"
+                >Celkové hodnoty</button>
+            </div>
+            <p
+                    class="mt-1.5 text-xs text-gray-500"
+                    x-text="changeFromStart ? 'Změna vůči prvnímu dni období' : 'Absolutní hodnota v jednotlivých dnech'"
+            >Změna vůči prvnímu dni období</p>
+        </div>
         <button
                 type="button"
-                class="rounded-md bg-white/90 px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                class="ml-auto rounded-md bg-white/90 px-2.5 py-1.5 text-xs font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-200 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 aria-label="Obnovit původní měřítko grafu"
                 @click="resetGraphZoom('{$chartId}')"
         >Obnovit měřítko</button>
