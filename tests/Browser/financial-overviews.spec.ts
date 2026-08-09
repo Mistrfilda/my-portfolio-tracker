@@ -23,6 +23,8 @@ test('monthly income dashboard keeps the primary progress and detailed scenarios
 		await expect(incomeDetails).not.toHaveAttribute('open');
 		await page.getByText('Kompletní plán cílů', { exact: true }).click();
 		await expect(goalsDetails).toHaveAttribute('open');
+		await expect(goalsDetails.getByRole('columnheader', { name: 'Ø / kalendářní den' })).toBeVisible();
+		await expect(goalsDetails.getByRole('columnheader', { name: 'Ø / pracovní den' })).toBeVisible();
 
 		await page.setViewportSize({ width: 390, height: 844 });
 		await expectNoHorizontalPageOverflow(page);

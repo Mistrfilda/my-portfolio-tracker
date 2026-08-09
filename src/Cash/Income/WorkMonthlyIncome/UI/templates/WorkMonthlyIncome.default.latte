@@ -177,7 +177,7 @@
 			</section>
 
 			<div class="grid gap-4 lg:grid-cols-2">
-				<details class="group rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<details class="group min-w-0 rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
 					<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-4 py-5 sm:px-6">
 						<div>
 							<h2 class="text-base font-semibold text-gray-900">Kompletní plán cílů</h2>
@@ -192,7 +192,8 @@
 									<th class="py-3 pl-4 pr-3 text-left sm:pl-6">Částka</th>
 									<th class="px-3 py-3 text-right">Celkem h</th>
 									<th class="px-3 py-3 text-right">Zbývá h</th>
-									<th class="py-3 pl-3 pr-4 text-right sm:pr-6">Ø / den</th>
+									<th class="px-3 py-3 text-right">Ø / kalendářní den</th>
+									<th class="py-3 pl-3 pr-4 text-right sm:pr-6">Ø / pracovní den</th>
 								</tr>
 							</thead>
 							<tbody class="divide-y divide-gray-100">
@@ -201,7 +202,8 @@
 										<td class="whitespace-nowrap py-3 pl-4 pr-3 font-medium text-gray-900 sm:pl-6">{$goal['amount']}</td>
 										<td class="whitespace-nowrap px-3 py-3 text-right text-gray-600">{$goal['requiredHours']}</td>
 										<td class="whitespace-nowrap px-3 py-3 text-right text-gray-600">{$goal['remainingHours']}</td>
-										<td class="whitespace-nowrap py-3 pl-3 pr-4 text-right text-gray-600 sm:pr-6">{$goal['allDaysAverage'] === null ? '—' : $goal['allDaysAverage']}</td>
+										<td class="whitespace-nowrap px-3 py-3 text-right text-gray-600">{$goal['allDaysAverage'] === null ? '—' : $goal['allDaysAverage']}</td>
+										<td class="whitespace-nowrap py-3 pl-3 pr-4 text-right text-gray-600 sm:pr-6">{$goal['workDaysAverage'] === null ? '—' : $goal['workDaysAverage']}</td>
 									</tr>
 								{/foreach}
 							</tbody>
