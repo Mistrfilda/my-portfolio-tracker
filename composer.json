@@ -136,6 +136,7 @@
 		"build-all-local": [
 			"@comload",
 			"@build-all",
+			"npm run lint",
 			"@acceptance-test"
 		],
 		"build-all": [

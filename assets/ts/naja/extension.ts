@@ -1,4 +1,4 @@
-import naja, {Naja} from "naja";
+import {Naja} from "naja";
 import {SpinnerExtension} from "./extension/spinnerExtension";
 
 export function registerExtensions(naja: Naja) {

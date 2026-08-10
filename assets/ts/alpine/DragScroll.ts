@@ -1,3 +1,6 @@
+type AlpineElementWithCleanups = HTMLElement & {
+    _x_cleanups?: Array<() => void>;
+};
 
 /**
  * Alpine.js drag-to-scroll component
@@ -16,7 +19,7 @@ export default function dragScroll(scrollSpeed: number = 2, threshold: number = 
         startX: 0,
         scrollLeft: 0,
         hasMoved: false,
-        $el: null as any,
+        $el: null as unknown as AlpineElementWithCleanups,
 
         init() {
             // Add global mouseup listener to catch mouseup outside element

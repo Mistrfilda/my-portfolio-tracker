@@ -6,5 +6,5 @@ import { defineConfig } from "eslint/config";
 export default defineConfig([
   { files: ["**/*.{js,mjs,cjs,ts,mts,cts}"], languageOptions: { globals: globals.browser } },
   tseslint.configs.recommended,
-  { files: ["**/*.css"], plugins: { css }, language: "css/css" },
+  { files: ["**/*.css"], plugins: { css }, language: "css/css", languageOptions: { tolerant: true } },
 ]);

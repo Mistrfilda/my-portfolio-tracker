@@ -1,19 +1,19 @@
 declare global {
     interface Window {
-        frontMenu: any;
-        dropdown: any;
-        Alpine: any;
-        flashMessage: any;
-        datagridFilter: any;
-        photosModal: any;
-        modal: any;
-        loadChart: any;
-        expenseMainTag: any;
-        addExpenseOtherTag: any;
-        removeOtherTag: any;
-        currencyConvert: any;
-        stockValuationModelData: any;
-        dragScroll: any;
+        frontMenu: unknown;
+        dropdown: unknown;
+        Alpine: unknown;
+        flashMessage: unknown;
+        datagridFilter: unknown;
+        photosModal: unknown;
+        modal: unknown;
+        loadChart: unknown;
+        expenseMainTag: unknown;
+        addExpenseOtherTag: unknown;
+        removeOtherTag: unknown;
+        currencyConvert: unknown;
+        stockValuationModelData: unknown;
+        dragScroll: unknown;
     }
 }
 

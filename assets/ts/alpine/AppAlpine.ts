@@ -1,8 +1,7 @@
 //ALPINE
-//@ts-ignore
+// @ts-expect-error alpinejs does not provide TypeScript declarations.
 import Alpine from 'alpinejs';
 
-// @ts-ignore
 import {ChartRenderer} from "../chart/ChartRenderer";
 import {ChartType} from "../chart/ChartType";
 import {ChartInstance} from "../chart/ChartInstance";
@@ -17,6 +16,14 @@ registerExtensions(naja);
 
 const loadedCharts: Array<ChartInstance> = [];
 const chartRenderer = new ChartRenderer(naja, loadedCharts);
+
+interface SelectConfig {
+    data: Record<string, string>;
+    emptyOptionsMessage?: string;
+    name: string;
+    placeholder?: string;
+    value: string | null;
+}
 
 naja.addEventListener(
     'complete',
@@ -76,19 +83,18 @@ Alpine.data('flashMessage', () => ({
 }));
 
 
-Alpine.data('select', (config: any) => ({
+Alpine.data('select', (config: SelectConfig) => ({
     data: config.data,
 
     emptyOptionsMessage: config.emptyOptionsMessage ?? 'Nebyl nalezen žádný výsledek',
 
-    // @ts-ignore
-    focusedOptionIndex: null,
+    focusedOptionIndex: null as number | null,
 
     name: config.name,
 
     open: false,
 
-    options: {},
+    options: {} as Record<string, string>,
 
     placeholder: config.placeholder ?? '-- vyberte --',
 
@@ -139,10 +145,9 @@ Alpine.data('select', (config: any) => ({
             this.options = Object.keys(this.data)
                 .filter((key) => this.data[key].toLowerCase().includes(value.toLowerCase()))
                 .reduce((options, key) => {
-                    // @ts-ignore
                     options[key] = this.data[key]
                     return options
-                }, {})
+                }, {} as Record<string, string>)
         }))
     },
 
@@ -397,11 +402,13 @@ Alpine.data('stockValuationModelData', (totalColumns: number) => ({
     close(focusAfter?: HTMLElement) {
         if (!this.open) return
         this.open = false
-        focusAfter && focusAfter.focus()
+        if (focusAfter) {
+            focusAfter.focus()
+        }
     },
     toggleColumn(index: number) {
         if (this.hiddenColumns.includes(index)) {
-            let idx = this.hiddenColumns.indexOf(index);
+            const idx = this.hiddenColumns.indexOf(index);
             this.hiddenColumns.splice(idx, 1);
         } else {
             this.hiddenColumns.push(index);
