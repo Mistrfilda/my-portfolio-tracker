@@ -1,0 +1,269 @@
+{templateType App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanTemplate}
+
+{block #content}
+	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+		<a n:href="default" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+			← Zpět na investiční plány
+		</a>
+		{if $plan !== null}
+			<a n:href="StockAiAnalysis:detail, id: $plan->getReferenceAnalysisRun()->getId()->toString()" class="inline-flex items-center text-sm font-semibold text-gray-600 hover:text-gray-900">
+				Otevřít referenční analýzu
+			</a>
+		{/if}
+	</div>
+
+	{if $plan !== null}
+		<section aria-labelledby="capital-summary" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+				<div>
+					<h2 id="capital-summary" class="text-base font-semibold text-gray-900">Kapitál a výchozí portfolio</h2>
+					<p class="mt-1 text-sm text-gray-500">Hodnoty jsou neměnným snapshotem z {$plan->getCreatedAt()|datetimeFormat:App\Utils\Datetime\DatetimeConst::SYSTEM_DATETIME_FORMAT}.</p>
+				</div>
+				{if $plan->getProcessedAt() !== null}
+					<span class="inline-flex w-fit items-center rounded-full bg-green-50 px-3 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+						Zpracováno v Codexu
+					</span>
+				{else}
+					<span class="inline-flex w-fit items-center rounded-full bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-600/20">
+						Čeká na výsledek z Codexu
+					</span>
+				{/if}
+			</div>
+			<dl class="grid grid-cols-1 divide-y divide-gray-100 sm:grid-cols-2 sm:divide-x sm:divide-y-0 lg:grid-cols-4">
+				<div class="px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Částka k investování</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{$plan->getRequestedAmount()|assetPriceFormat}</dd>
+					{if $plan->getRequestedAmount()->getCurrency() !== App\Currency\CurrencyEnum::CZK}
+						<p class="mt-1 text-xs text-gray-500">{$plan->getRequestedAmountInCzk()|assetPriceFormat}</p>
+					{/if}
+				</div>
+				<div class="px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Hodnota akciového portfolia</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{$plan->getPortfolioValue()|assetPriceFormat}</dd>
+					<p class="mt-1 text-xs text-gray-500">Pouze aktuálně otevřené akciové pozice</p>
+				</div>
+				<div class="px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Podíl vůči dnešnímu portfoliu</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-blue-700">{$plan->getRequestedAmountToPortfolioPercent()|percentage}</dd>
+					<p class="mt-1 text-xs text-gray-500">částka ÷ současná hodnota</p>
+				</div>
+				<div class="px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Podíl po vložení částky</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900">{$plan->getRequestedAmountToProjectedPortfolioPercent()|percentage}</dd>
+					<p class="mt-1 text-xs text-gray-500">částka ÷ portfolio po investici</p>
+				</div>
+			</dl>
+		</section>
+
+		{if $plan->getProcessedAt() === null}
+			<section aria-labelledby="codex-workflow" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-sky-200">
+				<div class="border-b border-sky-100 bg-sky-50 px-5 py-4 sm:px-6">
+					<h2 id="codex-workflow" class="text-base font-semibold text-sky-900">Zpracování investičního plánu v Codexu</h2>
+					<p class="mt-1 max-w-3xl text-sm leading-6 text-sky-800">ZIP už obsahuje aktuální data, investiční profil, referenční analýzu i validační schéma.</p>
+				</div>
+				<ol class="divide-y divide-gray-100">
+					<li class="flex gap-4 px-5 py-5 sm:px-6">
+						<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">1</span>
+						<div>
+							<h3 class="text-sm font-semibold text-gray-900">Stáhnout a rozbalit Codex projekt</h3>
+							<p class="mt-1 text-sm leading-6 text-gray-600">Vstupy jsou snapshotem a po vytvoření plánu se už nemění.</p>
+							<a n:href="downloadCodexBundle, id: $plan->getId()->toString()" class="mt-3 inline-flex items-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700">
+								Stáhnout Codex projekt
+							</a>
+						</div>
+					</li>
+					<li class="flex gap-4 px-5 py-5 sm:px-6">
+						<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">2</span>
+						<div class="min-w-0 flex-1">
+							<h3 class="text-sm font-semibold text-gray-900">Otevřít složku v Codexu a spustit analýzu</h3>
+							<p class="mt-1 text-sm leading-6 text-gray-600">Povolte webové vyhledávání a pošlete přesně tuto zprávu:</p>
+							<pre class="mt-3 overflow-x-auto rounded-md bg-gray-900 px-4 py-3 text-sm text-gray-100"><code>{$codexStartPrompt}</code></pre>
+						</div>
+					</li>
+					<li class="flex gap-4 px-5 py-5 sm:px-6">
+						<span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-sky-100 text-sm font-semibold text-sky-800">3</span>
+						<div class="min-w-0 flex-1">
+							<h3 class="text-sm font-semibold text-gray-900">Nahrát hotový result.json</h3>
+							<p class="mt-1 text-sm leading-6 text-gray-600">Při importu se ověří schéma, rozpočet, identity akcií, bezpečnost dividend i valuace.</p>
+							<div class="mt-4 max-w-2xl">{control codexResultForm}</div>
+						</div>
+					</li>
+				</ol>
+			</section>
+
+			<details class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<summary class="cursor-pointer px-5 py-4 text-sm font-semibold text-gray-900 sm:px-6">Zobrazit úplný vygenerovaný prompt</summary>
+				<div class="border-t border-gray-100 px-5 py-5 sm:px-6">
+					<pre class="max-h-[36rem] overflow-auto whitespace-pre-wrap rounded-lg bg-gray-50 p-4 text-xs leading-5 text-gray-800">{$generatedPromptForDisplay}</pre>
+				</div>
+			</details>
+		{else}
+			{var $decision = $plan->getDecision()}
+			{var $allocations = $plan->getAllocations()}
+			{var $portfolioImpact = $plan->getPortfolioImpact()}
+
+			<section aria-labelledby="plan-decision" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
+					<div class="flex flex-wrap items-center justify-between gap-3">
+						<h2 id="plan-decision" class="text-base font-semibold text-gray-900">Rozhodnutí</h2>
+						<span class="inline-flex items-center rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
+							Jistota: {$decision['confidence']}
+						</span>
+					</div>
+				</div>
+				<div class="px-5 py-5 sm:px-6">
+					<p class="text-base leading-7 text-gray-800">{$decision['summary']}</p>
+					<dl class="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-3">
+						<div class="rounded-lg bg-gray-50 p-4">
+							<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Strategie nasazení</dt>
+							<dd class="mt-2 text-lg font-semibold text-gray-900">
+								{if $decision['deployment'] === 'invest_all'}Investovat vše{elseif $decision['deployment'] === 'invest_part'}Investovat část{else}Ponechat hotovost{/if}
+							</dd>
+						</div>
+						<div class="rounded-lg bg-green-50 p-4">
+							<dt class="text-xs font-medium uppercase tracking-wide text-green-700">Investovat</dt>
+							<dd class="mt-2 text-lg font-semibold text-green-900">{$decision['deployAmountCzk']|currency:App\Currency\CurrencyEnum::CZK}</dd>
+						</div>
+						<div class="rounded-lg bg-amber-50 p-4">
+							<dt class="text-xs font-medium uppercase tracking-wide text-amber-700">Ponechat v hotovosti</dt>
+							<dd class="mt-2 text-lg font-semibold text-amber-900">{$decision['cashReserveCzk']|currency:App\Currency\CurrencyEnum::CZK}</dd>
+						</div>
+					</dl>
+					{if $decision['stagingPlan'] !== null}
+						<div class="mt-5 rounded-lg border border-blue-100 bg-blue-50 p-4">
+							<h3 class="text-sm font-semibold text-blue-900">Postupné nákupy</h3>
+							<p class="mt-1 text-sm leading-6 text-blue-800">{$decision['stagingPlan']}</p>
+						</div>
+					{/if}
+				</div>
+			</section>
+
+			<section aria-labelledby="plan-allocations" class="mb-6">
+				<div class="mb-4">
+					<h2 id="plan-allocations" class="text-base font-semibold text-gray-900">Doporučené nákupy</h2>
+					<p class="mt-1 text-sm text-gray-500">Částky a dopad na váhy portfolia jsou dopočítané proti uloženému snapshotu.</p>
+				</div>
+				{if $allocations === []}
+					<div class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
+						Codex nenašel nákup, který by splnil požadavky na dividendovou bezpečnost, valuaci a datovou kvalitu.
+					</div>
+				{else}
+					<div class="space-y-5">
+						{foreach $allocations as $allocation}
+							{var $dividend = $allocation['dividendSafety']}
+							{var $valuation = $allocation['valuation']}
+							{var $calculated = $allocation['calculated']}
+							<article class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+								<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
+									<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+										<div>
+											<div class="flex flex-wrap items-center gap-2">
+												<h3 class="text-lg font-semibold text-gray-900">{$allocation['stockAssetName']} ({$allocation['stockAssetTicker']})</h3>
+												<span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700">
+													{if $allocation['source'] === 'portfolio'}Portfolio{elseif $allocation['source'] === 'watchlist'}Watchlist{else}Nová akcie{/if}
+												</span>
+												<span class="rounded-full bg-green-50 px-2.5 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">Dividenda: {$dividend['status']}</span>
+											</div>
+											<p class="mt-1 text-sm text-gray-500">{$allocation['currency']}{if $allocation['exchange'] !== null} · {$allocation['exchange']}{/if} · data {$allocation['dataQuality']['status']}</p>
+										</div>
+										<div class="shrink-0 text-left sm:text-right">
+											<p class="text-xl font-semibold text-gray-900">{$allocation['allocationAmountCzk']|currency:App\Currency\CurrencyEnum::CZK}</p>
+											<p class="mt-1 text-xs text-gray-500">{$calculated['allocationPercentOfBudget']|percentage} rozpočtu</p>
+										</div>
+									</div>
+								</div>
+								<div class="grid grid-cols-1 gap-0 lg:grid-cols-3">
+									<div class="px-5 py-5 sm:px-6 lg:col-span-2">
+										<h4 class="text-sm font-semibold text-gray-900">Investiční teze</h4>
+										<p class="mt-2 text-sm leading-6 text-gray-700">{$allocation['investmentThesis']}</p>
+										<h4 class="mt-5 text-sm font-semibold text-gray-900">Proč nyní</h4>
+										<p class="mt-2 text-sm leading-6 text-gray-700">{$allocation['whyNow']}</p>
+										<div class="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+											<div class="rounded-lg bg-gray-50 p-3"><div class="text-xs text-gray-500">Váha před nákupem</div><div class="mt-1 font-semibold text-gray-900">{$calculated['beforePortfolioPercent']|percentage}</div></div>
+											<div class="rounded-lg bg-blue-50 p-3"><div class="text-xs text-blue-700">Odhad váhy po nákupu</div><div class="mt-1 font-semibold text-blue-900">{$calculated['projectedPortfolioPercent']|percentage}</div></div>
+											<div class="rounded-lg bg-gray-50 p-3"><div class="text-xs text-gray-500">Orientační počet kusů</div><div class="mt-1 font-semibold text-gray-900">{$allocation['estimatedWholeShares'] ?? 'N/A'}</div></div>
+										</div>
+									</div>
+									<div class="border-t border-gray-100 bg-gray-50 px-5 py-5 sm:px-6 lg:border-l lg:border-t-0">
+										<h4 class="text-sm font-semibold text-gray-900">Bezpečnost dividendy</h4>
+										<p class="mt-2 text-sm leading-6 text-gray-700">{$dividend['summary']}</p>
+										<dl class="mt-4 space-y-3 text-sm">
+											{if $dividend['dividendYieldPercent'] !== null}<div><dt class="text-gray-500">Dividendový výnos</dt><dd class="font-medium text-gray-900">{$dividend['dividendYieldPercent']|percentage}</dd></div>{/if}
+											{if $dividend['earningsPayoutRatioPercent'] !== null}<div><dt class="text-gray-500">Payout ratio ze zisku</dt><dd class="font-medium text-gray-900">{$dividend['earningsPayoutRatioPercent']|percentage}</dd></div>{/if}
+											{if $dividend['cashFlowPayoutRatioPercent'] !== null}<div><dt class="text-gray-500">Payout ratio z cash flow</dt><dd class="font-medium text-gray-900">{$dividend['cashFlowPayoutRatioPercent']|percentage}</dd></div>{/if}
+											<div><dt class="text-gray-500">Historie</dt><dd class="mt-1 text-gray-900">{$dividend['dividendHistory']}</dd></div>
+											<div><dt class="text-gray-500">Dluh</dt><dd class="mt-1 text-gray-900">{$dividend['debtAssessment']}</dd></div>
+											<div><dt class="text-gray-500">Sektorové krytí</dt><dd class="mt-1 text-gray-900">{$dividend['sectorAppropriateCoverage']}</dd></div>
+										</dl>
+									</div>
+								</div>
+								<div class="border-t border-gray-100 px-5 py-5 sm:px-6">
+									<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+										<div>
+											<h4 class="text-sm font-semibold text-gray-900">Valuace: {$valuation['assessment']}</h4>
+											<p class="mt-2 text-sm leading-6 text-gray-700">{$valuation['summary']}</p>
+											{if $valuation['fairValueBase'] !== null}
+												<p class="mt-2 text-sm font-medium text-gray-900">Férové rozpětí {$valuation['fairValueLow']|number:2}–{$valuation['fairValueHigh']|number:2} {$valuation['currency']} · základ {$valuation['fairValueBase']|number:2} {$valuation['currency']}</p>
+												<p class="mt-1 text-xs text-gray-500">Metoda: {$valuation['method']}</p>
+											{/if}
+										</div>
+										<div>
+											<h4 class="text-sm font-semibold text-gray-900">Hlavní rizika</h4>
+											<ul class="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-700">
+												{foreach $allocation['keyRisks'] as $risk}<li>{$risk}</li>{/foreach}
+											</ul>
+										</div>
+									</div>
+								</div>
+							</article>
+						{/foreach}
+					</div>
+				{/if}
+			</section>
+
+			<div class="mb-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<section aria-labelledby="portfolio-impact" class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-900/5 sm:p-6">
+					<h2 id="portfolio-impact" class="text-base font-semibold text-gray-900">Dopad na portfolio</h2>
+					<p class="mt-3 text-sm leading-6 text-gray-700">{$portfolioImpact['summary']}</p>
+					<p class="mt-3 text-sm font-medium text-gray-900">Diverzifikace: {$portfolioImpact['diversificationAssessment']}</p>
+					{if $portfolioImpact['concentrationRisksAfter'] !== []}
+						<ul class="mt-3 list-disc space-y-1 pl-5 text-sm leading-6 text-gray-700">
+							{foreach $portfolioImpact['concentrationRisksAfter'] as $risk}<li>{$risk}</li>{/foreach}
+						</ul>
+					{/if}
+				</section>
+
+				<section aria-labelledby="plan-risks" class="rounded-xl bg-white p-5 shadow-sm ring-1 ring-gray-900/5 sm:p-6">
+					<h2 id="plan-risks" class="text-base font-semibold text-gray-900">Rizika celého plánu</h2>
+					{if $plan->getKeyRisks() === []}
+						<p class="mt-3 text-sm text-gray-500">Nebyla uvedena další rizika.</p>
+					{else}
+						<ul class="mt-3 list-disc space-y-2 pl-5 text-sm leading-6 text-gray-700">
+							{foreach $plan->getKeyRisks() as $risk}<li>{$risk}</li>{/foreach}
+						</ul>
+					{/if}
+				</section>
+			</div>
+
+			{if $plan->getAlternatives() !== []}
+				<section aria-labelledby="plan-alternatives" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
+						<h2 id="plan-alternatives" class="text-base font-semibold text-gray-900">Zvažované alternativy</h2>
+					</div>
+					<ul class="divide-y divide-gray-100">
+						{foreach $plan->getAlternatives() as $alternative}
+							<li class="px-5 py-4 sm:px-6">
+								<div class="flex flex-wrap items-baseline justify-between gap-2">
+									<h3 class="text-sm font-semibold text-gray-900">{$alternative['stockAssetName']} ({$alternative['stockAssetTicker']})</h3>
+									<span class="text-xs font-medium uppercase tracking-wide text-gray-500">{$alternative['source']}</span>
+								</div>
+								<p class="mt-2 text-sm leading-6 text-gray-700"><strong>Proč ne:</strong> {$alternative['reasonRejected']}</p>
+								<p class="mt-1 text-sm leading-6 text-gray-700"><strong>Sledovat:</strong> {$alternative['watchCondition']}</p>
+							</li>
+						{/foreach}
+					</ul>
+				</section>
+			{/if}
+		{/if}
+	{/if}
+{/block}

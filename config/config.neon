@@ -359,6 +359,18 @@ services:
 	- App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControlFactory
 	- App\Stock\AiAnalysis\UI\Control\StockAiValuationComparisonControlFactory
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanCalculator
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanSchemaFactory
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanSnapshotFactory
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanPromptGenerator
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanResponseValidator
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanFacade
+	- App\Stock\AiAnalysis\InvestmentPlan\Codex\StockAiInvestmentPlanCodexBundleFactory(tempDir: %tempDir%)
+	- App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanRepository(App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlan)
+	- App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanFormFactory
+	- App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanCodexResultFormFactory
+	- App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanGridFactory
+	- App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanPresenter
 
 	#Portu asset
 	- App\Portu\Asset\PortuAssetRepository(App\Portu\Asset\PortuAsset)

@@ -45,6 +45,28 @@ class StockAiAnalysisRunRepository extends BaseRepository
 		return $this->doctrineRepository->findBy([], ['createdAt' => 'DESC']);
 	}
 
+	/**
+	 * @return array<StockAiAnalysisRun>
+	 */
+	public function findCompletedPortfolioEvaluations(): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');
+		$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.analysisSchemaVersion', ':schemaVersion'));
+		$qb->andWhere($qb->expr()->isNotNull('stockAiAnalysisRun.processedAt'));
+		$qb->andWhere($qb->expr()->isNotNull('stockAiAnalysisRun.structuredData'));
+		$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.includesPortfolio', ':includesPortfolio'));
+		$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.portfolioPromptType', ':portfolioPromptType'));
+		$qb->setParameter('schemaVersion', 2);
+		$qb->setParameter('includesPortfolio', true);
+		$qb->setParameter('portfolioPromptType', StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION);
+		$qb->orderBy('stockAiAnalysisRun.processedAt', 'DESC');
+
+		/** @var array<StockAiAnalysisRun> $results */
+		$results = $qb->getQuery()->getResult();
+
+		return $results;
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');

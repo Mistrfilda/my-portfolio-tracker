@@ -62,7 +62,13 @@ class MenuBuilder
 					['StockAssetDetail'],
 				),
 				new MenuItem('StockAssetClosedPositionDetail', 'default', SvgIcon::ADJUSTMENTS, 'Zavřené pozice'),
-				new MenuItem('StockAiAnalysis', 'default', SvgIcon::MAGNIFYING_GLASS, 'AI analýza'),
+				new MenuItem(
+					'StockAiAnalysis',
+					'default',
+					SvgIcon::MAGNIFYING_GLASS,
+					'AI analýza',
+					['StockAiInvestmentPlan'],
+				),
 			]),
 			new MenuGroup('Dividendy', SvgIcon::ARROW_TRENDING_UP, [
 				new MenuItem(

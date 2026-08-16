@@ -51,4 +51,5 @@ custompresenterfactory:
 		Admin:HomeDeviceEdit: App\Home\Device\UI\HomeDeviceEditPresenter
 		Admin:HomeDeviceRecord: App\Home\Device\Record\UI\HomeDeviceRecordPresenter
 		Admin:StockAiAnalysis: App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter
+		Admin:StockAiInvestmentPlan: App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanPresenter
 		Admin:StockValuationOverview: App\Stock\Valuation\UI\StockValuationOverviewPresenter

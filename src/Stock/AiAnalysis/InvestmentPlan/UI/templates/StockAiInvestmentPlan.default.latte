@@ -1,0 +1,29 @@
+{templateType App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanTemplate}
+
+{block #content}
+	<div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+		<div>
+			<p class="max-w-3xl text-sm leading-6 text-gray-600">
+				Vytvořte samostatné doporučení, jak naložit s konkrétní volnou částkou. Plán porovná stávající pozice,
+				watchlist i podobné dividendové akcie a může doporučit ponechat část hotovosti nezainvestovanou.
+			</p>
+		</div>
+		<a n:href="StockAiAnalysis:default" class="inline-flex shrink-0 items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
+			Zpět na AI analýzy
+		</a>
+	</div>
+
+	<div class="mb-8">
+		{control investmentPlanForm}
+	</div>
+
+	<section aria-labelledby="investment-plan-history" class="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+		<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
+			<h2 id="investment-plan-history" class="text-base font-semibold text-gray-900">Předchozí investiční plány</h2>
+			<p class="mt-1 text-sm text-gray-500">Každý plán zachovává částku, hodnotu portfolia a zdrojovou analýzu z okamžiku vytvoření.</p>
+		</div>
+		<div class="p-5 sm:p-6">
+			{control investmentPlanGrid}
+		</div>
+	</section>
+{/block}

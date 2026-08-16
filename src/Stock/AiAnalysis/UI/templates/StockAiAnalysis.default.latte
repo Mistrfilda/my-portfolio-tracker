@@ -1,6 +1,18 @@
 {templateType App\Stock\AiAnalysis\UI\StockAiAnalysisTemplate}
 
 {block #content}
+	<div class="mb-8 overflow-hidden rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 shadow-sm ring-1 ring-sky-100">
+		<div class="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+			<div>
+				<h2 class="text-base font-semibold text-sky-950">Máte volnou hotovost k investování?</h2>
+				<p class="mt-1 max-w-3xl text-sm leading-6 text-sky-800">Nový plán přepočítá částku vůči portfoliu a v Codexu porovná stávající pozice, watchlist i podobné dividendové akcie.</p>
+			</div>
+			<a n:href="StockAiInvestmentPlan:default" class="inline-flex shrink-0 items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700">
+				Vytvořit investiční plán
+			</a>
+		</div>
+	</div>
+
 	<div class="overflow-hidden mb-8">
 		<h2 class="text-lg font-medium text-gray-900 mb-4">Minulé analýzy</h2>
 		{control aiAnalysisGrid}
