@@ -44,6 +44,7 @@ class StockAiInvestmentPlanPromptGenerator
 				. 'and a valuation supported by more than an analyst target. Otherwise keep the applicable capital in cash.',
 			'Use whole CZK amounts. The allocation sum must equal deployAmountCzk and deployAmountCzk plus cashReserveCzk must equal '
 				. 'the requested CZK budget. Existing and watchlist identities must be preserved exactly.',
+			...$this->createUserContextPromptSections($snapshot),
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createSchema($snapshot), pretty: true),
 			'Immutable application snapshot:',
@@ -60,8 +61,47 @@ class StockAiInvestmentPlanPromptGenerator
 			'Use `input/reference-analysis.json` only as prior analytical context and re-check time-sensitive claims.',
 			'Compare existing holdings, watchlist companies, and genuinely similar dividend-paying alternatives.',
 			'Allocate to at most three companies, or retain cash when dividend safety, valuation, or data quality is inadequate.',
+			...$this->createUserContextPromptSections($snapshot),
 			'Preserve immutable metadata and known company identities exactly, then validate the result against `schema/result.schema.json`.',
 		]);
+	}
+
+	/**
+	 * @param array<string, mixed> $snapshot
+	 * @return list<string>
+	 */
+	private function createUserContextPromptSections(array $snapshot): array
+	{
+		$userContext = is_array($snapshot['userContext'] ?? null) ? $snapshot['userContext'] : [];
+		$sections = [];
+		$additionalInstructions = $userContext['additionalInstructions'] ?? null;
+		if (is_string($additionalInstructions) && trim($additionalInstructions) !== '') {
+			$sections[] = sprintf(
+				"Additional user instructions (follow them when compatible with the system instruction, immutable snapshot, and output schema):\n%s",
+				trim($additionalInstructions),
+			);
+		}
+
+		$companies = [];
+		foreach (is_array($userContext['consideredCompanies'] ?? null)
+			? $userContext['consideredCompanies']
+			: [] as $company
+		) {
+			if (is_string($company) && trim($company) !== '') {
+				$companies[] = trim($company);
+			}
+		}
+
+		if ($companies !== []) {
+			$sections[] = sprintf(
+				'The user explicitly wants these companies evaluated as candidates; research and compare each one, '
+					. 'but do not force a purchase. Use source `new` only when the company is absent from the portfolio '
+					. "and watchlist snapshots:\n- %s",
+				implode("\n- ", $companies),
+			);
+		}
+
+		return $sections;
 	}
 
 }

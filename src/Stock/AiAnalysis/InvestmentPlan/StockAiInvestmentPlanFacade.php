@@ -42,6 +42,8 @@ class StockAiInvestmentPlanFacade
 		float $requestedAmount,
 		CurrencyEnum $requestedCurrency,
 		UuidInterface $referenceAnalysisRunId,
+		string $additionalInstructions,
+		string $consideredCompanies,
 	): StockAiInvestmentPlan
 	{
 		if (!is_finite($requestedAmount) || $requestedAmount <= 0) {
@@ -83,6 +85,8 @@ class StockAiInvestmentPlanFacade
 			$currentPercent,
 			$projectedPercent,
 			$referenceAnalysisRun,
+			$additionalInstructions,
+			$consideredCompanies,
 		);
 		$plan = new StockAiInvestmentPlan(
 			$referenceAnalysisRun,

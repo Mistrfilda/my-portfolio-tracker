@@ -14,6 +14,7 @@ use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
+use Nette\Utils\Json;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use ZipArchive;
@@ -45,6 +46,10 @@ class StockAiInvestmentPlanCodexBundleFactoryTest extends TestCase
 			'analysisAsOf' => '2026-08-16T16:30:00+02:00',
 			'capital' => ['requestedAmountCzk' => 40_000.0],
 			'investorProfile' => ['strategy' => 'dividend_income_primary'],
+			'userContext' => [
+				'additionalInstructions' => 'Prefer companies with at least ten years of dividend growth.',
+				'consideredCompanies' => ['Realty Income (O)', 'Visa (V)'],
+			],
 			'portfolio' => [],
 			'watchlist' => [],
 			'portfolioContext' => [],
@@ -86,6 +91,17 @@ class StockAiInvestmentPlanCodexBundleFactoryTest extends TestCase
 			self::assertNotFalse($zip->locateName('input/context.json'));
 			self::assertNotFalse($zip->locateName('input/reference-analysis.json'));
 			self::assertFalse($zip->locateName('result.json'));
+			$context = Json::decode((string) $zip->getFromName('input/context.json'), forceArrays: true);
+			self::assertIsArray($context);
+			self::assertSame($snapshot['userContext'], $context['userContext']);
+			self::assertStringContainsString(
+				'Prefer companies with at least ten years of dividend growth.',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
+			self::assertStringContainsString(
+				'userContext.consideredCompanies',
+				(string) $zip->getFromName('AGENTS.md'),
+			);
 			self::assertStringContainsString(
 				StockAiInvestmentPlanCodexBundleFactory::START_PROMPT,
 				(string) $zip->getFromName('AGENTS.md'),

@@ -57,6 +57,17 @@ class StockAiInvestmentPlanFormFactory
 			->setDefaultValue(CurrencyEnum::CZK->value)
 			->setRequired('Vyberte měnu částky.');
 
+		$form->addTextArea('additionalInstructions', 'Vlastní doplnění promptu (volitelné)')
+			->setHtmlAttribute('rows', 4)
+			->setHtmlAttribute(
+				'placeholder',
+				'Např. upřednostni stabilitu dividendy a neinvestuj do tabákových společností.',
+			);
+
+		$form->addTextArea('consideredCompanies', 'Další zvažované společnosti (volitelné)')
+			->setHtmlAttribute('rows', 4)
+			->setHtmlAttribute('placeholder', "Jedna společnost na řádek, např.\nRealty Income (O)\nVisa (V)");
+
 		$form->addSubmit('submit', 'Vytvořit investiční plán');
 
 		$form->onSuccess[] = function (Form $form) use ($onSuccess): void {
@@ -68,6 +79,8 @@ class StockAiInvestmentPlanFormFactory
 					TypeValidator::validateFloat($values->requestedAmount),
 					CurrencyEnum::from(TypeValidator::validateString($values->requestedCurrency)),
 					Uuid::fromString(TypeValidator::validateString($values->referenceAnalysisRun)),
+					TypeValidator::validateString($values->additionalInstructions),
+					TypeValidator::validateString($values->consideredCompanies),
 				);
 			} catch (Throwable $exception) {
 				$form->addError($exception->getMessage());

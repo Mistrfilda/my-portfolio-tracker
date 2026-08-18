@@ -29,6 +29,8 @@ class StockAiInvestmentPlanSnapshotFactory
 		float $requestedAmountToPortfolioPercent,
 		float $requestedAmountToProjectedPortfolioPercent,
 		StockAiAnalysisRun $referenceAnalysisRun,
+		string $additionalInstructions,
+		string $consideredCompanies,
 	): array
 	{
 		$portfolio = $this->stockAiAnalysisPromptGenerator->getAutomaticPortfolioData();
@@ -89,6 +91,10 @@ class StockAiInvestmentPlanSnapshotFactory
 					'Buy only with a reasonable valuation and margin of safety.',
 				],
 			],
+			'userContext' => [
+				'additionalInstructions' => $this->normalizeOptionalText($additionalInstructions),
+				'consideredCompanies' => $this->normalizeConsideredCompanies($consideredCompanies),
+			],
 			'portfolio' => array_values($portfolio),
 			'watchlist' => array_values($watchlist),
 			'portfolioContext' => [
@@ -130,6 +136,30 @@ class StockAiInvestmentPlanSnapshotFactory
 	private function getNumericValue(mixed $value): float
 	{
 		return is_float($value) || is_int($value) ? (float) $value : 0.0;
+	}
+
+	private function normalizeOptionalText(string $value): string|null
+	{
+		$value = trim($value);
+
+		return $value === '' ? null : $value;
+	}
+
+	/** @return list<string> */
+	private function normalizeConsideredCompanies(string $value): array
+	{
+		$companies = [];
+		$lines = preg_split('/\R/u', $value);
+		foreach ($lines === false ? [] : $lines as $company) {
+			$company = trim($company);
+			if ($company === '' || in_array($company, $companies, true)) {
+				continue;
+			}
+
+			$companies[] = $company;
+		}
+
+		return $companies;
 	}
 
 }
