@@ -40,6 +40,15 @@ class StockAiAnalysisV2SchemaFactory
 			$required[] = 'watchlistAnalysis';
 		}
 
+		if ($scope['includesSimpleWatchlist']) {
+			$count = count(is_array($snapshot['simpleWatchlist'] ?? null) ? $snapshot['simpleWatchlist'] : []);
+			$properties['simpleWatchlistAnalysis'] = $this->createAnalysisListSchema(
+				$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
+				$count,
+			);
+			$required[] = 'simpleWatchlistAnalysis';
+		}
+
 		if ($scope['includesStockAnalysis']) {
 			$properties['stockAnalysis'] = $this->createSingleStockAnalysisSchema();
 			$required[] = 'stockAnalysis';
@@ -59,7 +68,7 @@ class StockAiAnalysisV2SchemaFactory
 		}
 
 		if (
-			($scope['includesPortfolio'] || $scope['includesWatchlist'])
+			($scope['includesPortfolio'] || $scope['includesWatchlist'] || $scope['includesSimpleWatchlist'])
 			&& $scope['portfolioPromptType'] === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->value
 		) {
 			$properties['dailyBrief'] = $this->createDailyBriefSchema();
@@ -85,6 +94,10 @@ class StockAiAnalysisV2SchemaFactory
 					$this->createCompanyAnalysisSchema(['consider_buying', 'wait', 'not_interesting']),
 					1,
 				),
+				'simpleWatchlistAnalysis' => $this->createAnalysisListSchema(
+					$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
+					1,
+				),
 				'stockAnalysis' => $this->createSingleStockAnalysisSchema(),
 			],
 			'minProperties' => 1,
@@ -105,6 +118,10 @@ class StockAiAnalysisV2SchemaFactory
 			),
 			'watchlistAnalysis' => $this->createAnalysisListSchema(
 				$this->createCompanyAnalysisSchema(['consider_buying', 'wait', 'not_interesting']),
+				1,
+			),
+			'simpleWatchlistAnalysis' => $this->createAnalysisListSchema(
+				$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
 				1,
 			),
 			'stockAnalysis' => $this->createSingleStockAnalysisSchema(),
@@ -147,7 +164,7 @@ class StockAiAnalysisV2SchemaFactory
 		}
 
 		if (
-			($scope['includesPortfolio'] || $scope['includesWatchlist'])
+			($scope['includesPortfolio'] || $scope['includesWatchlist'] || $scope['includesSimpleWatchlist'])
 			&& $scope['portfolioPromptType'] === StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF->value
 		) {
 			$properties['dailyBrief'] = $this->createDailyBriefSchema();
@@ -459,6 +476,7 @@ class StockAiAnalysisV2SchemaFactory
 	 * @return array{
 	 *     includesPortfolio: bool,
 	 *     includesWatchlist: bool,
+	 *     includesSimpleWatchlist: bool,
 	 *     includesMarketOverview: bool,
 	 *     includesStockAnalysis: bool,
 	 *     portfolioPromptType: string|null
@@ -471,6 +489,7 @@ class StockAiAnalysisV2SchemaFactory
 		return [
 			'includesPortfolio' => ($scope['includesPortfolio'] ?? false) === true,
 			'includesWatchlist' => ($scope['includesWatchlist'] ?? false) === true,
+			'includesSimpleWatchlist' => ($scope['includesSimpleWatchlist'] ?? false) === true,
 			'includesMarketOverview' => ($scope['includesMarketOverview'] ?? false) === true,
 			'includesStockAnalysis' => ($scope['includesStockAnalysis'] ?? false) === true,
 			'portfolioPromptType' => is_string($scope['portfolioPromptType'] ?? null)

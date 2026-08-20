@@ -28,6 +28,9 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 	public array $watchlistResults = [];
 
 	/** @var array<int, StockAiAnalysisStockResult> */
+	public array $simpleWatchlistResults = [];
+
+	/** @var array<int, StockAiAnalysisStockResult> */
 	public array $singleStockResults = [];
 
 	/** @var array<int, StockAiAnalysisActionChecklistItem> */

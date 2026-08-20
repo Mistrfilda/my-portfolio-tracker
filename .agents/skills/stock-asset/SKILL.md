@@ -14,6 +14,7 @@ Use this skill before changing stock asset creation/editing, asset flags, ticker
 - `src/Stock/Asset/StockAsset.php` is the Doctrine entity and implements `App\Asset\Asset`.
 - `src/Stock/Asset/StockAssetFacade.php` is the write boundary for creating/updating assets.
 - `src/Stock/Asset/StockAssetRepository.php` contains read/query methods used by price updates, valuations, dividends, UI, and dashboards.
+- `src/Stock/Asset/Watchlist/` owns the lightweight name-and-ticker watchlist, which does not implement `Asset` and must not enter price, valuation, or dividend downloader queries.
 - `src/Stock/Asset/StockAssetExchange.php` defines supported exchanges.
 - `src/Stock/Asset/Industry/` contains stock asset industry entities, repositories, and UI helpers.
 - `src/Stock/Asset/UI/StockAssetFormFactory.php` builds the admin create/edit form.
@@ -28,6 +29,7 @@ Use this skill before changing stock asset creation/editing, asset flags, ticker
 	- `stockAssetDividendSource`, `dividendTax`, and `brokerDividendCurrency` for dividend behavior.
 	- `shouldDownloadValuation` for valuation data downloading/parsing.
 	- `watchlist` and optional `industry` for UI and AI analysis selection.
+- `StockAssetWatchlist` is deliberately separate from `StockAsset`: it stores a name and ticker plus an optional static recommended entry price and currency. It is included in AI portfolio/watchlist runs, but it is not downloaded or valued by application jobs.
 - Current price is stored as `AssetPriceEmbeddable` and updated through `setCurrentPrice()` from a `StockAssetPriceRecord`.
 - Positions, price records, dividends, and valuations are Doctrine collections owned by their respective child entities.
 

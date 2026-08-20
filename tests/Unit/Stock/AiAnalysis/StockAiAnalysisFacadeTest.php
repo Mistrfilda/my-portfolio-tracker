@@ -410,6 +410,111 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(20.0, $result->getV2MarginOfSafetyPercent());
 	}
 
+	public function testProcessV2ResponsePersistsSimpleWatchlistResultWithoutStockAsset(): void
+	{
+		$now = new ImmutableDateTime('2026-08-20 10:00:00');
+		$runId = Uuid::uuid4();
+		$watchlistId = Uuid::uuid4();
+		$snapshot = [
+			'schemaVersion' => 2,
+			'runId' => $runId->toString(),
+			'analysisAsOf' => '2026-08-20T10:00:00+02:00',
+			'scope' => [
+				'includesPortfolio' => false,
+				'includesWatchlist' => true,
+				'includesSimpleWatchlist' => true,
+				'includesMarketOverview' => false,
+				'includesStockAnalysis' => false,
+				'portfolioPromptType' => null,
+			],
+			'portfolio' => [],
+			'watchlist' => [],
+			'simpleWatchlist' => [[
+				'stockAssetId' => $watchlistId->toString(),
+				'stockAssetName' => 'AAPL',
+				'stockAssetTicker' => 'AAPL',
+				'currency' => 'USD',
+				'currentPrice' => null,
+				'recommendedEntryPrice' => 180.0,
+			]],
+		];
+		$run = new StockAiAnalysisRun(
+			'prompt',
+			false,
+			true,
+			false,
+			null,
+			$now,
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+			id: $runId,
+		);
+		$analysis = new StockAiAnalysisV2CompanyAnalysis(
+			$watchlistId->toString(),
+			'AAPL',
+			'AAPL',
+			'Firma si zaslouží podrobnější sledování.',
+			['status' => 'sufficient', 'issues' => []],
+			[],
+			['latestPeriod' => null, 'resultVsExpectations' => 'met', 'nextEarningsDate' => null, 'summary' => 'OK'],
+			['status' => 'stable', 'summary' => 'Stabilní'],
+			[],
+			[],
+			new StockAiAnalysisV2Valuation(
+				'fairly_valued',
+				170.0,
+				185.0,
+				200.0,
+				'USD',
+				'DCF',
+				'Ocenění je přijatelné.',
+			),
+			[
+				'action' => 'watch_closely',
+				'confidence' => 'medium',
+				'reasoning' => 'Teze stojí za podrobnější sledování.',
+				'watchConditions' => [],
+			],
+			'Cena se přiblížila sledované úrovni.',
+		);
+		$response = new StockAiAnalysisV2Response(
+			2,
+			$runId->toString(),
+			'2026-08-20T10:00:00+02:00',
+			simpleWatchlistAnalysis: [$analysis],
+		);
+		$runIdMatcher = Mockery::on(static fn (UuidInterface $id): bool => $id->equals($runId));
+
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->with($runIdMatcher)
+			->ordered()
+			->andReturn($run);
+		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+			->once()
+			->with($runIdMatcher, LockMode::PESSIMISTIC_WRITE)
+			->ordered()
+			->andReturn($run);
+		$this->v2ResponseValidator->shouldReceive('validate')->once()->with('{}', $snapshot)->andReturn($response);
+		$this->entityManager->shouldReceive('wrapInTransaction')
+			->once()
+			->andReturnUsing(static fn (callable $callback): mixed => $callback());
+		$this->datetimeFactory->shouldReceive('createNow')->once()->andReturn($now);
+		$this->stockAssetRepository->shouldNotReceive('getById');
+		$this->entityManager->shouldReceive('persist')->once();
+
+		$this->facade->processResponse($runId->toString(), '{}');
+
+		self::assertCount(1, $run->getResults());
+		$result = $run->getResults()->first();
+		self::assertNotFalse($result);
+		self::assertSame(StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST, $result->getType());
+		self::assertNull($result->getStockAsset());
+		self::assertSame('AAPL', $result->getStockTicker());
+		self::assertSame(StockAiAnalysisActionSuggestionEnum::WATCH_CLOSELY, $result->getActionSuggestion());
+		self::assertNull($result->getV2MarginOfSafetyPercent());
+	}
+
 	public function testProcessResponseWithPortfolioAnalysis(): void
 	{
 		$now = new ImmutableDateTime();

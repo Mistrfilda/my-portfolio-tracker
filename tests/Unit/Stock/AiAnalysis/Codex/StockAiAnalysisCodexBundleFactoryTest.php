@@ -43,6 +43,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 
 		try {
 			$bundle = $factory->create($run);
+			self::assertSame(3, $run->getCodexCompanyTaskCount());
 			self::assertFileExists($bundle->filePath);
 			self::assertSame(sprintf('stock-ai-analysis-%s.zip', $runId->toString()), $bundle->downloadName);
 
@@ -58,6 +59,11 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			);
 			self::assertNotFalse(
 				$zip->locateName('input/watchlist-001-' . $snapshot['watchlist'][0]['stockAssetId'] . '.json'),
+			);
+			self::assertNotFalse(
+				$zip->locateName(
+					'input/simple-watchlist-001-' . $snapshot['simpleWatchlist'][0]['stockAssetId'] . '.json',
+				),
 			);
 			self::assertFalse($zip->locateName('result.json'));
 			self::assertStringContainsString(
@@ -87,6 +93,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			'scope' => [
 				'includesPortfolio' => true,
 				'includesWatchlist' => true,
+				'includesSimpleWatchlist' => true,
 				'includesMarketOverview' => false,
 				'includesStockAnalysis' => false,
 				'portfolioPromptType' => null,
@@ -103,6 +110,13 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'stockAssetName' => 'Watch Corp',
 				'stockAssetTicker' => 'WATCH',
 				'currency' => 'EUR',
+			]],
+			'simpleWatchlist' => [[
+				'stockAssetId' => Uuid::uuid4()->toString(),
+				'stockAssetName' => 'SIMPLE',
+				'stockAssetTicker' => 'SIMPLE',
+				'currency' => 'USD',
+				'recommendedEntryPrice' => 50.0,
 			]],
 			'portfolioContext' => [],
 			'singleStock' => null,

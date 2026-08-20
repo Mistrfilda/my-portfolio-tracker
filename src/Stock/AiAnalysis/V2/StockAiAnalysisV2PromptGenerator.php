@@ -51,6 +51,8 @@ class StockAiAnalysisV2PromptGenerator
 			'Order material events newest first and risks by materiality. Use empty arrays instead of boilerplate.',
 			'Fair value must be a conservative low/base/high range in the input asset currency and major currency '
 				. 'unit. It may not rely only on an analyst target. Use null values when support is insufficient.',
+			'For simpleWatchlistAnalysis, use watch_closely only when a company now merits full local price, '
+				. 'valuation, and dividend tracking. Treat recommendedEntryPrice as context, not as a verified current price.',
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createFullSchema($snapshot), pretty: true),
 			'Immutable application snapshot:',
@@ -95,6 +97,9 @@ class StockAiAnalysisV2PromptGenerator
 
 		return implode("\n\n", [
 			sprintf('Analyze exactly one company and return only the `%s` section.', $rootKey),
+			$rootKey === 'simpleWatchlistAnalysis'
+				? 'Decide whether this candidate now merits promotion to the full watchlist. Use watch_closely only when it does.'
+				: 'Apply the recommendation actions defined by the supplied schema.',
 			'Follow the same research, materiality, uncertainty, valuation, language, and output rules from the system instruction.',
 			'For daily runs, focus on the exact last 24 hours; otherwise focus on the last 7 calendar days. Use older facts only as background.',
 			'Output must match the relevant property in this JSON Schema:',
@@ -110,15 +115,17 @@ class StockAiAnalysisV2PromptGenerator
 	 * @param array<string, mixed> $snapshot
 	 * @param array<int, array<string, mixed>> $portfolioAnalysis
 	 * @param array<int, array<string, mixed>> $watchlistAnalysis
+	 * @param array<int, array<string, mixed>> $simpleWatchlistAnalysis
 	 */
 	public function generateReducePrompt(
 		array $snapshot,
 		array $portfolioAnalysis,
 		array $watchlistAnalysis,
+		array $simpleWatchlistAnalysis,
 	): string
 	{
 		return implode("\n\n", [
-			'Create only the requested run-level summary sections. Do not repeat portfolioAnalysis or watchlistAnalysis.',
+			'Create only the requested run-level summary sections. Do not repeat company analysis sections.',
 			'Use the immutable portfolio context and all partial company analyses. Keep the result concise, practical, and material.',
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createReduceSchema($snapshot), pretty: true),
@@ -128,6 +135,7 @@ class StockAiAnalysisV2PromptGenerator
 			Json::encode([
 				'portfolioAnalysis' => $portfolioAnalysis,
 				'watchlistAnalysis' => $watchlistAnalysis,
+				'simpleWatchlistAnalysis' => $simpleWatchlistAnalysis,
 			], pretty: true),
 		]);
 	}

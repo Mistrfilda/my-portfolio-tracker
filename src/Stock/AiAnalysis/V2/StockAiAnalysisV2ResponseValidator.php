@@ -135,6 +135,13 @@ class StockAiAnalysisV2ResponseValidator
 		$errors = [];
 		$this->validateAnalysisList($data, $snapshot, 'portfolioAnalysis', 'portfolio', $errors);
 		$this->validateAnalysisList($data, $snapshot, 'watchlistAnalysis', 'watchlist', $errors);
+		$this->validateAnalysisList(
+			$data,
+			$snapshot,
+			'simpleWatchlistAnalysis',
+			'simpleWatchlist',
+			$errors,
+		);
 
 		if (isset($data['stockAnalysis']) && is_array($data['stockAnalysis'])) {
 			$expected = is_array($snapshot['singleStock'] ?? null)

@@ -434,8 +434,12 @@ class StockAiAnalysisRun implements Entity
 		$watchlist = is_array($this->inputSnapshot['watchlist'] ?? null)
 			? $this->inputSnapshot['watchlist']
 			: [];
+		$simpleWatchlist = is_array($this->inputSnapshot['simpleWatchlist'] ?? null)
+			? $this->inputSnapshot['simpleWatchlist']
+			: [];
 
-		return count($portfolio) + count($watchlist) + ($this->stockTicker !== null ? 1 : 0);
+		return count($portfolio) + count($watchlist) + count($simpleWatchlist)
+			+ ($this->stockTicker !== null ? 1 : 0);
 	}
 
 	/**

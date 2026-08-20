@@ -8,6 +8,7 @@ custompresenterfactory:
 		Admin:Dashboard: App\Dashboard\UI\DashboardPresenter
 		Admin:StockAsset: App\Stock\Asset\UI\StockAssetPresenter
 		Admin:StockAssetEdit: App\Stock\Asset\UI\StockAssetEditPresenter
+		Admin:StockAssetWatchlist: App\Stock\Asset\Watchlist\UI\StockAssetWatchlistPresenter
 		Admin:StockPosition: App\Stock\Position\UI\StockPositionPresenter
 		Admin:StockPositionEdit: App\Stock\Position\UI\StockPositionEditPresenter
 		Admin:StockAssetPositionDetail: App\Stock\Asset\UI\StockAssetPositionDetailPresenter

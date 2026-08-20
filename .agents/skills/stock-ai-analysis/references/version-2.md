@@ -5,7 +5,7 @@ Use this reference when changing the V2 contract or either provider workflow. Ke
 ## Run creation and immutable input
 
 1. `StockAiAnalysisFacade::createRun()` creates a UUID and fixed `analysisAsOf` timestamp.
-2. `StockAiAnalysisV2SnapshotFactory` captures `schemaVersion: 2`, run metadata, requested scope, conventions, portfolio/watchlist inputs, portfolio context, and optional single-stock input.
+2. `StockAiAnalysisV2SnapshotFactory` captures `schemaVersion: 2`, run metadata, requested scope, conventions, portfolio/full-watchlist/simple-watchlist inputs, portfolio context, and optional single-stock input.
 3. Store the snapshot on `StockAiAnalysisRun` with `analysisSchemaVersion = 2`. Do not rebuild it from live positions while processing the response.
 4. `StockAiAnalysisV2PromptGenerator` derives system, manual, per-company, reduce, and Codex task prompts from this snapshot.
 
@@ -17,6 +17,7 @@ Use this reference when changing the V2 contract or either provider workflow. Ke
 
 - Require `portfolioAnalysis` with exactly one result per portfolio company when `includesPortfolio` is true.
 - Require `watchlistAnalysis` with exactly one result per watchlist company when `includesWatchlist` is true.
+- Require `simpleWatchlistAnalysis` with exactly one result per lightweight watchlist candidate when `includesSimpleWatchlist` is true. The `watch_closely` action means the candidate merits promotion to the full `StockAsset` watchlist; promotion remains a manual user action.
 - Require `stockAnalysis` for a single-stock run.
 - Require `marketOverview` when requested.
 - Require `portfolioEvaluation` for a non-daily portfolio run.
@@ -40,7 +41,7 @@ Display the V2 system instruction plus the full task prompt. Submit pasted JSON 
 - `instructions/system.md` and `instructions/task.md`
 - `schema/company-result.schema.json` and `schema/result.schema.json`
 - `input/context.json`
-- one `input/portfolio-*.json` or `input/watchlist-*.json` per company
+- one `input/portfolio-*.json`, `input/watchlist-*.json`, or `input/simple-watchlist-*.json` per company
 - optional `input/stock.json` and an empty `output/` directory
 
 Codex reads the bundled `AGENTS.md`, researches each company independently, may place partial results in `output/`, synthesizes run-level sections, validates the complete output, and creates `result.json` in the extracted project root. Do not bundle a pre-created result.

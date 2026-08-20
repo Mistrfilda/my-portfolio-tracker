@@ -7,6 +7,7 @@ namespace App\Stock\AiAnalysis\V2;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\Asset\StockAsset;
+use App\Stock\Asset\Watchlist\StockAssetWatchlistRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 use const DATE_ATOM;
@@ -14,7 +15,10 @@ use const DATE_ATOM;
 class StockAiAnalysisV2SnapshotFactory
 {
 
-	public function __construct(private readonly StockAiAnalysisPromptGenerator $legacyPromptGenerator)
+	public function __construct(
+		private readonly StockAiAnalysisPromptGenerator $legacyPromptGenerator,
+		private readonly StockAssetWatchlistRepository $stockAssetWatchlistRepository,
+	)
 	{
 	}
 
@@ -40,6 +44,19 @@ class StockAiAnalysisV2SnapshotFactory
 		$watchlistData = $includesWatchlist
 			? $this->legacyPromptGenerator->getAutomaticWatchlistData()
 			: [];
+		$simpleWatchlistData = [];
+		if ($includesWatchlist) {
+			foreach ($this->stockAssetWatchlistRepository->findAll() as $stockAssetWatchlist) {
+				$simpleWatchlistData[] = [
+					'stockAssetId' => $stockAssetWatchlist->getId()->toString(),
+					'stockAssetTicker' => $stockAssetWatchlist->getTicker(),
+					'stockAssetName' => $stockAssetWatchlist->getName(),
+					'currency' => $stockAssetWatchlist->getCurrency()?->value,
+					'currentPrice' => null,
+					'recommendedEntryPrice' => $stockAssetWatchlist->getRecommendedEntryPrice(),
+				];
+			}
+		}
 
 		$sectorAllocation = [];
 		$portfolioContextPositions = [];
@@ -85,6 +102,7 @@ class StockAiAnalysisV2SnapshotFactory
 			'scope' => [
 				'includesPortfolio' => $includesPortfolio,
 				'includesWatchlist' => $includesWatchlist,
+				'includesSimpleWatchlist' => $includesWatchlist,
 				'includesMarketOverview' => $includesMarketOverview,
 				'portfolioPromptType' => $portfolioPromptType?->value,
 				'includesStockAnalysis' => $singleStockData !== null,
@@ -98,6 +116,7 @@ class StockAiAnalysisV2SnapshotFactory
 			],
 			'portfolio' => array_values($portfolioData),
 			'watchlist' => array_values($watchlistData),
+			'simpleWatchlist' => $simpleWatchlistData,
 			'portfolioContext' => [
 				'totalPositions' => count($allPortfolioData),
 				'sectorAllocation' => $sectorAllocation,

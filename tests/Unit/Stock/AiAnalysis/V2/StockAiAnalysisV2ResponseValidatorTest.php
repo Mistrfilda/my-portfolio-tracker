@@ -24,6 +24,7 @@ class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 		self::assertSame(2, $validated->schemaVersion);
 		self::assertSame($snapshot['runId'], $validated->runId);
 		self::assertCount(1, $validated->portfolioAnalysis ?? []);
+		self::assertCount(1, $validated->simpleWatchlistAnalysis ?? []);
 	}
 
 	public function testResponseWithChangedStockIdIsRejected(): void
@@ -57,6 +58,7 @@ class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 			'scope' => [
 				'includesPortfolio' => true,
 				'includesWatchlist' => false,
+				'includesSimpleWatchlist' => true,
 				'includesMarketOverview' => false,
 				'includesStockAnalysis' => false,
 				'portfolioPromptType' => null,
@@ -69,6 +71,14 @@ class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 				'currentPrice' => 90.0,
 			]],
 			'watchlist' => [],
+			'simpleWatchlist' => [[
+				'stockAssetId' => Uuid::uuid4()->toString(),
+				'stockAssetName' => 'WATCH',
+				'stockAssetTicker' => 'WATCH',
+				'currency' => 'USD',
+				'currentPrice' => null,
+				'recommendedEntryPrice' => 80.0,
+			]],
 			'portfolioContext' => [],
 			'singleStock' => null,
 		];
@@ -82,7 +92,7 @@ class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 	{
 		$stock = $snapshot['portfolio'][0];
 
-		return [
+		$response = [
 			'schemaVersion' => 2,
 			'runId' => $snapshot['runId'],
 			'analysisAsOf' => $snapshot['analysisAsOf'],
@@ -126,6 +136,15 @@ class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 				'actions' => [],
 			],
 		];
+		$simpleWatchlistStock = $snapshot['simpleWatchlist'][0];
+		$simpleWatchlistAnalysis = $response['portfolioAnalysis'][0];
+		$simpleWatchlistAnalysis['stockAssetId'] = $simpleWatchlistStock['stockAssetId'];
+		$simpleWatchlistAnalysis['stockAssetName'] = $simpleWatchlistStock['stockAssetName'];
+		$simpleWatchlistAnalysis['stockAssetTicker'] = $simpleWatchlistStock['stockAssetTicker'];
+		$simpleWatchlistAnalysis['recommendation']['action'] = 'watch_closely';
+		$response['simpleWatchlistAnalysis'] = [$simpleWatchlistAnalysis];
+
+		return $response;
 	}
 
 }

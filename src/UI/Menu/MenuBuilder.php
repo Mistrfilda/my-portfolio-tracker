@@ -45,6 +45,7 @@ class MenuBuilder
 					'Akcie',
 					['StockAssetEdit', 'StockAssetDividend'],
 				),
+				new MenuItem('StockAssetWatchlist', 'default', SvgIcon::EYE, 'Jednoduchý watchlist'),
 				new MenuItem('StockAssetIndustry', 'default', SvgIcon::BUILDING_STOREFRONT, 'Odvětví'),
 				new MenuItem(
 					'StockValuationOverview',

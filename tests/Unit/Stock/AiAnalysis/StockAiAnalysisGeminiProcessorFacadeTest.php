@@ -595,6 +595,143 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		}
 	}
 
+	public function testProcessV2AnalyzesSimpleWatchlistCandidate(): void
+	{
+		$runId = Uuid::uuid4();
+		$watchlistId = Uuid::uuid4()->toString();
+		$snapshot = [
+			'schemaVersion' => 2,
+			'runId' => $runId->toString(),
+			'analysisAsOf' => '2026-08-20T10:00:00+02:00',
+			'scope' => [
+				'includesPortfolio' => false,
+				'includesWatchlist' => true,
+				'includesSimpleWatchlist' => true,
+				'includesMarketOverview' => false,
+				'includesStockAnalysis' => false,
+				'portfolioPromptType' => null,
+			],
+			'portfolio' => [],
+			'watchlist' => [],
+			'simpleWatchlist' => [[
+				'stockAssetId' => $watchlistId,
+				'stockAssetName' => 'AAPL',
+				'stockAssetTicker' => 'AAPL',
+				'currency' => 'USD',
+				'currentPrice' => null,
+				'recommendedEntryPrice' => 180.0,
+			]],
+			'portfolioContext' => [],
+			'singleStock' => null,
+		];
+		$run = new StockAiAnalysisRun(
+			'Generated v2 prompt',
+			false,
+			true,
+			false,
+			null,
+			new ImmutableDateTime('2026-08-20 10:00:00'),
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+			id: $runId,
+		);
+		$partialResponse = [
+			'simpleWatchlistAnalysis' => [[
+				'stockAssetId' => $watchlistId,
+				'stockAssetName' => 'AAPL',
+				'stockAssetTicker' => 'AAPL',
+				'summary' => 'Firma stojí za podrobnější sledování.',
+				'dataQuality' => ['status' => 'sufficient', 'issues' => []],
+				'materialEvents' => [],
+				'earnings' => [
+					'latestPeriod' => null,
+					'resultVsExpectations' => 'met',
+					'nextEarningsDate' => null,
+					'summary' => 'Výsledky odpovídaly očekávání.',
+				],
+				'dividend' => ['status' => 'stable', 'summary' => 'Dividenda je stabilní.'],
+				'catalysts' => [],
+				'risks' => [],
+				'valuation' => [
+					'assessment' => 'fairly_valued',
+					'fairValueLow' => 170.0,
+					'fairValueBase' => 185.0,
+					'fairValueHigh' => 200.0,
+					'currency' => 'USD',
+					'method' => 'DCF',
+					'summary' => 'Ocenění je přijatelné.',
+				],
+				'recommendation' => [
+					'action' => 'watch_closely',
+					'confidence' => 'medium',
+					'reasoning' => 'Teze stojí za podrobnější sledování.',
+					'watchConditions' => [],
+				],
+				'performanceComment' => 'Cena se přiblížila sledované úrovni.',
+			]],
+		];
+		$mergedResponse = [
+			'schemaVersion' => 2,
+			'runId' => $runId->toString(),
+			'analysisAsOf' => $snapshot['analysisAsOf'],
+			'watchlistAnalysis' => [],
+			'simpleWatchlistAnalysis' => $partialResponse['simpleWatchlistAnalysis'],
+		];
+		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);
+		$followUpFacade = Mockery::mock(StockAiAnalysisFollowUpQuestionFacade::class);
+		$legacyPromptGenerator = Mockery::mock(StockAiAnalysisPromptGenerator::class);
+		$geminiClient = Mockery::mock(GeminiClient::class);
+		$datetimeFactory = Mockery::mock(DatetimeFactory::class);
+		$entityManager = Mockery::mock(EntityManagerInterface::class);
+		$logger = Mockery::mock(LoggerInterface::class);
+		$tempDir = $this->createTempDir();
+		$schemaFactory = new StockAiAnalysisV2SchemaFactory();
+		$v2PromptGenerator = new StockAiAnalysisV2PromptGenerator($schemaFactory);
+
+		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
+		$geminiClient->shouldReceive('generateContent')
+			->with(Mockery::type('string'), Mockery::type('string'), Mockery::type('array'))
+			->once()
+			->andReturn(Json::encode($partialResponse));
+		$stockAiAnalysisFacade->shouldReceive('processResponse')
+			->with($runId->toString(), Json::encode($mergedResponse), StockAiAnalysisProcessingSourceEnum::GEMINI)
+			->once();
+		$datetimeFactory->shouldReceive('createNow')
+			->twice()
+			->andReturn(
+				new ImmutableDateTime('2026-08-20 10:01:00'),
+				new ImmutableDateTime('2026-08-20 10:02:00'),
+			);
+		$entityManager->shouldReceive('flush')->twice();
+
+		$processor = new StockAiAnalysisGeminiProcessorFacade(
+			$stockAiAnalysisFacade,
+			$followUpFacade,
+			$legacyPromptGenerator,
+			$geminiClient,
+			new StockAiAnalysisGeminiJsonNormalizer(),
+			$datetimeFactory,
+			$entityManager,
+			$logger,
+			$tempDir,
+			$v2PromptGenerator,
+			$schemaFactory,
+			new StockAiAnalysisV2ResponseValidator($schemaFactory),
+		);
+
+		try {
+			$processor->process($runId->toString());
+
+			self::assertSame(StockAiAnalysisGeminiProcessingStatusEnum::COMPLETED, $run->getGeminiProcessingStatus());
+			self::assertFileExists(
+				$tempDir . '/stock-ai-analysis/gemini/v2/' . $runId->toString()
+				. '/simple-watchlist-001-' . $watchlistId . '.json',
+			);
+		} finally {
+			$this->deleteTempDir($tempDir);
+		}
+	}
+
 	public function testProcessFollowUpDelegatesToFollowUpFacade(): void
 	{
 		$stockAiAnalysisFacade = Mockery::mock(StockAiAnalysisFacade::class);

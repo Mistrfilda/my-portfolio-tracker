@@ -41,7 +41,7 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 ## Cache and processing
 
 - Cache files live below the injected Gemini folder and are owned by `StockAiAnalysisGeminiProcessorFacade`.
-- Preserve `manual.json`, numbered `portfolio-*.json` and `watchlist-*.json`, and `reduce.json` naming unless the requested change includes cache migration behavior.
+- Preserve `manual.json`, numbered `portfolio-*.json`, `watchlist-*.json`, and `simple-watchlist-*.json`, and `reduce.json` naming unless the requested change includes cache migration behavior.
 - Validate cached V2 responses before reuse. Regenerate invalid cache entries instead of trusting their presence.
 - Allow one corrected retry after an invalid V2 provider response, include concise validation errors in the retry prompt, and never cache an invalid response.
 - Keep queued, processing, completed, and failed transitions explicit and preserve duplicate-queue guards.

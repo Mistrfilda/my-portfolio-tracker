@@ -73,6 +73,7 @@ class StockAiAnalysisCodexBundleFactory
 			$this->addJson($zip, 'input/context.json', $this->createContextInput($snapshot));
 			$this->addCompanyInputs($zip, 'portfolio', $snapshot['portfolio'] ?? []);
 			$this->addCompanyInputs($zip, 'watchlist', $snapshot['watchlist'] ?? []);
+			$this->addCompanyInputs($zip, 'simple-watchlist', $snapshot['simpleWatchlist'] ?? []);
 			if (is_array($snapshot['singleStock'] ?? null)) {
 				$this->addJson($zip, 'input/stock.json', $snapshot['singleStock']);
 			}
@@ -120,6 +121,7 @@ class StockAiAnalysisCodexBundleFactory
 			)),
 			'portfolioStockAssetIds' => $this->extractIds($snapshot['portfolio'] ?? []),
 			'watchlistStockAssetIds' => $this->extractIds($snapshot['watchlist'] ?? []),
+			'simpleWatchlistIds' => $this->extractIds($snapshot['simpleWatchlist'] ?? []),
 			'singleStockAssetId' => is_array($snapshot['singleStock'] ?? null)
 				? ($snapshot['singleStock']['stockAssetId'] ?? null)
 				: null,

@@ -325,6 +325,17 @@ class StockAiAnalysisFacade
 			);
 		}
 
+		foreach ($response->simpleWatchlistAnalysis ?? [] as $analysis) {
+			$analysisData = $analysis->toArray();
+			$this->persistV2StockResult(
+				$run,
+				$analysisData,
+				StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST,
+				$this->findSnapshotItem($snapshot, 'simpleWatchlist', $analysisData),
+				$now,
+			);
+		}
+
 		if ($response->stockAnalysis !== null) {
 			$singleStockSnapshot = is_array($snapshot['singleStock'] ?? null)
 				? $this->normalizeObject($snapshot['singleStock'])
@@ -351,11 +362,13 @@ class StockAiAnalysisFacade
 		ImmutableDateTime $now,
 	): void
 	{
-		$stockAsset = $type === StockAiAnalysisResultTypeEnum::SINGLE_STOCK
-			? $run->getStockAsset()
-			: $this->stockAssetRepository->getById(Uuid::fromString(
+		$stockAsset = match ($type) {
+			StockAiAnalysisResultTypeEnum::SINGLE_STOCK => $run->getStockAsset(),
+			StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST => null,
+			default => $this->stockAssetRepository->getById(Uuid::fromString(
 				TypeValidator::validateString($analysis['stockAssetId'] ?? null),
-			));
+			)),
+		};
 		$recommendation = TypeValidator::validateArray($analysis['recommendation'] ?? null);
 		$valuation = TypeValidator::validateArray($analysis['valuation'] ?? null);
 		$fairPrice = TypeValidator::validateNullableFloat($valuation['fairValueBase'] ?? null);

@@ -315,6 +315,10 @@ services:
 	- App\Stock\Asset\UI\StockAssetGridFactory
 	- App\Stock\Asset\UI\StockAssetFormFactory
 	- App\Stock\Asset\StockAssetFacade
+	- App\Stock\Asset\Watchlist\StockAssetWatchlistRepository(App\Stock\Asset\Watchlist\StockAssetWatchlist)
+	- App\Stock\Asset\Watchlist\StockAssetWatchlistFacade
+	- App\Stock\Asset\Watchlist\UI\StockAssetWatchlistGridFactory
+	- App\Stock\Asset\Watchlist\UI\StockAssetWatchlistFormFactory
 	- App\Stock\Price\StockAssetPriceRecordRepository(App\Stock\Price\StockAssetPriceRecord)
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderFacade(apiKey: %twelveData.apiKey%, updateStockAssetHoursThreshold: %twelveData.updateStockAssetHoursThreshold%)
 	- App\Stock\Price\Downloader\TwelveData\TwelveDataDownloaderCommand

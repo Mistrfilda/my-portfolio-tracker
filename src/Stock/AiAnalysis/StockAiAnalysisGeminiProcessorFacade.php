@@ -236,8 +236,11 @@ class StockAiAnalysisGeminiProcessorFacade
 		$systemInstruction = $this->v2PromptGenerator->generateSystemInstruction($snapshot);
 		$portfolioData = $this->getSnapshotList($snapshot, 'portfolio');
 		$watchlistData = $this->getSnapshotList($snapshot, 'watchlist');
+		$simpleWatchlistData = array_key_exists('simpleWatchlist', $snapshot)
+			? $this->getSnapshotList($snapshot, 'simpleWatchlist')
+			: [];
 
-		if ($portfolioData === [] && $watchlistData === []) {
+		if ($portfolioData === [] && $watchlistData === [] && $simpleWatchlistData === []) {
 			$schema = $this->v2SchemaFactory->createFullSchema($snapshot);
 
 			return $this->loadOrCreateV2GeminiResponse(
@@ -266,6 +269,14 @@ class StockAiAnalysisGeminiProcessorFacade
 			'watchlist',
 			$systemInstruction,
 		);
+		$simpleWatchlistAnalysis = $this->createV2CompanyAnalyses(
+			$run,
+			$snapshot,
+			$simpleWatchlistData,
+			'simpleWatchlistAnalysis',
+			'simple-watchlist',
+			$systemInstruction,
+		);
 
 		$mergedResponse = [
 			'schemaVersion' => 2,
@@ -281,6 +292,7 @@ class StockAiAnalysisGeminiProcessorFacade
 					$snapshot,
 					$portfolioAnalysis,
 					$watchlistAnalysis,
+					$simpleWatchlistAnalysis,
 				),
 				$systemInstruction,
 				$reduceSchema,
@@ -294,6 +306,11 @@ class StockAiAnalysisGeminiProcessorFacade
 
 		if ($run->includesWatchlist()) {
 			$mergedResponse['watchlistAnalysis'] = $watchlistAnalysis;
+		}
+
+		$scope = is_array($snapshot['scope'] ?? null) ? $snapshot['scope'] : [];
+		if (($scope['includesSimpleWatchlist'] ?? false) === true) {
+			$mergedResponse['simpleWatchlistAnalysis'] = $simpleWatchlistAnalysis;
 		}
 
 		return $mergedResponse;

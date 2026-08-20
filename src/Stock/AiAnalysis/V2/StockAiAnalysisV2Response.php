@@ -10,6 +10,7 @@ final readonly class StockAiAnalysisV2Response
 	/**
 	 * @param list<StockAiAnalysisV2CompanyAnalysis>|null $portfolioAnalysis
 	 * @param list<StockAiAnalysisV2CompanyAnalysis>|null $watchlistAnalysis
+	 * @param list<StockAiAnalysisV2CompanyAnalysis>|null $simpleWatchlistAnalysis
 	 */
 	public function __construct(
 		public int $schemaVersion,
@@ -17,6 +18,7 @@ final readonly class StockAiAnalysisV2Response
 		public string $analysisAsOf,
 		public array|null $portfolioAnalysis = null,
 		public array|null $watchlistAnalysis = null,
+		public array|null $simpleWatchlistAnalysis = null,
 		public StockAiAnalysisV2CompanyAnalysis|null $stockAnalysis = null,
 		public StockAiAnalysisV2MarketOverview|null $marketOverview = null,
 		public StockAiAnalysisV2PortfolioEvaluation|null $portfolioEvaluation = null,
@@ -47,6 +49,13 @@ final readonly class StockAiAnalysisV2Response
 			$data['watchlistAnalysis'] = array_map(
 				static fn (StockAiAnalysisV2CompanyAnalysis $item): array => $item->toArray(),
 				$this->watchlistAnalysis,
+			);
+		}
+
+		if ($this->simpleWatchlistAnalysis !== null) {
+			$data['simpleWatchlistAnalysis'] = array_map(
+				static fn (StockAiAnalysisV2CompanyAnalysis $item): array => $item->toArray(),
+				$this->simpleWatchlistAnalysis,
 			);
 		}
 

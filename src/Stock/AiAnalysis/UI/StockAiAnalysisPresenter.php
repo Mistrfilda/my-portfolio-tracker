@@ -94,6 +94,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$results = $this->run->getResults();
 		$portfolioResults = [];
 		$watchlistResults = [];
+		$simpleWatchlistResults = [];
 		$singleStockResults = [];
 
 		foreach ($results as $result) {
@@ -101,6 +102,8 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 				$portfolioResults[] = $result;
 			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::WATCHLIST) {
 				$watchlistResults[] = $result;
+			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST) {
+				$simpleWatchlistResults[] = $result;
 			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SINGLE_STOCK) {
 				$singleStockResults[] = $result;
 			}
@@ -115,9 +118,11 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 
 		usort($portfolioResults, $sortFunction);
 		usort($watchlistResults, $sortFunction);
+		usort($simpleWatchlistResults, $sortFunction);
 
 		$this->template->portfolioResults = $portfolioResults;
 		$this->template->watchlistResults = $watchlistResults;
+		$this->template->simpleWatchlistResults = $simpleWatchlistResults;
 		$this->template->singleStockResults = $singleStockResults;
 		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay(
 			$this->run,
@@ -211,7 +216,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			->setRequired('Vyberte typ portfolio promptu.');
 		$form->addCheckbox('includesPortfolio', 'Akciové pozice (otevřené)')
 			->setDefaultValue(true);
-		$form->addCheckbox('includesWatchlist', 'Akcie na watchlistu')
+		$form->addCheckbox('includesWatchlist', 'Akcie na plném i jednoduchém watchlistu')
 			->setDefaultValue(true);
 		$form->addCheckbox('includesMarketOverview', 'Obecná situace na trhu')
 			->setDefaultValue(true);
