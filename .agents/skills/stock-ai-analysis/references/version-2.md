@@ -40,6 +40,7 @@ Display the V2 system instruction plus the full task prompt. Submit pasted JSON 
 - `README.md`, `AGENTS.md`, and `manifest.json`
 - `instructions/system.md` and `instructions/task.md`
 - `schema/company-result.schema.json` and `schema/result.schema.json`
+- dependency-free `validate-stock-json.mjs` for validating partial and final JSON files with Node.js
 - `input/context.json`
 - one `input/portfolio-*.json`, `input/watchlist-*.json`, or `input/simple-watchlist-*.json` per company
 - optional `input/stock.json` and an empty `output/` directory

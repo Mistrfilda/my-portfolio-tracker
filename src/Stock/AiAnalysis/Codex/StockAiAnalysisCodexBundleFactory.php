@@ -70,6 +70,11 @@ class StockAiAnalysisCodexBundleFactory
 				$this->schemaFactory->createCompanyResultSchema(),
 			);
 			$this->addJson($zip, 'schema/result.schema.json', $this->schemaFactory->createFullSchema($snapshot));
+			$this->addText(
+				$zip,
+				'validate-stock-json.mjs',
+				FileSystem::read(__DIR__ . '/validate-stock-json.mjs'),
+			);
 			$this->addJson($zip, 'input/context.json', $this->createContextInput($snapshot));
 			$this->addCompanyInputs($zip, 'portfolio', $snapshot['portfolio'] ?? []);
 			$this->addCompanyInputs($zip, 'watchlist', $snapshot['watchlist'] ?? []);
@@ -134,7 +139,7 @@ class StockAiAnalysisCodexBundleFactory
 			<<<'MARKDOWN'
 # Stock AI Analysis for Codex
 
-This folder contains immutable application inputs, shared instructions, and the exact output schema.
+This folder contains immutable application inputs, shared instructions, the exact output schema, and a dependency-free validator.
 
 ## Start in Codex
 
@@ -173,8 +178,10 @@ MARKDOWN,
 - Write each partial result under `output/`. Do not modify `input/`, `instructions/`, `schema/`, or `manifest.json`.
 - Preserve all IDs, company names, and tickers exactly. Do not omit, duplicate, or add companies.
 - Use Czech narrative values and English JSON keys. Use empty arrays, `null`, and explicit uncertainty instead of filler or fabricated facts.
+- Validate every partial file with `node validate-stock-json.mjs schema/company-result.schema.json <partial-file>`.
 - After all company results are ready, create run-level sections using `input/context.json` and all partial results.
-- Create `result.json` in the project root. It is complete only when it matches `schema/result.schema.json` and all IDs/counts in `manifest.json`.
+- Create `result.json` in the project root, then run `node validate-stock-json.mjs schema/result.schema.json result.json`.
+- The analysis is complete only when the validator succeeds and all IDs/counts match `manifest.json`.
 MARKDOWN,
 			self::START_PROMPT,
 		);

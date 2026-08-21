@@ -83,7 +83,8 @@ class StockAiAnalysisV2PromptGenerator
 			$windowInstruction,
 			'Use `input/context.json` only for run-level synthesis and portfolio relevance.',
 			'Preserve all immutable identifiers and metadata exactly as provided.',
-			'Validate partial company files against `schema/company-result.schema.json` and the final result against `schema/result.schema.json`.',
+			'Use the bundled validator for every partial: `node validate-stock-json.mjs schema/company-result.schema.json <partial-file>`.',
+			'Validate the final output with `node validate-stock-json.mjs schema/result.schema.json result.json`.',
 		]);
 	}
 

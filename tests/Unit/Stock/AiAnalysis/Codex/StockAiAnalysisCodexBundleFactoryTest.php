@@ -52,7 +52,10 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			self::assertNotFalse($zip->locateName('AGENTS.md'));
 			self::assertNotFalse($zip->locateName('instructions/system.md'));
 			self::assertNotFalse($zip->locateName('instructions/task.md'));
+			self::assertNotFalse($zip->locateName('schema/company-result.schema.json'));
 			self::assertNotFalse($zip->locateName('schema/result.schema.json'));
+			self::assertNotFalse($zip->locateName('validate-stock-json.mjs'));
+			self::assertNotSame('', trim((string) $zip->getFromName('validate-stock-json.mjs')));
 			self::assertNotFalse($zip->locateName('input/context.json'));
 			self::assertNotFalse(
 				$zip->locateName('input/portfolio-001-' . $snapshot['portfolio'][0]['stockAssetId'] . '.json'),
@@ -73,6 +76,14 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			self::assertStringContainsString(
 				StockAiAnalysisCodexBundleFactory::START_PROMPT,
 				(string) $zip->getFromName('AGENTS.md'),
+			);
+			self::assertStringContainsString(
+				'node validate-stock-json.mjs schema/result.schema.json result.json',
+				(string) $zip->getFromName('AGENTS.md'),
+			);
+			self::assertStringContainsString(
+				'node validate-stock-json.mjs schema/company-result.schema.json <partial-file>',
+				(string) $zip->getFromName('instructions/task.md'),
 			);
 			self::assertTrue($zip->close());
 		} finally {
