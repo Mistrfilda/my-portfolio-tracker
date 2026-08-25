@@ -15,6 +15,8 @@ class StockAiAnalysisTemplate extends BaseAdminPresenterTemplate
 
 	public StockAiAnalysisRun|null $run = null;
 
+	public bool $pdfExport = false;
+
 	public string $generatedPromptForDisplay = '';
 
 	public string $codexStartPrompt = '';

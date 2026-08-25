@@ -1,7 +1,16 @@
 {templateType App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanTemplate}
 
+{block #headingButtons}
+	{if !$pdfExport && $plan !== null && $plan->getProcessedAt() !== null}
+		<a n:href="downloadPdf, id: $plan->getId()->toString()" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+			{renderSvg App\UI\Icon\SvgIcon::ARROW_DOWN->value, ['class' => 'h-5 w-5']}
+			Stáhnout PDF
+		</a>
+	{/if}
+{/block}
+
 {block #content}
-	<div class="mb-6 flex flex-wrap items-center justify-between gap-3">
+	<div n:if="!$pdfExport" class="mb-6 flex flex-wrap items-center justify-between gap-3">
 		<a n:href="default" class="inline-flex items-center text-sm font-semibold text-blue-600 hover:text-blue-800">
 			← Zpět na investiční plány
 		</a>

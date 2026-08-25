@@ -4,12 +4,15 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\InvestmentPlan\UI;
 
+use App\Gotenberg\GotenbergPdfDocumentRenderer;
+use App\Gotenberg\GotenbergPdfService;
 use App\Stock\AiAnalysis\InvestmentPlan\Codex\StockAiInvestmentPlanCodexBundleFactory;
 use App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlan;
 use App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanFacade;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
+use App\UI\Response\PdfResponse;
 use Nette\Application\Responses\CallbackResponse;
 use Nette\Application\Responses\FileResponse;
 use Nette\Http\IRequest;
@@ -31,6 +34,8 @@ class StockAiInvestmentPlanPresenter extends BaseAdminPresenter
 		private readonly StockAiInvestmentPlanCodexResultFormFactory $codexResultFormFactory,
 		private readonly StockAiInvestmentPlanGridFactory $investmentPlanGridFactory,
 		private readonly StockAiInvestmentPlanCodexBundleFactory $codexBundleFactory,
+		private readonly GotenbergPdfDocumentRenderer $gotenbergPdfDocumentRenderer,
+		private readonly GotenbergPdfService $gotenbergPdfService,
 	)
 	{
 		parent::__construct();
@@ -54,11 +59,7 @@ class StockAiInvestmentPlanPresenter extends BaseAdminPresenter
 			$this->error('Investiční plán nebyl nalezen.');
 		}
 
-		$this->template->heading = 'Detail AI investičního plánu';
-		$this->template->plan = $this->plan;
-		$this->template->generatedPromptForDisplay = $this->investmentPlanFacade
-			->getGeneratedPromptForDisplay($this->plan);
-		$this->template->codexStartPrompt = StockAiInvestmentPlanCodexBundleFactory::START_PROMPT;
+		$this->prepareDetailTemplate($this->plan);
 	}
 
 	public function actionDownloadCodexBundle(string $id): void
@@ -81,6 +82,27 @@ class StockAiInvestmentPlanPresenter extends BaseAdminPresenter
 				FileSystem::delete($bundle->filePath);
 			}
 		}));
+	}
+
+	public function actionDownloadPdf(string $id): void
+	{
+		$plan = $this->investmentPlanFacade->get($id);
+		if ($plan->getProcessedAt() === null) {
+			$this->flashMessage('PDF lze stáhnout až po zpracování investičního plánu.', 'danger');
+			$this->redirect('detail', ['id' => $plan->getId()->toString()]);
+		}
+
+		$this->setLayout(false);
+		$this->prepareDetailTemplate($plan, true);
+		$detailHtml = $this->template->renderToString(__DIR__ . '/templates/StockAiInvestmentPlan.detail.latte');
+		$title = sprintf('AI investiční plán - %s', $plan->getCreatedAt()->format('d. m. Y'));
+		$pdfHtml = $this->gotenbergPdfDocumentRenderer->render($title, $detailHtml);
+		$pdf = $this->gotenbergPdfService->convertHtml($pdfHtml);
+
+		$this->sendResponse(new PdfResponse(
+			$pdf,
+			sprintf('ai-investment-plan-%s.pdf', $plan->getId()->toString()),
+		));
 	}
 
 	protected function createComponentInvestmentPlanForm(): AdminForm
@@ -110,6 +132,16 @@ class StockAiInvestmentPlanPresenter extends BaseAdminPresenter
 			$this->flashMessage('Výsledek investičního plánu z Codexu byl úspěšně importován.', 'success');
 			$this->redirect('detail', ['id' => $this->plan->getId()->toString()]);
 		});
+	}
+
+	private function prepareDetailTemplate(StockAiInvestmentPlan $plan, bool $pdfExport = false): void
+	{
+		$this->template->heading = $pdfExport ? null : 'Detail AI investičního plánu';
+		$this->template->plan = $plan;
+		$this->template->pdfExport = $pdfExport;
+		$this->template->generatedPromptForDisplay = $this->investmentPlanFacade
+			->getGeneratedPromptForDisplay($plan);
+		$this->template->codexStartPrompt = StockAiInvestmentPlanCodexBundleFactory::START_PROMPT;
 	}
 
 }

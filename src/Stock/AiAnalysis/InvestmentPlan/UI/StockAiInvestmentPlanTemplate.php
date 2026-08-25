@@ -12,6 +12,8 @@ class StockAiInvestmentPlanTemplate extends BaseAdminPresenterTemplate
 
 	public StockAiInvestmentPlan|null $plan = null;
 
+	public bool $pdfExport = false;
+
 	public string $generatedPromptForDisplay = '';
 
 	public string $codexStartPrompt = '';

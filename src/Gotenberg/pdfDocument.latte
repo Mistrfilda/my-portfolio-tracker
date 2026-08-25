@@ -1,0 +1,85 @@
+{parameters string $title, string $stylesheet, string $trustedHtmlFragment}
+<!doctype html>
+<html lang="cs">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{$title}</title>
+	<style>
+		{$stylesheet|noescape}
+
+		html {
+			-webkit-print-color-adjust: exact;
+			print-color-adjust: exact;
+		}
+
+		body {
+			background: #ffffff;
+			color: #111827;
+			margin: 0;
+		}
+
+		.pdf-document-header {
+			border-bottom: 2px solid #2563eb;
+			margin-bottom: 1.5rem;
+			padding-bottom: 1rem;
+		}
+
+		.pdf-document-brand {
+			color: #2563eb;
+			font-size: 0.75rem;
+			font-weight: 700;
+			letter-spacing: 0.08em;
+			margin: 0 0 0.35rem;
+			text-transform: uppercase;
+		}
+
+		.pdf-document-title {
+			color: #111827;
+			font-size: 1.75rem;
+			font-weight: 700;
+			letter-spacing: -0.025em;
+			line-height: 1.2;
+			margin: 0;
+		}
+
+		.pdf-document-content a {
+			color: inherit;
+			text-decoration: none;
+		}
+
+		.pdf-document-content button,
+		.pdf-document-content form,
+		.pdf-document-content script {
+			display: none !important;
+		}
+
+		.pdf-document-content pre {
+			overflow-wrap: anywhere;
+			white-space: pre-wrap;
+		}
+
+		.pdf-document-content h1,
+		.pdf-document-content h2,
+		.pdf-document-content h3,
+		.pdf-document-content h4 {
+			break-after: avoid-page;
+		}
+
+		.pdf-document-content p,
+		.pdf-document-content li {
+			orphans: 3;
+			widows: 3;
+		}
+	</style>
+</head>
+<body>
+	<header class="pdf-document-header">
+		<p class="pdf-document-brand">My Portfolio Tracker</p>
+		<h1 class="pdf-document-title">{$title}</h1>
+	</header>
+	<main class="pdf-document-content">
+		{$trustedHtmlFragment|noescape}
+	</main>
+</body>
+</html>

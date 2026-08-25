@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\UI;
 
+use App\Gotenberg\GotenbergPdfDocumentRenderer;
+use App\Gotenberg\GotenbergPdfService;
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
 use App\Stock\AiAnalysis\Codex\StockAiAnalysisCodexBundleFactory;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
@@ -18,6 +20,7 @@ use App\Stock\Asset\StockAssetRepository;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
+use App\UI\Response\PdfResponse;
 use App\Utils\TypeValidator;
 use Nette\Application\AbortException;
 use Nette\Application\Responses\CallbackResponse;
@@ -47,6 +50,8 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAiAnalysisFollowUpQuestionFacade $stockAiAnalysisFollowUpQuestionFacade,
 		private readonly StockAiAnalysisCodexBundleFactory $stockAiAnalysisCodexBundleFactory,
 		private readonly StockAiAnalysisCodexResultFormFactory $stockAiAnalysisCodexResultFormFactory,
+		private readonly GotenbergPdfDocumentRenderer $gotenbergPdfDocumentRenderer,
+		private readonly GotenbergPdfService $gotenbergPdfService,
 	)
 	{
 		parent::__construct();
@@ -88,54 +93,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			$this->error('Analýza nebyla nalezena');
 		}
 
-		$this->template->heading = 'Detail AI analýzy';
-		$this->template->run = $this->run;
-
-		$results = $this->run->getResults();
-		$portfolioResults = [];
-		$watchlistResults = [];
-		$simpleWatchlistResults = [];
-		$singleStockResults = [];
-
-		foreach ($results as $result) {
-			if ($result->getType() === StockAiAnalysisResultTypeEnum::PORTFOLIO) {
-				$portfolioResults[] = $result;
-			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::WATCHLIST) {
-				$watchlistResults[] = $result;
-			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST) {
-				$simpleWatchlistResults[] = $result;
-			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SINGLE_STOCK) {
-				$singleStockResults[] = $result;
-			}
-		}
-
-		$sortFunction = function (StockAiAnalysisStockResult $a, StockAiAnalysisStockResult $b): int {
-			$scoreA = $this->getActionScore($a->getActionSuggestion());
-			$scoreB = $this->getActionScore($b->getActionSuggestion());
-
-			return $scoreA <=> $scoreB;
-		};
-
-		usort($portfolioResults, $sortFunction);
-		usort($watchlistResults, $sortFunction);
-		usort($simpleWatchlistResults, $sortFunction);
-
-		$this->template->portfolioResults = $portfolioResults;
-		$this->template->watchlistResults = $watchlistResults;
-		$this->template->simpleWatchlistResults = $simpleWatchlistResults;
-		$this->template->singleStockResults = $singleStockResults;
-		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay(
-			$this->run,
-		);
-		$this->template->codexStartPrompt = StockAiAnalysisCodexBundleFactory::START_PROMPT;
-		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade
-			->getCachedGeminiResponseFileCount($this->run);
-		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
-			$this->run,
-		);
-		$this->template->followUpQuestions = $this->stockAiAnalysisFollowUpQuestionFacade->getQuestionsForRun(
-			$this->run,
-		);
+		$this->prepareDetailTemplate($this->run);
 	}
 
 	public function actionDownloadCodexBundle(string $id): void
@@ -162,6 +120,27 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 				FileSystem::delete($bundle->filePath);
 			}
 		}));
+	}
+
+	public function actionDownloadPdf(string $id): void
+	{
+		$run = $this->stockAiAnalysisFacade->getRun($id);
+		if ($run->getProcessedAt() === null) {
+			$this->flashMessage('PDF lze stáhnout až po zpracování analýzy.', 'danger');
+			$this->redirect('detail', ['id' => $run->getId()->toString()]);
+		}
+
+		$this->setLayout(false);
+		$this->prepareDetailTemplate($run, true);
+		$detailHtml = $this->template->renderToString(__DIR__ . '/templates/StockAiAnalysis.detail.latte');
+		$title = sprintf('AI analýza - %s', $run->getCreatedAt()->format('d. m. Y'));
+		$pdfHtml = $this->gotenbergPdfDocumentRenderer->render($title, $detailHtml);
+		$pdf = $this->gotenbergPdfService->convertHtml($pdfHtml);
+
+		$this->sendResponse(new PdfResponse(
+			$pdf,
+			sprintf('ai-analysis-%s.pdf', $run->getId()->toString()),
+		));
 	}
 
 	public function handleEnqueueFollowUpGemini(string $questionId): void
@@ -196,6 +175,56 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			StockAiAnalysisActionSuggestionEnum::WAIT => 5,
 			StockAiAnalysisActionSuggestionEnum::NOT_INTERESTING => 6,
 		};
+	}
+
+	private function prepareDetailTemplate(StockAiAnalysisRun $run, bool $pdfExport = false): void
+	{
+		$this->template->heading = $pdfExport ? null : 'Detail AI analýzy';
+		$this->template->run = $run;
+		$this->template->pdfExport = $pdfExport;
+
+		$portfolioResults = [];
+		$watchlistResults = [];
+		$simpleWatchlistResults = [];
+		$singleStockResults = [];
+
+		foreach ($run->getResults() as $result) {
+			if ($result->getType() === StockAiAnalysisResultTypeEnum::PORTFOLIO) {
+				$portfolioResults[] = $result;
+			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::WATCHLIST) {
+				$watchlistResults[] = $result;
+			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST) {
+				$simpleWatchlistResults[] = $result;
+			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::SINGLE_STOCK) {
+				$singleStockResults[] = $result;
+			}
+		}
+
+		$sortFunction = function (StockAiAnalysisStockResult $a, StockAiAnalysisStockResult $b): int {
+			$scoreA = $this->getActionScore($a->getActionSuggestion());
+			$scoreB = $this->getActionScore($b->getActionSuggestion());
+
+			return $scoreA <=> $scoreB;
+		};
+
+		usort($portfolioResults, $sortFunction);
+		usort($watchlistResults, $sortFunction);
+		usort($simpleWatchlistResults, $sortFunction);
+
+		$this->template->portfolioResults = $portfolioResults;
+		$this->template->watchlistResults = $watchlistResults;
+		$this->template->simpleWatchlistResults = $simpleWatchlistResults;
+		$this->template->singleStockResults = $singleStockResults;
+		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay($run);
+		$this->template->codexStartPrompt = StockAiAnalysisCodexBundleFactory::START_PROMPT;
+		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade
+			->getCachedGeminiResponseFileCount($run);
+		$this->template->dailyBriefActionChecklistItems = $this->stockAiAnalysisActionChecklistProvider->getForRun(
+			$run,
+		);
+		$this->template->followUpQuestions = $pdfExport
+			? []
+			: $this->stockAiAnalysisFollowUpQuestionFacade->getQuestionsForRun($run);
 	}
 
 	protected function createComponentAiAnalysisGrid(): Datagrid

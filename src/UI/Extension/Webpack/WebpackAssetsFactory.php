@@ -10,8 +10,10 @@ use Nette\Utils\Html;
 use Nette\Utils\Json;
 use function array_key_exists;
 use function assert;
+use function basename;
 use function count;
 use function implode;
+use function is_file;
 use function is_string;
 use function sprintf;
 
@@ -59,6 +61,44 @@ class WebpackAssetsFactory
 		}
 
 		return implode('', $cssAssets);
+	}
+
+	public function getCssContents(string $entryName): string
+	{
+		$assets = $this->loadAssets();
+		if (array_key_exists($entryName, $assets) === false) {
+			throw new WebpackException(
+				sprintf('Unknown entry name %s', $entryName),
+			);
+		}
+
+		assert(is_array($assets[$entryName]));
+		if (array_key_exists('css', $assets[$entryName]) === false) {
+			throw new WebpackException(
+				sprintf('Missing css assets for entry %s', $entryName),
+			);
+		}
+
+		$cssContents = [];
+		foreach (TypeValidator::validateIterable($assets[$entryName]['css']) as $cssAsset) {
+			$cssFileName = basename(TypeValidator::validateString($cssAsset));
+			$cssFilePath = null;
+			foreach ($this->assetsDirs as $assetsDir) {
+				$candidate = $assetsDir . '/' . $cssFileName;
+				if (is_file($candidate)) {
+					$cssFilePath = $candidate;
+					break;
+				}
+			}
+
+			if ($cssFilePath === null) {
+				throw new WebpackException(sprintf('Missing css asset file %s', $cssFileName));
+			}
+
+			$cssContents[] = FileSystem::read($cssFilePath);
+		}
+
+		return implode("\n", $cssContents);
 	}
 
 	public function getJsAssets(string $entryName): string

@@ -548,6 +548,8 @@ services:
 
 	#Gotenberg
 	- App\Gotenberg\GotenbergScreenshotService(baseUrl: %gotenberg.url%)
+	- App\Gotenberg\GotenbergPdfService(baseUrl: %gotenberg.url%)
+	- App\Gotenberg\GotenbergPdfDocumentRenderer
 
 	#Notifications
 	- App\Notification\NotificationFacade
