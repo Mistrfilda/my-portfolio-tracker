@@ -83,6 +83,17 @@ class StockAiAnalysisV2PromptGenerator
 			$windowInstruction,
 			'Use `input/context.json` only for run-level synthesis and portfolio relevance.',
 			'Preserve all immutable identifiers and metadata exactly as provided.',
+			'For every `input/simple-watchlist-*.json` company, research the latest verifiable market price at or '
+				. 'before `analysisAsOf`. `currentPrice: null` means the application did not provide a quote, not that '
+				. 'price research should stop.',
+			'Verify the exact listing and quote currency from the company name, ticker, and exchange. Prefer an '
+				. 'official exchange quote; when unavailable, use a reputable quote source and cross-check ambiguous '
+				. 'listings. Use the most recent close when no timestamped intraday quote is available.',
+			'Normalize quote subunits such as GBp to the major currency unit required by the schema. Use the '
+				. 'researched price to compare the conservative fair-value range with `recommendedEntryPrice`, and '
+				. 'state the researched price, currency, and quote date in `valuation.summary`.',
+			'Do not use `uncertain` solely because input `currentPrice` is null. Use it only when the quote cannot '
+				. 'be verified after reasonable research or the valuation evidence remains insufficient.',
 			'Use the bundled validator for every partial: `node validate-stock-json.mjs schema/company-result.schema.json <partial-file>`.',
 			'Validate the final output with `node validate-stock-json.mjs schema/result.schema.json result.json`.',
 		]);

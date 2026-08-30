@@ -85,6 +85,18 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'node validate-stock-json.mjs schema/company-result.schema.json <partial-file>',
 				(string) $zip->getFromName('instructions/task.md'),
 			);
+			self::assertStringContainsString(
+				'currentPrice: null` means the application did not provide a quote',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
+			self::assertStringContainsString(
+				'state the researched price, currency, and quote date in `valuation.summary`',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
+			self::assertStringContainsString(
+				'Do not use `uncertain` solely because input `currentPrice` is null',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
 			self::assertTrue($zip->close());
 		} finally {
 			FileSystem::delete($tempDir);
@@ -127,6 +139,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'stockAssetName' => 'SIMPLE',
 				'stockAssetTicker' => 'SIMPLE',
 				'currency' => 'USD',
+				'currentPrice' => null,
 				'recommendedEntryPrice' => 50.0,
 			]],
 			'portfolioContext' => [],
