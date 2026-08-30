@@ -96,6 +96,7 @@ class MenuBuilder
 				new MenuItem('Expense', 'kb', SvgIcon::CREDIT_CARD, 'Výdaje'),
 				new MenuItem('ExpenseTag', 'tags', SvgIcon::TAG, 'Výdajové tagy'),
 				new MenuItem('WorkMonthlyIncome', 'default', SvgIcon::COLLECTION, 'Příjmy z práce'),
+				new MenuItem('FinancialIndependence', 'default', SvgIcon::INCOME_CHART, 'Finanční nezávislost'),
 				new MenuItem('BankAccount', 'default', SvgIcon::BANKNOTES, 'Bankovní účty'),
 				new MenuItem('BankIncome', 'default', SvgIcon::COLLECTION, 'Příjmy z banky'),
 			]),

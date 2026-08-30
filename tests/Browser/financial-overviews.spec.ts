@@ -72,6 +72,47 @@ test('currency overview converts an amount and switches the responsive quick tab
 	}
 });
 
+test('financial independence overview exposes tracker defaults and editable assumptions', async ({ page }) => {
+	await login(page);
+	const frontendErrors = watchFrontendErrors(page);
+
+	try {
+		await page.goto('financial-independence/');
+
+		await expect(page.getByRole('heading', { name: 'Finanční nezávislost' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Výchozí data z trackeru' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Kalkulačka scénáře' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Výsledek modelu' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Srovnání míry výběru' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: 'Historický výnos použitý v kalkulačce' })).toBeVisible();
+		await expect(page.getByLabel('Cílové měsíční náklady')).toBeVisible();
+		await expect(page.getByLabel('Očekávaný celkový roční výnos')).toBeVisible();
+		await expect(page.getByLabel('Roční míra výběru')).toBeVisible();
+		await expect(page.getByLabel('Rok narození')).toBeVisible();
+		await expect(page.getByLabel('Rok narození')).toHaveValue('1996');
+		await expect(page.getByLabel('Modelovaný věk dožití')).toBeVisible();
+		await expect(page.getByLabel('Modelovaný věk dožití')).toHaveValue('80');
+		await expect(page.getByText('Přibližný věk při dosažení', { exact: true })).toBeVisible();
+		await expect(page.getByRole('link', { name: 'Obnovit data z trackeru' })).toBeVisible();
+		expect(await page.locator('form').evaluate((form) => (form as HTMLFormElement).checkValidity())).toBe(true);
+
+		await page.getByLabel('Roční míra výběru').fill('4');
+		await page.getByRole('button', { name: 'Přepočítat scénář' }).click();
+		await expect.poll(() => new URL(page.url()).searchParams.get('withdrawalRatePercentage')).toBe('4');
+		await expect.poll(() => new URL(page.url()).searchParams.get('birthYear')).toBe('1996');
+		await expect.poll(() => new URL(page.url()).searchParams.get('plannedLifespanAge')).toBe('80');
+		await expect(page.getByLabel('Roční míra výběru')).toHaveValue('4');
+
+		await page.setViewportSize({ width: 390, height: 844 });
+		await expectNoHorizontalPageOverflow(page);
+		await expect(page.getByRole('heading', { name: 'Výsledek modelu' })).toBeVisible();
+
+		frontendErrors.assertNoErrors();
+	} finally {
+		frontendErrors.dispose();
+	}
+});
+
 async function expectNoHorizontalPageOverflow(page: Page): Promise<void> {
 	await expect.poll(async () => await page.evaluate(() => {
 		return document.documentElement.scrollWidth - document.documentElement.clientWidth;

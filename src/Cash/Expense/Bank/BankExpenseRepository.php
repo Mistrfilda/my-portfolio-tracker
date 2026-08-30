@@ -5,11 +5,13 @@ declare(strict_types = 1);
 namespace App\Cash\Expense\Bank;
 
 use App\Cash\Expense\Category\ExpenseCategory;
+use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 
 /**
@@ -77,6 +79,38 @@ class BankExpenseRepository extends BaseRepository
 
 		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
 		$qb->andWhere($qb->expr()->in('bankExpense.id', $ids));
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/**
+	 * @return array<BankExpense>
+	 */
+	public function findByEffectiveDateRangeExcludingCategory(
+		ImmutableDateTime $startInclusive,
+		ImmutableDateTime $endExclusive,
+		ExpenseCategoryEnum $excludedCategory,
+	): array
+	{
+		$effectiveDate = 'COALESCE(bankExpense.transactionDate, bankExpense.settlementDate, bankExpense.createdAt)';
+		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
+		$qb->addSelect('mainTag', 'expenseCategory');
+		$qb->addSelect($effectiveDate . ' AS HIDDEN effectiveDate');
+		$qb->leftJoin('bankExpense.mainTag', 'mainTag');
+		$qb->leftJoin('mainTag.expenseCategory', 'expenseCategory');
+		$qb->andWhere($qb->expr()->gte($effectiveDate, ':startInclusive'));
+		$qb->andWhere($qb->expr()->lt($effectiveDate, ':endExclusive'));
+		$qb->andWhere(
+			$qb->expr()->orX(
+				$qb->expr()->isNull('expenseCategory.enumName'),
+				$qb->expr()->neq('expenseCategory.enumName', ':excludedCategory'),
+			),
+		);
+		$qb->setParameter('startInclusive', $startInclusive);
+		$qb->setParameter('endExclusive', $endExclusive);
+		$qb->setParameter('excludedCategory', $excludedCategory);
+		$qb->orderBy('effectiveDate', 'ASC');
+		$qb->addOrderBy('bankExpense.id', 'ASC');
 
 		return $qb->getQuery()->getResult();
 	}

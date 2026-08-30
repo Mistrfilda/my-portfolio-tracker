@@ -1,0 +1,300 @@
+{templateType App\FinancialIndependence\UI\FinancialIndependenceTemplate}
+
+{block #content}
+	<div class="space-y-6 sm:space-y-8">
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="financial-independence-intro">
+			<div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-5 py-5 sm:px-6">
+				<p class="text-sm font-medium text-blue-700">Plán z vlastních dat</p>
+				<h2 id="financial-independence-intro" class="mt-1 text-xl font-semibold tracking-tight text-gray-900">
+					Kdy portfolio dokáže pokrýt běžné měsíční náklady?
+				</h2>
+				<p class="mt-2 max-w-3xl text-sm leading-6 text-gray-600">
+					Model vychází z aktuální hodnoty celého portfolia a z reálných příspěvků do něj. Předpoklady lze upravit a hned porovnat s výchozími daty trackeru.
+				</p>
+			</div>
+		</section>
+
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="tracker-data-heading">
+			<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+				<h2 id="tracker-data-heading" class="text-lg font-semibold text-gray-900">Výchozí data z trackeru</h2>
+				<p class="mt-1 text-sm text-gray-500">
+					Průměry za dokončené měsíce {$defaults->periodStart|dateFormat}–{$periodEndInclusive|dateFormat}.
+				</p>
+			</div>
+
+			<dl class="grid grid-cols-1 gap-px bg-gray-100 sm:grid-cols-2 xl:grid-cols-4">
+				<div class="bg-white px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Celé portfolio v modelu</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$defaults->calculationInput->currentPortfolioValueCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">Akcie, Portu a kryptoměny v aktuálních cenách</p>
+				</div>
+				<div class="bg-white px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Průměrné měsíční výdaje</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$defaults->calculationInput->targetMonthlyExpensesCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">{$defaults->expenseTransactionCount} transakcí, bez kategorie Investice</p>
+				</div>
+				<div class="bg-white px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Skutečný měsíční příspěvek</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$defaults->calculationInput->monthlyContributionCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">12 kalendářních měsíců, {$defaults->contributionRecordCount} měsíčních záznamů</p>
+				</div>
+				<div class="bg-white px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Hrubá měsíční fakturace OSVČ</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$defaults->averageMonthlyInvoicedIncomeCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">12 kalendářních měsíců, {$defaults->invoicedIncomeRecordCount} záznamů; nejde o disponibilní příjem</p>
+				</div>
+			</dl>
+
+			{if $defaults->missingCurrencyConversionCount > 0}
+				<div class="border-t border-gray-100 bg-white px-5 py-4 sm:px-6">
+					<div class="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-600/20" role="alert">
+						Do průměru výdajů nebylo možné zahrnout {$defaults->missingCurrencyConversionCount} transakcí kvůli chybějícímu historickému měnovému kurzu.
+					</div>
+				</div>
+			{/if}
+		</section>
+
+		<div class="grid grid-cols-1 items-start gap-6 xl:grid-cols-5">
+			<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 xl:col-span-3" aria-labelledby="calculator-settings-heading">
+				<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+					<h2 id="calculator-settings-heading" class="text-lg font-semibold text-gray-900">Kalkulačka scénáře</h2>
+					<p class="mt-1 text-sm text-gray-500">Upravte hodnoty načtené z trackeru. Částky jsou v CZK, výnosy a náklady v procentech za rok.</p>
+				</div>
+				<div class="px-5 py-6 sm:px-6">
+					{if $defaults->historicalAnnualizedTotalReturnPercentage !== null
+						&& $defaults->historicalReturnPeriodStart !== null
+						&& $defaults->historicalReturnPeriodEnd !== null}
+						<div class="rounded-xl bg-blue-50 px-4 py-4 ring-1 ring-inset ring-blue-700/10">
+							<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+								<div>
+									<h3 class="text-sm font-semibold text-blue-900">Historický výnos použitý v kalkulačce</h3>
+									<p class="mt-1 text-xs text-blue-700">
+										Annualizovaný TWR za období {$defaults->historicalReturnPeriodStart|dateFormat}–{$defaults->historicalReturnPeriodEnd|dateFormat}
+									</p>
+								</div>
+								<p class="text-3xl font-semibold tracking-tight text-blue-700 tabular-nums">
+									{$defaults->historicalAnnualizedTotalReturnPercentage|percentage}
+								</p>
+							</div>
+							<p class="mt-3 text-sm leading-6 text-blue-900">
+								Jde o historický výsledek v CZK: zahrnuje pohyb cen a měnových kurzů i čisté reinvestované dividendy a odstraňuje vliv vkladů.
+								Stejný význam má očekávaný výnos níže: dividendy jsou v něm už zahrnuté a model od něj ještě samostatně odečítá zadané roční náklady portfolia.
+								Tato historická hodnota je předvyplněná jako očekávaný výnos níže a přímo vstupuje do výpočtu. Můžeš ji pro vlastní scénář upravit; nejde o příslib budoucího výsledku.
+							</p>
+						</div>
+					{else}
+						<div class="rounded-xl bg-gray-50 px-4 py-4 ring-1 ring-inset ring-gray-900/5">
+							<h3 class="text-sm font-semibold text-gray-900">Historický výnos použitý v kalkulačce</h3>
+							<p class="mt-2 text-sm leading-6 text-gray-600">
+								Tracker zatím nemá k dispozici rekonstruovanou historii delší než 180 dní pro annualizovaný TWR. Jako výchozí očekávaný výnos se proto používá 6 %, které můžeš ručně upravit.
+							</p>
+						</div>
+					{/if}
+					<div class="mt-6">
+						{control financialIndependenceForm}
+					</div>
+					<div class="mt-6 flex justify-end border-t border-gray-100 pt-5">
+						<a n:href="default" class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">Obnovit data z trackeru</a>
+					</div>
+				</div>
+			</section>
+
+			<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5 xl:col-span-2" aria-labelledby="model-result-heading">
+				<div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-5 sm:px-6">
+					<div>
+						<h2 id="model-result-heading" class="text-lg font-semibold text-gray-900">Výsledek modelu</h2>
+						<p class="mt-1 text-sm text-gray-500">Výsledek pro právě zadané předpoklady.</p>
+					</div>
+					<span class="inline-flex shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10">Aktuální scénář</span>
+				</div>
+
+				<dl class="px-5 py-5 sm:px-6">
+					<dt class="text-sm font-medium text-gray-500">Cílová hodnota portfolia</dt>
+					<dd class="mt-2 text-3xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$result->targetPortfolioValueCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+				</dl>
+
+				<dl class="grid grid-cols-2 gap-px border-y border-gray-100 bg-gray-100">
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs leading-5 text-gray-500">Dnes lze modelově vybírat</dt>
+						<dd class="mt-1 font-semibold text-gray-900 tabular-nums">{$result->currentMonthlyWithdrawalCzk|currency:App\Currency\CurrencyEnum::CZK} / měsíc</dd>
+					</div>
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs leading-5 text-gray-500">Do cíle chybí</dt>
+						<dd class="mt-1 font-semibold text-gray-900 tabular-nums">{$result->portfolioGapCzk|currency:App\Currency\CurrencyEnum::CZK}</dd>
+					</div>
+				</dl>
+
+				<div class="px-5 py-5 sm:px-6">
+					<div class="flex items-end justify-between gap-4">
+						<p class="text-sm font-medium text-gray-600">Pokrytí cíle</p>
+						<p class="text-2xl font-semibold text-blue-600 tabular-nums">{$result->fundedPercentage|percentage}</p>
+					</div>
+					<div class="mt-4 h-3 overflow-hidden rounded-full bg-gray-100" role="progressbar" aria-label="Pokrytí cílové hodnoty" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{$result->fundedPercentage}">
+						<div class="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-500" style="width: {$result->fundedPercentage}%;"></div>
+					</div>
+				</div>
+
+				<dl class="grid grid-cols-2 gap-px border-y border-gray-100 bg-gray-100">
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs text-gray-500">Odhadovaný čas</dt>
+						<dd class="mt-1 text-sm font-semibold text-gray-900">{$timeToTarget}</dd>
+					</div>
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs text-gray-500">Odhadované datum</dt>
+						<dd class="mt-1 text-sm font-semibold text-gray-900">{if $targetDate !== null}{$targetDate|dateFormat}{else}—{/if}</dd>
+					</div>
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs text-gray-500">Přibližný věk při dosažení</dt>
+						<dd class="mt-1 text-sm font-semibold text-gray-900">{if $targetAge !== null}{$targetAge} let{else}—{/if}</dd>
+					</div>
+					<div class="bg-white px-5 py-4 sm:px-6">
+						<dt class="text-xs text-gray-500">Modelovaný horizont</dt>
+						<dd class="mt-1 text-sm font-semibold text-gray-900">Do věku {$calculationInput->plannedLifespanAge} let</dd>
+						<p class="mt-1 text-xs text-gray-500">Přibližně do roku {$planningEndYear}</p>
+					</div>
+				</dl>
+
+				<div class="bg-gray-50/70 px-5 py-5 sm:px-6">
+					<p class="text-sm text-gray-600">
+						Reálný roční výnos po inflaci a nákladech: <strong class="font-semibold text-gray-900">{$result->netRealAnnualReturnPercentage|percentage}</strong>
+					</p>
+					<p class="mt-2 text-xs leading-5 text-gray-500">Výpočet používá míru výběru {$calculationInput->withdrawalRatePercentage|percentage}.</p>
+				</div>
+			</section>
+		</div>
+
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="projection-heading">
+			<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+				<h2 id="projection-heading" class="text-lg font-semibold text-gray-900">Vývoj portfolia k cíli</h2>
+				<p class="mt-1 text-sm text-gray-500">Roční body odhadu do dosažení cíle nebo modelovaného věku {$calculationInput->plannedLifespanAge} let.</p>
+			</div>
+			<div class="bg-gray-50/70 sm:p-5">
+				{if count($result->projectionPoints) > 1}
+					<div class="h-[22rem] bg-white p-2 sm:h-96 sm:rounded-xl sm:p-4 sm:shadow-sm sm:ring-1 sm:ring-gray-900/5 xl:h-[28rem]">
+						{control projectionChart}
+					</div>
+				{elseif $result->monthsToTarget === 0}
+					<div class="bg-emerald-50 px-5 py-8 text-center text-sm font-medium text-emerald-800 ring-1 ring-inset ring-emerald-600/20 sm:rounded-xl">
+						Aktuální portfolio už cílovou hodnotu pokrývá.
+					</div>
+				{else}
+					<div class="bg-amber-50 px-5 py-8 text-center text-sm font-medium text-amber-800 ring-1 ring-inset ring-amber-600/20 sm:rounded-xl">
+						Cíl nebyl dosažen do modelovaného věku {$calculationInput->plannedLifespanAge} let.
+					</div>
+				{/if}
+			</div>
+		</section>
+
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="withdrawal-scenarios-heading">
+			<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+				<h2 id="withdrawal-scenarios-heading" class="text-lg font-semibold text-gray-900">Srovnání míry výběru</h2>
+				<p class="mt-1 text-sm text-gray-500">Nižší míra výběru vyžaduje vyšší cílové portfolio, ale vytváří větší rezervu.</p>
+			</div>
+
+			<div class="hidden overflow-x-auto sm:block">
+				<table class="min-w-full divide-y divide-gray-100">
+					<thead class="bg-gray-50">
+						<tr>
+							<th scope="col" class="py-3.5 pl-5 pr-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pl-6">Míra výběru</th>
+							<th scope="col" class="px-3 py-3.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Cílové portfolio</th>
+							<th scope="col" class="px-3 py-3.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Čas do cíle</th>
+							<th scope="col" class="py-3.5 pl-3 pr-5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 sm:pr-6">Odhadované datum</th>
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 bg-white">
+						{foreach $withdrawalScenarios as $scenario}
+							<tr n:class="$scenario['withdrawalRatePercentage'] === $calculationInput->withdrawalRatePercentage ? 'bg-blue-50/60'">
+								<td class="whitespace-nowrap py-4 pl-5 pr-3 text-sm font-semibold text-gray-900 sm:pl-6">
+									<div class="flex items-center gap-2">
+										{$scenario['withdrawalRatePercentage']|percentage}
+										{if $scenario['withdrawalRatePercentage'] === $calculationInput->withdrawalRatePercentage}
+											<span class="inline-flex rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700">Zvolený</span>
+										{/if}
+									</div>
+								</td>
+								<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-600 tabular-nums">{$scenario['result']->targetPortfolioValueCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+								<td class="whitespace-nowrap px-3 py-4 text-sm text-gray-600">{$scenario['timeToTarget']}</td>
+								<td class="whitespace-nowrap py-4 pl-3 pr-5 text-sm text-gray-600 sm:pr-6">
+									{if $scenario['targetDate'] !== null}
+										{$scenario['targetDate']|dateFormat}
+										{if $scenario['targetAge'] !== null}<span class="mt-1 block text-xs text-gray-500">Přibližně {$scenario['targetAge']} let</span>{/if}
+									{else}
+										—
+									{/if}
+								</td>
+							</tr>
+						{/foreach}
+					</tbody>
+				</table>
+			</div>
+
+			<ul class="divide-y divide-gray-100 sm:hidden" role="list">
+				{foreach $withdrawalScenarios as $scenario}
+					<li n:class="'p-4', $scenario['withdrawalRatePercentage'] === $calculationInput->withdrawalRatePercentage ? 'bg-blue-50/60'">
+						<div class="flex items-center justify-between gap-3">
+							<p class="font-semibold text-gray-900">Míra výběru {$scenario['withdrawalRatePercentage']|percentage}</p>
+							{if $scenario['withdrawalRatePercentage'] === $calculationInput->withdrawalRatePercentage}
+								<span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-700">Zvolený</span>
+							{/if}
+						</div>
+						<dl class="mt-4 grid grid-cols-2 gap-3">
+							<div class="col-span-2 rounded-xl bg-gray-50 p-3">
+								<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Cílové portfolio</dt>
+								<dd class="mt-1 font-semibold text-gray-900 tabular-nums">{$scenario['result']->targetPortfolioValueCzk|currency:App\Currency\CurrencyEnum::CZK}</dd>
+							</div>
+							<div class="rounded-xl bg-gray-50 p-3">
+								<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Čas do cíle</dt>
+								<dd class="mt-1 text-sm font-semibold text-gray-900">{$scenario['timeToTarget']}</dd>
+							</div>
+							<div class="rounded-xl bg-gray-50 p-3">
+								<dt class="text-xs font-medium uppercase tracking-wide text-gray-500">Odhadované datum</dt>
+								<dd class="mt-1 text-sm font-semibold text-gray-900">
+									{if $scenario['targetDate'] !== null}
+										{$scenario['targetDate']|dateFormat}
+										{if $scenario['targetAge'] !== null}<span class="mt-1 block text-xs font-normal text-gray-500">Přibližně {$scenario['targetAge']} let</span>{/if}
+									{else}
+										—
+									{/if}
+								</dd>
+							</div>
+						</dl>
+					</li>
+				{/foreach}
+			</ul>
+		</section>
+
+		<details class="group overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="methodology-heading">
+			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-5 sm:px-6">
+				<div>
+					<h2 id="methodology-heading" class="text-base font-semibold text-gray-900">Jak model počítá</h2>
+					<p class="mt-1 text-sm text-gray-500">Předpoklady a omezení použitého odhadu.</p>
+				</div>
+				{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+			</summary>
+			<div class="border-t border-gray-100 bg-gray-50/70 px-5 py-5 sm:px-6">
+				<ul class="list-disc space-y-1 pl-5 text-sm leading-6 text-gray-600">
+					<li>Cílové portfolio je 12násobek měsíčních nákladů vydělený zvolenou roční mírou výběru.</li>
+					<li>Částky jsou v dnešních korunách; projekce proto pracuje s reálným výnosem po odečtení inflace a ročních nákladů portfolia.</li>
+					<li>Očekávaný nominální celkový výnos před samostatně modelovanými ročními náklady zahrnuje pohyb cen a měnových kurzů i čisté reinvestované dividendy; dividendy se proto podruhé nepřičítají jako měsíční příspěvek.</li>
+					<li>Historický annualizovaný TWR odstraňuje vliv vkladů a je-li dostupný, používá se jako výchozí očekávaný výnos; jinak model použije 6 %. V obou případech lze hodnotu upravit.</li>
+					<li>Měsíční příspěvek přičítá na konci každého měsíce; rozhodující jsou skutečné příspěvky do portfolia, ne hrubá fakturace.</li>
+					<li>Rok narození určuje pouze přibližný věk a osobní konec projekce; bez přesného data narození se může zobrazený věk lišit o jeden rok.</li>
+					<li>Modelovaný věk dožití nesnižuje cílové portfolio ani nepředpokládá jeho vyčerpání; cílová částka dál vychází ze zvolené míry výběru.</li>
+					<li>Výchozí výdaje jsou průměrem všech zachycených výdajů kromě kategorie Investice.</li>
+					<li>Model nezachycuje kolísání trhu, pořadí výnosů ani zdanění výběrů z portfolia.</li>
+					<li>Jde o deterministický odhad založený na zadaných předpokladech, nikoli o záruku budoucího výsledku.</li>
+				</ul>
+			</div>
+		</details>
+	</div>
+{/block}
