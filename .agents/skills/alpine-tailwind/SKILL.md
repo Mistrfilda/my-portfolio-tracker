@@ -18,7 +18,7 @@ description: Invoke before writing or modifying frontend interactivity or stylin
 - `assets/ts/alpine/*.ts` – per-component files (e.g. `DragScroll.ts`) imported and registered in `AppAlpine.ts`.
 - `assets/ts/<domain>/` – domain-specific TS (chart, expense, naja, select, confirm) – typically exports plain objects/functions that are wired into Alpine components in `AppAlpine.ts`.
 - `assets/css/index.css` – Tailwind entrypoint + custom CSS.
-- `tailwind.config.js` – `content` globs scan `src/**/*.latte`, `assets/**/*.{latte,ts,js}` (add any new template location here).
+- `tailwind.config.js` – legacy configuration loaded by `@config` in `assets/css/index.css`. Source detection also uses Tailwind 4's automatic scanning and CSS `@source` directives.
 - `src/UI/Tailwind/TailwindColorConstant.php` – PHP-side mirror of Tailwind palette, use it when a badge/chart color needs to match Tailwind classes.
 
 ## Registering a new Alpine component
@@ -33,16 +33,16 @@ description: Invoke before writing or modifying frontend interactivity or stylin
        <div x-show="open" x-cloak class="absolute ...">...</div>
    </div>
    ```
-5. Add `x-cloak` + a matching CSS rule (already in `index.css`) to prevent flash of unstyled content.
-6. After changes, run `npm run watch-dev` (or rebuild) – webpack-encore picks up TS/CSS automatically.
+5. Add `x-cloak` to prevent flash of unstyled content; its CSS rule is in `assets/css/alpine.css`, imported by `index.css`.
+6. Reuse an existing watcher, or run `npm run build-dev` for a finite verification. Start `npm run watch-dev` only when a persistent watcher is needed.
 
 ### Existing shared components (don't duplicate – reuse)
 
-`frontMenu`, `dropdown`, `flashMessage`, `select`, `datagridFilter`, `modal`, `loadChart`, `expenseMainTag`, `addExpenseOtherTag`, `removeOtherTag`, `currencyConvert`, `stockValuationModelData`, `dragScroll` – registered in `AppAlpine.ts`. Treat declarations in the `Window` interface as typings only; verify that a component is actually registered before reusing it.
+`frontMenu`, `dropdown`, `flashMessage`, `select`, `datagrid`, `modal`, `loadChart`, `expenseMainTag`, `addExpenseOtherTag`, `removeOtherTag`, `currencyConvert`, `currencyQuickConversions`, `valuationTable`, `stockValuationModelData`, `dragScroll` – registered in `AppAlpine.ts`. Treat declarations in the `Window` interface as typings only; verify that a component is actually registered before reusing it.
 
 ## Tailwind conventions
 
-- **Content paths** – when adding a new template location outside `src/` or `assets/`, extend `content` in `tailwind.config.js`; otherwise classes used only there get purged.
+- **Content paths** – for a new template location, check source detection in `tailwind.config.js` and `assets/css/index.css`; add an explicit `@source` when the location is not detected, then verify the generated CSS.
 - **Colors** – custom palettes (`orange`, `sky`, `emerald`, `teal`, `cyan`, `indigo`, `rose`) are re-exported from `tailwindcss/colors` in `theme.extend.colors`. Don't use arbitrary hex values for brand colors; prefer these scales.
 - **PHP ↔ CSS sync** – when a PHP enum/const needs to align with a Tailwind class (e.g. badges in `ColumnBadge`, chart datasets), use constants from `App\UI\Tailwind\TailwindColorConstant` instead of inlining hex strings.
 - **Forms** – `@tailwindcss/forms` is enabled; use the project's `AdminFormRenderer` (see `ui-forms-admin` skill) which already applies matching classes.
@@ -59,7 +59,7 @@ description: Invoke before writing or modifying frontend interactivity or stylin
 
 - **Don't** import Alpine anywhere except `AppAlpine.ts`; a second bootstrap breaks reactivity.
 - **Don't** use `@tailwindplus/elements` custom tags without importing the package (already done in `app.ts`).
-- **Don't** inline Tailwind classes in PHP unless they are also reachable by `content` globs – otherwise they get purged. Prefer template-side classes or constants in `TailwindColorConstant`.
+- **Don't** assume dynamically constructed PHP class names are detectable. Use complete class names in scanned sources or the existing `@source inline(...)` families in `assets/css/index.css`; prefer template-side classes or established palette constants.
 - Prefer `@click.stop` / `@click.outside` for dropdowns instead of manual document listeners.
 - Keep comments and identifiers in **English** (project rule).
 

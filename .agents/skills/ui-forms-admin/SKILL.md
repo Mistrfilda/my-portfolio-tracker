@@ -5,7 +5,7 @@ description: Invoke before creating or modifying an admin form in this project. 
 
 ## Admin Forms (project-specific)
 
-All admin forms MUST be created via `App\UI\Control\Form\AdminFormFactory`, which returns an `AdminForm` preconfigured with `AdminFormRenderer` (Tailwind + Bootstrap‑like markup).
+All admin forms MUST be created via `App\UI\Control\Form\AdminFormFactory`, which returns an `AdminForm` preconfigured with the project's Tailwind `AdminFormRenderer`.
 
 ### Core
 
@@ -15,14 +15,14 @@ All admin forms MUST be created via `App\UI\Control\Form\AdminFormFactory`, whic
 
 ### Custom inputs (`src/UI/Control/Form/Input/`)
 
-- **`DatePickerInput`** — date picker bound to a JS flatpickr component.
+- **`DatePickerInput`** — rendered as a native `input[type="date"]`; converts between `Y-m-d` and `ImmutableDateTime`.
 - **`CustomFileUpload`** — styled upload with preview/reset.
 - **`Multiplier`** — dynamic repeated group.
 
-### Containers (`src/UI/Control/Form/Container/`)
+### Containers and their factories
 
-- **`BirthdayContainerFactory`** — produces day/month/year sub-form mapping to `DTO/Birthday`.
-- **`TimeContainerFactory`** — hour/minute container.
+- **`BirthdayContainerFactory`** — under `src/UI/Control/Form/Input/`; produces a day/month/year sub-form mapping to `DTO/Birthday`.
+- **`TimeContainerFactory`** — also under `Input/`; produces an hour/minute container. Shared `AdminFormContainer` lives under `src/UI/Control/Form/Container/`.
 
 ### Pattern for a new form
 
@@ -37,8 +37,8 @@ All admin forms MUST be created via `App\UI\Control\Form\AdminFormFactory`, whic
 
 ### Rules
 
-- Do not hand-roll forms with plain `new Form()` — always use `AdminFormFactory` to get consistent rendering and CSRF.
+- Do not hand-roll forms with plain `new Form()` — use `AdminFormFactory` for consistent rendering and optional mapped values. The factory does not call `addProtection()`; do not assume it adds a CSRF token.
 - For validation rules / groups / containers, see the generic `nette-forms` skill.
 - When the form submits data that may take long (imports, heavy recalculations), dispatch the work via `JobRequest` — see `job-request` skill.
 - For file uploads, save to a service that uses `Nette\Utils\FileSystem`; never call PHP `move_uploaded_file` directly.
-- All error messages in English; indentation with tabs.
+- Exception messages and comments are English; keep form labels and user-facing validation messages consistent with the existing Czech UI. Indentation uses tabs.

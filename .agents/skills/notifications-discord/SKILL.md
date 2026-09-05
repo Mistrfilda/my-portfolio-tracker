@@ -17,8 +17,8 @@ Centralized notification dispatch with pluggable channels. Currently only Discor
 
 ### Facades
 
-- **`NotificationFacade`** — create & persist a `Notification`. Call this from domain code (new dividend detected, goal achieved, …).
-- **`NotificationSenderFacade`** — sends queued notifications; autowired with `typed(NotificationChannelSenderFacade)` so it iterates every available channel.
+- **`NotificationFacade`** — creates and persists a `Notification`, then publishes its `NotificationMessage` through `NotificationProducer`. Call this from domain code (new dividend detected, goal achieved, …).
+- **`NotificationSenderFacade::process($notificationId)`** — invoked by `NotificationConsumer`; sends through the notification's selected channels using services collected by `typed(NotificationChannelSenderFacade)`.
 - **`NotificationChannelSenderFacade`** (interface) — contract for a channel sender.
 
 ### Discord channel (`src/Notification/Discord/`)
@@ -50,7 +50,7 @@ Real URLs live in `config/config.local.neon` — do NOT commit them.
 2. Extend `NotificationParameters` / `NotificationParameterEnum` if the payload is new.
 3. Register a webhook slot under `notifications.discord.webhooks` (nullable default so it works without a real webhook).
 4. Map it in `DiscordChannelService` / `DiscordMessageService` so the right embed + webhook is used.
-5. Trigger it from domain code via `NotificationFacade::create(...)` — do NOT call the sender directly from the web request; `NotificationSenderFacade` flushes them (typically via CLI/cron).
+5. Trigger it from domain code via `NotificationFacade::create(...)`. Delivery runs through the RabbitMQ notification consumer; do not call the sender directly from the web request.
 
 ### Adding a new channel
 
@@ -61,5 +61,6 @@ Real URLs live in `config/config.local.neon` — do NOT commit them.
 ### Rules
 
 - Notification logging uses Monolog; critical errors go to Discord via `MonologDiscordHandler` (`%logger.discordWebhookUrl%`).
-- Message strings in English; use `Nette\Utils\Json` for webhook payload.
-- Never send notifications from request lifecycle directly — always create via `NotificationFacade` and let the sender flush them.
+- Keep user-facing messages consistent with the existing notification language; exception messages and comments are English. Use `Nette\Utils\Json` for webhook payloads.
+- Never send notifications from request lifecycle directly — create via `NotificationFacade` and let the consumer invoke the sender.
+- Implementing or inspecting notification code is not authorization to send a real notification. For verification, mock the producer/channel; real delivery requires the user's explicit request.

@@ -15,7 +15,7 @@ Handles historical exchange rates and conversions between supported currencies.
 
 - **`CurrencyConversion`** (+ `CurrencyConversionRepository`) — historical exchange rate record.
 - **`CurrencySourceEnum`** — which source produced the rate (CNB, ECB, …).
-- **`MissingCurrencyPairException`** — thrown when no conversion exists for a requested pair/date.
+- **`MissingCurrencyPairException`** — `convertSimpleValue()` wraps a missing repository result in this exception; the object-conversion methods currently propagate Doctrine `NoResultException`.
 
 ### Facade
 
@@ -32,13 +32,13 @@ Handles historical exchange rates and conversions between supported currencies.
 
 ### GBP / GBp handling
 
-LSE quotes in **pence (GBp)**, not pounds. Always route such values through `GBPCurrencyHelper` before storing/converting — it scales by `1/100` and returns GBP.
+For source values quoted in **pence (GBp)**, use the established `CurrencyEnum::processFromWeb()` path, which calls `GBPCurrencyHelper::formatGBpToGBP()`. The helper divides the numeric value by `100`; it does not return a currency enum. Do not apply it again to amounts already stored in pounds.
 
 ### Latte
 
 Convert & format in templates via filters (see `ui-latte-filters`):
-- `{$x|currencyConvert:CurrencyEnum::CZK}`
-- `{$x|summaryPriceConvert:CurrencyEnum::CZK}`
+- Numeric amount: `{$amount|currencyConvert:CurrencyEnum::USD:CurrencyEnum::CZK|currency:CurrencyEnum::CZK}`.
+- Summary: `{$summary|summaryPriceConvert:CurrencyEnum::CZK}` (converts and formats).
 
 ### Adding a new exchange-rate source
 
@@ -50,5 +50,5 @@ Convert & format in templates via filters (see `ui-latte-filters`):
 ### Rules
 
 - Never convert by multiplying raw numbers — always go through `CurrencyConversionFacade`.
-- Never assume a rate exists; catch `MissingCurrencyPairException` and fall back gracefully (or surface an error).
-- Exchange rates are date-sensitive — pass the correct `DateTimeImmutable` when converting historical positions.
+- Preserve the caller's missing-rate behavior; catch only where a meaningful fallback or domain error belongs. Do not silently substitute a zero or current rate for missing historical data.
+- Exchange rates are date-sensitive — pass the correct `Mistrfilda\Datetime\Types\ImmutableDateTime` when converting historical positions.

@@ -10,9 +10,9 @@ The project exposes a REST API backed by Slim Framework, registered as Nette DI 
 ### Core components (`src/Api/`)
 
 - **`SlimAppFactory`** — builds the Slim app; accepts `corsAllowedOrigins` (`%api.corsAllowedOrigins%`) and `debugMode`.
-- **`RouterFactory`** — registers all routes; injects the `apiKeyMiddleware` global middleware.
+- **`RouterFactory`** — registers routes and adds API-key and OpenAPI validation middleware to the `/api/v1` route group.
 - **`ApiKeyMiddleware`** (`apiKeyMiddleware`) — validates `X-Api-Key` against `%api.apiKeys%`.
-- **`RequestValidationMiddleware`** — validates requests against `doc/openapi.yaml` (OpenAPI spec is the contract).
+- **`RequestValidationMiddleware`** — validates requests and responses against `doc/openapi.yaml`; currently skips response validation when the response status is not declared. Keep expected response schemas in the spec.
 - **Controllers** — plain classes with `__invoke(Request, Response): Response` or named action methods.
 - **`Slim\CallableResolver`** (from `@psr11.container`) and **`ErrorMiddleware`** for error handling.
 - PSR-7/18 helpers: `App\Http\Psr7\Psr7RequestFactory`, `App\Http\Psr18\Psr18ClientFactory`.
@@ -31,6 +31,7 @@ Real API keys live in `config/config.local.neon`.
 
 - `App\Api\Controller\PingController` — health check.
 - `App\Stock\Asset\Api\StockAssetController` + `StockAssetSerializer` — stock asset endpoints.
+- `App\Dashboard\Api\DashboardValueController` — dashboard value endpoint.
 - `App\Home\Device\Record\Api\HomeDeviceRecordController` — home device ingest endpoint.
 
 ### Adding a new endpoint
@@ -44,7 +45,7 @@ Real API keys live in `config/config.local.neon`.
 
 ### Rules
 
-- OpenAPI (`doc/openapi.yaml`) is the single source of truth — spec first, code second. Indentation in YAML/OpenAPI files uses spaces (the only exception to the project-wide tabs rule).
+- OpenAPI (`doc/openapi.yaml`) is the single source of truth — spec first, code second. YAML/OpenAPI files use spaces for indentation.
 - All responses must be JSON; build them with `Nette\Utils\Json` (no `json_encode` direct).
 - Validate inputs with `App\Utils\TypeValidator` after OpenAPI validation.
 - Exception messages and error payloads in English.

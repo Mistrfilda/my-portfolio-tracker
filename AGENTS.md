@@ -2,19 +2,19 @@
 
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+Treat these as project defaults. Explicit task instructions take precedence over skill guidance; loading a skill does not authorize unrelated actions.
 
 ## Working Style
 
 ### 1. Think Before Coding
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+**State material assumptions. Resolve routine choices from the code and task context.**
 
 Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple reasonable interpretations exist, present them instead of choosing one silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear in a way that would materially change the implementation, stop, name what is confusing, and ask.
+- For routine, reversible choices, follow the nearest established pattern and proceed.
+- State assumptions or tradeoffs that materially affect the result.
+- Ask when missing information would materially change the implementation and cannot be resolved from the code or conversation. Continue independent work while waiting.
+- Reuse authorization already given for the task. If a skill actually blocks progress, identify the file and exact instruction instead of inventing an approval requirement.
 
 ### 2. Simplicity First
 
@@ -24,7 +24,7 @@ Before implementing:
 - No abstractions for single-use code.
 - No "flexibility" or "configurability" that wasn't requested.
 - No speculative error handling.
-- If you write 200 lines and it could be 50, rewrite it.
+- Choose the smallest implementation that satisfies the requested behavior.
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
@@ -49,7 +49,7 @@ The test: Every changed line should trace directly to the user's request.
 **Define success criteria. Loop until verified.**
 
 Transform tasks into verifiable goals:
-- "Add validation" → "Cover valid and invalid inputs, then make the complete test suite pass."
+- "Add validation" → "Cover valid and invalid inputs, then pass the applicable checks below."
 - "Fix the bug" → "Add a regression test that reproduces it, then make it pass."
 - "Add a feature" → "Test the requested behavior alongside the implementation; do not leave intentionally failing tests."
 - "Refactor X" → "Ensure tests pass before and after"
@@ -69,7 +69,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ## Project Invariants
 - Use **tabs** whenever the file style allows it.
 - Follow **PSR-12** and prefer modern PHP features already used in the codebase, including constructor property promotion where it fits.
-- Use `Nette\Utils\Json` for JSON serialization and deserialization.
+- Use `Nette\Utils\Json` for JSON serialization and deserialization in PHP.
 - Use `App\Utils\TypeValidator` for scalar type validation.
 - Tests must be named `*Test.php`.
 - Prefer unit tests; never use real RabbitMQ queues or external HTTP APIs in tests.
@@ -84,6 +84,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - TypeScript or CSS changes: run `npm run lint && npm run build-dev`; also run the PHP/Latte checks when the change crosses those layers.
 - Browser-test changes: run `npm run test-browser` when the local app and credentials are available; otherwise run `npx playwright test --list` and report the runtime limitation.
 - `AGENTS.md` or `.agents/skills/`-only changes: run `composer agent-docs`; a full application build is not required.
+- After the applicable checks pass, repeat or broaden them only when further edits, failures, or unresolved concerns justify it. PhpStorm inspections supplement these checks.
 
 ## Skills
 - Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
@@ -94,6 +95,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 	- `ui-base-presenters-templates` — typed template classes for presenters and controls.
 	- `latte-templates`, `nette-forms`, `ui-forms-admin` — UI and form work.
 	- `doctrine-migrations` — Doctrine entities, repositories, schema changes, migrations.
+	- `phpstorm-database` — inspect the local database through PhpStorm MCP, including schema, selected data, and query plans.
 	- `api-slim` — REST API endpoints and OpenAPI-related work.
 	- `job-request`, `rabbitmq-base` — asynchronous jobs and RabbitMQ integration.
 	- `asset-price-system`, `asset-price-downloaders`, `asset-position-system`, `currency-conversion`, `stock-valuation-models` — core investment-domain logic.

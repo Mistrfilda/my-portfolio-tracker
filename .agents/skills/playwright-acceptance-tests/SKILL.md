@@ -74,7 +74,7 @@ The smoke suite checks:
 
 ### MCP-assisted authoring workflow
 
-When adding or changing browser tests, first inspect the real UI with Playwright/Chrome DevTools MCP if the local app is available.
+When adding or changing browser tests, first inspect the real UI with standalone Playwright MCP if the local app is available. Follow `mcp-local-app-access` for isolated Chromium, tool discovery, and permitted credential handling; use another browser surface only when explicitly requested.
 For standalone MCP exploration unrelated to browser tests, use `mcp-local-app-access` instead.
 
 Recommended workflow:
@@ -126,16 +126,15 @@ For browser-test changes, run the relevant checks:
 
 ```bash
 npm run test-browser
-composer cs-fix && composer build-all
 ```
 
-If the local app or credentials are unavailable, state that clearly and still validate Playwright configuration without login when possible, for example:
+Apply the `AGENTS.md` validation matrix for other changed layers; PHP/Latte/NEON checks are required when those files also change. If the local app or permitted credentials are unavailable, state that clearly and still validate Playwright configuration without login when possible, for example:
 
 ```bash
 npx playwright test --list
 ```
 
-For documentation-only changes to this skill, a full application build is not required; verify the skill content against the current files instead.
+For documentation-only changes to this skill, verify the content against current files and run `composer agent-docs`; a full application build is not required.
 
 ### Troubleshooting notes
 

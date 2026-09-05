@@ -1,11 +1,11 @@
 ---
 name: doctrine-migrations
-description: Invoke before creating or modifying Doctrine ORM entities, repositories, or database schema. Provides the required workflow for schema changes and migrations (clear cache, dump SQL, diff, migrate) and repository access rules. Use when adding/changing an `#[ORM\Entity]` class, adding fields/relations, writing a new repository, generating a migration with `migrations:diff`, or resolving schema drift. Also trigger when the user mentions Doctrine, entity, repository, migration, schema, or `bin/console migrations:*` / `orm:schema-tool:*`.
+description: Invoke before changing Doctrine entities, repositories, mappings, or migrations. Covers repository DI and the schema-change workflow. For read-only inspection of the live database through PhpStorm MCP, use phpstorm-database.
 ---
 
 ## Doctrine ORM & Migrations
 
-Workflow that must be followed whenever a Doctrine entity is added or changed.
+Apply entity and repository conventions when editing persistence code. Run the schema workflow only when mapped fields, relations, indexes, or other schema metadata change; method-only and query-only changes do not require a migration.
 
 ### Schema change workflow
 
@@ -22,12 +22,12 @@ Workflow that must be followed whenever a Doctrine entity is added or changed.
    ```
    bin/console migrations:diff
    ```
-4. **Apply the migration**:
+4. **Review the generated migration**, including its rollback SQL and any unrelated schema drift. Apply it to the intended local development database when that is part of the authorized task:
    ```
    bin/console migrations:migrate
    ```
 
-Never hand-edit the schema or skip the migration step — the production DB is synchronized exclusively through migration files in `migrations/`.
+Represent schema changes in migration files under `migrations/`; do not substitute direct DDL or `orm:schema-tool:update --force`. A schema change request is not authorization to migrate production or apply unrelated pending migrations. Read-only database inspection uses `phpstorm-database` and does not trigger this workflow.
 
 ### Repository access rules
 

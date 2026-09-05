@@ -21,18 +21,18 @@ Foundation for all asset types (`AssetTypeEnum`: `Stock`, `Portu`, `Crypto`). Li
 
 - **`AssetPriceFacade`** (interface) — one implementation per asset type.
 - **`AssetPriceService`** — shared price operations.
-- **`AssetPriceSourceProvider`** — resolves which downloader/source to use.
+- **`AssetPriceSourceProvider`** — interface for generating JSON price-source request files; downloader selection belongs to the concrete asset flow.
 - **`AssetPriceFactory`** — constructs `AssetPrice` instances.
 - **`AssetPriceRenderer`** — renders price values (HTML + formatting).
 - **`AssetPriceSummaryFacade`** — aggregated price across currencies (uses typed service locator `typed(AssetPriceFacade)`).
-- **`SummaryPrice`** + **`SummaryPriceService`** — accumulate amounts grouped by currency.
+- **`SummaryPrice`** holds a total in one currency and rejects additions in another. **`SummaryPriceService`** converts position amounts to the requested currency before accumulating them.
 - **`PriceDiff`** — computes change between two prices (absolute + percentage).
 - **`JsonDataFolderService`** (`src/Asset/Price/Downloader/`) — reads JSON price files from `%puppeter.folder%`.
 
 ### Rules
 
-- Always store price as `AssetPriceEmbeddable`, never as raw decimal + string currency.
-- When adding a new asset type, implement `Asset`, `AssetRepository`, `AssetPriceRecord`, `AssetPriceFacade` and register them as services; autowiring via `typed(...)` wires them into shared facades.
+- Use `AssetPriceEmbeddable` for embedded amount-and-currency values where the shared asset contract expects it. Preserve established standalone price-record mappings.
+- When adding a new asset type, implement `Asset`, `AssetRepository`, `AssetPriceRecord`, and `AssetPriceFacade`. Map entities through Doctrine and register the repository/facade services; `typed(...)` collects facade implementations, not entity instances.
 - Aggregate multi-currency totals through `SummaryPrice` / `SummaryPriceService`, never sum raw amounts across currencies.
 - Render prices in Latte via the `summaryPriceFormat` / `assetPriceFormat` filters — see the `ui-latte-filters` skill.
 - For concrete price downloaders, see the `asset-price-downloaders` skill.

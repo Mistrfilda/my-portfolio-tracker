@@ -70,6 +70,7 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 - **Schema / entity / repository changes**
 	- Start in the owning module under `src/` and in `src/Doctrine/` if shared persistence code is involved.
 	- Read `doctrine-migrations` before editing entities or repositories.
+	- For live database inspection through PhpStorm MCP, read `phpstorm-database`; inspecting schema or data does not require generating or applying a migration.
 
 - **Scraping / downloaded JSON inputs**
 	- Start in `puppeter/` for the scraper and the related PHP downloader in `src/`.
@@ -88,6 +89,7 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 - `testing-conventions`
 - `ui-base-presenters-templates`
 - `doctrine-migrations`
+- `phpstorm-database`
 - `asset-price-system`
 - `asset-price-downloaders`
 - `asset-position-system`

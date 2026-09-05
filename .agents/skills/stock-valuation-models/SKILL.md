@@ -90,7 +90,7 @@ All extend `BasePriceModel` and return `StockValuationPriceModelResponse`:
 1. Create class under `src/Stock/Valuation/Model/Price/` extending `BasePriceModel`.
 2. Implement the calculation returning `StockValuationPriceModelResponse` (fair price + metadata).
 3. Register in `config/config.neon` under `services:` in the `#Stock valuation models` section. Autowiring via `typed(App\Stock\Valuation\Model\StockValuationModel)` picks it up automatically.
-4. If the model needs extra input fields, extend `StockValuationData` / `ValuationDataParser` and generate a Doctrine migration (see `doctrine-migrations` skill).
+4. If the model needs another metric, follow the parsed-metric workflow below. Existing metrics are stored as typed rows in `StockValuationData`; adding an enum case/parser mapping alone does not require a schema migration. Use the `doctrine-migrations` skill when the Doctrine mapping changes.
 5. Add a unit test for the calculation with fixed inputs (prefer unit over integration — see `testing-conventions`).
 
 ### Adding or changing a parsed metric
@@ -122,4 +122,4 @@ All extend `BasePriceModel` and return `StockValuationPriceModelResponse`:
 - Exceptions in English; throw only when input data is truly missing, otherwise return a response with a "not applicable" flag.
 - Keep parsing tolerant of missing values and minor markup differences, but do not add broad substring matches that can capture the wrong metric.
 - Tests must be unit tests unless integration is explicitly needed; do not use real RabbitMQ queues or external HTTP APIs.
-- For code/config changes, finish with `composer cs-fix && composer build-all`. For this skill/documentation-only changes, consistency review is enough.
+- For code/config changes, finish with `composer cs-fix && composer build-all`. For skill/documentation-only changes, verify consistency and run `composer agent-docs`.
