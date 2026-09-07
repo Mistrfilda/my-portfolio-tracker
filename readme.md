@@ -90,6 +90,7 @@ This repository contains the application code for my personal portfolio tracker.
 - Production frontend build: `npm run build-prod`
 - Unit tests: `composer test-unit`
 - Integration tests: `composer test-integration`
+- Agent instructions, skills, and Codex configuration validation: `composer agent-docs`
 - Full project verification: `composer build-all`
 
 ### Browser smoke tests

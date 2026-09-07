@@ -66,6 +66,14 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 - Verify the result with checks appropriate to the task. For documentation-only changes, verify consistency instead of running builds.
 
+## Subagents
+- For substantial tasks with independent work, use up to two subagents concurrently for bounded exploration, implementation in separate files, or review. Handle small or tightly coupled tasks locally.
+- Choose the relevant project role from `.codex/agents/`; use the built-in `explorer` for codebase questions.
+- Give each subagent a concrete task, owned files, expected result, and relevant constraints. Tell it that other agents share the workspace and it must preserve their edits. Assign shared files such as DI configuration and migrations to one owner.
+- Subagents run focused checks for their own work and report results and limitations. The main agent integrates the changes and runs the applicable final validation once after implementation agents finish.
+- Coordinate integration tests through the main agent: they rebuild shared test tables. Do not run them concurrently, and do not run project-wide formatters, builds, or migrations in parallel agent work.
+- Keep browser interaction and changes to shared IDE state with one assigned agent at a time. The main agent owns final decisions and the response to the user.
+
 ## Project Invariants
 - Use **tabs** whenever the file style allows it.
 - Follow **PSR-12** and prefer modern PHP features already used in the codebase, including constructor property promotion where it fits.
@@ -83,7 +91,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - PHP, Latte, or NEON changes: finish with `composer cs-fix && composer build-all`.
 - TypeScript or CSS changes: run `npm run lint && npm run build-dev`; also run the PHP/Latte checks when the change crosses those layers.
 - Browser-test changes: run `npm run test-browser` when the local app and credentials are available; otherwise run `npx playwright test --list` and report the runtime limitation.
-- `AGENTS.md` or `.agents/skills/`-only changes: run `composer agent-docs`; a full application build is not required.
+- Agent documentation/configuration-only changes (`AGENTS.md`, `.agents/skills/`, `.codex/`): run `composer agent-docs`; a full application build is not required. For changes to the documentation validators, also verify relevant valid and invalid inputs.
 - After the applicable checks pass, repeat or broaden them only when further edits, failures, or unresolved concerns justify it. PhpStorm inspections supplement these checks.
 
 ## Skills
