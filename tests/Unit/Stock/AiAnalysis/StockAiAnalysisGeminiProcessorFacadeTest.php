@@ -554,7 +554,14 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 
 		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
 		$geminiClient->shouldReceive('generateContent')
-			->with('Generated v2 prompt', Mockery::type('string'), Mockery::type('array'))
+			->with(
+				'Generated v2 prompt',
+				Mockery::on(static fn (string $instruction): bool => str_contains(
+					$instruction,
+					'comprehensive investment assessment as of analysisAsOf',
+				)),
+				Mockery::type('array'),
+			)
 			->once()
 			->andReturn(Json::encode($response));
 		$stockAiAnalysisFacade->shouldReceive('processResponse')
@@ -690,7 +697,13 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 
 		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
 		$geminiClient->shouldReceive('generateContent')
-			->with(Mockery::type('string'), Mockery::type('string'), Mockery::type('array'))
+			->with(
+				Mockery::on(
+					static fn (string $prompt): bool => !str_contains($prompt, 'Use older facts only as background'),
+				),
+				Mockery::on(static fn (string $instruction): bool => str_contains($instruction, '3–5 fiscal years')),
+				Mockery::type('array'),
+			)
 			->once()
 			->andReturn(Json::encode($partialResponse));
 		$stockAiAnalysisFacade->shouldReceive('processResponse')

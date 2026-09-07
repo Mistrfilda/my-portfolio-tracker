@@ -86,6 +86,14 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				(string) $zip->getFromName('instructions/task.md'),
 			);
 			self::assertStringContainsString(
+				'comprehensive investment assessment as of analysisAsOf',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
+			self::assertStringContainsString(
+				'3–5 fiscal years',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
+			self::assertStringContainsString(
 				'currentPrice: null` means the application did not provide a quote',
 				(string) $zip->getFromName('instructions/task.md'),
 			);
