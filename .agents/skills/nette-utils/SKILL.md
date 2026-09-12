@@ -1,6 +1,6 @@
 ---
 name: nette-utils
-description: Invoke when using or changing `Nette\Utils` helpers such as `Json`, `FileSystem`, `Finder`, `Strings`, `Arrays`, `Image`, or `Html` in this project. Provides project-specific choices around JSON, scalar validation, files, strings, and time. Do not trigger for Nette Forms, DI configuration, Doctrine, or Latte filters unless a Utils helper is directly involved.
+description: Apply project conventions when using Nette Utils for JSON, files, strings, arrays, or images.
 ---
 
 # Nette Utils
@@ -32,9 +32,9 @@ Prefer the established project helper and keep utility use at the infrastructure
 
 Read only the reference needed for the task:
 
-- `references/arrays.md`
-- `references/strings.md`
-- `references/image.md`
-- `references/finder.md`
+- [arrays.md](references/arrays.md) — array helper signatures.
+- [strings.md](references/strings.md) — string and regular-expression helpers.
+- [image.md](references/image.md) — image transformation APIs.
+- [finder.md](references/finder.md) — file-discovery filters and traversal.
 
 Use the installed `nette/utils` API and the nearest project implementation as the source of truth when a reference and current code differ.

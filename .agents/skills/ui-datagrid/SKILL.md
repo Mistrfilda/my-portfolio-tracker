@@ -1,6 +1,6 @@
 ---
 name: ui-datagrid
-description: Invoke before creating or modifying a Datagrid (the project's custom grid, NOT ublaboo). Provides the API of `src/UI/Control/Datagrid/` – Datagrid, DatagridFactory, DoctrineDataSource, columns, filters, actions, pagination, sort. Use when adding a `*GridFactory`, adding columns, filters, row actions, pagination or sort to an admin list view.
+description: Create or change the project datagrid, including columns, filters, actions, pagination, and sorting.
 ---
 
 ## UI Datagrid — Custom Project Datagrid

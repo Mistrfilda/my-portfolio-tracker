@@ -1,20 +1,20 @@
 ---
 name: stock-ai-analysis
-description: Invoke before adding or modifying stock AI analysis behavior in `src/Stock/AiAnalysis/`, including legacy or V2 runs, immutable input snapshots, prompts, dynamic schemas, response validation, Codex bundles/imports, follow-up questions, stored results, action checklists, processing orchestration, or AI analysis UI. For Gemini-specific client, cache, request-schema, retry, or processing changes, also invoke `stock-ai-analysis-gemini`.
+description: Maintain this project's stock AI analysis and investment-plan workflows. Use when changing snapshots, prompts, response contracts, imports, orchestration, persisted results, or analysis UI.
 ---
 
 ## Stock AI Analysis
 
-Stock AI analysis lives in `src/Stock/AiAnalysis/`. It turns portfolio, watchlist, market, and single-stock context into AI prompts, stores analysis runs and raw responses, parses structured AI output into domain entities, supports follow-up questions, derives action checklist items, and exposes the results through the admin UI.
+Stock AI analysis lives in `src/Stock/AiAnalysis/`. It turns portfolio, watchlist, market, and single-stock context into AI prompts, stores validated results, supports follow-up questions and action checklists, and exposes them through the admin UI. `InvestmentPlan/` owns a separate capital-allocation workflow linked to a completed portfolio analysis.
 
-Treat AI output as untrusted input. Keep the implementation explicit, deterministic, and easy to verify.
+Treat AI output as untrusted input.
 
 ### Companion guidance
 
-- Also use `stock-ai-analysis-gemini` when the change touches Gemini requests, response schemas, cached Gemini responses, prompt reduction, or Gemini processing statuses.
-- Also use `testing-conventions` before adding or modifying tests.
-- Also use `ui-base-presenters-templates`, `latte-templates`, or related UI skills when changing `src/Stock/AiAnalysis/UI/`.
-- Read [references/version-2.md](references/version-2.md) before changing V2 snapshots, schemas, prompts, validation, persistence, Codex bundles/imports, or the Gemini V2 split/reduce flow.
+- Also use [stock-ai-analysis-gemini](../stock-ai-analysis-gemini/SKILL.md) when the change touches Gemini requests, response schemas, cached Gemini responses, prompt reduction, or Gemini processing statuses.
+- Use [testing-conventions](../testing-conventions/SKILL.md) for PHPUnit changes and the applicable UI skills for analysis or investment-plan UI changes.
+- Read [references/version-2.md](references/version-2.md) before changing V2 analysis-run snapshots, schemas, prompts, validation, persistence, Codex bundles/imports, or Gemini split/reduce processing.
+- Read [references/investment-plan.md](references/investment-plan.md) for investment-plan work. It has its own schema, validator, calculator, and Codex import path; analysis-run V2 rules below do not replace that contract.
 
 ### Main areas
 
@@ -28,6 +28,7 @@ Treat AI output as untrusted input. Keep the implementation explicit, determinis
 - `StockAiAnalysisFollowUpQuestion*` classes handle user follow-up questions attached to an existing run.
 - `ActionChecklist/` converts AI outputs into actionable checklist items.
 - `RabbitMQ/` contains async message, producer, and consumer classes for processing runs.
+- `InvestmentPlan/` owns `StockAiInvestmentPlan`, its immutable capital snapshot, prompts, response contract, calculated allocation percentages, Codex bundle/import, and UI.
 - `UI/` contains presenters, grids, controls, and Latte templates for listing and viewing analysis runs and results.
 
 ### Design rules
@@ -40,7 +41,6 @@ Treat AI output as untrusted input. Keep the implementation explicit, determinis
 - Use enums for controlled AI values. Preserve tolerant `tryFrom()` behavior where the legacy parser already uses it; reject invalid V2 controlled values through the schema.
 - Keep single-stock, portfolio, watchlist, market overview, daily brief, and follow-up flows distinct unless the change explicitly merges behavior.
 - Preserve the legacy parser and UI path for historical schema-version-1 runs; create new runs as V2 unless a requested migration changes that rule.
-- Avoid speculative abstractions; add only the fields and flows needed for the requested behavior.
 
 ### Prompt and response rules
 
@@ -48,9 +48,9 @@ Treat AI output as untrusted input. Keep the implementation explicit, determinis
 - Every required schema field must be handled explicitly by the parser and covered by tests when behavior changes.
 - Keep prompts provider-agnostic where possible. Provider-specific constraints belong near provider processing and in the Gemini-specific skill.
 - Treat the V2 input snapshot as immutable after run creation. Derive required response sections, exact company counts, identifiers, timestamp, and currencies from that snapshot.
-- Route manual paste, Codex import, and Gemini output through the same V2 validator and persistence path.
+- Route analysis-run manual paste, Codex import, and Gemini output through the same V2 validator and persistence path.
 - Make prompts deterministic from the same input data; avoid hidden time-dependent behavior outside `DatetimeFactory`.
-- Use English for prompt-facing labels, exception messages, and comments.
+- Use English for prompt-facing labels and controlled values; preserve Czech narrative output.
 - Keep legacy response parsing tolerant of optional sections. Keep V2 strict about every section required by the immutable snapshot while allowing only schema-declared nullable or optional values.
 
 ### Persistence and status rules
@@ -79,12 +79,11 @@ Treat AI output as untrusted input. Keep the implementation explicit, determinis
 
 ### UI rules
 
-- Keep UI code read-only with respect to AI decisions unless a user action explicitly creates, queues, or asks a follow-up question.
-- For presenters and controls, use typed template classes and declare every assigned template property.
+- Keep result rendering read-only; creating, importing, queueing, and asking follow-up questions belong to explicit user actions.
+- Follow [ui-base-presenters-templates](../ui-base-presenters-templates/SKILL.md) and [latte-templates](../latte-templates/SKILL.md) for presenters, controls, and templates.
 - Keep grids and detail pages aligned with enum labels and nullable AI fields.
 - Render V2 run-level sections from `StockAiAnalysisRun::getStructuredData()` and company sections from `StockAiAnalysisStockResult::getStructuredData()`; keep the legacy rendering path for V1.
 - Hide prompt and provider-processing controls after a run is complete; show the persisted results and processing source instead.
-- Do not add raw `<svg>` markup; use `{renderSvg}` and `App\UI\Icon\SvgIcon`.
 - Do not put prompt/schema construction or response parsing into Latte templates or presenters.
 
 ### Testing rules
@@ -93,6 +92,5 @@ Treat AI output as untrusted input. Keep the implementation explicit, determinis
 - Mock AI clients, RabbitMQ producers/consumers, and external data sources. Never call real AI APIs, queues, or external HTTP APIs in tests.
 - Cover invalid JSON, missing optional sections, invalid enum values, missing stock assets, failed processing, and duplicate-queue guards when touching those paths.
 - For V2 schema/prompt changes, cover dynamic scope, immutable metadata/identity, exact company membership, valuation invariants, and schema-to-DTO mapping.
-- For Codex changes, inspect the ZIP structure and prove the bundle contains instructions, schemas, context, and one immutable input per requested company without a pre-created `result.json`.
-- For UI changes, add the smallest relevant presenter/control/template coverage already used by the project; do not add browser tests unless the behavior requires them.
-- For documentation-only skill changes, a consistency review is enough; code/config changes should finish with `composer cs-fix && composer build-all`.
+- For V2 analysis-run Codex changes, inspect the ZIP structure and prove the bundle contains instructions, schemas, context, and one immutable input per requested company without a pre-created `result.json`.
+- Follow the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

@@ -1,6 +1,6 @@
 ---
 name: mcp-local-app-access
-description: Invoke before inspecting the local Nette application in a browser. Use standalone Playwright MCP by default; covers exact target URLs, existing sessions, permitted local login, snapshots, and console/runtime checks. Use playwright-acceptance-tests for test authoring.
+description: Inspect the running local Nette app through isolated Playwright MCP, including navigation and permitted login.
 ---
 
 ## MCP Local App Access

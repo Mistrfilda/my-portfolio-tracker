@@ -1,6 +1,6 @@
 ---
 name: nette-architecture
-description: Invoke before designing or refactoring presenters, controls, UI factories, modules, CLI commands, or domain placement in this Nette application. Covers the project's domain-first `src/` structure, presenter lifecycle, `UI/` placement, base classes, routing mapping, and boundaries between presenters, facades, repositories, and commands. Also trigger when deciding where a new feature belongs.
+description: Choose domain placement and boundaries when adding or refactoring Nette presenters, controls, factories, or commands.
 ---
 
 # Nette Architecture
@@ -45,8 +45,8 @@ Keep business rules in facades/services. Presenters coordinate request parameter
 
 - Mirror the nearest implementation in the owning domain.
 - Test domain logic below the presenter whenever possible.
-- For code/config changes, finish with `composer cs-fix && composer build-all`.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).
 
 ## References
 
-- Read `references/requires.md` only when adding Nette `#[Requires]` restrictions.
+- Read [requires.md](references/requires.md) only when adding Nette `#[Requires]` restrictions.

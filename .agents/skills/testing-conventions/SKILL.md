@@ -1,6 +1,6 @@
 ---
 name: testing-conventions
-description: Invoke before writing or modifying any PHPUnit test. Provides the project's test layout, commands, base classes (`PHPUnit\Framework\TestCase`, `App\Test\Integration\IntegrationTestCase`, and `App\Test\Integration\Api\ApiTestCase`), naming, mocking conventions, and rules against real queues or external HTTP calls.
+description: Write or change PHPUnit tests using project base classes, fixtures, and mocking conventions.
 ---
 
 ## Testing Conventions
@@ -12,7 +12,7 @@ description: Invoke before writing or modifying any PHPUnit test. Provides the p
 
 ### Commands
 
-- All checks: `composer build-all`
+- Final checks: use the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix).
 - Unit only: `composer test-unit`
 - Integration only: `composer test-integration`
 - Direct PHPUnit filtering is allowed for a focused test while iterating.
@@ -55,7 +55,7 @@ class MyTest extends TestCase
 ### Rules
 
 - **Prefer unit tests.** Move logic into pure services/facades so it can be unit-tested.
-- **Never use real RabbitMQ queues in tests** — call the target facade (e.g. `JobRequestProcessor`) directly with a synthetic message, or mock the producer.
+- **Never use real RabbitMQ queues in tests** — call the target facade directly or mock the producer. For jobs, call `JobRequestProcessor::process()` with a `JobRequestTypeEnum` and a synthetic payload array.
 - Avoid shared PHPUnit mocks in `setUp()` when most tests do not assert calls on them. Use `createStub()` for default dependencies, and create a local `createMock()` only in tests that define explicit `expects()` assertions. This prevents PHPUnit warnings about mocks with no expectations.
 - Never call external HTTP APIs (Twelve Data, CNB, ECB, Discord) from tests — mock the client or the facade.
 - Use `App\Utils\TypeValidator` for scalar validation, `Nette\Utils\Json` for JSON.

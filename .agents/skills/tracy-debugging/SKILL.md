@@ -1,6 +1,6 @@
 ---
 name: tracy-debugging
-description: Invoke before requesting a local PHP page, diagnosing a Nette 500/blank page, interpreting Tracy BlueScreen or Bar output, inspecting PHP runtime errors, or investigating slow pages and query counts. Covers this project's Tracy bootstrap, browser/console inspection, log files, temporary `dump()` use, and safe verification.
+description: Diagnose local PHP failures, Tracy output, slow requests, or excessive database queries.
 ---
 
 # Tracy Debugging
@@ -33,4 +33,4 @@ Do not assume Tracy output is plain Markdown in a raw `curl` response. Browser H
 
 - Never inspect local secret configuration files while tracing configuration loading.
 - Do not perform destructive UI actions unless the user explicitly requested that flow.
-- Run focused tests for the diagnosed behavior, then finish code/config changes with `composer cs-fix && composer build-all`.
+- Run focused tests for the diagnosed behavior; use the applicable final checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).

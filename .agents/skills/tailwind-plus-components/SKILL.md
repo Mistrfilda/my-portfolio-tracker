@@ -1,11 +1,11 @@
 ---
 name: tailwind-plus-components
-description: Invoke before composing or redesigning frontend UI in Latte/Tailwind. Use the local `.twui` folder as the first source of Tailwind Plus HTML component examples for pages, forms, tables, lists, navigation, headings, stats, dropdowns, buttons, tabs, and similar UI blocks. Adapt examples to this Nette/Latte project instead of generating UI from memory.
+description: Compose or redesign Latte/Tailwind UI blocks using local Tailwind Plus examples in .twui.
 ---
 
 ## Purpose
 
-The `.twui` folder contains local HTML copies of purchased Tailwind Plus components. When building or modifying frontend UI, inspect relevant files in `.twui` before writing markup so the generated UI follows Tailwind Plus patterns already available in the project.
+The `.twui` folder contains local HTML copies of purchased Tailwind Plus components. Use the closest examples when composing or redesigning UI blocks. For a copy correction or a small adjustment to an existing component's classes, follow the surrounding implementation; load examples when a design decision needs them.
 
 Use this skill together with:
 
@@ -16,7 +16,7 @@ Use this skill together with:
 
 ## Where to look
 
-Start from `.twui` and choose the closest category before generating markup:
+For composition or redesign, choose the closest `.twui` category:
 
 - `.twui/elements/` – buttons, button groups, avatars, badges, dropdowns, and small reusable UI elements.
 - `.twui/forms/` – input groups, select menus, comboboxes, checkboxes, radio groups, toggles, action panels, and sign-in forms.

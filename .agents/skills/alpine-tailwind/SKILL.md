@@ -1,6 +1,6 @@
 ---
 name: alpine-tailwind
-description: Invoke before writing or modifying frontend interactivity or styling in Latte templates. Provides the project's Alpine.js 3 + Tailwind CSS 4 setup — registering Alpine components via `Alpine.data(...)` in `assets/ts/alpine/AppAlpine.ts`, using `x-data`/`x-show`/`@click` in `.latte` files, Tailwind `content` globs in `tailwind.config.js`, shared palette via `App\UI\Tailwind\TailwindColorConstant`, and webpack-encore asset pipeline (`npm run watch-dev` / `build-prod`). Use when adding a dropdown/modal/toggle, a new `Alpine.data` component, custom Tailwind colors, or wiring naja + Alpine.
+description: Add or change Tailwind styling, Alpine components, or Naja integration in the project's frontend.
 ---
 
 ## Stack overview

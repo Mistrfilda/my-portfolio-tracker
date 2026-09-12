@@ -1,6 +1,6 @@
 ---
 name: rabbitmq-base
-description: Invoke before creating or modifying RabbitMQ consumers, producers, messages, queue configuration, or worker commands in this project. Provides the internal `php-amqplib`-based transport and base contracts from `src/RabbitMQ/` used across modules such as JobRequest and Notification. Use when adding a new async message flow, extending `BaseConsumer`/`BaseProducer`, implementing `RabbitMQMessage`/`RabbitMQDatabaseMessage`, wiring queues in `config/rabbitmq.neon`, or changing RabbitMQ CLI behavior. Also trigger when the user mentions RabbitMQ, AMQP, queues, consumers, or producers in this codebase.
+description: Maintain RabbitMQ transport, messages, producers, consumers, queue configuration, and workers. Use when implementing or changing async message delivery.
 ---
 
 ## RabbitMQ — Base Abstractions
@@ -33,12 +33,14 @@ Do not reintroduce `contributte/rabbitmq` or `bunny/bunny` types in application 
 
 ### Module layout convention
 
+For a new deferred task, evaluate [job-request](../job-request/SKILL.md) before adding queue infrastructure. Reuse the generic JobRequest queue when its routing/QoS fits, or the owning module's established queue for an existing flow. Add a dedicated queue only when it needs different routing/QoS or worker isolation.
+
 Individual domain modules have their own `RabbitMQ/` subfolder with concrete implementations extending the base classes, e.g.:
 
 - `src/JobRequest/RabbitMQ/` — `JobRequestConsumer`, `JobRequestProducer`, `JobRequestMessage`
 - `src/Notification/RabbitMQ/` — `NotificationConsumer`, `NotificationProducer`, `NotificationMessage`
 
-When adding a new async flow:
+When a dedicated queue is needed:
 
 1. Create a `RabbitMQ/` subfolder inside the appropriate domain module.
 2. Implement `RabbitMQMessage` (or `RabbitMQDatabaseMessage` when it refers to an entity).
@@ -50,7 +52,5 @@ When adding a new async flow:
 ### Rules
 
 - Never use real RabbitMQ queues in tests — mock `RabbitMQPublisher`, call `RabbitMQConsumerHandler::consume()` directly, or test the facade/service boundary.
-- For deferred long-running tasks, prefer the generic `JobRequest` system (`src/JobRequest/`) over creating a new dedicated queue.
 - Always use `Nette\Utils\Json` for message payload (de)serialization.
 - Keep message DTOs backward-compatible when existing queued messages may still be waiting in RabbitMQ.
-- Use English in exception messages and comments.

@@ -1,6 +1,6 @@
 ---
 name: currency-conversion
-description: Invoke before working with currencies, exchange rates, or currency conversion in this project. Provides `src/Currency/` components – `CurrencyEnum`, `CurrencyConversion`, CNB/ECB downloaders, `CurrencyConversionFacade`, and `GBPCurrencyHelper` (GBp to GBP). Use when converting between currencies, adding a new exchange-rate source, or handling London Stock Exchange pence prices.
+description: Maintain historical currency conversion and exchange-rate downloads. Use when changing amount conversions, rate sources, or GBP/GBp price normalization.
 ---
 
 ## Currency Conversions
@@ -49,6 +49,6 @@ Convert & format in templates via filters (see `ui-latte-filters`):
 
 ### Rules
 
-- Never convert by multiplying raw numbers — always go through `CurrencyConversionFacade`.
+- Convert application amounts through `CurrencyConversionFacade` so rate selection and historical-date behavior stay consistent.
 - Preserve the caller's missing-rate behavior; catch only where a meaningful fallback or domain error belongs. Do not silently substitute a zero or current rate for missing historical data.
 - Exchange rates are date-sensitive — pass the correct `Mistrfilda\Datetime\Types\ImmutableDateTime` when converting historical positions.

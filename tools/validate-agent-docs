@@ -89,10 +89,6 @@ foreach ($skillFiles as $skillFile) {
 		$errors[] = sprintf('%s: unsupported frontmatter field "%s"', $relativePath, $unexpectedField);
 	}
 
-	if (str_contains($content, '[TODO:') || str_contains($content, 'TODO placeholder')) {
-		$errors[] = sprintf('%s: unresolved skill template TODO', $relativePath);
-	}
-
 	$openAiMetadataFile = dirname($skillFile) . '/agents/openai.yaml';
 	if (is_file($openAiMetadataFile)) {
 		$openAiMetadata = file_get_contents($openAiMetadataFile);
@@ -110,9 +106,29 @@ foreach ($skillFiles as $skillFile) {
 	}
 }
 
+$referenceFiles = glob($skillsDirectory . '/*/references/*.md') ?: [];
+foreach ([$rootDirectory . '/AGENTS.md', ...$referenceFiles] as $documentFile) {
+	$relativePath = getRelativePath($rootDirectory, $documentFile);
+	if (is_file($documentFile) === false) {
+		$errors[] = sprintf('%s: documentation file does not exist', $relativePath);
+		continue;
+	}
+
+	$content = file_get_contents($documentFile);
+	if ($content === false) {
+		$errors[] = sprintf('%s: unable to read file', $relativePath);
+		continue;
+	}
+	$contents[$documentFile] = $content;
+}
+
 foreach ($contents as $skillFile => $content) {
 	$relativePath = getRelativePath($rootDirectory, $skillFile);
 	$insideRelatedSkills = false;
+
+	if (str_contains($content, '[TODO:') || str_contains($content, 'TODO placeholder')) {
+		$errors[] = sprintf('%s: unresolved documentation template TODO', $relativePath);
+	}
 
 	foreach (preg_split('/\R/', $content) ?: [] as $lineNumber => $line) {
 		if (preg_match('/^##\s+Related skills\s*$/i', $line) === 1) {
@@ -148,7 +164,7 @@ foreach ($contents as $skillFile => $content) {
 	}
 
 	preg_match_all(
-		'/`(?<path>(?:src|tests|config|doc|assets|puppeter|tools)\/[^`]+)`/',
+		'/`(?<path>(?:src|tests|config|doc|assets|puppeter|tools|\.agents|\.codex)\/[^`]+)`/',
 		$content,
 		$pathMatches,
 	);
@@ -162,6 +178,28 @@ foreach ($contents as $skillFile => $content) {
 			$errors[] = sprintf('%s: referenced path does not exist: %s', $relativePath, $referencedPath);
 		}
 	}
+
+	// Examples inside fenced code blocks are not documentation links.
+	$markdown = preg_replace('/^[ \t]*(`{3,}|~{3,})[^\r\n]*\R.*?^[ \t]*\1[ \t]*$/ms', '', $content) ?? $content;
+	$markdown = preg_replace('/`+[^`\r\n]*`+/', '', $markdown) ?? $markdown;
+	preg_match_all('/\[[^]\r\n]*]\((?<path><[^>\r\n]+>|[^()\s]+)(?:\s+"[^"\r\n]*")?\)/', $markdown, $linkMatches);
+	preg_match_all('/`(?<path>references\/[^`]+)`/', $content, $referenceMatches);
+	foreach (array_unique([...$linkMatches['path'], ...$referenceMatches['path']]) as $reference) {
+		$reference = trim($reference, '<>');
+		if (preg_match('/^(?:[a-z][a-z0-9+.-]*:|\/\/)/i', $reference) === 1) {
+			continue;
+		}
+
+		$path = rawurldecode(preg_split('/[?#]/', $reference, 2)[0]);
+		if ($path === '' || shouldSkipPathValidation($path)) {
+			continue;
+		}
+
+		// Check targets without reading them; only the documentation inventory is loaded.
+		if (file_exists(dirname($skillFile) . '/' . $path) === false) {
+			$errors[] = sprintf('%s: documentation link target does not exist: %s', $relativePath, $reference);
+		}
+	}
 }
 
 if ($errors !== []) {
@@ -173,7 +211,7 @@ if ($errors !== []) {
 	exit(1);
 }
 
-fwrite(STDOUT, sprintf("Validated %d project skills.\n", count($skills)));
+fwrite(STDOUT, sprintf("Validated AGENTS.md, %d project skills, and %d skill references.\n", count($skills), count($referenceFiles)));
 
 /**
  * @return non-empty-string

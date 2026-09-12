@@ -1,6 +1,6 @@
 ---
 name: phpstorm-database
-description: Inspect the local project database through PhpStorm MCP. Use for tables, columns, keys, indexes, selected rows, SQL query plans, or comparing live schema with Doctrine mappings. Schema changes and migrations belong to doctrine-migrations.
+description: Inspect local database structure, selected data, or query plans through PhpStorm MCP. Use doctrine-migrations for schema changes.
 ---
 
 # PhpStorm Database Inspection

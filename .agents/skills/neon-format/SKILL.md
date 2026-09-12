@@ -1,6 +1,6 @@
 ---
 name: neon-format
-description: Invoke before creating or modifying `.neon` files. Provides project NEON syntax, tab indentation, block and inline notation, DI entity syntax, safe handling of local overrides, and `vendor/bin/neon-lint` validation. Combine with `nette-configuration` for services, parameters, autowiring, or extensions, and with the relevant specialized skill for `phpstan.neon` or RabbitMQ configuration.
+description: Create or edit NEON files using project syntax and indentation. Use nette-configuration for DI wiring.
 ---
 
 # NEON Format
@@ -34,5 +34,5 @@ Use `Nette\Neon\Neon::decode()`, `decodeFile()`, and `encode()` when application
 
 ## Validation
 
-- Run `vendor/bin/neon-lint <explicit-changed-file>` for a focused syntax check.
-- Finish code/config changes with `composer cs-fix && composer build-all`.
+- Use `vendor/bin/neon-lint <explicit-changed-file>` for focused syntax checks while iterating.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).

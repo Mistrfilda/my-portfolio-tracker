@@ -1,6 +1,6 @@
 ---
 name: nette-forms
-description: Invoke before creating or modifying Nette Forms, form controls, validation rules, defaults, form events, containers, mapped values, or form error handling. Provides project conventions for form factories and typed value validation. Combine with `ui-forms-admin` for all application admin forms and with `latte-templates` when changing form markup.
+description: Create or change Nette form controls, validation, defaults, and events. Use ui-forms-admin for project admin forms.
 ---
 
 # Nette Forms
@@ -41,12 +41,12 @@ Use `ui-forms-admin` for custom project inputs, renderer behavior, and `AdminFor
 
 ## References
 
-- Read `references/controls.md` for exact built-in control APIs.
-- Read `references/validation.md` for conditions and validation rules.
-- Read `references/rendering.md` only when custom Latte rendering is required; the default admin renderer is preferred.
+- Read [controls.md](references/controls.md) when exact built-in control APIs are needed.
+- Read [validation.md](references/validation.md) when exact condition or validation-rule behavior is needed.
+- Read [rendering.md](references/rendering.md) only when custom Latte rendering is required; the default admin renderer is preferred.
 
 ## Testing and validation
 
 - Prefer unit tests for value transformation or domain behavior extracted from a form.
 - Test custom controls or complex conditional validation when behavior changes.
-- Finish PHP/config changes with `composer cs-fix && composer build-all`.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).

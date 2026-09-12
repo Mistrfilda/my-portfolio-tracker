@@ -1,6 +1,6 @@
 ---
 name: nette-configuration
-description: Invoke before changing Nette DI services, parameters, autowiring, extensions, service locators, or configuration loading in this project. Covers the actual `config/config.neon`, `config/forms.neon`, `config/routing.neon`, and `config/rabbitmq.neon` layout plus service registration and `typed(...)` patterns. Combine with `neon-format` whenever editing a `.neon` file.
+description: Change Nette DI services, parameters, extensions, presenter mappings, or configuration loading.
 ---
 
 # Nette Configuration
@@ -44,5 +44,5 @@ Never inspect, print, edit, or glob over local secret configuration files.
 ## Validation
 
 - Use `neon-format` for syntax and tab indentation.
-- Run `vendor/bin/neon-lint` on the explicit changed file for a focused check.
-- Finish code/config changes with `composer cs-fix && composer build-all`.
+- Use `vendor/bin/neon-lint` on the explicit changed file for focused checks while iterating.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).

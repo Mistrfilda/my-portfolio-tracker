@@ -1,6 +1,6 @@
 ---
 name: notifications-discord
-description: Invoke before sending a notification or adding a new notification type. Provides `src/Notification/` system – `NotificationFacade`, `NotificationSenderFacade`, `NotificationTypeEnum`, Discord channel (`DiscordChannelService`, `DiscordMessageService`) and webhook mapping in `config.neon`. Use when adding a new notification type, routing it to a specific Discord webhook, or integrating a non-Discord channel.
+description: Maintain application notifications and Discord delivery. Use for notification types, payloads, channel routing, webhook mapping, or explicitly requested notification delivery.
 ---
 
 ## Notification System
@@ -42,7 +42,7 @@ notifications:
 			default: null
 ```
 
-Real URLs live in `config/config.local.neon` — do NOT commit them.
+Webhook URLs come from the existing secret-injection configuration. Keep public defaults nullable; never read local secret configuration or commit webhook URLs.
 
 ### Adding a new notification type
 

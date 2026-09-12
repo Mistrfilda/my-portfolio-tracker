@@ -1,6 +1,6 @@
 ---
 name: doctrine-migrations
-description: Invoke before changing Doctrine entities, repositories, mappings, or migrations. Covers repository DI and the schema-change workflow. For read-only inspection of the live database through PhpStorm MCP, use phpstorm-database.
+description: Maintain Doctrine entities, repositories, mappings, and migrations. Use for persistence changes; read-only live database inspection belongs to phpstorm-database.
 ---
 
 ## Doctrine ORM & Migrations
@@ -35,16 +35,7 @@ Represent schema changes in migration files under `migrations/`; do not substitu
 - **Never** call `EntityManager::getRepository()` in application code to obtain a repository.
 - Custom repositories live next to the entity (or under `src/Doctrine/`) and are registered as services; rely on autowiring.
 
-### Entity conventions
-
-- Use **constructor property promotion** and typed properties.
-- Tabs for indentation, PSR-12 otherwise.
-- Exception messages and all comments in English.
-- Use `App\Utils\TypeValidator` for scalar type validation where applicable.
-- For JSON columns / serialization, use `Nette\Utils\Json`.
-
 ### Testing
 
-- Prefer unit tests over integration tests.
-- Integration tests that touch the DB extend `App\Test\Integration\IntegrationTestCase`; only Slim API tests extend `App\Test\Integration\Api\ApiTestCase`.
-- Never use real RabbitMQ queues in tests; for DB, use the test database set up by the test base class.
+- Use integration tests when verifying Doctrine query behavior or persistence mappings; keep entity logic covered by unit tests where possible.
+- Follow [testing-conventions](../testing-conventions/SKILL.md) for test database setup and base classes, and the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

@@ -1,18 +1,11 @@
 ---
 name: project-overview
-description: Invoke when the task is broad, spans multiple modules, or you first need to understand where a change belongs. Provides a navigation map for the project modules, likely entry points, related specialized skills, and the recommended workflow before editing code.
+description: Locate the owning module and relevant skills when a task crosses domains or its code location is unclear.
 ---
 
 ## Project Overview — Navigation Map
 
-Use this skill when the task is broad, spans multiple modules, or you first need to understand where a change belongs.
-
-### When to use
-
-- The request mentions a feature, but not a concrete file or class.
-- The task crosses backend, UI, API, async processing, or scraping.
-- You need to decide which module owns a behavior before editing code.
-- You are about to add a new feature and need the likely entry points.
+Use the map to locate the owning code and load only the guidance needed for the task. When a known file and its surrounding implementation already establish the owner, continue there.
 
 ### High-level map
 
@@ -51,8 +44,8 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 
 - **Presenters / controls / templates / admin screens**
 	- Start in `src/UI/` and the owning module's `UI/` subtree.
-	- Read `ui-base-presenters-templates` first.
-	- Then load `latte-templates`, `nette-forms`, `ui-forms-admin`, or `ui-datagrid` as needed.
+	- Use `ui-base-presenters-templates` for presenter/control or typed-template changes.
+	- Load `latte-templates`, `nette-forms`, `ui-forms-admin`, or `ui-datagrid` for the corresponding UI layer.
 
 - **REST API**
 	- Start in `src/Api/` or the module-specific `Api/` folder.
@@ -61,7 +54,7 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 - **Background jobs / async recalculation / queue consumers**
 	- Start in `src/JobRequest/` for generic deferred work.
 	- Continue to `src/RabbitMQ/` for shared queue abstractions.
-	- Read `job-request` and `rabbitmq-base` before changing message flow.
+	- Use `job-request` for job types and payloads; use `rabbitmq-base` when changing the queue transport or a dedicated message flow.
 
 - **Notifications**
 	- Start in `src/Notification/`.
@@ -78,28 +71,4 @@ Use this skill when the task is broad, spans multiple modules, or you first need
 
 ### Practical workflow
 
-1. Identify the owning module from the request.
-2. Load the relevant specialized skill before editing.
-3. Find the nearest existing implementation and mirror its pattern instead of inventing a new one.
-4. If the task affects shared behavior, inspect both the shared base in `src/Asset/` or `src/UI/` and all touched downstream modules.
-5. Verify with the relevant tests in `tests/Unit/` or `tests/Integration/`.
-
-### Related skills
-
-- `testing-conventions`
-- `ui-base-presenters-templates`
-- `doctrine-migrations`
-- `phpstorm-database`
-- `asset-price-system`
-- `asset-price-downloaders`
-- `asset-position-system`
-- `currency-conversion`
-- `job-request`
-- `rabbitmq-base`
-- `api-slim`
-- `latte-templates`
-- `nette-forms`
-- `ui-datagrid`
-- `ui-forms-admin`
-- `notifications-discord`
-- `puppeteer-scraping`
+Mirror the nearest implementation in the owning module. For shared behavior, inspect the base in `src/Asset/` or `src/UI/` and the affected downstream modules. Use `testing-conventions` when writing tests and the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix) for final checks.

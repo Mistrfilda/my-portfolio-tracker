@@ -1,6 +1,6 @@
 ---
 name: api-slim
-description: Invoke before adding or modifying a REST API endpoint. Provides the `src/Api/` layer built on Slim Framework inside Nette – `SlimAppFactory`, `RouterFactory`, `ApiKeyMiddleware`, `RequestValidationMiddleware` with OpenAPI (`doc/openapi.yaml`). Use when adding a controller under `src/Api/` or a module's `Api/`, wiring a new route, or changing API authentication / CORS.
+description: Add or change Slim REST endpoints, middleware, authentication, or OpenAPI contracts in this project.
 ---
 
 ## REST API (Slim inside Nette)

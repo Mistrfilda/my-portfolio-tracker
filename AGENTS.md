@@ -1,78 +1,14 @@
 # Codex Guidelines for My Portfolio Tracker
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
-
 Treat these as project defaults. Explicit task instructions take precedence over skill guidance; loading a skill does not authorize unrelated actions.
 
 ## Working Style
 
-### 1. Think Before Coding
-
-**State material assumptions. Resolve routine choices from the code and task context.**
-
-Before implementing:
-- For routine, reversible choices, follow the nearest established pattern and proceed.
-- State assumptions or tradeoffs that materially affect the result.
-- Ask when missing information would materially change the implementation and cannot be resolved from the code or conversation. Continue independent work while waiting.
+- Follow the nearest established pattern for routine, reversible choices. State assumptions or tradeoffs that materially affect the result.
+- Ask only when missing information would materially change the implementation and cannot be resolved from the code or conversation. Continue independent work while waiting.
 - Reuse authorization already given for the task. If a skill actually blocks progress, identify the file and exact instruction instead of inventing an approval requirement.
-
-### 2. Simplicity First
-
-**Minimum code that solves the problem. Nothing speculative.**
-
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No speculative error handling.
-- Choose the smallest implementation that satisfies the requested behavior.
-
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
-
-### 3. Surgical Changes
-
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, naming, architecture, and project patterns, even if you'd do it differently.
-- If you notice unrelated dead code or issues, mention them - don't delete them.
-
-When your changes create orphans:
-- Remove imports, variables, or functions that your changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-### 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Cover valid and invalid inputs, then pass the applicable checks below."
-- "Fix the bug" → "Add a regression test that reproduces it, then make it pass."
-- "Add a feature" → "Test the requested behavior alongside the implementation; do not leave intentionally failing tests."
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
-- Verify the result with checks appropriate to the task. For documentation-only changes, verify consistency instead of running builds.
-
-## Subagents
-- For substantial tasks with independent work, use up to two subagents concurrently for bounded exploration, implementation in separate files, or review. Handle small or tightly coupled tasks locally.
-- Choose the relevant project role from `.codex/agents/`; use the built-in `explorer` for codebase questions.
-- Give each subagent a concrete task, owned files, expected result, and relevant constraints. Tell it that other agents share the workspace and it must preserve their edits. Assign shared files such as DI configuration and migrations to one owner.
-- Subagents run focused checks for their own work and report results and limitations. The main agent integrates the changes and runs the applicable final validation once after implementation agents finish.
-- Coordinate integration tests through the main agent: they rebuild shared test tables. Do not run them concurrently, and do not run project-wide formatters, builds, or migrations in parallel agent work.
-- Keep browser interaction and changes to shared IDE state with one assigned agent at a time. The main agent owns final decisions and the response to the user.
+- Make the smallest change that fulfills the request. Preserve unrelated code, formatting, and others' edits; remove only the imports or code your change makes unused. Report unrelated issues without fixing them.
+- For multi-step work, state a brief plan and observable completion criteria. Continue through implementation, applicable checks, and any requested runtime verification; resolve failures caused by the change before handing back the result, or report the concrete blocker.
 
 ## Project Invariants
 - Use **tabs** whenever the file style allows it.
@@ -88,25 +24,18 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - Never commit, read, print, or open `config/config.local.neon` or `docker/config-docker.local.neon`. Do not use wildcard commands that can include them; target public configuration files explicitly.
 
 ## Validation Matrix
+- Integration tests rebuild their configured database tables. Do not run integration suites or migrations against the same database concurrently.
 - PHP, Latte, or NEON changes: finish with `composer cs-fix && composer build-all`.
 - TypeScript or CSS changes: run `npm run lint && npm run build-dev`; also run the PHP/Latte checks when the change crosses those layers.
 - Browser-test changes: run `npm run test-browser` when the local app and credentials are available; otherwise run `npx playwright test --list` and report the runtime limitation.
-- Agent documentation/configuration-only changes (`AGENTS.md`, `.agents/skills/`, `.codex/`): run `composer agent-docs`; a full application build is not required. For changes to the documentation validators, also verify relevant valid and invalid inputs.
+- Agent documentation/configuration and their validators (`AGENTS.md`, `.agents/skills/`, `.codex/`, `tools/validate-agent-docs`, `tools/validate-codex-config.py`): run `composer agent-docs`; a full application build is not required when changes are confined to these files and related documentation. For validator changes, also verify relevant valid and invalid inputs.
 - After the applicable checks pass, repeat or broaden them only when further edits, failures, or unresolved concerns justify it. PhpStorm inspections supplement these checks.
 
 ## Skills
 - Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
 - Start with `.agents/skills/project-overview/SKILL.md` when the task is broad, cross-module, or you are not sure where the code belongs.
-- Commonly useful skills:
-	- `mcp-local-app-access` — MCP inspection of the local app behind login using `.env.browser-tests`.
-	- `testing-conventions` — PHPUnit layout, base classes, naming, and mocking rules.
-	- `ui-base-presenters-templates` — typed template classes for presenters and controls.
-	- `latte-templates`, `nette-forms`, `ui-forms-admin` — UI and form work.
-	- `doctrine-migrations` — Doctrine entities, repositories, schema changes, migrations.
-	- `phpstorm-database` — inspect the local database through PhpStorm MCP, including schema, selected data, and query plans.
-	- `api-slim` — REST API endpoints and OpenAPI-related work.
-	- `job-request`, `rabbitmq-base` — asynchronous jobs and RabbitMQ integration.
-	- `asset-price-system`, `asset-price-downloaders`, `asset-position-system`, `currency-conversion`, `stock-valuation-models` — core investment-domain logic.
+- Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
+- Keep the validation matrix above authoritative. Skills may describe focused checks, but should link here for final validation instead of duplicating it.
 
 ## Project Notes
 - Human-oriented setup and infrastructure details belong in `readme.md` and related docs, not in these global guidelines.

@@ -1,6 +1,6 @@
 ---
 name: ui-svg-icons
-description: Invoke before adding or using any SVG icon in Latte or PHP. Provides the required `renderSvg` macro + `App\UI\Icon\SvgIcon` enum workflow. Use when the user mentions adding an icon, `SvgIcon`, `renderSvg`, `assets/svg`, or pasting raw inline SVG markup.
+description: Add or render project SVG icons in Latte or PHP through SvgIcon and renderSvg.
 ---
 
 ## SVG Icons

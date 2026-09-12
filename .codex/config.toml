@@ -1,9 +1,6 @@
 default_permissions = "portfolio-workspace"
 allow_login_shell = false
 
-[agents]
-max_concurrent_threads_per_session = 2
-
 [shell_environment_policy]
 set = { MY_PORTFOLIO_TRACKER_CODEX = "1" }
 

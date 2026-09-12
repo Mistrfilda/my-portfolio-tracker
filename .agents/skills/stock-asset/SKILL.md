@@ -1,13 +1,11 @@
 ---
 name: stock-asset
-description: Invoke before adding or modifying stock assets, stock asset administration, asset flags, ticker/exchange/currency handling, industry assignment, or stock asset repository queries. Covers `StockAsset`, `StockAssetFacade`, `StockAssetRepository`, and `src/Stock/Asset/UI/`.
+description: Maintain stock asset identity, settings, watchlists, and administration. Use for asset creation/editing, repository selection, exchange/currency settings, or industry assignment.
 ---
 
 ## Stock Asset
 
 Stock asset logic lives mainly in `src/Stock/Asset/`. It represents the stock-specific implementation of the shared `App\Asset\Asset` contract and connects price downloading, dividends, valuations, positions, industries, and watchlist behavior.
-
-Use this skill before changing stock asset creation/editing, asset flags, ticker/exchange/currency behavior, stock asset repository queries, industry assignment, or stock asset admin UI.
 
 ### Main files
 
@@ -72,15 +70,11 @@ Use this skill before changing stock asset creation/editing, asset flags, ticker
 
 ### UI rules
 
-- For presenters/controls/templates, follow the typed template rules from `ui-base-presenters-templates`.
-- When assigning new values to `$this->template`, add matching public typed properties to the template class.
-- Do not add dynamic Latte template properties.
+- For presenters/controls/templates, follow [ui-base-presenters-templates](../ui-base-presenters-templates/SKILL.md).
 - Keep labels and enum option values consistent between the form and entity enum types.
 
 ### Testing rules
 
 - Prefer unit tests for entity behavior, repository-independent rules, and facade validation.
 - Use integration tests only when Doctrine queries or persistence behavior are the point of the change.
-- Do not use external HTTP APIs or real RabbitMQ queues in stock asset tests.
-- For code/config changes, finish with `composer cs-fix && composer build-all`.
-- For this skill/documentation-only changes, consistency review is enough.
+- Follow [testing-conventions](../testing-conventions/SKILL.md) and the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

@@ -1,6 +1,6 @@
 ---
 name: ui-forms-admin
-description: Invoke before creating or modifying an admin form in this project. Provides project-specific form infrastructure (`AdminForm`, `AdminFormFactory`, `AdminFormRenderer`) and custom inputs/containers in `src/UI/Control/Form/`. Use when adding a new `*FormFactory`, custom input, date/time/birthday container, or `CustomFileUpload`. Complements the generic `nette-forms` skill.
+description: Build or change admin forms using AdminFormFactory, the project renderer, and custom inputs or containers.
 ---
 
 ## Admin Forms (project-specific)

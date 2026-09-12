@@ -1,6 +1,6 @@
 ---
 name: playwright-acceptance-tests
-description: Invoke before creating, modifying, debugging, or authoring Playwright browser/acceptance tests in `tests/Browser`. Covers the project-specific Playwright Test setup, `.env.browser-tests` configuration, MCP-assisted UI exploration, login helper, read-only smoke-test rules, selectors, console/runtime error checks, and validation commands.
+description: Create, change, or debug Playwright acceptance tests in tests/Browser using the local read-only smoke setup.
 ---
 
 ## Playwright Acceptance Tests
@@ -62,30 +62,12 @@ PLAYWRIGHT_LOGIN_PASSWORD=
 - `tests/Browser/support/login.ts` — logs in through the real UI and waits for the `Dashboard` heading.
 - `tests/Browser/support/consoleErrors.ts` — records `console.error` and `pageerror` events and asserts that none occurred.
 
-### Current smoke coverage
-
-The smoke suite checks:
-
-- login page renders `My portfolio tracker`, username input, `Heslo`, and `Přihlásit se`,
-- user can log in and sees the `Dashboard` heading,
-- authenticated sidebar menu links discovered from `nav[aria-label="Sidebar"]` render a visible `main` landmark and first `h1`,
-- authenticated command-list search result links discovered from `el-command-list` render a visible `main` landmark and first `h1`,
-- visited pages do not emit `console.error` or `pageerror` events.
-
 ### MCP-assisted authoring workflow
 
 When adding or changing browser tests, first inspect the real UI with standalone Playwright MCP if the local app is available. Follow `mcp-local-app-access` for isolated Chromium, tool discovery, and permitted credential handling; use another browser surface only when explicitly requested.
 For standalone MCP exploration unrelated to browser tests, use `mcp-local-app-access` instead.
 
-Recommended workflow:
-
-1. Confirm `.env.browser-tests` exists and the app is reachable at `PLAYWRIGHT_BASE_URL`.
-2. Open the app with MCP and inspect the real login page.
-3. Log in through the UI using the local test credentials.
-4. Explore navigation from the rendered dashboard/sidebar, not from guesses.
-5. Prefer URLs and pages that are clearly read-only for the current test user.
-6. Watch console messages and page errors during exploration.
-7. Translate the verified flow into Playwright selectors and assertions.
+Reuse the permitted session and verified target navigation from `mcp-local-app-access`. Inspect the rendered flow, record frontend errors, and translate the observed behavior into semantic selectors and assertions.
 
 If MCP cannot connect because the app is not running, do not invent selectors from memory. Inspect the relevant Latte/presenter code and document that runtime exploration was not possible.
 
@@ -112,29 +94,13 @@ If MCP cannot connect because the app is not running, do not invent selectors fr
 - Use `watchFrontendErrors(page)` around pages whose frontend/runtime health is part of the assertion.
 - Dispose console/pageerror listeners in `finally` blocks.
 
-### Expanding smoke coverage
+### Smoke coverage
 
-1. Use MCP to confirm the page is reachable by the test user and is read-only.
-2. Prefer the existing dynamic sidebar/search discovery in `tests/Browser/smoke.spec.ts` when the page is already linked from the authenticated UI.
-3. Add an explicit smoke test only when the page is important, read-only, and not discoverable through the current navigation helpers.
-4. Keep assertions simple: navigate, assert a stable visible heading/key text, and assert no frontend errors.
-5. If the page needs special setup or writes data, do not add it to the read-only smoke layer.
+Read [smoke-coverage.md](references/smoke-coverage.md) when extending the existing navigation smoke suite. It describes current coverage and when a separate explicit page test is useful.
 
 ### Validation
 
-For browser-test changes, run the relevant checks:
-
-```bash
-npm run test-browser
-```
-
-Apply the `AGENTS.md` validation matrix for other changed layers; PHP/Latte/NEON checks are required when those files also change. If the local app or permitted credentials are unavailable, state that clearly and still validate Playwright configuration without login when possible, for example:
-
-```bash
-npx playwright test --list
-```
-
-For documentation-only changes to this skill, verify the content against current files and run `composer agent-docs`; a full application build is not required.
+Use the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix), including its fallback when the local app or permitted credentials are unavailable.
 
 ### Troubleshooting notes
 

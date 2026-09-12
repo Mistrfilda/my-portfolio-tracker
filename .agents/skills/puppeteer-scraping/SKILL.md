@@ -1,6 +1,6 @@
 ---
 name: puppeteer-scraping
-description: Invoke before creating or modifying a Puppeteer scraper in `puppeter/`. Provides the Node.js scraping pipeline – `PuppeteerScraperBase`, concrete scrapers, and how they integrate with PHP `*JsonDownloader` facades through JSON files in `%puppeter.folder%`. Use when the user asks to add a new scraper, debug a failing scrape, or wire scraped JSON into a PHP downloader.
+description: Maintain the project's Puppeteer scrapers and their JSON handoff to PHP. Use when adding or debugging a scraper, changing output contracts, or wiring a scraper into a downloader.
 ---
 
 ## Puppeteer Scraping
@@ -26,13 +26,13 @@ Headless-browser scrapers written in Node.js. Output JSON files consumed by PHP 
 
 1. Add a class `puppeter/<Name>Scraper.js` extending `PuppeteerScraperBase`.
 2. Add an entry script `puppeter/<name>.js` that instantiates and runs it.
-3. On the PHP side, add a matching `*JsonDownloader` + CLI command (see `asset-price-downloaders` skill).
-4. Register parameters (URLs, thresholds) in `config/config.neon`.
+3. Wire the output into the appropriate PHP importer, adding a matching `*JsonDownloader` + CLI command when the flow needs one (see [asset-price-downloaders](../asset-price-downloaders/SKILL.md) for price imports).
+4. Register any new public parameters (URLs, thresholds) in `config/config.neon`.
 5. Preserve the configured secret-injection path; never read or edit local secret configuration files to obtain login cookies or credentials.
 
 ### Rules
 
-- Output JSON must be stable (sorted keys, explicit fields) — PHP side uses `Nette\Utils\Json` + `TypeValidator`.
+- Keep JSON field names and value types stable for PHP consumers, which use `Nette\Utils\Json` + `TypeValidator`.
 - Throw in English; return non-zero exit code on failure so cron marks it failed.
 - Respect the PHP-side `updateStockAssetHoursThreshold` — do not schedule scrapes more aggressively than the downloader will accept.
 - Keep credentials, cookies, and private/token-bearing URLs out of git. Public source URL templates belong in the existing public configuration.

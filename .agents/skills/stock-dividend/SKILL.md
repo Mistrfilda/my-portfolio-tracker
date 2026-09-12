@@ -1,13 +1,11 @@
 ---
 name: stock-dividend
-description: Invoke before adding or modifying stock dividends, dividend records, dividend downloaders, dividend source settings, tax/currency handling, dividend dashboards, or dividend UI. Covers `src/Stock/Dividend/` and its connection to `StockAsset`.
+description: Maintain stock dividend events, records, imports, and administration. Use when changing dividend selection, source settings, tax, currency, or summaries.
 ---
 
 ## Stock Dividend
 
 Stock dividend logic lives in `src/Stock/Dividend/`. It stores dividend events for `StockAsset`, supports manual create/update flows, web-downloaded dividend records, dividend source settings, tax handling, and dashboard/UI queries.
-
-Use this skill before changing dividend entities, dividend download/parsing, dividend repository queries, dividend admin UI, tax/currency behavior, or `StockAsset` dividend settings.
 
 ### Main files
 
@@ -74,7 +72,5 @@ Use this skill before changing dividend entities, dividend download/parsing, div
 
 - Prefer unit tests for tax calculations, entity methods, downloader parsing, and facade branching.
 - Use repository/integration tests only for Doctrine query behavior.
-- Mock HTTP clients/download responses; never use external HTTP APIs in tests.
-- Never use real RabbitMQ queues in dividend tests.
-- For code/config changes, finish with `composer cs-fix && composer build-all`.
-- For this skill/documentation-only changes, consistency review is enough.
+- Mock HTTP clients/download responses and notification producers when testing imports.
+- Follow [testing-conventions](../testing-conventions/SKILL.md) and the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

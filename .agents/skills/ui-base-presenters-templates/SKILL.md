@@ -1,6 +1,6 @@
 ---
 name: ui-base-presenters-templates
-description: Invoke before creating or modifying a Nette Presenter or Control, assigning template properties, or adding a presenter/control Template class. Provides the mandatory typed-template pattern based on `src/UI/Base/`, including presenter PHPDoc, control `createTemplate()` usage, Latte `{templateType}`, lifecycle boundaries, and routing registration.
+description: Create or change Nette presenters, controls, and their typed Template classes or template-property assignments.
 ---
 
 # Base Presenters, Controls, and Templates
@@ -53,5 +53,5 @@ Extend `BaseControlTemplate`, declare every assigned property, and add the match
 
 ## Validation
 
-- Run `composer latte-lint` for focused template validation.
-- Finish PHP/Latte/config changes with `composer cs-fix && composer build-all`.
+- Use `composer latte-lint` for focused template checks while iterating.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).

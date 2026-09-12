@@ -1,6 +1,6 @@
 ---
 name: asset-price-system
-description: Invoke before working with any asset (Stock, Portu, Crypto) price entity, price record, summary price, or price renderer. Provides the base contracts in `src/Asset/` shared by all asset types. Use when implementing a new asset type, adding a new `*PriceRecord` entity, aggregating prices across currencies, computing price diffs, or rendering prices in templates. Also trigger when the user mentions `AssetPrice`, `AssetPriceEmbeddable`, `SummaryPrice`, `PriceDiff`, or `AssetPriceRenderer`.
+description: Maintain shared asset-price contracts, records, aggregation, and rendering across Stock, Crypto, and Portu. Use when changing how prices are stored, compared, totaled, or displayed.
 ---
 
 ## Asset Price System — Base Contracts

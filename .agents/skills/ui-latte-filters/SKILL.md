@@ -1,6 +1,6 @@
 ---
 name: ui-latte-filters
-description: Invoke before formatting currency, prices, percentages, dates or other values in Latte templates. Provides the catalog of project-specific Latte filters registered in `config.neon` under `latte.latteFactory`. Use when the user asks how to format money, a price diff, a percentage, a date/time, a duration, or to convert between currencies in a template.
+description: Format money, prices, percentages, dates, and durations or convert currencies with project Latte filters.
 ---
 
 ## Project Latte Filters

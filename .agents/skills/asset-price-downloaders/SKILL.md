@@ -1,6 +1,6 @@
 ---
 name: asset-price-downloaders
-description: Invoke before adding, modifying, or debugging asset price downloaders, price source generation, downloader commands, or imported price JSON. Covers the shared downloader contracts in `src/Asset/Price/`, Stock downloaders for JSON/Puppeteer, Twelve Data, PSE, and Web, plus Crypto JSON and Twelve Data flows. Also trigger for `AssetPriceDownloader`, `AssetPriceSourceProvider`, `JsonDataFolderService`, `StockAssetPriceDownloaderEnum`, `prices.json`, or price downloader scheduling and tests.
+description: Maintain stock and crypto price downloads, source-file generation, and JSON imports. Use when changing downloader parsing, asset selection, scheduling, or scraper-to-PHP price flows.
 ---
 
 # Asset Price Downloaders

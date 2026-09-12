@@ -1,6 +1,6 @@
 ---
 name: asset-position-system
-description: Invoke before adding or modifying Stock, Crypto, or Portu positions, closed positions, position facades or repositories, broker-currency amounts, portfolio value aggregation, or position UI. Covers the shared `AssetPosition` and `AssetClosedPosition` contracts plus concrete flows in `src/Stock/Position/`, `src/Crypto/Position/`, and `src/Portu/Position/`. Also trigger for position closing, invested/current value calculations, or cross-asset position behavior.
+description: Maintain Stock, Crypto, and Portu positions when changing position calculations, closing, broker-currency amounts, portfolio value aggregation, persistence, or position UI.
 ---
 
 # Asset Position System

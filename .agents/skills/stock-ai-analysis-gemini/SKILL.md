@@ -1,11 +1,11 @@
 ---
 name: stock-ai-analysis-gemini
-description: 'Invoke in addition to `stock-ai-analysis` when a change is specifically provider-facing: `src/Ai/Gemini/`, `GeminiClient`, Gemini request configuration or response extraction, Gemini processing/cache files, V2 per-company split/reduce calls, Gemini schema conversion, validation retry, failure mapping, or Gemini-specific statuses. Do not trigger for provider-agnostic stock analysis entities, UI, checklists, Codex bundles, or follow-up behavior alone.'
+description: Maintain Gemini provider integration for stock AI analysis. Use when changing client requests, schema adaptation, response extraction, caches, retries, or provider processing.
 ---
 
 # Stock AI Analysis — Gemini Integration
 
-Keep provider-specific HTTP, cache, and orchestration concerns separate from the general stock-analysis domain. Always use `stock-ai-analysis` for changes under `src/Stock/AiAnalysis/`; add this skill only when Gemini-specific behavior is involved.
+Keep provider-specific HTTP, cache, and orchestration concerns separate from the general stock-analysis domain. Also use [stock-ai-analysis](../stock-ai-analysis/SKILL.md) for changes under `src/Stock/AiAnalysis/`; this skill applies when Gemini-specific behavior is involved.
 
 ## Ownership
 
@@ -17,7 +17,6 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 ## Client rules
 
 - Configure API key and model through `gemini.*` DI parameters in `config/config.neon`; never hardcode them.
-- Use `Nette\Utils\Json` for request/response serialization and `App\Utils\TypeValidator` for scalar validation.
 - Keep HTTP request construction and response text extraction inside `GeminiClient`.
 - Throw `GeminiClientException` with English context for non-success responses, invalid JSON, invalid shapes, or missing text.
 - Do not log full prompts, portfolio input, raw responses, API keys, or cached response contents.
@@ -30,7 +29,7 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 
 ## V2 split and reduce flow
 
-- Read the V2 reference in `stock-ai-analysis` before changing this flow.
+- Read [the V2 reference](../stock-ai-analysis/references/version-2.md) before changing this flow.
 - For portfolio and watchlist runs, make one request per immutable company snapshot with `generateCompanyPrompt()` and the matching one-company schema.
 - Validate company identity and valuation against the expected snapshot item before accepting or caching a partial response.
 - Build run-level `marketOverview`, `portfolioEvaluation`, or `dailyBrief` in a reduce request only when the snapshot-derived reduce schema requires them.
@@ -45,7 +44,8 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 - Validate cached V2 responses before reuse. Regenerate invalid cache entries instead of trusting their presence.
 - Allow one corrected retry after an invalid V2 provider response, include concise validation errors in the retry prompt, and never cache an invalid response.
 - Keep queued, processing, completed, and failed transitions explicit and preserve duplicate-queue guards.
-- If a message payload changes, update JobRequest producer/processor handling and tests without using a real queue.
+- Runs and follow-up questions are queued through `StockAiAnalysisGeminiProcessProducer`, `StockAiAnalysisGeminiProcessMessage`, and `StockAiAnalysisGeminiProcessConsumer` in `src/Stock/AiAnalysis/RabbitMQ/`. Preserve the message's run/follow-up target distinction and compatibility with queued messages; use [rabbitmq-base](../rabbitmq-base/SKILL.md) when changing this transport.
+- `JobRequest` retains a legacy Gemini enum case and dispatcher branch. Update that compatibility path only when the changed processor or payload contract affects it; new Gemini work uses the dedicated producer.
 
 ## Testing
 
@@ -53,4 +53,4 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 - Test `GeminiClient` with synthetic PSR responses; never call the real API.
 - Cover invalid HTTP responses, invalid JSON/shape, missing text, cache reuse, reduce flow, and failed status transitions when touched.
 - Use local JSON fixtures or inline arrays and never read real cached responses or local secrets.
-- Finish code/config changes with `composer cs-fix && composer build-all`.
+- Follow the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

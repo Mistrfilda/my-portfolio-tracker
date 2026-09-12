@@ -1,6 +1,6 @@
 ---
 name: latte-templates
-description: Invoke before creating or modifying any `.latte` file, including single-line changes. Provides this project's strict Latte typing, typed Template-class workflow, layout and snippet conventions, project filters, SVG rendering, Tailwind/Alpine coordination, and validation commands. Also trigger when the user mentions Latte syntax, tags, filters, escaping, snippets, or template inheritance.
+description: Create or edit Latte templates with the project's typing, rendering, and snippet conventions.
 ---
 
 # Latte Templates
@@ -46,11 +46,10 @@ Render project forms using the established form control/renderer pattern. Use `n
 
 ## Syntax references
 
-- Read `references/tags.md` only when exact tag syntax is needed.
-- Read `references/filters.md` only for built-in Latte filter behavior; project-specific filters remain in `ui-latte-filters`.
+- Read [tags.md](references/tags.md) only when exact tag syntax is needed.
+- Read [filters.md](references/filters.md) only for built-in Latte filter behavior; project-specific filters remain in `ui-latte-filters`.
 
 ## Validation
 
-- Run `composer latte-lint` for focused template validation.
-- For PHP, Latte, or configuration changes, finish with `composer cs-fix && composer build-all`.
-- For Tailwind/TypeScript changes, also run `npm run lint && npm run build-dev`.
+- Use `composer latte-lint` for focused template checks while iterating.
+- Follow the applicable checks in [AGENTS.md](../../../AGENTS.md#validation-matrix).
