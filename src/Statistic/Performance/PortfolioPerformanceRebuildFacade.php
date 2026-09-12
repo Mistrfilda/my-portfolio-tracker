@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Statistic\Performance;
 
 use App\Statistic\PortfolioStatisticRecordRepository;
+use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
@@ -20,6 +21,7 @@ class PortfolioPerformanceRebuildFacade
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
+		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 	)
 	{
 	}
@@ -54,6 +56,7 @@ class PortfolioPerformanceRebuildFacade
 			throw $exception;
 		}
 
+		$this->portfolioStatisticTotalValueProvider->invalidateCache();
 		$this->logger->info('Portfolio performance cache rebuilt', ['months' => count($months)]);
 		return count($months);
 	}

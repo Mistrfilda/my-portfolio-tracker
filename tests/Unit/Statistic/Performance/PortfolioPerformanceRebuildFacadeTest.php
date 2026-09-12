@@ -10,6 +10,7 @@ use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
 use App\Statistic\Performance\PortfolioPerformanceReconstructor;
 use App\Statistic\PortfolioStatisticRecord;
 use App\Statistic\PortfolioStatisticRecordRepository;
+use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -38,6 +39,8 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$logger->expects(self::once())
 			->method('info')
 			->with('Portfolio performance cache rebuilt', ['months' => 0]);
+		$totalValueProvider = $this->createMock(PortfolioStatisticTotalValueProvider::class);
+		$totalValueProvider->expects(self::once())->method('invalidateCache');
 
 		$facade = new PortfolioPerformanceRebuildFacade(
 			$recordRepository,
@@ -46,6 +49,7 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$entityManager,
 			$this->createStub(DatetimeFactory::class),
 			$logger,
+			$totalValueProvider,
 		);
 
 		self::assertSame(0, $facade->rebuild());
@@ -79,7 +83,14 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 				$persisted[] = $entity;
 			});
 		$entityManager->expects(self::once())->method('flush');
-		$entityManager->expects(self::once())->method('commit');
+		$steps = [];
+		$entityManager->expects(self::once())->method(
+			'commit',
+		)->willReturnCallback(
+			static function () use (&$steps): void {
+				$steps[] = 'commit';
+			},
+		);
 		$entityManager->expects(self::never())->method('rollback');
 		$datetimeFactory = $this->createStub(DatetimeFactory::class);
 		$datetimeFactory->method('createNow')->willReturn($now);
@@ -87,6 +98,12 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$logger->expects(self::once())
 			->method('info')
 			->with('Portfolio performance cache rebuilt', ['months' => 2]);
+		$totalValueProvider = $this->createMock(PortfolioStatisticTotalValueProvider::class);
+		$totalValueProvider->expects(self::once())
+			->method('invalidateCache')
+			->willReturnCallback(static function () use (&$steps): void {
+				$steps[] = 'invalidate';
+			});
 
 		$facade = new PortfolioPerformanceRebuildFacade(
 			$recordRepository,
@@ -95,10 +112,12 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$entityManager,
 			$datetimeFactory,
 			$logger,
+			$totalValueProvider,
 		);
 
 		self::assertSame(2, $facade->rebuild());
 		self::assertSame($months, $persisted);
+		self::assertSame(['commit', 'invalidate'], $steps);
 	}
 
 	public function testRebuildRollsBackWhenFlushFails(): void
@@ -117,6 +136,8 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$entityManager->expects(self::once())->method('rollback');
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects(self::never())->method('info');
+		$totalValueProvider = $this->createMock(PortfolioStatisticTotalValueProvider::class);
+		$totalValueProvider->expects(self::never())->method('invalidateCache');
 
 		$facade = new PortfolioPerformanceRebuildFacade(
 			$recordRepository,
@@ -125,6 +146,7 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$entityManager,
 			$this->createStub(DatetimeFactory::class),
 			$logger,
+			$totalValueProvider,
 		);
 
 		$this->expectException(RuntimeException::class);

@@ -8,18 +8,43 @@ use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatistic;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
+use Nette\Caching\Cache;
+use Nette\Caching\Storage;
 
 class PortfolioStatisticTotalValueProvider
 {
 
+	private const string CACHE_KEY = 'all-time-value-v1';
+
+	private readonly Cache $cache;
+
 	public function __construct(
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
+		Storage $storage,
 	)
 	{
+		$this->cache = new Cache($storage, self::class);
 	}
 
 	public function getAllTimeValue(): PortfolioStatisticTotalValue|null
+	{
+		$value = $this->cache->load(
+			self::CACHE_KEY,
+			fn (): PortfolioStatisticTotalValue|false => $this->buildAllTimeValue() ?? false,
+			[Cache::Expire => '1 hour'],
+		);
+		assert($value === false || $value instanceof PortfolioStatisticTotalValue);
+
+		return $value === false ? null : $value;
+	}
+
+	public function invalidateCache(): void
+	{
+		$this->cache->remove(self::CACHE_KEY);
+	}
+
+	private function buildAllTimeValue(): PortfolioStatisticTotalValue|null
 	{
 		$firstRecord = $this->portfolioStatisticRecordRepository->findFirst();
 		$lastRecord = $this->portfolioStatisticRecordRepository->findLast();
