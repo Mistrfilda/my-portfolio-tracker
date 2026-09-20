@@ -10,6 +10,7 @@ use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
@@ -26,6 +27,27 @@ use Ramsey\Uuid\Uuid;
 
 class StockAiAnalysisPromptGeneratorTest extends TestCase
 {
+
+	public function testDeferredFollowUpSystemInstructionDoesNotReadCurrentPreferences(): void
+	{
+		$settings = $this->createMock(StockAiAnalysisSettingsFacade::class);
+		$settings->expects(self::never())->method('getInvestorInstructions');
+		$datetimeFactory = $this->createStub(DatetimeFactory::class);
+		$datetimeFactory->method('createNow')->willReturn(new ImmutableDateTime('2026-09-20 10:00:00'));
+		$generator = new StockAiAnalysisPromptGenerator(
+			$this->createStub(StockAssetRepository::class),
+			$this->createStub(StockValuationDataRepository::class),
+			$this->createStub(StockPositionFacade::class),
+			$this->createStub(StockAssetPriceRecordRepository::class),
+			$datetimeFactory,
+			$settings,
+		);
+
+		self::assertStringNotContainsString(
+			'Investor instructions:',
+			$generator->generateSystemInstruction(includeInvestorInstructions: false),
+		);
+	}
 
 	public function testGenerateDailyBriefPrompt(): void
 	{
@@ -344,6 +366,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$stockPositionFacade,
 			$stockAssetPriceRecordRepository,
 			$datetimeFactory,
+			$this->createStub(StockAiAnalysisSettingsFacade::class),
 		);
 	}
 

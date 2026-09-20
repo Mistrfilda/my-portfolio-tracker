@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock\AiAnalysis\V2;
 
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SnapshotFactory;
 use App\Stock\Asset\Watchlist\StockAssetWatchlist;
 use App\Stock\Asset\Watchlist\StockAssetWatchlistRepository;
@@ -25,7 +26,9 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 		$stockAssetWatchlist = new StockAssetWatchlist('Apple Inc.', 'AAPL', 180.0, CurrencyEnum::USD, $now);
 		$repository = $this->createStub(StockAssetWatchlistRepository::class);
 		$repository->method('findAll')->willReturn([$stockAssetWatchlist]);
-		$factory = new StockAiAnalysisV2SnapshotFactory($legacyPromptGenerator, $repository);
+		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);
+		$settings->method('getInvestorInstructions')->willReturn('Keep Czech holdings.');
+		$factory = new StockAiAnalysisV2SnapshotFactory($legacyPromptGenerator, $repository, $settings);
 
 		$snapshot = $factory->create(
 			Uuid::uuid4(),
@@ -38,6 +41,8 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 			null,
 			null,
 		);
+
+		self::assertSame('Keep Czech holdings.', $snapshot['investorInstructions']);
 
 		self::assertTrue($snapshot['scope']['includesSimpleWatchlist']);
 		self::assertSame([[

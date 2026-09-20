@@ -6,6 +6,7 @@ namespace App\Stock\AiAnalysis\V2;
 
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\Watchlist\StockAssetWatchlistRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -18,6 +19,7 @@ class StockAiAnalysisV2SnapshotFactory
 	public function __construct(
 		private readonly StockAiAnalysisPromptGenerator $legacyPromptGenerator,
 		private readonly StockAssetWatchlistRepository $stockAssetWatchlistRepository,
+		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
 	)
 	{
 	}
@@ -99,6 +101,7 @@ class StockAiAnalysisV2SnapshotFactory
 			'runId' => $runId->toString(),
 			'analysisAsOf' => $analysisAsOf->format(DATE_ATOM),
 			'timezone' => 'Europe/Prague',
+			'investorInstructions' => $this->settingsFacade->getInvestorInstructions(),
 			'scope' => [
 				'includesPortfolio' => $includesPortfolio,
 				'includesWatchlist' => $includesWatchlist,

@@ -7,6 +7,7 @@ namespace App\Stock\AiAnalysis\InvestmentPlan;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\UuidInterface;
 use const DATE_ATOM;
@@ -14,7 +15,10 @@ use const DATE_ATOM;
 class StockAiInvestmentPlanSnapshotFactory
 {
 
-	public function __construct(private readonly StockAiAnalysisPromptGenerator $stockAiAnalysisPromptGenerator)
+	public function __construct(
+		private readonly StockAiAnalysisPromptGenerator $stockAiAnalysisPromptGenerator,
+		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
+	)
 	{
 	}
 
@@ -56,6 +60,7 @@ class StockAiInvestmentPlanSnapshotFactory
 			'planId' => $planId->toString(),
 			'analysisAsOf' => $analysisAsOf->format(DATE_ATOM),
 			'timezone' => 'Europe/Prague',
+			'investorInstructions' => $this->settingsFacade->getInvestorInstructions(),
 			'conventions' => [
 				'percentageUnit' => 'percentage_points',
 				'priceUnit' => 'major_currency_unit',

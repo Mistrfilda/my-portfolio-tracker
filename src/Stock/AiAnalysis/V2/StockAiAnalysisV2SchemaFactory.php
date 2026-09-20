@@ -43,7 +43,7 @@ class StockAiAnalysisV2SchemaFactory
 		if ($scope['includesSimpleWatchlist']) {
 			$count = count(is_array($snapshot['simpleWatchlist'] ?? null) ? $snapshot['simpleWatchlist'] : []);
 			$properties['simpleWatchlistAnalysis'] = $this->createAnalysisListSchema(
-				$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
+				$this->createCompanyAnalysisSchema(['consider_buying', 'watch_closely', 'wait', 'not_interesting']),
 				$count,
 			);
 			$required[] = 'simpleWatchlistAnalysis';
@@ -95,7 +95,7 @@ class StockAiAnalysisV2SchemaFactory
 					1,
 				),
 				'simpleWatchlistAnalysis' => $this->createAnalysisListSchema(
-					$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
+					$this->createCompanyAnalysisSchema(['consider_buying', 'watch_closely', 'wait', 'not_interesting']),
 					1,
 				),
 				'stockAnalysis' => $this->createSingleStockAnalysisSchema(),
@@ -121,7 +121,7 @@ class StockAiAnalysisV2SchemaFactory
 				1,
 			),
 			'simpleWatchlistAnalysis' => $this->createAnalysisListSchema(
-				$this->createCompanyAnalysisSchema(['watch_closely', 'wait', 'not_interesting']),
+				$this->createCompanyAnalysisSchema(['consider_buying', 'watch_closely', 'wait', 'not_interesting']),
 				1,
 			),
 			'stockAnalysis' => $this->createSingleStockAnalysisSchema(),

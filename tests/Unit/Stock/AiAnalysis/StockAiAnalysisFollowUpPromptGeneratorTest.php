@@ -13,12 +13,36 @@ use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
 
 class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 {
+
+	public function testV2FollowUpUsesCurrentPreferencesWithoutChangingParentSnapshot(): void
+	{
+		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);
+		$settings->method('getInvestorInstructions')->willReturn('Keep Czech holdings.');
+		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => 'Original preferences'];
+		$run = new StockAiAnalysisRun(
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			new ImmutableDateTime('2026-09-20 10:00:00'),
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+		);
+
+		$prompt = (new StockAiAnalysisFollowUpPromptGenerator($settings))->generate($run, 'What should I hold?');
+
+		self::assertStringContainsString('Keep Czech holdings.', $prompt);
+		self::assertStringContainsString('supersede any older investor preferences', $prompt);
+		self::assertSame($snapshot, $run->getInputSnapshot());
+	}
 
 	public function testGeneratesPromptWithOriginalAnalysisContext(): void
 	{
@@ -80,10 +104,9 @@ class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 		);
 		$run->addResult($result);
 
-		$prompt = (new StockAiAnalysisFollowUpPromptGenerator())->generate(
-			$run,
-			'What are the biggest risks now?',
-		);
+		$prompt = (new StockAiAnalysisFollowUpPromptGenerator(
+			$this->createStub(StockAiAnalysisSettingsFacade::class),
+		))->generate($run, 'What are the biggest risks now?');
 
 		self::assertStringContainsString('Kontext původní analýzy:', $prompt);
 		self::assertStringContainsString('Original generated prompt', $prompt);

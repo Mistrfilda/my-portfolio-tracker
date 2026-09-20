@@ -197,6 +197,7 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$entityManager->shouldReceive('flush')
 			->twice();
 		$stockAiAnalysisPromptGenerator->shouldReceive('generateSystemInstruction')
+			->with(false)
 			->once()
 			->andReturn('System instruction');
 		$geminiClient->shouldReceive('generateContent')

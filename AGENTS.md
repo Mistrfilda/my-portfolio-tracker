@@ -35,6 +35,7 @@ Treat these as project defaults. Explicit task instructions take precedence over
 - Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
 - Start with `.agents/skills/project-overview/SKILL.md` when the task is broad, cross-module, or you are not sure where the code belongs.
 - Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
+- For local browser inspection, use [mcp-local-app-access](.agents/skills/mcp-local-app-access/SKILL.md). A request to inspect the local app authorizes its documented login flow using `.env.browser-tests` only for the real local login form, without exposing credentials. After a login redirect, complete that flow and return to the requested URL; do not treat the login page alone as a blocker or a reason to switch to database inspection.
 - Keep the validation matrix above authoritative. Skills may describe focused checks, but should link here for final validation instead of duplicating it.
 
 ## Project Notes

@@ -8,11 +8,71 @@ use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ResponseValidator;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2ValidationException;
 use Nette\Utils\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
 class StockAiAnalysisV2ResponseValidatorTest extends TestCase
 {
+
+	#[DataProvider('provideSimpleWatchlistActions')]
+	public function testSimpleWatchlistActionsPassFullAndPartialValidation(string $action): void
+	{
+		$snapshot = $this->createSnapshot();
+		$response = $this->createResponse($snapshot);
+		$response['simpleWatchlistAnalysis'][0]['recommendation']['action'] = $action;
+		$validator = $this->createValidator();
+
+		$validated = $validator->validate(Json::encode($response), $snapshot);
+
+		self::assertSame($action, $validated->simpleWatchlistAnalysis[0]->recommendation['action']);
+		self::assertNull($snapshot['simpleWatchlist'][0]['currentPrice']);
+		$schemaFactory = new StockAiAnalysisV2SchemaFactory();
+		$partial = ['simpleWatchlistAnalysis' => $response['simpleWatchlistAnalysis']];
+		foreach ([
+			$schemaFactory->createCompanyResultSchema(),
+			$schemaFactory->createCompanySchema('simpleWatchlistAnalysis'),
+		] as $schema) {
+			self::assertSame([], $validator->validateArrayAgainstSchema($partial, $schema));
+			$geminiSchema = $schemaFactory->toGeminiResponseSchema($schema);
+			self::assertContains(
+				$action,
+				$geminiSchema['properties']['simpleWatchlistAnalysis']['items']['properties']['recommendation']['properties']['action']['enum'],
+			);
+		}
+	}
+
+	/** @return array<string, array{string}> */
+	public static function provideSimpleWatchlistActions(): array
+	{
+		return [
+			'purchase' => ['consider_buying'],
+			'track' => ['watch_closely'],
+			'wait' => ['wait'],
+			'not interesting' => ['not_interesting'],
+		];
+	}
+
+	#[DataProvider('providePortfolioOnlyActions')]
+	public function testSimpleWatchlistStillRejectsPortfolioOnlyActions(string $action): void
+	{
+		$snapshot = $this->createSnapshot();
+		$response = $this->createResponse($snapshot);
+		$response['simpleWatchlistAnalysis'][0]['recommendation']['action'] = $action;
+
+		$this->expectException(StockAiAnalysisV2ValidationException::class);
+		$this->createValidator()->validate(Json::encode($response), $snapshot);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function providePortfolioOnlyActions(): array
+	{
+		return [
+			'hold' => ['hold'],
+			'add' => ['add_more'],
+			'sell' => ['consider_selling'],
+		];
+	}
 
 	public function testValidResponseMatchesSnapshot(): void
 	{

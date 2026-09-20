@@ -23,6 +23,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 use Throwable;
@@ -602,7 +603,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		}
 	}
 
-	public function testProcessV2AnalyzesSimpleWatchlistCandidate(): void
+	#[DataProvider('provideSimpleWatchlistRecommendations')]
+	public function testProcessV2AnalyzesSimpleWatchlistCandidate(string $action): void
 	{
 		$runId = Uuid::uuid4();
 		$watchlistId = Uuid::uuid4()->toString();
@@ -669,7 +671,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 					'summary' => 'Ocenění je přijatelné.',
 				],
 				'recommendation' => [
-					'action' => 'watch_closely',
+					'action' => $action,
 					'confidence' => 'medium',
 					'reasoning' => 'Teze stojí za podrobnější sledování.',
 					'watchConditions' => [],
@@ -774,6 +776,15 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$processor->processFollowUp('question-1');
 
 		self::assertTrue(true);
+	}
+
+	/** @return array<string, array{string}> */
+	public static function provideSimpleWatchlistRecommendations(): array
+	{
+		return [
+			'track' => ['watch_closely'],
+			'buy' => ['consider_buying'],
+		];
 	}
 
 	private function createTempDir(): string

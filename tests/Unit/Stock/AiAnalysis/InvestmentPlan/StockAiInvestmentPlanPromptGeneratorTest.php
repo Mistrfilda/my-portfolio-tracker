@@ -15,6 +15,7 @@ class StockAiInvestmentPlanPromptGeneratorTest extends TestCase
 	{
 		$generator = new StockAiInvestmentPlanPromptGenerator(new StockAiInvestmentPlanSchemaFactory());
 		$snapshot = [
+			'investorInstructions' => 'Keep Czech holdings.',
 			'schemaVersion' => 1,
 			'planId' => '018f6d0e-7c2a-7f45-8d82-b9e4653cb956',
 			'analysisAsOf' => '2026-08-18T10:00:00+02:00',
@@ -27,6 +28,9 @@ class StockAiInvestmentPlanPromptGeneratorTest extends TestCase
 
 		$taskPrompt = $generator->generateTaskPrompt($snapshot);
 		$codexTaskPrompt = $generator->generateCodexTaskPrompt($snapshot);
+		foreach ([$taskPrompt, $codexTaskPrompt, $generator->generateSystemInstruction($snapshot)] as $prompt) {
+			self::assertStringContainsString('Keep Czech holdings.', $prompt);
+		}
 
 		foreach ([$taskPrompt, $codexTaskPrompt] as $prompt) {
 			self::assertStringContainsString('Additional user instructions', $prompt);

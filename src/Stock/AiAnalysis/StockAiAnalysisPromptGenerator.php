@@ -27,6 +27,7 @@ class StockAiAnalysisPromptGenerator
 		private StockPositionFacade $stockPositionFacade,
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
+		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
 	)
 	{
 	}
@@ -121,11 +122,18 @@ class StockAiAnalysisPromptGenerator
 		return implode("\n\n", $parts);
 	}
 
-	public function generateSystemInstruction(): string
+	public function generateSystemInstruction(bool $includeInvestorInstructions = true): string
 	{
 		$now = $this->datetimeFactory->createNow();
 
-		return sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
+		$instruction = sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
+		if ($includeInvestorInstructions) {
+			$instruction .= "\n\n" . StockAiAnalysisInvestorPrompt::generate(
+				$this->settingsFacade->getInvestorInstructions(),
+			);
+		}
+
+		return $instruction;
 	}
 
 	/**
@@ -176,6 +184,7 @@ class StockAiAnalysisPromptGenerator
 
 		return implode("\n\n", [
 			'Seznam aktuálně otevřených akciových pozic v mém portfoliu:',
+			StockAiAnalysisInvestorPrompt::generate($this->settingsFacade->getInvestorInstructions()),
 			Json::encode(['openPositions' => $positions], pretty: true),
 		]);
 	}

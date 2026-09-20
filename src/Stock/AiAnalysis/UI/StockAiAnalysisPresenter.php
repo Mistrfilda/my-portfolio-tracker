@@ -52,6 +52,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		private readonly StockAiAnalysisCodexResultFormFactory $stockAiAnalysisCodexResultFormFactory,
 		private readonly GotenbergPdfDocumentRenderer $gotenbergPdfDocumentRenderer,
 		private readonly GotenbergPdfService $gotenbergPdfService,
+		private readonly StockAiAnalysisSettingsFormFactory $stockAiAnalysisSettingsFormFactory,
 	)
 	{
 		parent::__construct();
@@ -85,6 +86,14 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 	{
 		$this->run = $this->stockAiAnalysisFacade->getRun($id);
 		$this->template->run = $this->run;
+	}
+
+	protected function createComponentSettingsForm(): AdminForm
+	{
+		return $this->stockAiAnalysisSettingsFormFactory->create(function (): void {
+			$this->flashMessage('Společný investiční prompt byl uložen pro nové analýzy.', 'success');
+			$this->redirect('default');
+		});
 	}
 
 	public function renderDetail(string $id): void

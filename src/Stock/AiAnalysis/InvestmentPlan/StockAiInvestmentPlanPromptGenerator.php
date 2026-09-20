@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\InvestmentPlan;
 
+use App\Stock\AiAnalysis\StockAiAnalysisInvestorPrompt;
 use Nette\Utils\Json;
 
 class StockAiInvestmentPlanPromptGenerator
@@ -27,6 +28,7 @@ class StockAiInvestmentPlanPromptGenerator
 			'Prioritize dividend sustainability, balance-sheet resilience, valuation, and portfolio concentration over headline yield.',
 			'Use sector-appropriate dividend coverage: for example AFFO for REITs and capital/regulatory metrics for banks.',
 			'You may recommend keeping some or all cash when no candidate offers an adequate risk-adjusted entry point.',
+			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Return Czech narrative values and English JSON keys. Return only JSON without citations, markdown, or surrounding text.',
 		]);
 	}
@@ -36,6 +38,7 @@ class StockAiInvestmentPlanPromptGenerator
 	{
 		return implode("\n\n", [
 			'Create one concrete investment plan for the available capital. Select at most three allocations.',
+			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Consider existing holdings first, then the watchlist, and finally closely related dividend stocks discovered through live research. '
 				. 'Do not force a purchase and do not diversify merely by increasing the number of positions.',
 			'Treat the current portfolio and capital snapshot as authoritative. The completed reference analysis is supporting context only; '
@@ -57,6 +60,7 @@ class StockAiInvestmentPlanPromptGenerator
 	{
 		return implode("\n", [
 			'Research current facts and create a single complete `result.json` for the available capital.',
+			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Use `input/context.json` as the authoritative portfolio and capital snapshot.',
 			'Use `input/reference-analysis.json` only as prior analytical context and re-check time-sensitive claims.',
 			'Compare existing holdings, watchlist companies, and genuinely similar dividend-paying alternatives.',

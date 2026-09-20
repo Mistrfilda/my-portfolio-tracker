@@ -17,7 +17,7 @@ Use this reference when changing the V2 contract or either provider workflow. Ke
 
 - Require `portfolioAnalysis` with exactly one result per portfolio company when `includesPortfolio` is true.
 - Require `watchlistAnalysis` with exactly one result per watchlist company when `includesWatchlist` is true.
-- Require `simpleWatchlistAnalysis` with exactly one result per lightweight watchlist candidate when `includesSimpleWatchlist` is true. The `watch_closely` action means the candidate merits promotion to the full `StockAsset` watchlist; promotion remains a manual user action.
+- Require `simpleWatchlistAnalysis` with exactly one result per lightweight watchlist candidate when `includesSimpleWatchlist` is true. Allow `consider_buying` under the same investment criteria as the full watchlist, with a verified market quote; a missing local quote requires research, not exclusion from buying. Keep `watch_closely` for candidates that merit further research and promotion to the full `StockAsset` watchlist without a purchase recommendation. Also allow `wait` and `not_interesting`. Promotion remains a manual user action and is not a prerequisite for recommending a purchase.
 - Require `stockAnalysis` for a single-stock run.
 - Require `marketOverview` when requested.
 - Require `portfolioEvaluation` for a non-daily portfolio run.

@@ -106,7 +106,7 @@ class StockAiAnalysisFollowUpQuestionFacade
 		try {
 			$response = $this->geminiClient->generateContent(
 				$followUpQuestion->getGeneratedPrompt(),
-				$this->stockAiAnalysisPromptGenerator->generateSystemInstruction(),
+				$this->stockAiAnalysisPromptGenerator->generateSystemInstruction(includeInvestorInstructions: false),
 				null,
 			);
 			$followUpQuestion->setResponse(

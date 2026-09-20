@@ -34,6 +34,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 use Nette\Utils\Json;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -410,7 +411,10 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(20.0, $result->getV2MarginOfSafetyPercent());
 	}
 
-	public function testProcessV2ResponsePersistsSimpleWatchlistResultWithoutStockAsset(): void
+	#[DataProvider('provideSimpleWatchlistRecommendations')]
+	public function testProcessV2ResponsePersistsSimpleWatchlistResultWithoutStockAsset(
+		StockAiAnalysisActionSuggestionEnum $action,
+	): void
 	{
 		$now = new ImmutableDateTime('2026-08-20 10:00:00');
 		$runId = Uuid::uuid4();
@@ -470,7 +474,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 				'Ocenění je přijatelné.',
 			),
 			[
-				'action' => 'watch_closely',
+				'action' => $action->value,
 				'confidence' => 'medium',
 				'reasoning' => 'Teze stojí za podrobnější sledování.',
 				'watchConditions' => [],
@@ -511,8 +515,18 @@ class StockAiAnalysisFacadeTest extends TestCase
 		self::assertSame(StockAiAnalysisResultTypeEnum::SIMPLE_WATCHLIST, $result->getType());
 		self::assertNull($result->getStockAsset());
 		self::assertSame('AAPL', $result->getStockTicker());
-		self::assertSame(StockAiAnalysisActionSuggestionEnum::WATCH_CLOSELY, $result->getActionSuggestion());
+		self::assertSame($action, $result->getActionSuggestion());
+		self::assertSame($action->value, $result->getStructuredData()['recommendation']['action']);
 		self::assertNull($result->getV2MarginOfSafetyPercent());
+	}
+
+	/** @return array<string, array{StockAiAnalysisActionSuggestionEnum}> */
+	public static function provideSimpleWatchlistRecommendations(): array
+	{
+		return [
+			'track' => [StockAiAnalysisActionSuggestionEnum::WATCH_CLOSELY],
+			'buy' => [StockAiAnalysisActionSuggestionEnum::CONSIDER_BUYING],
+		];
 	}
 
 	public function testProcessResponseWithPortfolioAnalysis(): void

@@ -12,6 +12,47 @@ use PHPUnit\Framework\TestCase;
 class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 {
 
+	public function testInvestorInstructionsReachEveryProviderAndRespectSnapshot(): void
+	{
+		$snapshot = $this->createSnapshot('portfolio_evaluation');
+		$snapshot['investorInstructions'] = 'Keep Czech holdings; disclose valuation risks.';
+		foreach ($this->createProviderPrompts($snapshot) as $prompt) {
+			self::assertStringContainsString('Keep Czech holdings; disclose valuation risks.', $prompt);
+			self::assertStringContainsString('never change verified facts', $prompt);
+		}
+
+		unset($snapshot['investorInstructions']);
+		foreach ($this->createProviderPrompts($snapshot) as $prompt) {
+			self::assertStringNotContainsString('Investor instructions:', $prompt);
+		}
+	}
+
+	public function testRecommendationsRequireSpecificReasonsWithoutForcingPurchases(): void
+	{
+		$generator = new StockAiAnalysisV2PromptGenerator(new StockAiAnalysisV2SchemaFactory());
+		$prompt = $generator->generateSystemInstruction($this->createSnapshot('portfolio_evaluation'));
+
+		self::assertStringContainsString('not a second downside case', $prompt);
+		self::assertStringContainsString('Avoid counting the same risk repeatedly', $prompt);
+		self::assertStringContainsString('A missing reason to buy is not itself a reason to sell', $prompt);
+		self::assertStringContainsString('name the concrete blocker', $prompt);
+		self::assertStringContainsString('Do not target a quota', $prompt);
+		self::assertStringContainsString('a purchase is not yet justified', $prompt);
+	}
+
+	public function testEveryProviderCanRecommendBuyingSimpleWatchlistCompaniesAfterPriceResearch(): void
+	{
+		$snapshot = $this->createSnapshot('portfolio_evaluation', 'includesSimpleWatchlist');
+		foreach ($this->createProviderPrompts($snapshot) as $prompt) {
+			self::assertStringContainsString('Simple-watchlist companies are eligible for consider_buying', $prompt);
+			self::assertStringContainsString('Prior promotion to the full watchlist is not required', $prompt);
+			self::assertStringContainsString('currentPrice: null means a local quote is missing', $prompt);
+			self::assertStringContainsString('never as a verified market quote', $prompt);
+			self::assertStringContainsString('explain the gap and use a non-buy action', $prompt);
+			self::assertStringNotContainsString('distinguish this schema limitation', $prompt);
+		}
+	}
+
 	#[DataProvider('provideComprehensiveScopes')]
 	public function testAllProviderPromptsRequireComprehensiveAssessment(
 		string|null $portfolioPromptType,

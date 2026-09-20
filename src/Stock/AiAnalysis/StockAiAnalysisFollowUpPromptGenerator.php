@@ -9,6 +9,10 @@ use Nette\Utils\Json;
 class StockAiAnalysisFollowUpPromptGenerator
 {
 
+	public function __construct(private readonly StockAiAnalysisSettingsFacade $settingsFacade)
+	{
+	}
+
 	public function generate(StockAiAnalysisRun $run, string $question): string
 	{
 		if ($run->isV2()) {
@@ -38,6 +42,7 @@ class StockAiAnalysisFollowUpPromptGenerator
 			'Navazuješ na již hotovou investiční AI analýzu. Odpověz pouze na doplňující dotaz uživatele '
 				. 'a používej přiložený kontext původní analýzy.',
 			'Pokud kontext nestačí k jednoznačnému závěru, jasně uveď, co chybí. Nevracej JSON, odpověz běžným textem.',
+			$this->generateInvestorInstructions(),
 			'Kontext původní analýzy:',
 			Json::encode($context, pretty: true),
 			'Doplňující dotaz uživatele:',
@@ -60,6 +65,7 @@ class StockAiAnalysisFollowUpPromptGenerator
 		return implode("\n\n", [
 			'Continue from the completed investment analysis. Answer only the user follow-up using the persisted structured context.',
 			'If the context is insufficient, state exactly what is missing. Return normal Czech prose, not JSON.',
+			$this->generateInvestorInstructions(),
 			'Original analysis context:',
 			Json::encode($context, pretty: true),
 			'User follow-up question:',
@@ -86,6 +92,13 @@ class StockAiAnalysisFollowUpPromptGenerator
 			'dailyBriefNextDaysChecklist' => $run->getDailyBriefNextDaysChecklist(),
 			'dailyBriefActionNeeded' => $run->getDailyBriefActionNeeded()?->value,
 		], static fn (mixed $value): bool => $value !== null);
+	}
+
+	private function generateInvestorInstructions(): string
+	{
+		return 'The following investor instructions are current for this follow-up and supersede any older investor '
+			. "preferences in the original context. They do not change the original analysis.\n"
+			. StockAiAnalysisInvestorPrompt::generate($this->settingsFacade->getInvestorInstructions());
 	}
 
 	/**

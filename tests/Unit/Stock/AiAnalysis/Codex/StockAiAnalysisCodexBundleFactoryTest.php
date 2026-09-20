@@ -10,6 +10,7 @@ use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
+use Nette\Utils\Json;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 use ZipArchive;
@@ -23,6 +24,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 		FileSystem::createDir($tempDir);
 		$runId = Uuid::uuid4();
 		$snapshot = $this->createSnapshot($runId->toString());
+		$snapshot['investorInstructions'] = 'Keep Czech holdings.';
 		$run = new StockAiAnalysisRun(
 			'Prompt',
 			true,
@@ -54,6 +56,14 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			self::assertNotFalse($zip->locateName('instructions/task.md'));
 			self::assertNotFalse($zip->locateName('schema/company-result.schema.json'));
 			self::assertNotFalse($zip->locateName('schema/result.schema.json'));
+			foreach (['schema/result.schema.json', 'schema/company-result.schema.json'] as $path) {
+				$schema = Json::decode((string) $zip->getFromName($path), forceArrays: true);
+				self::assertContains(
+					'consider_buying',
+					$schema['properties']['simpleWatchlistAnalysis']['items']['properties']['recommendation']['properties']['action']['enum'],
+				);
+			}
+
 			self::assertNotFalse($zip->locateName('validate-stock-json.mjs'));
 			self::assertNotSame('', trim((string) $zip->getFromName('validate-stock-json.mjs')));
 			self::assertNotFalse($zip->locateName('input/context.json'));
@@ -105,6 +115,10 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'Do not use `uncertain` solely because input `currentPrice` is null',
 				(string) $zip->getFromName('instructions/task.md'),
 			);
+			foreach (['instructions/system.md', 'instructions/task.md', 'input/context.json'] as $path) {
+				self::assertStringContainsString('Keep Czech holdings.', (string) $zip->getFromName($path));
+			}
+
 			self::assertTrue($zip->close());
 		} finally {
 			FileSystem::delete($tempDir);

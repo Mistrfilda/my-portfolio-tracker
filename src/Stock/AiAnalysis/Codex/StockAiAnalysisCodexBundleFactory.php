@@ -200,6 +200,7 @@ MARKDOWN,
 			'timezone' => $snapshot['timezone'] ?? null,
 			'scope' => $snapshot['scope'] ?? [],
 			'conventions' => $snapshot['conventions'] ?? [],
+			'investorInstructions' => $snapshot['investorInstructions'] ?? '',
 			'portfolioContext' => $snapshot['portfolioContext'] ?? [],
 		];
 	}

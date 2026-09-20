@@ -342,6 +342,9 @@ services:
 	- App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory
 
 	#Stock AI analysis
+	- App\Stock\AiAnalysis\StockAiAnalysisSettingsRepository(App\Stock\AiAnalysis\StockAiAnalysisSettings)
+	- App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade
+	- App\Stock\AiAnalysis\UI\StockAiAnalysisSettingsFormFactory
 	- App\Ai\Gemini\GeminiClient(apiKey: %gemini.apiKey%, model: %gemini.model%)
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory
