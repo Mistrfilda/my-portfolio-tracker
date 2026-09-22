@@ -57,7 +57,7 @@ class StockAiAnalysisFollowUpPromptGenerator
 				'schemaVersion' => $run->getAnalysisSchemaVersion(),
 				'processingSource' => $run->getProcessingSource()?->value,
 			],
-			'inputSnapshot' => $run->getInputSnapshot(),
+			'inputSnapshot' => StockAiAnalysisInvestorPrompt::withoutInstructions($run->getInputSnapshot() ?? []),
 			'runAnalysis' => $run->getStructuredData(),
 			'stockResults' => $this->buildStockResults($run),
 		];

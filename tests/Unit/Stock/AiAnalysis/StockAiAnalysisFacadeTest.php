@@ -155,6 +155,43 @@ class StockAiAnalysisFacadeTest extends TestCase
 		);
 	}
 
+	public function testPendingV2PromptUsesCurrentGeneratorWithoutChangingStoredInputs(): void
+	{
+		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => 'Keep Czech holdings.'];
+		$run = new StockAiAnalysisRun(
+			'Old task with duplicate investor instructions',
+			true,
+			false,
+			false,
+			null,
+			new ImmutableDateTime('2026-09-20 11:05:19'),
+			analysisSchemaVersion: 2,
+			inputSnapshot: $snapshot,
+		);
+		$this->v2PromptGenerator->shouldReceive('generateSystemInstruction')
+			->with($snapshot)->twice()->andReturn('Current system instruction');
+		$this->v2PromptGenerator->shouldReceive('generateManualPrompt')
+			->with($snapshot)->once()->andReturn('Current task');
+
+		self::assertSame(
+			"Systémový prompt:\n\nCurrent system instruction\n\nUživatelský prompt:\n\nCurrent task",
+			$this->facade->getGeneratedPromptForDisplay($run),
+		);
+		self::assertSame('Old task with duplicate investor instructions', $run->getGeneratedPrompt());
+		self::assertSame($snapshot, $run->getInputSnapshot());
+
+		$run->setV2Response(
+			'{}',
+			[],
+			StockAiAnalysisProcessingSourceEnum::CODEX,
+			new ImmutableDateTime('2026-09-20 12:00:00'),
+		);
+		self::assertStringContainsString(
+			'Old task with duplicate investor instructions',
+			$this->facade->getGeneratedPromptForDisplay($run),
+		);
+	}
+
 	public function testEnqueueGeminiProcessing(): void
 	{
 		$run = new StockAiAnalysisRun(

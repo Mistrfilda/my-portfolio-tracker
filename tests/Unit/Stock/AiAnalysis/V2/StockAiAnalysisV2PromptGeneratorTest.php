@@ -16,10 +16,19 @@ class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 	{
 		$snapshot = $this->createSnapshot('portfolio_evaluation');
 		$snapshot['investorInstructions'] = 'Keep Czech holdings; disclose valuation risks.';
-		foreach ($this->createProviderPrompts($snapshot) as $prompt) {
-			self::assertStringContainsString('Keep Czech holdings; disclose valuation risks.', $prompt);
+		foreach ($this->createProviderPrompts($snapshot) as $provider => $prompt) {
+			self::assertSame(1, substr_count($prompt, 'Keep Czech holdings; disclose valuation risks.'), $provider);
+			self::assertSame(1, substr_count($prompt, 'Investor instructions:'), $provider);
 			self::assertStringContainsString('never change verified facts', $prompt);
+			self::assertStringContainsString(
+				'Distinguish preferences and current intentions from explicit prohibitions',
+				$prompt,
+			);
+			self::assertStringContainsString('respecting their stated scope and exceptions', $prompt);
+			self::assertStringContainsString('allows reconsideration', $prompt);
 		}
+
+		self::assertSame('Keep Czech holdings; disclose valuation risks.', $snapshot['investorInstructions']);
 
 		unset($snapshot['investorInstructions']);
 		foreach ($this->createProviderPrompts($snapshot) as $prompt) {

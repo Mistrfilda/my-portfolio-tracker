@@ -100,7 +100,9 @@ class StockAiAnalysisFacade
 			return sprintf(
 				"Systémový prompt:\n\n%s\n\nUživatelský prompt:\n\n%s",
 				$this->v2PromptGenerator->generateSystemInstruction($run->getInputSnapshot()),
-				$run->getGeneratedPrompt(),
+				$run->getProcessedAt() === null
+					? $this->v2PromptGenerator->generateManualPrompt($run->getInputSnapshot())
+					: $run->getGeneratedPrompt(),
 			);
 		}
 

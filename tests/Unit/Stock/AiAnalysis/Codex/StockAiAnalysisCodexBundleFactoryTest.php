@@ -115,9 +115,19 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'Do not use `uncertain` solely because input `currentPrice` is null',
 				(string) $zip->getFromName('instructions/task.md'),
 			);
-			foreach (['instructions/system.md', 'instructions/task.md', 'input/context.json'] as $path) {
-				self::assertStringContainsString('Keep Czech holdings.', (string) $zip->getFromName($path));
-			}
+			self::assertStringContainsString(
+				'Keep Czech holdings.',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
+			self::assertStringNotContainsString(
+				'Keep Czech holdings.',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
+			self::assertStringNotContainsString(
+				'Keep Czech holdings.',
+				(string) $zip->getFromName('input/context.json'),
+			);
+			self::assertSame('Keep Czech holdings.', $run->getInputSnapshot()['investorInstructions']);
 
 			self::assertTrue($zip->close());
 		} finally {

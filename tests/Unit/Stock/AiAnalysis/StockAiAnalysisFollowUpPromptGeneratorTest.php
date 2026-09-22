@@ -16,16 +16,18 @@ use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 {
 
-	public function testV2FollowUpUsesCurrentPreferencesWithoutChangingParentSnapshot(): void
+	#[DataProvider('provideOriginalPreferences')]
+	public function testV2FollowUpUsesCurrentPreferencesWithoutChangingParentSnapshot(string $originalPreferences): void
 	{
 		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);
 		$settings->method('getInvestorInstructions')->willReturn('Keep Czech holdings.');
-		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => 'Original preferences'];
+		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => $originalPreferences];
 		$run = new StockAiAnalysisRun(
 			'Original prompt',
 			true,
@@ -39,9 +41,20 @@ class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 
 		$prompt = (new StockAiAnalysisFollowUpPromptGenerator($settings))->generate($run, 'What should I hold?');
 
-		self::assertStringContainsString('Keep Czech holdings.', $prompt);
+		self::assertSame(1, substr_count($prompt, 'Keep Czech holdings.'));
+		self::assertSame(1, substr_count($prompt, 'Investor instructions:'));
+		self::assertStringNotContainsString('Original preferences', $prompt);
 		self::assertStringContainsString('supersede any older investor preferences', $prompt);
 		self::assertSame($snapshot, $run->getInputSnapshot());
+	}
+
+	/** @return array<string, array{string}> */
+	public static function provideOriginalPreferences(): array
+	{
+		return [
+			'changed' => ['Original preferences'],
+			'unchanged' => ['Keep Czech holdings.'],
+		];
 	}
 
 	public function testGeneratesPromptWithOriginalAnalysisContext(): void

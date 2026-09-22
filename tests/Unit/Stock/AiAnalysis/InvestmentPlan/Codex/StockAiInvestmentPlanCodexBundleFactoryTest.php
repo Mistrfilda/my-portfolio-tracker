@@ -46,6 +46,7 @@ class StockAiInvestmentPlanCodexBundleFactoryTest extends TestCase
 			'analysisAsOf' => '2026-08-16T16:30:00+02:00',
 			'capital' => ['requestedAmountCzk' => 40_000.0],
 			'investorProfile' => ['strategy' => 'dividend_income_primary'],
+			'investorInstructions' => 'Keep Czech holdings.',
 			'userContext' => [
 				'additionalInstructions' => 'Prefer companies with at least ten years of dividend growth.',
 				'consideredCompanies' => ['Realty Income (O)', 'Visa (V)'],
@@ -94,6 +95,16 @@ class StockAiInvestmentPlanCodexBundleFactoryTest extends TestCase
 			$context = Json::decode((string) $zip->getFromName('input/context.json'), forceArrays: true);
 			self::assertIsArray($context);
 			self::assertSame($snapshot['userContext'], $context['userContext']);
+			self::assertArrayNotHasKey('investorInstructions', $context);
+			self::assertSame(
+				1,
+				substr_count((string) $zip->getFromName('instructions/system.md'), 'Keep Czech holdings.'),
+			);
+			self::assertStringNotContainsString(
+				'Keep Czech holdings.',
+				(string) $zip->getFromName('instructions/task.md'),
+			);
+			self::assertSame($snapshot, $plan->getInputSnapshot());
 			self::assertStringContainsString(
 				'Prefer companies with at least ten years of dividend growth.',
 				(string) $zip->getFromName('instructions/task.md'),

@@ -246,7 +246,7 @@ class StockAiAnalysisGeminiProcessorFacade
 			return $this->loadOrCreateV2GeminiResponse(
 				$run,
 				'manual.json',
-				$run->getGeneratedPrompt(),
+				$this->v2PromptGenerator->generateTaskPrompt($snapshot),
 				$systemInstruction,
 				$schema,
 				fullSnapshot: $snapshot,

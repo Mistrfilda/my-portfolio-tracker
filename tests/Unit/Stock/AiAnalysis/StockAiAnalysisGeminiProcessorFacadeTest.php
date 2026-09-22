@@ -505,6 +505,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$runId = Uuid::uuid4();
 		$snapshot = [
 			'schemaVersion' => 2,
+			'investorInstructions' => 'Keep Czech holdings.',
 			'runId' => $runId->toString(),
 			'analysisAsOf' => '2026-07-21T10:00:00+02:00',
 			'scope' => [
@@ -556,11 +557,14 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
 		$geminiClient->shouldReceive('generateContent')
 			->with(
-				'Generated v2 prompt',
+				Mockery::on(
+					static fn (string $prompt): bool => $prompt === $v2PromptGenerator->generateTaskPrompt($snapshot)
+						&& !str_contains($prompt, 'Keep Czech holdings.'),
+				),
 				Mockery::on(static fn (string $instruction): bool => str_contains(
 					$instruction,
 					'comprehensive investment assessment as of analysisAsOf',
-				)),
+				) && substr_count($instruction, 'Keep Czech holdings.') === 1),
 				Mockery::type('array'),
 			)
 			->once()

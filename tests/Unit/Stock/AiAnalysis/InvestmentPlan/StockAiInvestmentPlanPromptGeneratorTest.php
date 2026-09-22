@@ -28,9 +28,13 @@ class StockAiInvestmentPlanPromptGeneratorTest extends TestCase
 
 		$taskPrompt = $generator->generateTaskPrompt($snapshot);
 		$codexTaskPrompt = $generator->generateCodexTaskPrompt($snapshot);
-		foreach ([$taskPrompt, $codexTaskPrompt, $generator->generateSystemInstruction($snapshot)] as $prompt) {
-			self::assertStringContainsString('Keep Czech holdings.', $prompt);
+		$systemInstruction = $generator->generateSystemInstruction($snapshot);
+		foreach ([$taskPrompt, $codexTaskPrompt] as $prompt) {
+			self::assertSame(1, substr_count($systemInstruction . $prompt, 'Keep Czech holdings.'));
+			self::assertSame(1, substr_count($systemInstruction . $prompt, 'Investor instructions:'));
 		}
+
+		self::assertSame('Keep Czech holdings.', $snapshot['investorInstructions']);
 
 		foreach ([$taskPrompt, $codexTaskPrompt] as $prompt) {
 			self::assertStringContainsString('Additional user instructions', $prompt);

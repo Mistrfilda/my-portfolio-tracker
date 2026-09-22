@@ -38,7 +38,6 @@ class StockAiInvestmentPlanPromptGenerator
 	{
 		return implode("\n\n", [
 			'Create one concrete investment plan for the available capital. Select at most three allocations.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Consider existing holdings first, then the watchlist, and finally closely related dividend stocks discovered through live research. '
 				. 'Do not force a purchase and do not diversify merely by increasing the number of positions.',
 			'Treat the current portfolio and capital snapshot as authoritative. The completed reference analysis is supporting context only; '
@@ -51,7 +50,7 @@ class StockAiInvestmentPlanPromptGenerator
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createSchema($snapshot), pretty: true),
 			'Immutable application snapshot:',
-			Json::encode($snapshot, pretty: true),
+			Json::encode(StockAiAnalysisInvestorPrompt::withoutInstructions($snapshot), pretty: true),
 		]);
 	}
 
@@ -60,7 +59,6 @@ class StockAiInvestmentPlanPromptGenerator
 	{
 		return implode("\n", [
 			'Research current facts and create a single complete `result.json` for the available capital.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Use `input/context.json` as the authoritative portfolio and capital snapshot.',
 			'Use `input/reference-analysis.json` only as prior analytical context and re-check time-sensitive claims.',
 			'Compare existing holdings, watchlist companies, and genuinely similar dividend-paying alternatives.',

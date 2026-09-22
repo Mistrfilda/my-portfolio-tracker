@@ -115,14 +115,13 @@ class StockAiAnalysisV2PromptGenerator
 		return implode("\n\n", [
 			'Analyze every requested company and every requested run-level section. Preserve all IDs, names, and tickers exactly.',
 			'Apply the research scope and valuation rules from the system instruction to every requested section.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'For simpleWatchlistAnalysis, evaluate purchase suitability, not only promotion to full tracking. Use '
 				. 'consider_buying when supported by the shared investment and quote-verification rules; watch_closely '
 				. 'means further research and tracking without a purchase recommendation.',
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createFullSchema($snapshot), pretty: true),
 			'Immutable application snapshot:',
-			Json::encode($snapshot, pretty: true),
+			Json::encode(StockAiAnalysisInvestorPrompt::withoutInstructions($snapshot), pretty: true),
 		]);
 	}
 
@@ -144,7 +143,6 @@ class StockAiAnalysisV2PromptGenerator
 		return implode("\n", [
 			'Analyze every company file in `input/` and create the complete `result.json`.',
 			'Apply the research scope and valuation rules from `instructions/system.md` to every company and run-level section.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Use `input/context.json` only for run-level synthesis and portfolio relevance.',
 			sprintf(
 				'Preserve all immutable identifiers and metadata, including analysisAsOf %s, exactly as provided.',
@@ -181,7 +179,6 @@ class StockAiAnalysisV2PromptGenerator
 					. 'price, fundamentals, valuation, and portfolio fit; use watch_closely when only further tracking is justified.'
 				: 'Apply the recommendation actions defined by the supplied schema.',
 			'Follow the same research, materiality, uncertainty, valuation, language, and output rules from the system instruction.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Output must match the relevant property in this JSON Schema:',
 			Json::encode($schema, pretty: true),
 			'Company input:',
@@ -207,7 +204,6 @@ class StockAiAnalysisV2PromptGenerator
 		return implode("\n\n", [
 			'Create only the requested run-level summary sections. Do not repeat company analysis sections.',
 			'Use the immutable portfolio context and all partial company analyses. Keep the result concise, practical, and material.',
-			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createReduceSchema($snapshot), pretty: true),
 			'Portfolio context:',

@@ -117,7 +117,9 @@ class StockAiInvestmentPlanFacade
 		return sprintf(
 			"System instruction:\n\n%s\n\nTask prompt:\n\n%s",
 			$this->promptGenerator->generateSystemInstruction($plan->getInputSnapshot()),
-			$plan->getGeneratedPrompt(),
+			$plan->getProcessedAt() === null
+				? $this->promptGenerator->generateTaskPrompt($plan->getInputSnapshot())
+				: $plan->getGeneratedPrompt(),
 		);
 	}
 
