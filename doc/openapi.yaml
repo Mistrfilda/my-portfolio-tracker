@@ -207,6 +207,7 @@ components:
                     $ref: '#/components/schemas/StockAssetValuationPrice'
                 priceDownloadedAt:
                     type: string
+                    nullable: true
                     format: date-time
                 assetPriceDownloader:
                     type: string
@@ -285,6 +286,7 @@ components:
                     $ref: '#/components/schemas/StockAssetValuationPrice'
                 priceDownloadedAt:
                     type: string
+                    nullable: true
                     format: date-time
                 assetPriceDownloader:
                     type: string

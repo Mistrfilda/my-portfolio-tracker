@@ -7,6 +7,8 @@ namespace App\Monitoring;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Currency\Download\CNBCurrencyConversionDownloadFacade;
 use App\Currency\Download\ECBCurrencyConversionDownloadFacade;
+use App\Stock\Asset\Download\StockAssetDataMonitoring;
+use App\Stock\Asset\Download\StockAssetDataType;
 use App\System\SystemValueEnum;
 use App\System\SystemValueResolveFacade;
 use GuzzleHttp\Client;
@@ -23,6 +25,7 @@ class MonitoringFacade
 		private array $monitoringUptimeMonitorMapping,
 		private SystemValueResolveFacade $systemValueResolveFacade,
 		private CryptoAssetRepository $cryptoAssetRepository,
+		private StockAssetDataMonitoring $stockDataMonitoring,
 	)
 	{
 		$this->client = new Client();
@@ -35,6 +38,20 @@ class MonitoringFacade
 		foreach ($this->monitoringUptimeMonitorMapping as $type => $url) {
 			$type = MonitoringUptimeMonitorEnum::tryFrom($type);
 			if ($type === null) {
+				continue;
+			}
+
+			$stockType = match ($type) {
+				MonitoringUptimeMonitorEnum::UPDATED_STOCK_PRICES_COUNT => StockAssetDataType::PRICE,
+				MonitoringUptimeMonitorEnum::UPDATED_STOCK_DIVIDENDS_COUNT => StockAssetDataType::DIVIDENDS,
+				MonitoringUptimeMonitorEnum::UPDATED_STOCK_VALUATION_COUNT => StockAssetDataType::VALUATION,
+				default => null,
+			};
+			if ($stockType !== null && $this->stockDataMonitoring->isEnabled()) {
+				if ($this->stockDataMonitoring->isHealthy($stockType)) {
+					$this->sendPushMonitor($url);
+				}
+
 				continue;
 			}
 

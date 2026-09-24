@@ -71,6 +71,7 @@
 		"smalot/pdfparser": "^2.9",
 		"symfony/console": "^8.0",
 		"symfony/event-dispatcher": "^8.0",
+		"symfony/process": "^8.0",
 		"tracy/tracy": "^2.8"
 	},
 	"require-dev": {

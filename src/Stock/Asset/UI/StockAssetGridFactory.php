@@ -141,6 +141,20 @@ class StockAssetGridFactory
 			'shouldDownloadValuation',
 		);
 
+		$grid->addColumnDatetime('dividendsCheckedAt', 'Kontrola dividend')->setDefaultVisible(false);
+		$grid->addColumnDatetime('valuationDownloadedAt', 'Aktualizace valuace')->setDefaultVisible(false);
+		$grid->addColumnDatetime('analystInsightsDownloadedAt', 'Aktualizace analytických cílů')->setDefaultVisible(
+			false,
+		);
+		$grid->addAction(
+			'downloadData',
+			'Stáhnout aktuální data',
+			'downloadData!',
+			[new DatagridActionParameter('id', 'id')],
+		)->setConditionCallback(
+			static fn (StockAsset $asset): bool => $asset->shouldBeUpdated() || $asset->shouldDownloadValuation(),
+		);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',

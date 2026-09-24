@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\System\Resolver;
 
+use App\Stock\Asset\Download\StockAssetDataMonitoring;
+use App\Stock\Asset\Download\StockAssetDataType;
 use App\Stock\Asset\StockAssetRepository;
 use App\System\SystemValueEnum;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -23,6 +25,7 @@ class SystemValueLastUpdatedPricesCountResolver implements SystemValueResolver
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
 		private DatetimeFactory $datetimeFactory,
+		private StockAssetDataMonitoring $monitoring,
 	)
 	{
 
@@ -30,6 +33,10 @@ class SystemValueLastUpdatedPricesCountResolver implements SystemValueResolver
 
 	public function getValueForEnum(SystemValueEnum $systemValueEnum): string|int|ImmutableDateTime|null
 	{
+		if ($this->monitoring->isEnabled()) {
+			return $this->monitoring->getFreshCount(StockAssetDataType::PRICE);
+		}
+
 		$now = $this->datetimeFactory->createNow();
 		$lastUpdateDateTime = $this->getLastScheduledUpdateDateTime($now);
 

@@ -10,12 +10,30 @@ use App\JobRequest\JobRequestProcessor;
 use App\JobRequest\JobRequestTypeEnum;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
+use App\Stock\Asset\Download\StockAssetDataDownloadFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
 use Mockery;
+use Ramsey\Uuid\Uuid;
 
 class JobRequestProcessorTest extends UpdatedTestCase
 {
+
+	public function testDownloadsOnlyTheStockFromTheJobPayload(): void
+	{
+		$id = Uuid::uuid4();
+		$downloader = $this->createMock(StockAssetDataDownloadFacade::class);
+		$downloader->expects($this->once())->method('download')->with($id);
+		$processor = new JobRequestProcessor(
+			$this->createStub(ExpenseTagFacade::class),
+			$downloader,
+			$this->createStub(StockAssetDividendForecastRecordFacade::class),
+			$this->createStub(PortfolioGoalUpdateFacade::class),
+			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
+			$this->createStub(PortfolioPeriodStatisticFacade::class),
+		);
+		$processor->process(JobRequestTypeEnum::STOCK_ASSET_DOWNLOAD, ['assetId' => $id->toString()]);
+	}
 
 	public function testProcess(): void
 	{
@@ -27,6 +45,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 
 		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
+			$this->createStub(StockAssetDataDownloadFacade::class),
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
@@ -55,6 +74,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 
 		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
+			$this->createStub(StockAssetDataDownloadFacade::class),
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
@@ -83,6 +103,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 
 		$jobRequestProcessor = new JobRequestProcessor(
 			$expenseTagFacadeMock,
+			$this->createStub(StockAssetDataDownloadFacade::class),
 			$stockAssetDividendForecastRecordFacadeMock,
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,

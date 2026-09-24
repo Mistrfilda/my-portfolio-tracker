@@ -34,8 +34,13 @@ class StockAssetEditPresenter extends BaseSysadminPresenter
 	{
 		$id = $this->processParameterUuid();
 
-		$onSuccess = function () use ($id): void {
-			if ($id === null) {
+		$onSuccess = function (bool $downloadQueueFailed) use ($id): void {
+			if ($downloadQueueFailed) {
+				$this->flashMessage(
+					'Akcie byla vytvořena, ale stažení dat se nepodařilo zařadit do fronty. Spusťte ho z přehledu akcií.',
+					FlashMessageType::WARNING,
+				);
+			} elseif ($id === null) {
 				$this->flashMessage('Akcie úspěšně vytvořena', FlashMessageType::SUCCESS);
 			} else {
 				$this->flashMessage('Akcie úspěšně upravena', FlashMessageType::SUCCESS);

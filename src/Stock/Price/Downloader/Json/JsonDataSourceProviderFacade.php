@@ -41,9 +41,9 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 
 	}
 
-	public function generatePriceSourcesJsonFile(string $fileLocation): void
+	public function generatePriceSourcesJsonFile(string $fileLocation, StockAsset|null $selectedStockAsset = null): void
 	{
-		$stockAssets = $this->stockAssetRepository->findAllByAssetPriceDownloader(
+		$stockAssets = $selectedStockAsset !== null ? [$selectedStockAsset] : $this->stockAssetRepository->findAllByAssetPriceDownloader(
 			StockAssetPriceDownloaderEnum::WEB_SCRAP,
 			priceDownloadedBefore: $this->datetimeFactory->createNow()->deductHoursFromDatetime(
 				$this->updateStockAssetHoursThreshold,
@@ -66,11 +66,13 @@ class JsonDataSourceProviderFacade implements AssetPriceSourceProvider, StockAss
 		);
 	}
 
-	public function generateDividendsJsonFile(string $fileLocation): void
+	public function generateDividendsJsonFile(string $fileLocation, StockAsset|null $selectedStockAsset = null): void
 	{
-		$stockAssets = $this->stockAssetRepository->findByStockAssetDividendSource(
-			StockAssetDividendSourceEnum::WEB,
-		);
+		$stockAssets = $selectedStockAsset !== null
+			? [$selectedStockAsset]
+			: $this->stockAssetRepository->findByStockAssetDividendSource(
+				StockAssetDividendSourceEnum::WEB,
+			);
 
 		$stockAssetsToDownload = [];
 		foreach ($stockAssets as $stockAsset) {

@@ -5,6 +5,9 @@ declare(strict_types = 1);
 namespace App\Stock\Valuation\Data;
 
 use App\Asset\Price\Downloader\JsonDataFolderService;
+use App\Stock\Asset\Download\StockAssetDataImportGuard;
+use App\Stock\Asset\Download\StockAssetDataType;
+use App\Stock\Asset\Download\StockAssetDownloadFiles;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\Stock\Valuation\StockValuationTypeEnum;
@@ -18,6 +21,7 @@ use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use stdClass;
 
 class StockValuationDataFacade
@@ -31,13 +35,16 @@ class StockValuationDataFacade
 		private StockValuationDataRepository $stockValuationDataRepository,
 		private SystemValueFacade $systemValueFacade,
 		private LoggerInterface $logger,
+		private StockAssetDataImportGuard $importGuard,
 	)
 	{
 	}
 
-	public function processKeyStatistics(): void
+	public function processKeyStatistics(StockAssetDownloadFiles|null $download = null): void
 	{
-		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME;
+		$folders = $download->folders ?? $this->jsonDataFolderService;
+		$file = $folders->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME;
+		$download?->validate(JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME);
 
 		if (file_exists($file) === false) {
 			return;
@@ -56,74 +63,103 @@ class StockValuationDataFacade
 			$stockAsset = $this->stockAssetRepository->getById(Uuid::fromString($parsedStockAsset->id));
 			$this->logger->debug(sprintf('Processing stock asset %s', $stockAsset->getName()));
 
-			$this->stockValuationDataRepository->removeTodayData($stockAsset, $now);
-			$this->stockValuationDataRepository->updateLastActive($stockAsset);
-
-			foreach ($data as $key => $stockDataGroup) {
-				if ($key === StockValuationTypeGroupEnum::BASIC_INFO->value) {
-					continue;
+			unset($data[StockValuationTypeGroupEnum::BASIC_INFO->value]);
+			$hasMetrics = false;
+			foreach ($data as $values) {
+				foreach ($values as $value) {
+					if ($value !== null && !in_array(trim($value), ['', '--', 'N/A'], true)) {
+						$hasMetrics = true;
+					}
 				}
+			}
 
-				foreach ($stockDataGroup as $valueKey => $value) {
-					$valueType = StockValuationTypeEnum::from($valueKey);
+			if (!$hasMetrics) {
+				throw new RuntimeException('No valuation data was parsed.');
+			}
 
-					$floatValue = null;
-					$stringValue = $value;
+			$downloadedAt = StockAssetDownloadFiles::downloadedAt($parsedStockAsset, $now);
+			$this->importGuard->import(
+				$stockAsset,
+				StockAssetDataType::VALUATION,
+				$downloadedAt,
+				function () use ($stockAsset, $data, $now, $downloadedAt): void {
+					$this->stockValuationDataRepository->removeTodayData($stockAsset, $now);
+					$this->stockValuationDataRepository->updateLastActive($stockAsset);
 
-					if ($value === '--' || $value === 'N/A' || $value === null || trim($value) === '') {
-						$stringValue = null;
-					} else {
-						if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
-							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
-						} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
-							$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+					foreach ($data as $key => $stockDataGroup) {
+						if ($key === StockValuationTypeGroupEnum::BASIC_INFO->value) {
+							continue;
+						}
+
+						foreach ($stockDataGroup as $valueKey => $value) {
+							$valueType = StockValuationTypeEnum::from($valueKey);
+
+							$floatValue = null;
+							$stringValue = $value;
+
+							if ($value === '--' || $value === 'N/A' || $value === null || trim($value) === '') {
+								$stringValue = null;
+							} else {
+								if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
+									$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+								} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
+									$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+								}
+							}
+
+							$stockValuationData = new StockValuationData(
+								$stockAsset,
+								$valueType,
+								$valueType->getTypeGroup(),
+								$valueType->getTypeValueType(),
+								$now,
+								$stringValue,
+								$floatValue,
+								$stockAsset->getCurrency(),
+								$now,
+							);
+
+							$this->entityManager->persist($stockValuationData);
 						}
 					}
 
-					$stockValuationData = new StockValuationData(
-						$stockAsset,
-						$valueType,
-						$valueType->getTypeGroup(),
-						$valueType->getTypeValueType(),
-						$now,
-						$stringValue,
-						$floatValue,
-						$stockAsset->getCurrency(),
-						$now,
-					);
-
-					$this->entityManager->persist($stockValuationData);
-					$this->entityManager->flush();
-				}
-			}
+					$stockAsset->markValuationDownloaded($downloadedAt);
+				},
+			);
 
 			$this->logger->debug(sprintf('Processed stock asset %s', $stockAsset->getName()));
 		}
 
 		$processedFile = sprintf(
 			'%s%s-%s',
-			$this->jsonDataFolderService->getParsedResultsFolder(),
+			$folders->getParsedResultsFolder(),
 			$now->getTimestamp(),
 			JsonDataSourceProviderFacade::STOCK_ASSET_KEY_STATISTICS_FILENAME,
 		);
 
-		$this->systemValueFacade->updateValue(
-			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT,
-			intValue: count($parsedJson),
-		);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(
+				SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT,
+				intValue: count($parsedJson),
+			);
+		}
 
-		$this->systemValueFacade->updateValue(
-			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT,
-			datetimeValue: $now,
-		);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(
+				SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT,
+				datetimeValue: $now,
+			);
+		}
 
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);
 	}
 
-	public function processAnalystInsights(): void
+	public function processAnalystInsights(StockAssetDownloadFiles|null $download = null): void
 	{
-		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT;
+		$folders = $download->folders ?? $this->jsonDataFolderService;
+		$file = $folders->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT;
+		$download?->validate(JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT);
 
 		if (file_exists($file) === false) {
 			return;
@@ -143,8 +179,9 @@ class StockValuationDataFacade
 			$priceTargets = $parser->parseAnalystPriceTargets($parsedStockAsset->textContent);
 
 			if ($priceTargets === null) {
-				$this->logger->warning(sprintf('Failed to parse analyst price targets for %s', $stockAsset->getName()));
-				continue;
+				throw new RuntimeException(
+					sprintf('Failed to parse analyst price targets for %s.', $stockAsset->getName()),
+				);
 			}
 
 			$valuesToCreate = [
@@ -166,49 +203,62 @@ class StockValuationDataFacade
 				],
 			];
 
-			foreach ($valuesToCreate as $item) {
-				$valueType = $item['type'];
-				$value = $item['value'];
+			$downloadedAt = StockAssetDownloadFiles::downloadedAt($parsedStockAsset, $now);
+			$this->importGuard->import(
+				$stockAsset,
+				StockAssetDataType::ANALYST_INSIGHTS,
+				$downloadedAt,
+				function () use ($stockAsset, $valuesToCreate, $now, $downloadedAt): void {
+					$this->stockValuationDataRepository->removeAnalystData($stockAsset, $now);
+					foreach ($valuesToCreate as $item) {
+						$valueType = $item['type'];
+						$value = $item['value'];
 
-				if ($value === null) {
-					continue;
-				}
+						if ($value === null) {
+							continue;
+						}
 
-				$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
-				if ($floatValue !== null) {
-					$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
-				}
+						$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+						if ($floatValue !== null) {
+							$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
+						}
 
-				$stockValuationData = new StockValuationData(
-					$stockAsset,
-					$valueType,
-					$valueType->getTypeGroup(),
-					$valueType->getTypeValueType(),
-					$now,
-					$value,
-					$floatValue,
-					$stockAsset->getCurrency(),
-					$now,
-				);
+						$stockValuationData = new StockValuationData(
+							$stockAsset,
+							$valueType,
+							$valueType->getTypeGroup(),
+							$valueType->getTypeValueType(),
+							$now,
+							$value,
+							$floatValue,
+							$stockAsset->getCurrency(),
+							$now,
+						);
 
-				$this->entityManager->persist($stockValuationData);
-			}
+						$this->entityManager->persist($stockValuationData);
+					}
 
-			$this->entityManager->flush();
+					$this->entityManager->flush();
+					$stockAsset->markAnalystInsightsDownloaded($downloadedAt);
+				},
+			);
+
 			$this->logger->debug(sprintf('Processed analyst insight for stock asset %s', $stockAsset->getName()));
 		}
 
 		$processedFile = sprintf(
 			'%s%s-%s',
-			$this->jsonDataFolderService->getParsedResultsFolder(),
+			$folders->getParsedResultsFolder(),
 			$now->getTimestamp(),
 			JsonDataSourceProviderFacade::STOCK_ASSET_ANALYST_INSIGHT,
 		);
 
-		$this->systemValueFacade->updateValue(
-			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT,
-			intValue: count($parsedJson),
-		);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(
+				SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT,
+				intValue: count($parsedJson),
+			);
+		}
 
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);

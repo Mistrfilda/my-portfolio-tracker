@@ -311,6 +311,13 @@ services:
 	- App\Asset\Trend\AssetTrendCommand
 
 	#Stock asset
+	- App\Stock\Asset\Download\StockAssetDataFreshness(priceThresholdHours: {TWELVE_DATA: %twelveData.updateStockAssetHoursThreshold%, PSE: %pse.updateStockAssetHoursThreshold%, WEB_SCRAP: %webStockPriceDownloader.updateStockAssetHoursThreshold%})
+	- App\Stock\Asset\Download\StockAssetDataMonitoring
+	- App\Stock\Asset\Download\StockAssetDataMonitoringEnableCommand
+	- App\Stock\Asset\Download\StockAssetScraperRunner(scraperDirectory: %appDir%/../puppeter)
+	- App\Stock\Asset\Download\StockAssetDataDownloadFacade
+	- App\Stock\Asset\Download\StockAssetDataDownloadCommand
+	- App\Stock\Asset\Download\StockAssetDataImportGuard
 	- App\Stock\Asset\StockAssetRepository(App\Stock\Asset\StockAsset)
 	- App\Stock\Asset\UI\StockAssetGridFactory
 	- App\Stock\Asset\UI\StockAssetFormFactory
@@ -548,6 +555,7 @@ services:
 	- App\System\UI\Control\SystemValueControlFactory
 
 	#Resolvers
+	- App\System\Resolver\SystemValueStockDataCountResolver
 	- App\System\Resolver\SystemValueCurrentVersionResolver
 	- App\System\Resolver\SystemValueDatabaseResolver
 	- App\System\Resolver\SystemValueEnabledStockAssetsResolver

@@ -33,6 +33,11 @@ class JobRequestFacade
 		));
 	}
 
+	public function addStockAssetDownloadToQueue(string $assetId): void
+	{
+		$this->addToQueue(JobRequestTypeEnum::STOCK_ASSET_DOWNLOAD, ['assetId' => $assetId]);
+	}
+
 	public function addStockAiAnalysisGeminiProcessToQueue(string $runId): void
 	{
 		$this->addToQueue(JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS, [

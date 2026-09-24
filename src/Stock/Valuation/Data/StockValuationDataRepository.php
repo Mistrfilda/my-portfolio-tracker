@@ -8,6 +8,7 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\StockValuationTypeEnum;
+use App\Stock\Valuation\StockValuationTypeGroupEnum;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -109,6 +110,8 @@ class StockValuationDataRepository extends BaseRepository
 		$qb->setParameter('lastActive', false);
 		$qb->andWhere($qb->expr()->eq('stockValuationData.stockAsset', ':stockAsset'));
 		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->andWhere($qb->expr()->neq('stockValuationData.typeGroup', ':analystGroup'));
+		$qb->setParameter('analystGroup', StockValuationTypeGroupEnum::ANALYST_INSIGHT->value);
 		$qb->getQuery()->execute();
 	}
 
@@ -120,6 +123,30 @@ class StockValuationDataRepository extends BaseRepository
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->andWhere($qb->expr()->eq('DATE(stockValuationData.parsedAt)', ':date'));
 		$qb->setParameter('date', $now->format('Y-m-d'));
+		$qb->andWhere($qb->expr()->neq('stockValuationData.typeGroup', ':analystGroup'));
+		$qb->setParameter('analystGroup', StockValuationTypeGroupEnum::ANALYST_INSIGHT->value);
+		$qb->getQuery()->execute();
+	}
+
+	public function removeAnalystData(StockAsset $stockAsset, ImmutableDateTime $now): void
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->delete();
+		$qb->andWhere('stockValuationData.stockAsset = :asset');
+		$qb->andWhere('stockValuationData.typeGroup = :group');
+		$qb->andWhere('DATE(stockValuationData.parsedAt) = :date');
+		$qb->setParameter('asset', $stockAsset);
+		$qb->setParameter('group', StockValuationTypeGroupEnum::ANALYST_INSIGHT->value);
+		$qb->setParameter('date', $now->format('Y-m-d'));
+		$qb->getQuery()->execute();
+
+		$qb = $this->createQueryBuilder();
+		$qb->update()->set('stockValuationData.lastActive', ':active');
+		$qb->andWhere('stockValuationData.stockAsset = :asset');
+		$qb->andWhere('stockValuationData.typeGroup = :group');
+		$qb->setParameter('asset', $stockAsset);
+		$qb->setParameter('group', StockValuationTypeGroupEnum::ANALYST_INSIGHT->value);
+		$qb->setParameter('active', false);
 		$qb->getQuery()->execute();
 	}
 

@@ -8,6 +8,9 @@ use App\Asset\Price\Downloader\JsonDataFolderService;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
 use App\Notification\NotificationTypeEnum;
+use App\Stock\Asset\Download\StockAssetDataImportGuard;
+use App\Stock\Asset\Download\StockAssetDataType;
+use App\Stock\Asset\Download\StockAssetDownloadFiles;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Downloader\StockAssetDividendDownloader;
 use App\Stock\Dividend\Downloader\StockAssetDividendDownloaderDTO;
@@ -23,6 +26,7 @@ use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use stdClass;
 use const PREG_SET_ORDER;
 
@@ -40,14 +44,17 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 		private LoggerInterface $logger,
 		private SystemValueFacade $systemValueFacade,
 		private NotificationFacade $notificationFacade,
+		private StockAssetDataImportGuard $importGuard,
 	)
 	{
 
 	}
 
-	public function downloadDividendRecords(): void
+	public function downloadDividendRecords(StockAssetDownloadFiles|null $download = null): void
 	{
-		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;
+		$folders = $download->folders ?? $this->jsonDataFolderService;
+		$file = $folders->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME;
+		$download?->validate(JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME);
 
 		if (file_exists($file) === false) {
 			return;
@@ -86,48 +93,69 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 				);
 			}
 
-			foreach ($values as $value) {
-				if ($this->stockAssetDividendRepository->findOneByStockAssetExDate(
-					$stockAsset,
-					$value->getExDate(),
-				) !== null) {
-					continue;
-				}
-
-				$this->logger->info(sprintf('new dividend for stock asset %s', $stockAsset->getName()));
-
-				$this->entityManager->persist(
-					new StockAssetDividend(
-						$stockAsset,
-						$value->getExDate(),
-						$value->getPaymentDate(),
-						$value->getDeclarationDate(),
-						$stockAsset->getCurrency(),
-						$value->getAmount(),
-						$now,
-					),
-				);
-
-				$this->notificationFacade->create(
-					NotificationTypeEnum::NEW_DIVIDEND,
-					[NotificationChannelEnum::DISCORD],
-					sprintf(
-						"**Nová dividenda společnosti %s** \n\n vyplaceno na akcii **%s**",
-						$stockAsset->getName(),
-						CurrencyFilter::format(
-							$value->getAmount(),
-							$stockAsset->getCurrency(),
-						),
-					),
-				);
+			if (
+				isset($parsedStockAsset->dividendRowsCount)
+				&& $parsedStockAsset->dividendRowsCount !== count($values)
+			) {
+				throw new RuntimeException('Dividend history contains unparsed records.');
 			}
 
-			$this->entityManager->flush();
+			if ($values === [] && (($parsedStockAsset->dividendsChecked ?? false) !== true
+				|| ($parsedStockAsset->dividendRowsCount ?? null) !== 0)) {
+				throw new RuntimeException('Dividend result does not contain a verified dividend history.');
+			}
+
+			$downloadedAt = StockAssetDownloadFiles::downloadedAt($parsedStockAsset, $now);
+			$this->importGuard->import(
+				$stockAsset,
+				StockAssetDataType::DIVIDENDS,
+				$downloadedAt,
+				function () use ($stockAsset, $values, $now, $downloadedAt): void {
+					foreach ($values as $value) {
+						if ($this->stockAssetDividendRepository->findOneByStockAssetExDate(
+							$stockAsset,
+							$value->getExDate(),
+						) !== null) {
+							continue;
+						}
+
+						$this->logger->info(sprintf('new dividend for stock asset %s', $stockAsset->getName()));
+
+						$this->entityManager->persist(
+							new StockAssetDividend(
+								$stockAsset,
+								$value->getExDate(),
+								$value->getPaymentDate(),
+								$value->getDeclarationDate(),
+								$stockAsset->getCurrency(),
+								$value->getAmount(),
+								$now,
+							),
+						);
+
+						$this->notificationFacade->create(
+							NotificationTypeEnum::NEW_DIVIDEND,
+							[NotificationChannelEnum::DISCORD],
+							sprintf(
+								"**Nová dividenda společnosti %s** \n\n vyplaceno na akcii **%s**",
+								$stockAsset->getName(),
+								CurrencyFilter::format(
+									$value->getAmount(),
+									$stockAsset->getCurrency(),
+								),
+							),
+						);
+					}
+
+					$this->entityManager->flush();
+					$stockAsset->markDividendsChecked($downloadedAt);
+				},
+			);
 		}
 
 		$processedFile = sprintf(
 			'%s%s-%s',
-			$this->jsonDataFolderService->getParsedResultsFolder(),
+			$folders->getParsedResultsFolder(),
 			$now->getTimestamp(),
 			JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME,
 		);
@@ -135,15 +163,19 @@ class StockAssetJsonDividendDownloader implements StockAssetDividendDownloader
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);
 
-		$this->systemValueFacade->updateValue(
-			SystemValueEnum::DIVIDENDS_UPDATED_COUNT,
-			intValue: count($parsedJson),
-		);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(
+				SystemValueEnum::DIVIDENDS_UPDATED_COUNT,
+				intValue: count($parsedJson),
+			);
+		}
 
-		$this->systemValueFacade->updateValue(
-			SystemValueEnum::DIVIDENDS_UPDATED_AT,
-			datetimeValue: $now,
-		);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(
+				SystemValueEnum::DIVIDENDS_UPDATED_AT,
+				datetimeValue: $now,
+			);
+		}
 	}
 
 	private function processPrice(string $price): float

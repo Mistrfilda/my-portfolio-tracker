@@ -58,8 +58,17 @@ class StockAsset implements Entity, Asset
 	#[ORM\Embedded(class: AssetPriceEmbeddable::class)]
 	private AssetPriceEmbeddable $currentAssetPrice;
 
-	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
-	private ImmutableDateTime $priceDownloadedAt;
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $priceDownloadedAt = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $dividendsCheckedAt = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $valuationDownloadedAt = null;
+
+	#[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+	private ImmutableDateTime|null $analystInsightsDownloadedAt = null;
 
 	#[ORM\Column(type: Types::STRING, nullable: true)]
 	private string|null $isin;
@@ -139,7 +148,6 @@ class StockAsset implements Entity, Asset
 		$this->updatedAt = $now;
 
 		$this->currentAssetPrice = new AssetPriceEmbeddable(0, $currency);
-		$this->priceDownloadedAt = $now;
 
 		$this->positions = new ArrayCollection();
 		$this->priceRecords = new ArrayCollection();
@@ -306,6 +314,10 @@ class StockAsset implements Entity, Asset
 
 	public function getTrend(ImmutableDateTime $date): float
 	{
+		if ($this->priceDownloadedAt === null) {
+			return 0;
+		}
+
 		$lastDayPriceRecord = $this->findLatestPriceRecordOnOrBefore($date);
 		if ($lastDayPriceRecord === null) {
 			return 0;
@@ -372,9 +384,39 @@ class StockAsset implements Entity, Asset
 		return $latestPriceRecord;
 	}
 
-	public function getPriceDownloadedAt(): ImmutableDateTime
+	public function getPriceDownloadedAt(): ImmutableDateTime|null
 	{
 		return $this->priceDownloadedAt;
+	}
+
+	public function getDividendsCheckedAt(): ImmutableDateTime|null
+	{
+		return $this->dividendsCheckedAt;
+	}
+
+	public function markDividendsChecked(ImmutableDateTime $at): void
+	{
+		$this->dividendsCheckedAt = $at;
+	}
+
+	public function getValuationDownloadedAt(): ImmutableDateTime|null
+	{
+		return $this->valuationDownloadedAt;
+	}
+
+	public function markValuationDownloaded(ImmutableDateTime $at): void
+	{
+		$this->valuationDownloadedAt = $at;
+	}
+
+	public function getAnalystInsightsDownloadedAt(): ImmutableDateTime|null
+	{
+		return $this->analystInsightsDownloadedAt;
+	}
+
+	public function markAnalystInsightsDownloaded(ImmutableDateTime $at): void
+	{
+		$this->analystInsightsDownloadedAt = $at;
 	}
 
 	public function getIsin(): string|null

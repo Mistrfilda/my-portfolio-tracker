@@ -15,6 +15,7 @@ use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\Test\Unit\Stock\Support\StockAssetDataImportGuardStub;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -27,6 +28,8 @@ use Psr\Log\LoggerInterface;
 
 class TwelveDataDownloaderFacadeTest extends TestCase
 {
+
+	use StockAssetDataImportGuardStub;
 
 	public function testReturnsEmptyResultWithoutEligibleAssets(): void
 	{
@@ -176,7 +179,35 @@ class TwelveDataDownloaderFacadeTest extends TestCase
 			$entityManager ?? $this->createStub(EntityManagerInterface::class),
 			$logger ?? $this->createStub(LoggerInterface::class),
 			$systemValueFacade ?? $this->createStub(SystemValueFacade::class),
+			$this->createImportGuardStub(),
 		);
+	}
+
+	public function testSelectedAssetBypassesBatchThresholdAndLeavesBatchStatisticsUntouched(): void
+	{
+		$asset = $this->createMock(StockAsset::class);
+		$asset->method('getTicker')->willReturn('SELECTED');
+		$asset->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$asset->expects($this->once())->method('setCurrentPrice');
+		$assets = $this->createMock(StockAssetRepository::class);
+		$assets->expects($this->never())->method('findAllByAssetPriceDownloader');
+		$now = new ImmutableDateTime('2026-09-24 12:00:00');
+		$clock = $this->createStub(DatetimeFactory::class);
+		$clock->method('createNow')->willReturn($now);
+		$clock->method('createToday')->willReturn($now->setTime(0, 0));
+		$client = $this->createMock(ClientInterface::class);
+		$client->expects($this->once())->method('sendRequest')->with($this->callback(
+			static fn (RequestInterface $request): bool => $request->getUri()->getQuery() === 'symbol=SELECTED&apikey=test-key',
+		))->willReturn(new Response(200, [], '{"price":"125.50"}'));
+		$clients = $this->createStub(Psr18ClientFactory::class);
+		$clients->method('getClient')->willReturn($client);
+		$stats = $this->createMock(SystemValueFacade::class);
+		$stats->expects($this->never())->method('updateValue');
+		$result = $this->createDownloader($assets, $clock, $clients, systemValueFacade: $stats)->getPriceForAssets(
+			$asset,
+		);
+		$this->assertCount(1, $result);
+		$this->assertSame(125.5, $result[0]->getAssetPrice()->getPrice());
 	}
 
 }

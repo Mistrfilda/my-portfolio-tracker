@@ -14,6 +14,7 @@ use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\Test\Unit\Stock\Support\StockAssetDataImportGuardStub;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -24,6 +25,8 @@ use Ramsey\Uuid\Uuid;
 
 class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 {
+
+	use StockAssetDataImportGuardStub;
 
 	private JsonDataDownloaderFacade $jsonDataDownloaderFacade;
 
@@ -66,6 +69,7 @@ class JsonDataDownloaderFacadeTest extends UpdatedTestCase
 			$this->entityManager,
 			$this->logger,
 			$this->systemValueFacade,
+			$this->createImportGuardStub(),
 		);
 	}
 

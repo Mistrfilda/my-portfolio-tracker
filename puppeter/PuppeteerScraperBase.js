@@ -8,6 +8,12 @@ export class PuppeteerScraperBase {
 		const __filename = fileURLToPath(import.meta.url);
 		this.__dirname = path.dirname(__filename);
 		this.debugHtml = process.argv.includes('--debughtml');
+		const dataDirIndex = process.argv.indexOf('--data-dir');
+		if (dataDirIndex !== -1 && !process.argv[dataDirIndex + 1]) {
+			throw new Error('Missing --data-dir argument');
+		}
+		this.dataDirectory = dataDirIndex === -1 ? path.join(this.__dirname, 'files') : path.resolve(process.argv[dataDirIndex + 1]);
+		this.strict = process.argv.includes('--strict');
 
 		this.browserConfig = {
 			// headless: false,
@@ -15,7 +21,7 @@ export class PuppeteerScraperBase {
 			headless: true,
 			slowMo: 100,
 			browser: "chrome",
-			executablePath: "/usr/bin/chromium",
+			executablePath: fs.existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : puppeteer.executablePath(),
 			args: [
 				'--no-sandbox',
 				'--disable-setuid-sandbox',
@@ -94,6 +100,7 @@ export class PuppeteerScraperBase {
 					}
 
 					const { id, name, currency, url } = entry;
+					const downloadedAt = Math.floor(Date.now() / 1000);
 					console.log(`Processing [${index + 1}/${entries.length}]: ${name}`);
 
 					const page = await browser.newPage();
@@ -102,16 +109,16 @@ export class PuppeteerScraperBase {
 					await page.setDefaultNavigationTimeout(30000);
 
 					try {
- 					await page.goto(url, { timeout: 30000, waitUntil: 'networkidle2' });
+						await page.goto(url, { timeout: 30000, waitUntil: 'networkidle2' });
 						await this.setupPage(page);
 						await this.handleCookieConsent(page, index % RESTART_BROWSER_AFTER === 0);
 
- 					const processedData = await this.processEntry(page, entry, index);
- 					if (processedData) {
- 						result.push(processedData);
- 					} else if (this.debugHtml) {
- 						await this.saveDebugHtml(page, entry);
- 					}
+						const processedData = await this.processEntry(page, entry, index);
+						if (processedData) {
+							result.push({ ...processedData, downloadedAt });
+						} else if (this.debugHtml) {
+							await this.saveDebugHtml(page, entry);
+						}
 
 						if (onProgressCallback && (index + 1) % SAVE_PROGRESS_AFTER === 0) {
 							await onProgressCallback(result);
@@ -160,7 +167,7 @@ export class PuppeteerScraperBase {
 
 	async saveDebugHtml(page, entry) {
 		try {
-			const debugDir = path.join(this.__dirname, 'files/debug');
+			const debugDir = path.join(this.dataDirectory, 'debug');
 			await fs.promises.mkdir(debugDir, { recursive: true });
 
 			const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -181,9 +188,9 @@ export class PuppeteerScraperBase {
 	}
 
 	async run(inputFileName, outputFileName) {
-		const filePath = path.join(this.__dirname, `/files/requests/${inputFileName}`);
-		const outputFilePath = path.join(this.__dirname, `/files/results/${outputFileName}`);
-		const tempOutputPath = path.join(this.__dirname, `/files/results/temp_${outputFileName}`);
+		const filePath = path.join(this.dataDirectory, 'requests', inputFileName);
+		const outputFilePath = path.join(this.dataDirectory, 'results', outputFileName);
+		const tempOutputPath = path.join(this.dataDirectory, 'results', `temp_${outputFileName}`);
 		this.tempOutputPath = tempOutputPath;
 
 		try {
@@ -197,6 +204,9 @@ export class PuppeteerScraperBase {
 				console.log('No previous temp results found, starting fresh');
 			}
 
+			const requestedIds = new Set(inputData.map(entry => entry.id));
+			const requestTime = Math.floor((await fs.promises.stat(filePath)).mtimeMs / 1000);
+			result = result.filter(row => requestedIds.has(row.id) && Number.isInteger(row.downloadedAt) && row.downloadedAt >= requestTime);
 			const processedIds = new Set(result.map(r => r.id));
 			const remainingData = inputData.filter(entry => !processedIds.has(entry.id));
 
@@ -219,6 +229,9 @@ export class PuppeteerScraperBase {
 				}
 			} else {
 				console.log(`Only ${newResults.length}/${remainingData.length} entries processed, keeping temp file for retry`);
+				if (this.strict) {
+					throw new Error('Requested stock data could not be downloaded');
+				}
 			}
 		} catch (error) {
 			console.error('Processing failed:', error);

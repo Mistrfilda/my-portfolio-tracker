@@ -73,7 +73,7 @@ class SystemValueResolveFacadeTest extends TestCase
 		$systemValueRepositoryMock = Mockery::mock(SystemValueRepository::class);
 		$systemValueMock = Mockery::mock(SystemValue::class);
 
-		$enum = SystemValueEnum::DIVIDENDS_UPDATED_COUNT;
+		$enum = SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT;
 		$expectedValue = 42;
 
 		$systemValueRepositoryMock

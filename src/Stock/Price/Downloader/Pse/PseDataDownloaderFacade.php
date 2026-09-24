@@ -8,6 +8,9 @@ use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Stock\Asset\Download\StockAssetDataImportGuard;
+use App\Stock\Asset\Download\StockAssetDataType;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\Downloader\Pse\Exception\PseInvalidResponseException;
 use App\Stock\Price\Downloader\Pse\Exception\PseMissingStockAssetIsinException;
@@ -25,6 +28,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Arrays;
 use Nette\Utils\Strings;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 class PseDataDownloaderFacade implements AssetPriceDownloader
 {
@@ -44,6 +48,7 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
 		private readonly SystemValueFacade $systemValueFacade,
+		private StockAssetDataImportGuard $importGuard,
 	)
 	{
 	}
@@ -51,9 +56,9 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 	/**
 	 * @return array<AssetPriceRecord>
 	 */
-	public function getPriceForAssets(): array
+	public function getPriceForAssets(StockAsset|null $selectedStockAsset = null): array
 	{
-		$stockAssets = $this->stockAssetRepository->findAllByAssetPriceDownloader(
+		$stockAssets = $selectedStockAsset !== null ? [$selectedStockAsset] : $this->stockAssetRepository->findAllByAssetPriceDownloader(
 			StockAssetPriceDownloaderEnum::PRAGUE_EXCHANGE_DOWNLOADER,
 			priceDownloadedBefore: $this->datetimeFactory->createNow()->deductHoursFromDatetime(
 				$this->updateStockAssetHoursThreshold,
@@ -66,6 +71,7 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 
 		$client = $this->psr18ClientFactory->getClient(['verify' => $this->verifySsl]);
 
+		$now = $this->datetimeFactory->createNow();
 		$parsedIsinsWithPrice = [];
 		foreach ($this->getRequests() as $request) {
 			$response = $client->sendRequest(
@@ -122,7 +128,6 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 
 		$priceRecords = [];
 		$today = $this->datetimeFactory->createToday();
-		$now = $this->datetimeFactory->createNow();
 		foreach ($stockAssets as $stockAsset) {
 			if ($stockAsset->getIsin() === null) {
 				throw new PseMissingStockAssetIsinException();
@@ -131,30 +136,45 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 			if (array_key_exists($stockAsset->getIsin(), $parsedIsinsWithPrice)) {
 				$price = (float) $parsedIsinsWithPrice[$stockAsset->getIsin()];
 
-				$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
-					$stockAsset,
-					$today,
-				);
-
-				if ($priceRecord !== null) {
-					$priceRecord->updatePrice($price, $now);
-				} else {
-					$priceRecord = new StockAssetPriceRecord(
-						$today,
-						$stockAsset->getCurrency(),
-						$price,
-						$stockAsset,
-						StockAssetPriceDownloaderEnum::PRAGUE_EXCHANGE_DOWNLOADER,
-						$now,
-					);
-
-					$this->entityManager->persist($priceRecord);
+				if (!is_finite($price) || $price <= 0) {
+					throw new RuntimeException('Downloaded stock price must be positive.');
 				}
 
-				$stockAsset->setCurrentPrice($priceRecord, $now);
+				$this->importGuard->import(
+					$stockAsset,
+					StockAssetDataType::PRICE,
+					$now,
+					function () use ($stockAsset, $price, $today, $now, &$priceRecords): void {
+						$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
+							$stockAsset,
+							$today,
+						);
 
-				$priceRecords[] = $priceRecord;
+						if ($priceRecord !== null) {
+							$priceRecord->updatePrice($price, $now);
+						} else {
+							$priceRecord = new StockAssetPriceRecord(
+								$today,
+								$stockAsset->getCurrency(),
+								$price,
+								$stockAsset,
+								StockAssetPriceDownloaderEnum::PRAGUE_EXCHANGE_DOWNLOADER,
+								$now,
+							);
+
+							$this->entityManager->persist($priceRecord);
+						}
+
+						$stockAsset->setCurrentPrice($priceRecord, $now);
+
+						$priceRecords[] = $priceRecord;
+					},
+				);
 			} else {
+				if ($selectedStockAsset !== null) {
+					throw new RuntimeException('PSE did not return the requested stock price.');
+				}
+
 				$this->logger->error(
 					sprintf(
 						'Missing price for stock asset ID %s - %s',
@@ -167,7 +187,9 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 
 		$this->entityManager->flush();
 
-		$this->systemValueFacade->updateValue(SystemValueEnum::PSE_DATA_UPDATED_AT, datetimeValue: $now);
+		if ($selectedStockAsset === null) {
+			$this->systemValueFacade->updateValue(SystemValueEnum::PSE_DATA_UPDATED_AT, datetimeValue: $now);
+		}
 
 		return $priceRecords;
 	}

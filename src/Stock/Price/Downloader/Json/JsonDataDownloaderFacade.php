@@ -7,6 +7,9 @@ namespace App\Stock\Price\Downloader\Json;
 use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
 use App\Asset\Price\Downloader\JsonDataFolderService;
+use App\Stock\Asset\Download\StockAssetDataImportGuard;
+use App\Stock\Asset\Download\StockAssetDataType;
+use App\Stock\Asset\Download\StockAssetDownloadFiles;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
@@ -19,6 +22,7 @@ use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use stdClass;
 
 class JsonDataDownloaderFacade implements AssetPriceDownloader
@@ -32,6 +36,7 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
 		private SystemValueFacade $systemValueFacade,
+		private StockAssetDataImportGuard $importGuard,
 	)
 	{
 	}
@@ -39,9 +44,11 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 	/**
 	 * @return array<AssetPriceRecord>
 	 */
-	public function getPriceForAssets(): array
+	public function getPriceForAssets(StockAssetDownloadFiles|null $download = null): array
 	{
-		$file = $this->jsonDataFolderService->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_PRICE_FILENAME;
+		$folders = $download->folders ?? $this->jsonDataFolderService;
+		$file = $folders->getResultsFolder() . JsonDataSourceProviderFacade::STOCK_ASSET_PRICE_FILENAME;
+		$download?->validate(JsonDataSourceProviderFacade::STOCK_ASSET_PRICE_FILENAME);
 
 		if (file_exists($file) === false) {
 			return [];
@@ -63,35 +70,47 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 				sprintf('Processing price for stock asset %s', $stockAsset->getName()),
 			);
 
-			$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
-				$stockAsset,
-				$today,
-			);
-
-			if ($priceRecord !== null) {
-				$priceRecord->updatePrice($priceValue, $now);
-			} else {
-				$priceRecord = new StockAssetPriceRecord(
-					$today,
-					$stockAsset->getCurrency(),
-					$priceValue,
-					$stockAsset,
-					StockAssetPriceDownloaderEnum::WEB_SCRAP,
-					$now,
-				);
-
-				$this->entityManager->persist($priceRecord);
+			if (!is_finite($priceValue) || $priceValue <= 0) {
+				throw new RuntimeException('Downloaded stock price must be positive.');
 			}
 
-			$stockAsset->setCurrentPrice($priceRecord, $now);
-			$priceRecords[] = $priceRecord;
+			$downloadedAt = StockAssetDownloadFiles::downloadedAt($parsedStockAsset, $now);
+			$this->importGuard->import(
+				$stockAsset,
+				StockAssetDataType::PRICE,
+				$downloadedAt,
+				function () use ($stockAsset, $priceValue, $today, $downloadedAt, &$priceRecords): void {
+					$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
+						$stockAsset,
+						$today,
+					);
+
+					if ($priceRecord !== null) {
+						$priceRecord->updatePrice($priceValue, $downloadedAt);
+					} else {
+						$priceRecord = new StockAssetPriceRecord(
+							$today,
+							$stockAsset->getCurrency(),
+							$priceValue,
+							$stockAsset,
+							StockAssetPriceDownloaderEnum::WEB_SCRAP,
+							$downloadedAt,
+						);
+
+						$this->entityManager->persist($priceRecord);
+					}
+
+					$stockAsset->setCurrentPrice($priceRecord, $downloadedAt);
+					$priceRecords[] = $priceRecord;
+				},
+			);
 		}
 
 		$this->entityManager->flush();
 
 		$processedFile = sprintf(
 			'%s%s-%s',
-			$this->jsonDataFolderService->getParsedResultsFolder(),
+			$folders->getParsedResultsFolder(),
 			$now->getTimestamp(),
 			JsonDataSourceProviderFacade::STOCK_ASSET_PRICE_FILENAME,
 		);
@@ -99,7 +118,9 @@ class JsonDataDownloaderFacade implements AssetPriceDownloader
 		FileSystem::copy($file, $processedFile);
 		FileSystem::delete($file);
 
-		$this->systemValueFacade->updateValue(SystemValueEnum::PUPPETER_UPDATED_AT, datetimeValue: $now);
+		if ($download === null) {
+			$this->systemValueFacade->updateValue(SystemValueEnum::PUPPETER_UPDATED_AT, datetimeValue: $now);
+		}
 
 		return $priceRecords;
 	}

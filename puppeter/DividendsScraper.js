@@ -43,7 +43,15 @@ export class DividendsScraper extends PuppeteerScraperBase {
 
 			console.log(`Text content for ${name} (using ${usedSelector}):`, textContent);
 
+			if (!/Date/i.test(textContent) || !/Dividend/i.test(textContent)) {
+				throw new Error('Unrecognised dividend history table');
+			}
+			const dividendRowsCount = await page.evaluate(el => [...el.querySelectorAll('tbody tr')]
+				.filter(row => /\bDividend\b/i.test(row.textContent)).length, element);
+
 			return {
+				dividendsChecked: true,
+				dividendRowsCount,
 				id,
 				name,
 				currency,

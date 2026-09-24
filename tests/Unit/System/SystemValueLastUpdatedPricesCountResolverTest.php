@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\System;
 
+use App\Stock\Asset\Download\StockAssetDataMonitoring;
 use App\Stock\Asset\StockAssetRepository;
 use App\System\Resolver\SystemValueLastUpdatedPricesCountResolver;
 use App\System\SystemValueEnum;
@@ -29,6 +30,7 @@ class SystemValueLastUpdatedPricesCountResolverTest extends UpdatedTestCase
 		$this->resolver = new SystemValueLastUpdatedPricesCountResolver(
 			$this->stockAssetRepository,
 			$this->datetimeFactory,
+			$this->createStub(StockAssetDataMonitoring::class),
 		);
 	}
 

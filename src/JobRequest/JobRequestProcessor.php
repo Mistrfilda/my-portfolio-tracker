@@ -8,6 +8,7 @@ use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Goal\PortfolioGoalUpdateFacade;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
+use App\Stock\Asset\Download\StockAssetDataDownloadFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Utils\TypeValidator;
 use Ramsey\Uuid\Uuid;
@@ -17,6 +18,7 @@ class JobRequestProcessor
 
 	public function __construct(
 		private ExpenseTagFacade $expenseTagFacade,
+		private StockAssetDataDownloadFacade $stockAssetDataDownloadFacade,
 		private StockAssetDividendForecastRecordFacade $stockAssetDividendForecastFacade,
 		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
 		private StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
@@ -31,6 +33,11 @@ class JobRequestProcessor
 	public function process(JobRequestTypeEnum $type, array $additionalData): void
 	{
 		switch ($type) {
+			case JobRequestTypeEnum::STOCK_ASSET_DOWNLOAD:
+				$this->stockAssetDataDownloadFacade->download(
+					Uuid::fromString(TypeValidator::validateString($additionalData['assetId'] ?? null)),
+				);
+				break;
 			case JobRequestTypeEnum::EXPENSE_TAG_PROCESS:
 				$this->expenseTagFacade->processExpenses();
 				break;

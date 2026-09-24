@@ -10,6 +10,7 @@ use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
 use App\Doctrine\OrderBy;
+use App\Stock\Asset\Download\StockAssetDataType;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use Doctrine\ORM\NoResultException;
@@ -85,7 +86,10 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 
 		if ($priceDownloadedBefore !== null) {
 			$qb->andWhere(
-				$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
+				$qb->expr()->orX(
+					$qb->expr()->isNull('stockAsset.priceDownloadedAt'),
+					$qb->expr()->lte('stockAsset.priceDownloadedAt', ':priceDownloadedAt'),
+				),
 			);
 
 			$qb->setParameter('priceDownloadedAt', $priceDownloadedBefore);
@@ -249,6 +253,64 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		assert(is_scalar($result));
 
 		return (int) $result;
+	}
+
+	public function countForDataType(
+		StockAssetDataType $type,
+		ImmutableDateTime|null $updatedSince = null,
+		StockAssetPriceDownloaderEnum|null $source = null,
+	): int
+	{
+		$qb = $this->createDataTypeQuery($type, $source);
+		if ($updatedSince !== null) {
+			$qb->andWhere(sprintf('stockAsset.%s >= :since', $type->value));
+			$qb->setParameter('since', $updatedSince);
+		}
+
+		return (int) $qb->getQuery()->getSingleScalarResult();
+	}
+
+	public function countStaleForDataType(
+		StockAssetDataType $type,
+		ImmutableDateTime $updatedSince,
+		ImmutableDateTime $createdBefore,
+		StockAssetPriceDownloaderEnum|null $source = null,
+	): int
+	{
+		$qb = $this->createDataTypeQuery($type, $source);
+		$qb->andWhere(sprintf('(stockAsset.%1$s IS NULL OR stockAsset.%1$s < :since)', $type->value));
+		$qb->andWhere('stockAsset.createdAt <= :createdBefore');
+		$qb->setParameter('since', $updatedSince);
+		$qb->setParameter('createdBefore', $createdBefore);
+		return (int) $qb->getQuery()->getSingleScalarResult();
+	}
+
+	private function createDataTypeQuery(
+		StockAssetDataType $type,
+		StockAssetPriceDownloaderEnum|null $source,
+	): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder()->select('COUNT(stockAsset.id)');
+		$flag = in_array(
+			$type,
+			[StockAssetDataType::PRICE, StockAssetDataType::DIVIDENDS],
+			true,
+		)
+			? 'shouldDownloadPrice'
+			: 'shouldDownloadValuation';
+		$qb->andWhere(sprintf('stockAsset.%s = :enabled', $flag));
+		$qb->setParameter('enabled', true);
+		if ($type === StockAssetDataType::DIVIDENDS) {
+			$qb->andWhere('stockAsset.stockAssetDividendSource = :dividendSource');
+			$qb->setParameter('dividendSource', StockAssetDividendSourceEnum::WEB->value);
+		}
+
+		if ($source !== null) {
+			$qb->andWhere('stockAsset.assetPriceDownloader = :source');
+			$qb->setParameter('source', $source->value);
+		}
+
+		return $qb;
 	}
 
 }

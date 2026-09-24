@@ -18,17 +18,22 @@ use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\Test\Unit\Stock\Support\StockAssetDataImportGuardStub;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Ramsey\Uuid\Uuid;
+use RuntimeException;
 
 class StockValuationDataFacadeTest extends TestCase
 {
+
+	use StockAssetDataImportGuardStub;
 
 	private string $folder;
 
@@ -48,6 +53,41 @@ class StockValuationDataFacadeTest extends TestCase
 		}
 
 		parent::tearDown();
+	}
+
+	#[TestWith(['keyStatistics.json', 'processKeyStatistics'])]
+	#[TestWith(['analystInsights.json', 'processAnalystInsights'])]
+	public function testMalformedPageCannotMarkSuccessfulDownload(string $filename, string $method): void
+	{
+		$id = Uuid::uuid4();
+		FileSystem::write($this->folder . JsonDataFolderService::RESULTS_FOLDER . $filename, Json::encode([[
+			'id' => $id->toString(), 'html' => '<h1>Stock (TEST)</h1><p>Unavailable</p>', 'textContent' => 'Unavailable',
+		]]));
+		$asset = $this->createMock(StockAsset::class);
+		$asset->expects($this->never())->method('markValuationDownloaded');
+		$asset->expects($this->never())->method('markAnalystInsightsDownloaded');
+		$repo = $this->createStub(StockAssetRepository::class);
+		$repo->method('getById')->willReturn($asset);
+		$clock = $this->createStub(DatetimeFactory::class);
+		$clock->method('createNow')->willReturn(new ImmutableDateTime());
+		$em = $this->createMock(EntityManagerInterface::class);
+		$em->expects($this->never())->method('persist');
+		$stats = $this->createMock(SystemValueFacade::class);
+		$stats->expects($this->never())->method('updateValue');
+		$facade = new StockValuationDataFacade(
+			new JsonDataFolderService($this->folder),
+			$repo,
+			$clock,
+			$em,
+			$this->createStub(
+				StockValuationDataRepository::class,
+			),
+			$stats,
+			new NullLogger(),
+			$this->createImportGuardStub(),
+		);
+		$this->expectException(RuntimeException::class);
+		$facade->$method();
 	}
 
 	public function testProcessKeyStatisticsKeepsMissingPercentagesNullAndNormalizesCurrencyValues(): void
@@ -108,7 +148,6 @@ class StockValuationDataFacadeTest extends TestCase
 				}
 			},
 		);
-		$entityManager->expects($this->atLeastOnce())->method('flush');
 
 		$repository = $this->createMock(StockAssetRepository::class);
 		$repository->expects($this->once())->method('getById')->willReturn($stockAsset);
@@ -131,6 +170,7 @@ class StockValuationDataFacadeTest extends TestCase
 			$valuationDataRepository,
 			$systemValueFacade,
 			new NullLogger(),
+			$this->createImportGuardStub(),
 		);
 
 		$facade->processKeyStatistics();
@@ -178,12 +218,6 @@ class StockValuationDataFacadeTest extends TestCase
 					'textContent' => '125 Current',
 					'html' => '',
 				],
-				[
-					'id' => $stockAsset->getId()->toString(),
-					'ticker' => 'TST',
-					'textContent' => 'No analyst targets available.',
-					'html' => '',
-				],
 			]),
 		);
 
@@ -199,7 +233,7 @@ class StockValuationDataFacadeTest extends TestCase
 		$entityManager->expects($this->exactly(2))->method('flush');
 
 		$repository = $this->createMock(StockAssetRepository::class);
-		$repository->expects($this->exactly(3))->method('getById')->willReturn($stockAsset);
+		$repository->expects($this->exactly(2))->method('getById')->willReturn($stockAsset);
 
 		$valuationDataRepository = $this->createStub(StockValuationDataRepository::class);
 
@@ -210,13 +244,10 @@ class StockValuationDataFacadeTest extends TestCase
 		$systemValueFacade->expects($this->once())->method('updateValue')->with(
 			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT,
 			null,
-			3,
+			2,
 		);
 
-		$logger = $this->createMock(LoggerInterface::class);
-		$logger->expects($this->once())->method('warning')->with(
-			'Failed to parse analyst price targets for Test Stock',
-		);
+		$logger = new NullLogger();
 
 		$facade = new StockValuationDataFacade(
 			new JsonDataFolderService($this->folder),
@@ -226,6 +257,7 @@ class StockValuationDataFacadeTest extends TestCase
 			$valuationDataRepository,
 			$systemValueFacade,
 			$logger,
+			$this->createImportGuardStub(),
 		);
 
 		$facade->processAnalystInsights();

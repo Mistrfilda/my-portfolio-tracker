@@ -8,6 +8,9 @@ use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Stock\Asset\Download\StockAssetDataImportGuard;
+use App\Stock\Asset\Download\StockAssetDataType;
+use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\Downloader\TwelveData\Exception\TwelveDataInvalidValueException;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
@@ -19,6 +22,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Json;
 use Psr\Log\LoggerInterface;
+use RuntimeException;
 
 class TwelveDataDownloaderFacade implements AssetPriceDownloader
 {
@@ -34,6 +38,7 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
 		private readonly SystemValueFacade $systemValueFacade,
+		private StockAssetDataImportGuard $importGuard,
 	)
 	{
 	}
@@ -41,24 +46,27 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 	/**
 	 * @return array<AssetPriceRecord>
 	 */
-	public function getPriceForAssets(): array
+	public function getPriceForAssets(StockAsset|null $selectedStockAsset = null): array
 	{
-		$twelveDataRequest = $this->getRequest();
+		$twelveDataRequest = $this->getRequest($selectedStockAsset);
 
 		if ($twelveDataRequest->count() === 0) {
 			return [];
 		}
 
+		$now = $this->datetimeFactory->createNow();
 		$response = $this->psr18ClientFactory->getClient()->sendRequest(
 			$this->psr7RequestFactory->createGETRequest($twelveDataRequest->getFormattedRequestUrl()),
 		);
 
 		$parsedContents = Json::decode($response->getBody()->getContents(), true);
 		$today = $this->datetimeFactory->createToday();
-		$now = $this->datetimeFactory->createNow();
 		$priceRecords = [];
 
 		assert(is_array($parsedContents));
+		if ($parsedContents === []) {
+			throw new TwelveDataInvalidValueException();
+		}
 
 		foreach ($parsedContents as $ticker => $priceBody) {
 			$stockAsset = $twelveDataRequest->getStockAssetForTicker($ticker);
@@ -82,41 +90,58 @@ class TwelveDataDownloaderFacade implements AssetPriceDownloader
 				throw new TwelveDataInvalidValueException();
 			}
 
-			$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
-				$stockAsset,
-				$today,
-			);
-
-			if ($priceRecord !== null) {
-				$priceRecord->updatePrice($price, $now);
-			} else {
-				$priceRecord = new StockAssetPriceRecord(
-					$today,
-					$stockAsset->getCurrency(),
-					$price,
-					$stockAsset,
-					StockAssetPriceDownloaderEnum::TWELVE_DATA,
-					$now,
-				);
-
-				$this->entityManager->persist($priceRecord);
+			if (!is_finite($price) || $price <= 0) {
+				throw new RuntimeException('Downloaded stock price must be positive.');
 			}
 
-			$stockAsset->setCurrentPrice($priceRecord, $now);
+			$this->importGuard->import(
+				$stockAsset,
+				StockAssetDataType::PRICE,
+				$now,
+				function () use ($stockAsset, $price, $today, $now, &$priceRecords): void {
+					$priceRecord = $this->stockAssetPriceRecordRepository->findByStockAssetAndDate(
+						$stockAsset,
+						$today,
+					);
 
-			$priceRecords[] = $priceRecord;
+					if ($priceRecord !== null) {
+						$priceRecord->updatePrice($price, $now);
+					} else {
+						$priceRecord = new StockAssetPriceRecord(
+							$today,
+							$stockAsset->getCurrency(),
+							$price,
+							$stockAsset,
+							StockAssetPriceDownloaderEnum::TWELVE_DATA,
+							$now,
+						);
+
+						$this->entityManager->persist($priceRecord);
+					}
+
+					$stockAsset->setCurrentPrice($priceRecord, $now);
+
+					$priceRecords[] = $priceRecord;
+				},
+			);
 		}
 
 		$this->entityManager->flush();
 
-		$this->systemValueFacade->updateValue(SystemValueEnum::TWELVE_DATA_UPDATED_AT, datetimeValue: $now);
+		if ($selectedStockAsset === null) {
+			$this->systemValueFacade->updateValue(SystemValueEnum::TWELVE_DATA_UPDATED_AT, datetimeValue: $now);
+		}
 
 		return $priceRecords;
 	}
 
-	private function getRequest(): TwelveDataRequest
+	private function getRequest(StockAsset|null $selectedStockAsset): TwelveDataRequest
 	{
 		$twelveDataRequest = new TwelveDataRequest($this->apiKey);
+		if ($selectedStockAsset !== null) {
+			$twelveDataRequest->addStockAsset($selectedStockAsset);
+			return $twelveDataRequest;
+		}
 
 		foreach ($this->stockAssetRepository->findAllByAssetPriceDownloader(
 			StockAssetPriceDownloaderEnum::TWELVE_DATA,

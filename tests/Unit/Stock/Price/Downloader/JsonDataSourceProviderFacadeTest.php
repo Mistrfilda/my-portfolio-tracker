@@ -94,6 +94,25 @@ class JsonDataSourceProviderFacadeTest extends TestCase
 		);
 	}
 
+	public function testSelectedPriceAndDividendSourcesNeverSelectOtherAssets(): void
+	{
+		$asset = $this->createStockAsset('Selected stock', 'TEST', CurrencyEnum::USD);
+		$this->stockAssetRepository = $this->createMock(StockAssetRepository::class);
+		$this->stockAssetRepository->expects($this->never())->method('findAllByAssetPriceDownloader');
+		$this->stockAssetRepository->expects($this->never())->method('findByStockAssetDividendSource');
+		$this->recreateFacade();
+		$this->facade->generatePriceSourcesJsonFile($this->tempDir, $asset);
+		$this->facade->generateDividendsJsonFile($this->tempDir, $asset);
+		foreach (['prices.json', 'dividends.json'] as $filename) {
+			$rows = Json::decode(
+				FileSystem::read($this->tempDir . JsonDataFolderService::REQUESTS_FOLDER . $filename),
+				true,
+			);
+			$this->assertCount(1, $rows);
+			$this->assertSame($asset->getId()->toString(), $rows[0]['id']);
+		}
+	}
+
 	public function testGenerateDividendsJsonFile(): void
 	{
 		$asset = $this->createStockAsset('Microsoft', 'MSFT', CurrencyEnum::USD);

@@ -16,10 +16,12 @@ use App\Stock\Price\StockAssetPriceRecord;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\Test\Unit\Stock\Support\StockAssetDataImportGuardStub;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nyholm\Psr7\Response;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
 use Psr\Log\LoggerInterface;
@@ -27,6 +29,8 @@ use Ramsey\Uuid\Uuid;
 
 class PseDataDownloaderFacadeTest extends TestCase
 {
+
+	use StockAssetDataImportGuardStub;
 
 	public function testReturnsEmptyResultWithoutEligibleAssets(): void
 	{
@@ -44,7 +48,9 @@ class PseDataDownloaderFacadeTest extends TestCase
 		)->getPriceForAssets());
 	}
 
-	public function testCreatesPriceRecordFromExchangeTable(): void
+	#[TestWith([false])]
+	#[TestWith([true])]
+	public function testCreatesPriceRecordFromExchangeTable(bool $selected): void
 	{
 		$today = new ImmutableDateTime('2026-01-15');
 		$now = new ImmutableDateTime('2026-01-15 10:00:00');
@@ -56,8 +62,12 @@ class PseDataDownloaderFacadeTest extends TestCase
 		$asset->expects(self::once())
 			->method('setCurrentPrice')
 			->with(self::isInstanceOf(StockAssetPriceRecord::class), $now);
-		$assetRepository = $this->createStub(StockAssetRepository::class);
-		$assetRepository->method('findAllByAssetPriceDownloader')->willReturn([$asset]);
+		$assetRepository = $this->createMock(StockAssetRepository::class);
+		$assetRepository->expects($this->exactly($selected ? 0 : 1))->method(
+			'findAllByAssetPriceDownloader',
+		)->willReturn(
+			[$asset],
+		);
 		$priceRecordRepository = $this->createStub(StockAssetPriceRecordRepository::class);
 		$priceRecordRepository->method('findByStockAssetAndDate')->willReturn(null);
 		$datetimeFactory = $this->createStub(DatetimeFactory::class);
@@ -81,7 +91,7 @@ class PseDataDownloaderFacadeTest extends TestCase
 		$entityManager->expects(self::once())->method('persist');
 		$entityManager->expects(self::once())->method('flush');
 		$systemValueFacade = $this->createMock(SystemValueFacade::class);
-		$systemValueFacade->expects(self::once())
+		$systemValueFacade->expects($this->exactly($selected ? 0 : 1))
 			->method('updateValue')
 			->with(SystemValueEnum::PSE_DATA_UPDATED_AT, $now);
 
@@ -97,7 +107,7 @@ class PseDataDownloaderFacadeTest extends TestCase
 			$priceRecordRepository,
 			$entityManager,
 			systemValueFacade: $systemValueFacade,
-		)->getPriceForAssets();
+		)->getPriceForAssets($selected ? $asset : null);
 
 		self::assertCount(1, $result);
 		self::assertSame(123.45, $result[0]->getPrice());
@@ -170,6 +180,7 @@ class PseDataDownloaderFacadeTest extends TestCase
 			$entityManager ?? $this->createStub(EntityManagerInterface::class),
 			$logger ?? $this->createStub(LoggerInterface::class),
 			$systemValueFacade ?? $this->createStub(SystemValueFacade::class),
+			$this->createImportGuardStub(),
 		);
 	}
 

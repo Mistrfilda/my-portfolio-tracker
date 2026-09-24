@@ -10,9 +10,12 @@ use App\System\Resolver\SystemValueEnabledDividendStockAssetsResolver;
 use App\System\Resolver\SystemValueEnabledStockAssetsResolver;
 use App\System\Resolver\SystemValueEnabledStockValuationsAssetsResolver;
 use App\System\Resolver\SystemValueLastUpdatedPricesCountResolver;
+use App\System\Resolver\SystemValueStockDataCountResolver;
 
 enum SystemValueEnum: string
 {
+
+	case STOCK_DATA_MONITORING_ENABLED_AT = 'stock_data_monitoring_enabled_at';
 
 	case CURRENT_PHP_DEPLOY_VERSION = 'current_php_deploy_version';
 
@@ -55,11 +58,12 @@ enum SystemValueEnum: string
 	public function getLabel(): string
 	{
 		return match ($this) {
+			self::STOCK_DATA_MONITORING_ENABLED_AT => 'Monitoring aktuálnosti akcií zapnut od',
 			SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION => 'Aktuální verze PHP deploye',
 			SystemValueEnum::CURRENT_NGINX_DEPLOY_VERSION => 'Aktuální verze NGINX deploye',
 			SystemValueEnum::DIVIDENDS_STOCK_ASSETS_WEB => 'Počet akcií s automatickým stažením dividend',
 			SystemValueEnum::DIVIDENDS_UPDATED_AT => 'Poslední aktualizace dividend',
-			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => 'Počet stažených dividend při poslední aktualizaci',
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => 'Počet akcií se zkontrolovanými dividendami',
 			SystemValueEnum::ENABLED_STOCK_ASSETS => 'Celkový počet akcíí s aktualizací ceny',
 			SystemValueEnum::LAST_UPDATED_STOCK_PRICES_COUNT => 'Celkový počet cen akcií aktualizovaných během poslední aktualizace',
 			SystemValueEnum::TWELVE_DATA_UPDATED_AT => 'Poslední aktualizace cen z Twelve data',
@@ -67,12 +71,12 @@ enum SystemValueEnum: string
 			SystemValueEnum::PUPPETER_UPDATED_AT => 'Poslední aktualizace cen z PUPPETER',
 			SystemValueEnum::STOCK_VALUATION_COUNT => 'Počet akcíí se stažením valuace',
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => 'Poslední aktualizace dat pro valuace',
-			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => 'Počet stažených valuací',
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => 'Počet akcií s aktuální valuací',
 			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => 'Výdajové tagy naposledy zprocesovány',
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ČNB',
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => 'Počet aktualizovaných měn z ECB',
 			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => 'Počet stažených cen kryptoměn',
-			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => 'Počet stažených analytických cílů',
+			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => 'Počet akcií s aktuálními analytickými cíli',
 			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT => 'Počet aktualizovaných odvětví akcií',
 		};
 	}
@@ -80,24 +84,25 @@ enum SystemValueEnum: string
 	public function getResolverClass(): string
 	{
 		return match ($this) {
+			self::STOCK_DATA_MONITORING_ENABLED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::CURRENT_PHP_DEPLOY_VERSION => SystemValueCurrentVersionResolver::class,
 			SystemValueEnum::CURRENT_NGINX_DEPLOY_VERSION => SystemValueCurrentVersionResolver::class,
 			SystemValueEnum::DIVIDENDS_STOCK_ASSETS_WEB => SystemValueEnabledDividendStockAssetsResolver::class,
 			SystemValueEnum::DIVIDENDS_UPDATED_AT => SystemValueDatabaseResolver::class,
-			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::DIVIDENDS_UPDATED_COUNT => SystemValueStockDataCountResolver::class,
 			SystemValueEnum::TWELVE_DATA_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::PSE_DATA_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::PUPPETER_UPDATED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::ENABLED_STOCK_ASSETS => SystemValueEnabledStockAssetsResolver::class,
 			SystemValueEnum::LAST_UPDATED_STOCK_PRICES_COUNT => SystemValueLastUpdatedPricesCountResolver::class,
 			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_AT => SystemValueDatabaseResolver::class,
-			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::STOCK_VALUATION_DOWNLOADED_COUNT => SystemValueStockDataCountResolver::class,
 			SystemValueEnum::STOCK_VALUATION_COUNT => SystemValueEnabledStockValuationsAssetsResolver::class,
 			SystemValueEnum::EXPENSE_TAGS_PROCESSED_AT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::ECB_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
 			SystemValueEnum::CRYPTO_CURRENCY_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
-			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => SystemValueDatabaseResolver::class,
+			SystemValueEnum::STOCK_VALUATION_ANALYST_INSIGHT_DOWNLOADED_COUNT => SystemValueStockDataCountResolver::class,
 			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT => SystemValueDatabaseResolver::class,
 		};
 	}

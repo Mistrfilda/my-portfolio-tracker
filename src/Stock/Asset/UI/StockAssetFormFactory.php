@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Asset\UI;
 
 use App\Currency\CurrencyEnum;
+use App\JobRequest\JobRequestFacade;
 use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
@@ -17,20 +18,25 @@ use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
 use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
+use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
+use Throwable;
 
 class StockAssetFormFactory
 {
 
 	public function __construct(
 		private AdminFormFactory $adminFormFactory,
+		private JobRequestFacade $jobRequestFacade,
 		private StockAssetFacade $stockAssetFacade,
 		private StockAssetRepository $stockAssetRepository,
 		private StockAssetIndustryRepository $stockAssetIndustryRepository,
+		private LoggerInterface $logger,
 	)
 	{
 	}
 
+	/** @param callable(bool): void $onSuccess */
 	public function create(UuidInterface|null $id, callable $onSuccess): AdminForm
 	{
 		$form = $this->adminFormFactory->create();
@@ -100,6 +106,7 @@ class StockAssetFormFactory
 		$form->onSuccess[] = function (Form $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
+			$downloadQueueFailed = false;
 
 			if ($id !== null) {
 				$this->stockAssetFacade->update(
@@ -123,7 +130,7 @@ class StockAssetFormFactory
 					TypeValidator::validateNullableString($values->industry),
 				);
 			} else {
-				$this->stockAssetFacade->create(
+				$asset = $this->stockAssetFacade->create(
 					TypeValidator::validateString($values->name),
 					StockAssetPriceDownloaderEnum::from(TypeValidator::validateString($values->assetPriceDownloader)),
 					TypeValidator::validateString($values->ticker),
@@ -142,9 +149,20 @@ class StockAssetFormFactory
 					TypeValidator::validateBool($values->watchlist),
 					TypeValidator::validateNullableString($values->industry),
 				);
+				if ($asset->shouldBeUpdated() || $asset->shouldDownloadValuation()) {
+					try {
+						$this->jobRequestFacade->addStockAssetDownloadToQueue($asset->getId()->toString());
+					} catch (Throwable $exception) {
+						$downloadQueueFailed = true;
+						$this->logger->error('Stock was created but its download could not be queued.', [
+							'assetId' => $asset->getId()->toString(),
+							'exception' => $exception,
+						]);
+					}
+				}
 			}
 
-			$onSuccess();
+			$onSuccess($downloadQueueFailed);
 		};
 
 		if ($id !== null) {

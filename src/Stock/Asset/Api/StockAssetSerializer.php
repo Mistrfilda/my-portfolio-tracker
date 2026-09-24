@@ -102,7 +102,7 @@ class StockAssetSerializer
 			'priceFromAllModels' => $this->serializeAssetPrice($priceFromAllModels),
 			'analyticsPrice' => $this->serializeAssetPrice($analyticsPrice),
 			'aiAnalysisPrice' => $this->serializeAssetPrice($aiAnalysisPrice),
-			'priceDownloadedAt' => $stockAsset->getPriceDownloadedAt()->format(DATE_ATOM),
+			'priceDownloadedAt' => $stockAsset->getPriceDownloadedAt()?->format(DATE_ATOM),
 			'assetPriceDownloader' => $stockAsset->getAssetPriceDownloader()->value,
 		];
 	}

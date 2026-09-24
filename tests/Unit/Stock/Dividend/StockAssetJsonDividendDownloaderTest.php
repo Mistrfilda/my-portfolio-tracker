@@ -14,6 +14,7 @@ use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Price\Downloader\Json\JsonDataSourceProviderFacade;
 use App\System\SystemValueFacade;
+use App\Test\Unit\Stock\Support\StockAssetDataImportGuardStub;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -23,11 +24,14 @@ use Nette\Utils\Json;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
+use RuntimeException;
 use const DIRECTORY_SEPARATOR;
 
 #[AllowMockObjectsWithoutExpectations]
 class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 {
+
+	use StockAssetDataImportGuardStub;
 
 	private string $resultsFolder;
 
@@ -53,8 +57,8 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 
 	protected function setUp(): void
 	{
-		$this->resultsFolder = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'results' . DIRECTORY_SEPARATOR;
-		$this->parsedResultsFolder = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'parsed-results' . DIRECTORY_SEPARATOR;
+		$this->resultsFolder = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dividend-results-' . Uuid::uuid4() . DIRECTORY_SEPARATOR;
+		$this->parsedResultsFolder = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'dividend-parsed-' . Uuid::uuid4() . DIRECTORY_SEPARATOR;
 
 		FileSystem::createDir($this->resultsFolder);
 		FileSystem::createDir($this->parsedResultsFolder);
@@ -80,7 +84,15 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 			$this->logger,
 			$this->systemValueFacade,
 			$this->notificationFacade,
+			$this->createImportGuardStub(),
 		);
+	}
+
+	protected function tearDown(): void
+	{
+		FileSystem::delete($this->resultsFolder);
+		FileSystem::delete($this->parsedResultsFolder);
+		parent::tearDown();
 	}
 
 	public function testDownloadDividendRecordsNoFileExists(): void
@@ -199,8 +211,10 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 			(object) [
 				'id' => Uuid::uuid4()->toString(),
 				'currency' => 'USD',
-				'textContent' => '',
+				'textContent' => 'Date Dividends',
 				'html' => '',
+				'dividendsChecked' => true,
+				'dividendRowsCount' => 0,
 			],
 		];
 
@@ -215,6 +229,28 @@ class StockAssetJsonDividendDownloaderTest extends UpdatedTestCase
 
 		$this->assertFileExists($processedFile);
 		$this->assertFileDoesNotExist($testFile);
+	}
+
+	public function testMalformedDividendHistoryDoesNotAdvanceSuccessfulCheck(): void
+	{
+		FileSystem::write(
+			$this->resultsFolder . JsonDataSourceProviderFacade::STOCK_ASSET_DIVIDENDS_FILENAME,
+			Json::encode([[
+				'id' => Uuid::uuid4()->toString(),
+				'textContent' => 'Date Dividend malformed-record Dividend',
+				'dividendsChecked' => true,
+				'dividendRowsCount' => 1,
+			]]),
+		);
+		$asset = $this->createMock(StockAsset::class);
+		$asset->expects($this->never())->method('markDividendsChecked');
+		$this->stockAssetRepository->method('getById')->willReturn($asset);
+		$this->datetimeFactory->method('createNow')->willReturn(new ImmutableDateTime());
+		$this->entityManager->expects($this->never())->method('persist');
+		$this->systemValueFacade->expects($this->never())->method('updateValue');
+		$this->notificationFacade->expects($this->never())->method('create');
+		$this->expectException(RuntimeException::class);
+		$this->downloader->downloadDividendRecords();
 	}
 
 }
