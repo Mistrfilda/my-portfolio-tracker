@@ -5,6 +5,8 @@ export class AnalystInsightsScraper extends PuppeteerScraperBase {
 		const { id, name, ticker } = entry;
 
 		const selectors = [
+			'[data-testid="analyst-price-target-card"]',
+			'::-p-xpath(//h3[normalize-space(.)="Analyst Price Targets"]/ancestor::section[1])',
 			"::-p-xpath(/html/body/div[1]/div[4]/main/section/section/section/section/section[2]/div/section[1])",
 			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[2]/div/section[1])",
 			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section/section[3]/div/section[1])",

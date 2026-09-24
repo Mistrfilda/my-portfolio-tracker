@@ -56,9 +56,25 @@ export class PuppeteerScraperBase {
 	}
 
 	async handleCookieConsent(page, isFirstEntry) {
+		const isConsentPage = () => new URL(page.url()).hostname.startsWith('consent.');
+		if (isConsentPage()) {
+			const rejectButton = await page.waitForSelector('::-p-aria([name="Reject all"][role="button"])', { timeout: 10000 });
+			if (!rejectButton) {
+				throw new Error('Consent button was not found');
+			}
+			await Promise.all([
+				page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 30000 }),
+				rejectButton.click(),
+			]);
+			if (isConsentPage()) {
+				throw new Error('Consent did not return to the requested page');
+			}
+			return;
+		}
+
 		if (isFirstEntry) {
 			try {
-				await page.waitForSelector('.consent-overlay');
+				await page.waitForSelector('.consent-overlay', { timeout: 5000 });
 				await page.click('.consent-overlay .accept-all');
 				await Promise.race([
 					page.waitForSelector('.consent-overlay', { hidden: true, timeout: 5000 }).catch(() => {}),
@@ -66,7 +82,7 @@ export class PuppeteerScraperBase {
 					this.delay(5000)
 				]);
 			} catch (e) {
-				console.log('Cookie has been authorized');
+				console.log('No cookie consent overlay was found');
 			}
 		}
 	}

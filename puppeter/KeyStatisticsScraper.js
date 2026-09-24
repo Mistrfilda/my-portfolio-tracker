@@ -5,6 +5,8 @@ export class KeyStatisticsScraper extends PuppeteerScraperBase {
 		const { id, name, currency } = entry;
 
 		const selectors = [
+			'#main-content-wrapper:has([data-testid="qsp-statistics"] table)',
+			'::-p-xpath(//section[@data-testid="qsp-statistics"][.//table]/parent::section)',
 			"::-p-xpath(/html/body/div[1]/div[4]/main/section/section/section/section)",
 			"::-p-xpath(/html/body/div[2]/div[3]/main/section/section/section/section)",
 			"::-p-xpath(/html/body/div[2]/main/section/section/section/section)"
@@ -32,25 +34,12 @@ export class KeyStatisticsScraper extends PuppeteerScraperBase {
 		}
 
 		try {
-			await page.evaluate((selector) => {
-				const mainElement = document.evaluate(
-					selector.replace('::-p-xpath(', '').replace(')', ''),
-					document,
-					null,
-					XPathResult.FIRST_ORDERED_NODE_TYPE,
-					null
-				).singleNodeValue;
+			const { textContent, html } = await page.evaluate(el => {
+				const content = el.cloneNode(true);
+				content.querySelectorAll('iframe, script, svg, style').forEach(node => node.remove());
+				return { textContent: content.textContent, html: content.innerHTML };
+			}, element);
 
-				if (mainElement) {
-					const unwantedElements = mainElement.querySelectorAll('iframe, script, svg, style');
-					unwantedElements.forEach(el => el.remove());
-				}
-			}, usedSelector);
-
-			const textContent = await page.evaluate(el => el.textContent, element);
-			const html = await page.evaluate(el => el.innerHTML, element);
-
-			console.log(entry);
 			console.log(`Key statistics for ${name} (using ${usedSelector}):`, textContent.substring(0, 200) + '...');
 
 			return {
