@@ -32,14 +32,18 @@ class StockAssetDataFreshness
 		StockAssetPriceDownloaderEnum|null $source = null,
 	): ImmutableDateTime
 	{
-		$now = $this->datetimeFactory->createNow()->modify(sprintf('-%d minutes', $this->completionGraceMinutes));
+		$now = $this->datetimeFactory->createNow();
+		if ($type === StockAssetDataType::VALUATION || $type === StockAssetDataType::ANALYST_INSIGHTS) {
+			return $now->deductDaysFromDatetime(30);
+		}
+
+		$now = $now->modify(sprintf('-%d minutes', $this->completionGraceMinutes));
 		for ($days = 0; $days < 8; $days++) {
 			$date = $now->deductDaysFromDatetime($days);
 			$weekday = (int) $date->format('N');
 			$hours = match ($type) {
 				StockAssetDataType::PRICE => $weekday <= 5 ? [22, 16, 12] : [],
 				StockAssetDataType::DIVIDENDS => in_array($weekday, [1, 3, 5], true) ? [6] : [],
-				StockAssetDataType::VALUATION, StockAssetDataType::ANALYST_INSIGHTS => $weekday === 6 ? [6] : [],
 			};
 			foreach ($hours as $hour) {
 				$cycle = $date->setTime($hour, $type === StockAssetDataType::PRICE ? 25 : 0);

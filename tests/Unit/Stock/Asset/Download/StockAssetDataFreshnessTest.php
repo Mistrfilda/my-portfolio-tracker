@@ -33,8 +33,26 @@ class StockAssetDataFreshnessTest extends TestCase
 		yield 'weekend keeps Friday cycle' => ['2026-09-20 16:00:00', StockAssetDataType::PRICE, '2026-09-18 22:25:00'];
 		yield 'Tuesday dividends' => ['2026-09-22 12:00:00', StockAssetDataType::DIVIDENDS, '2026-09-21 06:00:00'];
 		yield 'Wednesday dividends' => ['2026-09-23 06:45:00', StockAssetDataType::DIVIDENDS, '2026-09-23 06:00:00'];
-		yield 'weekly valuation grace' => ['2026-09-26 06:30:00', StockAssetDataType::VALUATION, '2026-09-19 06:00:00'];
-		yield 'weekly analyst cutoff' => ['2026-09-26 06:45:00', StockAssetDataType::ANALYST_INSIGHTS, '2026-09-26 06:00:00'];
+	}
+
+	#[DataProvider('valuationDates')]
+	public function testValuationAndAnalystInsightsUseThirtyDayCutoff(string $now, string $expected): void
+	{
+		$clock = $this->createStub(DatetimeFactory::class);
+		$clock->method('createNow')->willReturn(new ImmutableDateTime($now));
+		$policy = new StockAssetDataFreshness($clock, []);
+		foreach ([StockAssetDataType::VALUATION, StockAssetDataType::ANALYST_INSIGHTS] as $type) {
+			$this->assertSame($expected, $policy->getCutoff($type)->format('Y-m-d H:i:s'));
+		}
+	}
+
+	/** @return iterable<string, array{string, string}> */
+	public static function valuationDates(): iterable
+	{
+		yield 'monitoring screenshot date' => ['2026-09-28 23:20:56', '2026-08-29 23:20:56'];
+		yield 'before former weekly deadline' => ['2026-09-26 06:44:59', '2026-08-27 06:44:59'];
+		yield 'at former weekly deadline' => ['2026-09-26 06:45:00', '2026-08-27 06:45:00'];
+		yield 'thirty days across February' => ['2026-03-01 12:00:00', '2026-01-30 12:00:00'];
 	}
 
 	public function testDownloaderThresholdAndNewAssetGrace(): void
