@@ -141,7 +141,9 @@ class StockAssetGridFactory
 			'shouldDownloadValuation',
 		);
 
-		$grid->addColumnDatetime('dividendsCheckedAt', 'Kontrola dividend')->setDefaultVisible(false);
+		$grid->addColumnDatetime('dividendsCheckedAt', 'Kontrola dividend')
+			->setDefaultVisible(false)
+			->setSortable();
 		$grid->addColumnDatetime('valuationDownloadedAt', 'Aktualizace valuace')->setDefaultVisible(false);
 		$grid->addColumnDatetime('analystInsightsDownloadedAt', 'Aktualizace analytických cílů')->setDefaultVisible(
 			false,

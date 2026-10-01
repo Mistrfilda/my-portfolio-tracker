@@ -78,6 +78,26 @@ class StockAssetDataDownloadFacade
 			};
 		}
 
+		$assetLabel = sprintf('%s (%s)', $asset->getName(), $asset->getTicker());
+		$context = [
+			'assetId' => $id->toString(),
+			'assetName' => $asset->getName(),
+			'ticker' => $asset->getTicker(),
+		];
+		$startedAt = hrtime(true);
+		$this->logger->info(
+			sprintf(
+				'Starting stock data download for %s. Steps: %s.',
+				$assetLabel,
+				$steps === [] ? 'none' : implode(', ', array_keys($steps)),
+			),
+			$context + [
+				'steps' => array_keys($steps),
+				'priceSource' => $asset->getAssetPriceDownloader()->value,
+				'dividendSource' => $asset->getStockAssetDividendSource()?->value,
+			],
+		);
+
 		$failed = [];
 		try {
 			foreach ([
@@ -89,25 +109,63 @@ class StockAssetDataDownloadFacade
 			}
 
 			foreach ($steps as $name => $step) {
+				$stepContext = $context + ['step' => $name];
+				$stepStartedAt = hrtime(true);
+				$this->logger->info(
+					sprintf('Starting stock data step %s for %s.', $name, $assetLabel),
+					$stepContext,
+				);
 				try {
 					$step();
+					$durationSeconds = round((hrtime(true) - $stepStartedAt) / 1_000_000_000, 3);
+					$this->logger->info(
+						sprintf('Completed stock data step %s for %s in %.3f s.', $name, $assetLabel, $durationSeconds),
+						$stepContext + ['durationSeconds' => $durationSeconds],
+					);
 				} catch (Throwable $exception) {
 					$failed[] = $name;
+					$durationSeconds = round((hrtime(true) - $stepStartedAt) / 1_000_000_000, 3);
 					$this->logger->error(
-						'Stock data download failed.',
-						['assetId' => $id->toString(), 'step' => $name, 'exception' => $exception],
+						sprintf(
+							'Stock data step %s failed for %s after %.3f s: %s',
+							$name,
+							$assetLabel,
+							$durationSeconds,
+							$exception->getMessage(),
+						),
+						$stepContext + ['durationSeconds' => $durationSeconds, 'exception' => $exception],
 					);
 				}
 			}
 		} finally {
 			FileSystem::delete($folder);
+			$this->logger->debug(
+				sprintf('Removed temporary stock data download files for %s.', $assetLabel),
+				$context + ['folder' => $folder],
+			);
 		}
 
+		$durationSeconds = round((hrtime(true) - $startedAt) / 1_000_000_000, 3);
 		if ($failed !== []) {
+			$this->logger->warning(
+				sprintf(
+					'Stock data download for %s finished with failed steps: %s (%.3f s).',
+					$assetLabel,
+					implode(', ', $failed),
+					$durationSeconds,
+				),
+				$context + ['failedSteps' => $failed, 'durationSeconds' => $durationSeconds],
+			);
+
 			throw new RuntimeException(
 				sprintf('Stock %s download failed: %s.', $id->toString(), implode(', ', $failed)),
 			);
 		}
+
+		$this->logger->info(
+			sprintf('Completed stock data download for %s in %.3f s.', $assetLabel, $durationSeconds),
+			$context + ['durationSeconds' => $durationSeconds],
+		);
 	}
 
 	private function downloadWebPrice(
