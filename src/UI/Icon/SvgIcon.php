@@ -11,6 +11,8 @@ enum SvgIcon: string
 
 	case ARROW_DOWN = 'arrow-down.svg';
 
+	case ARROW_DOWN_TRAY = 'arrow-down-tray.svg';
+
 	case ARROW_UP = 'arrow-up.svg';
 
 	case BIN = 'bin.svg';

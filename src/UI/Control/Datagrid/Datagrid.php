@@ -35,6 +35,7 @@ use App\UI\Tailwind\TailwindColorConstant;
 use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Application\Attributes\Persistent;
+use Nette\Http\SessionSection;
 use Nette\Utils\Json;
 
 class Datagrid extends BaseControl
@@ -55,6 +56,9 @@ class Datagrid extends BaseControl
 	/** @var array<string, string|null> */
 	#[Persistent]
 	public array $sortFilters = [];
+
+	#[Persistent]
+	public bool $stateLoaded = false;
 
 	/** @var ArrayCollection<int, IColumn> */
 	private ArrayCollection $columns;
@@ -80,13 +84,22 @@ class Datagrid extends BaseControl
 
 	private bool $columnSelectionEnabled = false;
 
-	private bool $compact = false;
+	private bool $compact = true;
 
 	private bool $actionsInDropdown = false;
+
+	/** @var list<string> */
+	private array $inlineActionIds = ['edit', 'detail'];
+
+	private string|null $stateKey = null;
+
+	/** @var list<string>|null */
+	private array|null $visibleColumns = null;
 
 	public function __construct(
 		private IDataSource $datasource,
 		private FilterForm $filterForm,
+		private SessionSection $stateSection,
 	)
 	{
 		$this->setPagination();
@@ -96,6 +109,64 @@ class Datagrid extends BaseControl
 		$this->filters = new ArrayCollection();
 		$this->actions = new ArrayCollection();
 		$this->sorts = new ArrayCollection();
+	}
+
+	/**
+	 * @param array<string, mixed> $params
+	 */
+	public function loadState(array $params): void
+	{
+		$presenter = $this->getPresenter();
+		$stateKey = $presenter->getName() . ':' . $presenter->getAction() . ':' . $this->getUniqueId();
+		$stored = $this->stateSection->get($stateKey);
+		// The marker preserves explicit URLs with empty filters instead of restoring the session.
+		$stateParameters = array_fill_keys(['stateLoaded', 'parameterFilters', 'sortFilters', 'offset', 'limit'], true);
+		if (array_intersect_key($params, $stateParameters) === [] && is_array($stored)) {
+			$params += array_intersect_key($stored, $stateParameters);
+		}
+
+		parent::loadState($params);
+		$this->stateLoaded = true;
+		$this->offset = max(0, $this->offset);
+		$this->limit = max(1, $this->limit);
+
+		$columns = $this->stateSection->get($stateKey . '.columns');
+		if (is_array($columns)) {
+			$this->visibleColumns = $this->normalizeVisibleColumns($columns);
+		}
+
+		foreach ($this->sortFilters as $column => $direction) {
+			if (
+				!$this->sorts->containsKey($column)
+				|| (
+					$direction !== null
+					&& SortDirectionEnum::tryFrom($direction) === null
+				)
+			) {
+				unset($this->sortFilters[$column]);
+			}
+		}
+
+		$values = [];
+		foreach ($this->parameterFilters as $key => $value) {
+			$values[] = new FilterValue($key, $value);
+		}
+
+		$this->filter($values);
+		$this->stateKey = $stateKey;
+	}
+
+	/**
+	 * @param array<mixed> $columns
+	 */
+	public function handleSaveColumns(array $columns = []): void
+	{
+		if ($this->columnSelectionEnabled && $this->stateKey !== null) {
+			$this->visibleColumns = $this->normalizeVisibleColumns($columns);
+			$this->stateSection->set($this->stateKey . '.columns', $this->visibleColumns);
+		}
+
+		$this->getPresenter()->sendJson(['saved' => true]);
 	}
 
 	public function addColumnText(
@@ -469,6 +540,8 @@ class Datagrid extends BaseControl
 		$template->defaultSortFilters = $defaultSortFilters;
 
 		$dataCount = $this->datasource->getCount($this->filters);
+		$this->offset = min($this->offset, max(0, (int) ceil($dataCount / $this->limit) - 1) * $this->limit);
+		$this->saveSessionState();
 
 		$data = $this->datasource->getData(
 			$this->offset,
@@ -484,14 +557,16 @@ class Datagrid extends BaseControl
 		$template->columnSelectionEnabled = $this->columnSelectionEnabled;
 		$template->compact = $this->compact;
 		$template->actionsInDropdown = $this->actionsInDropdown;
+		$template->inlineActionIds = $this->inlineActionIds;
 		$defaultVisibleColumns = [];
 		foreach ($this->columns as $column) {
-			if ($column->isDefaultVisible()) {
+			if ($column->isDefaultVisible() || !$column->isHideable()) {
 				$defaultVisibleColumns[] = $column->getColumn();
 			}
 		}
 
 		$template->defaultVisibleColumnsJson = Json::encode($defaultVisibleColumns);
+		$template->visibleColumnsJson = Json::encode($this->visibleColumns ?? $defaultVisibleColumns);
 
 		$template->activeFilterCount = count(array_filter(
 			$this->filters->toArray(),
@@ -552,6 +627,13 @@ class Datagrid extends BaseControl
 		foreach ($values as $value) {
 			foreach ($this->filters as $filter) {
 				if ($filter->hasParameter($value->getKey())) {
+					if (
+						$filter instanceof FilterSelect
+						&& !array_key_exists($value->getValue(), $filter->getOptions())
+					) {
+						continue;
+					}
+
 					$filter->setValue($value->getKey(), $value->getValue());
 					$this->parameterFilters[$value->getKey()] = $value->getValue();
 
@@ -590,9 +672,16 @@ class Datagrid extends BaseControl
 		$this->compact = $compact;
 	}
 
-	public function setActionsInDropdown(bool $actionsInDropdown = true): void
+	/**
+	 * @param list<string> $inlineActionIds
+	 */
+	public function setActionsInDropdown(
+		bool $actionsInDropdown = true,
+		array $inlineActionIds = ['edit', 'detail'],
+	): void
 	{
 		$this->actionsInDropdown = $actionsInDropdown;
+		$this->inlineActionIds = $inlineActionIds;
 	}
 
 	private function setPagination(): void
@@ -603,8 +692,40 @@ class Datagrid extends BaseControl
 
 	public function redrawGridData(): void
 	{
+		$this->saveSessionState();
+		$this->redrawControl('toolbar');
 		$this->redrawControl('items');
 		$this->redrawControl('pagination');
+	}
+
+	private function saveSessionState(): void
+	{
+		if ($this->stateKey === null) {
+			return;
+		}
+
+		$this->stateSection->set($this->stateKey, [
+			'parameterFilters' => $this->parameterFilters,
+			'sortFilters' => $this->sortFilters,
+			'offset' => $this->offset,
+			'limit' => $this->limit,
+		]);
+	}
+
+	/**
+	 * @param array<mixed> $columns
+	 * @return list<string>
+	 */
+	private function normalizeVisibleColumns(array $columns): array
+	{
+		$visible = [];
+		foreach ($this->columns as $column) {
+			if (!$column->isHideable() || in_array($column->getColumn(), $columns, true)) {
+				$visible[] = $column->getColumn();
+			}
+		}
+
+		return $visible;
 	}
 
 }

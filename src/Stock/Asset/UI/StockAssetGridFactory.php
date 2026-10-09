@@ -42,6 +42,7 @@ class StockAssetGridFactory
 		$grid->setActionsInDropdown();
 
 		$name = $grid->addColumnText('name', 'Jméno');
+		$name->setHideable(false);
 		$name->setFilterText();
 		$name->setSortable();
 
@@ -55,13 +56,16 @@ class StockAssetGridFactory
 		$currency->setFilterSelect(CurrencyEnum::getOptionsForAdminSelect());
 		$currency->setSortable();
 		$currency->setMobileVisible(false);
+		$currency->setDefaultVisible(false);
 
 		$assetPriceDownloader = $grid->addColumnText('assetPriceDownloader', 'Zdroj dat')
 			->setDefaultVisible(false)
 			->setMobileVisible(false);
 		$assetPriceDownloader->setFilterSelect(StockAssetPriceDownloaderEnum::getOptionsForAdminSelect());
 
-		$priceDownloadedAt = $grid->addColumnDatetime('priceDownloadedAt', 'Poslední aktualizace ceny');
+		$priceDownloadedAt = $grid->addColumnDatetime('priceDownloadedAt', 'Cena aktualizována');
+		$priceDownloadedAt->setDefaultVisible(false);
+		$priceDownloadedAt->setMobileVisible(false);
 		$priceDownloadedAt->setFilterDateRange();
 		$priceDownloadedAt->setSortable();
 
@@ -75,7 +79,7 @@ class StockAssetGridFactory
 
 		$grid->addColumnText(
 			'currentPrice',
-			'Aktualní cena',
+			'Aktuální cena',
 			static fn (StockAsset $stockAsset): string => AssetPriceFilter::format($stockAsset->getAssetCurrentPrice()),
 		)->setAlignment(ColumnAlignmentEnum::RIGHT);
 
@@ -143,16 +147,20 @@ class StockAssetGridFactory
 
 		$grid->addColumnDatetime('dividendsCheckedAt', 'Kontrola dividend')
 			->setDefaultVisible(false)
+			->setMobileVisible(false)
 			->setSortable();
-		$grid->addColumnDatetime('valuationDownloadedAt', 'Aktualizace valuace')->setDefaultVisible(false);
-		$grid->addColumnDatetime('analystInsightsDownloadedAt', 'Aktualizace analytických cílů')->setDefaultVisible(
-			false,
-		);
+		$grid->addColumnDatetime('valuationDownloadedAt', 'Aktualizace valuace')
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
+		$grid->addColumnDatetime('analystInsightsDownloadedAt', 'Aktualizace analytických cílů')
+			->setDefaultVisible(false)
+			->setMobileVisible(false);
 		$grid->addAction(
 			'downloadData',
 			'Stáhnout aktuální data',
 			'downloadData!',
 			[new DatagridActionParameter('id', 'id')],
+			SvgIcon::ARROW_DOWN_TRAY,
 		)->setConditionCallback(
 			static fn (StockAsset $asset): bool => $asset->shouldBeUpdated() || $asset->shouldDownloadValuation(),
 		);

@@ -10,6 +10,7 @@ import naja from 'naja';
 import {registerExtensions} from "../naja/extension";
 import {CompleteEvent} from "naja/dist/Naja";
 import dragScroll from "./DragScroll";
+import datagrid from "./Datagrid";
 
 naja.initialize();
 registerExtensions(naja);
@@ -176,27 +177,7 @@ Alpine.data('select', (config: SelectConfig) => ({
     }
 }));
 
-Alpine.data('datagrid', (defaultVisibleColumns: string[]) => ({
-    filterOpen: false,
-
-    columnOpen: false,
-
-    visibleColumns: [...defaultVisibleColumns],
-
-    isColumnVisible(column: string): boolean {
-        return this.visibleColumns.includes(column);
-    },
-
-    toggleColumn(column: string): void {
-        if (this.isColumnVisible(column)) {
-            this.visibleColumns = this.visibleColumns.filter((visibleColumn: string) => visibleColumn !== column);
-
-            return;
-        }
-
-        this.visibleColumns.push(column);
-    }
-}));
+Alpine.data('datagrid', datagrid);
 
 Alpine.data('modal', () => ({
     modalOpen: true,

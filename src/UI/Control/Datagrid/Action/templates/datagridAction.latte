@@ -1,15 +1,15 @@
-{varType App\UI\Control\Datagrid\Action\DatagridAction $action}
+{varType App\UI\Control\Datagrid\Action\IDatagridAction $action}
 {varType App\Doctrine\Entity $item}
 
 {parameters
-    App\UI\Control\Datagrid\Action\DatagridAction $action,
+    App\UI\Control\Datagrid\Action\IDatagridAction $action,
     App\Doctrine\Entity $item
 }
 
 <a href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
    n:class="$action->isAjax() ? 'ajax',
-        'inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1',
-        'focus:ring-' . $action->getColor() . '-500 text-white bg-' . $action->getColor() . '-600 hover:bg-' . $action->getColor() . '-700'"
+        'inline-flex items-center gap-1.5 rounded-md border border-transparent px-2.5 py-1.5 text-xs font-semibold text-white shadow-xs transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600',
+        'bg-' . $action->getColor() . '-600'"
         {if $action->getConfirmation() !== null}
             onclick="return confirm({$action->getConfirmation()})"
         {/if}

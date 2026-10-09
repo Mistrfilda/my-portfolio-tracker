@@ -1,406 +1,390 @@
 {templateType App\UI\Control\Datagrid\DatagridTemplate}
+{var $columnsParameter = $control->getParameterId('columns')}
 
 <div
-        class="flex flex-col"
-        x-data="datagrid({$defaultVisibleColumnsJson})"
+		class="flex min-w-0 flex-col"
+		x-data="datagrid({$visibleColumnsJson}, {$defaultVisibleColumnsJson}, '{link saveColumns!}', '{$columnsParameter}')"
 >
-    <div class="overflow-hidden rounded-xl border border-gray-200 bg-white">
-        {if $filters->count() > 0 || $columnSelectionEnabled}
-            <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 px-4 py-3 sm:px-5">
-                {if $filters->count() > 0}
-                    <button
-                            type="button"
-                            @click="filterOpen = !filterOpen"
-                            :aria-expanded="filterOpen"
-                            class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-xs transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        {renderSvg App\UI\Icon\SvgIcon::ADJUSTMENTS->value, ['class' => 'h-4 w-4']}
-                        Filtry
-                        {if $activeFilterCount > 0}
-                            <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 py-0.5 text-xs text-white">
-                                {$activeFilterCount}
-                            </span>
-                        {/if}
-                    </button>
-                {/if}
+	<div class="min-w-0 rounded-xl border border-gray-200 bg-white shadow-xs">
+		{snippet toolbar}
+			<div class="relative z-20 flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 px-4 py-3">
+				<div class="flex items-center gap-3">
+					{if $filters->count() > 0}
+						<button
+								type="button"
+								@click="filterOpen = !filterOpen"
+								:aria-expanded="filterOpen"
+								aria-controls="{$control->getUniqueId()}-filter-panel"
+								:class="filterOpen ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-white text-gray-700 border-gray-300'"
+								class="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+						>
+							{renderSvg App\UI\Icon\SvgIcon::ADJUSTMENTS->value, ['class' => 'h-4 w-4']}
+							Filtry
+							{if $activeFilterCount > 0}
+								<span class="inline-flex min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-xs leading-5 text-white">{$activeFilterCount}</span>
+							{/if}
+						</button>
+					{/if}
+					<span class="text-sm text-gray-500"><span class="font-semibold tabular-nums text-gray-900">{$itemsCount}</span> {$itemsCount === 1 ? 'záznam' : ($itemsCount >= 2 && $itemsCount <= 4 ? 'záznamy' : 'záznamů')}</span>
+				</div>
 
-                {if $columnSelectionEnabled}
-                    <div class="relative" @click.outside="columnOpen = false">
-                        <button
-                                type="button"
-                                @click="columnOpen = !columnOpen"
-                                :aria-expanded="columnOpen"
-                                aria-haspopup="menu"
-                                class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-xs transition-colors hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                            {renderSvg App\UI\Icon\SvgIcon::TABLE_CELLS->value, ['class' => 'h-4 w-4']}
-                            Sloupce
-                            {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5 text-gray-400']}
-                        </button>
-                        <div
-                                x-show="columnOpen"
-                                x-cloak
-                                x-transition
-                                role="menu"
-                                class="absolute left-0 z-30 mt-2 w-64 rounded-lg border border-gray-200 bg-white p-2 shadow-lg"
-                        >
-                            {foreach $columns as $column}
-                                {continueIf !$column->isHideable()}
-                                <label class="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                    <input
-                                            type="checkbox"
-                                            :checked="isColumnVisible('{$column->getColumn()}')"
-                                            @change="toggleColumn('{$column->getColumn()}')"
-                                            class="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    >
-                                    <span>{$column->getLabel()}</span>
-                                </label>
-                            {/foreach}
-                        </div>
-                    </div>
-                {/if}
-            </div>
-        {/if}
+				{if $columnSelectionEnabled}
+					<div class="relative hidden sm:block" @click.outside="columnOpen = false" @keydown.escape.stop.prevent="columnOpen = false; $refs.columnButton.focus()">
+						<button
+								type="button"
+								x-ref="columnButton"
+								@click="columnOpen = !columnOpen"
+								:aria-expanded="columnOpen"
+								aria-controls="{$control->getUniqueId()}-column-panel"
+								class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+						>
+							{renderSvg App\UI\Icon\SvgIcon::TABLE_CELLS->value, ['class' => 'h-4 w-4 text-gray-500']}
+							Sloupce
+							<span aria-hidden="true" class="text-xs tabular-nums text-gray-400" x-text="visibleColumns.length"></span>
+							{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5 text-gray-400']}
+						</button>
+						<div
+								id="{$control->getUniqueId()}-column-panel"
+								x-show="columnOpen"
+								x-cloak
+								x-transition
+								role="group"
+								aria-label="Zobrazené sloupce"
+								class="absolute right-0 z-30 mt-2 w-72 rounded-xl border border-gray-200 bg-white shadow-lg"
+						>
+							<div class="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+								<span class="text-sm font-semibold text-gray-900">Zobrazené sloupce</span>
+								<span x-show="columnsSaving" role="status" class="text-xs text-gray-500">Ukládání…</span>
+							</div>
+							<div class="max-h-80 overflow-y-auto p-2">
+								{foreach $columns as $column}
+									<label class="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 text-sm text-gray-700 hover:bg-gray-50">
+										<input
+												type="checkbox"
+												:checked="isColumnVisible('{$column->getColumn()}')"
+												{if !$column->isHideable()}disabled{else}:disabled="columnsSaving || (isColumnVisible('{$column->getColumn()}') && visibleColumns.length === 1)"{/if}
+												@change="toggleColumn('{$column->getColumn()}')"
+												class="h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500 disabled:opacity-50"
+										>
+										<span>{$column->getLabel()}</span>
+									</label>
+								{/foreach}
+							</div>
+							<div class="border-t border-gray-100 px-4 py-3">
+								<button type="button" @click="resetColumns()" :disabled="columnsSaving" class="text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50">Výchozí sloupce</button>
+								<p x-show="columnsError" x-cloak role="alert" class="mt-2 text-xs text-red-600">Nastavení se nepodařilo uložit. Zkuste to znovu.</p>
+							</div>
+						</div>
+					</div>
+				{/if}
+			</div>
+		{/snippet}
 
-        {if $filters->count() > 0}
-            {snippet filters}
-                {if $activeFilterCount > 0}
-                    <div class="flex flex-wrap items-center gap-2 border-b border-gray-100 bg-blue-50/50 px-4 py-3 sm:px-5">
-                        <span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Aktivní filtry</span>
-                        {foreach $filters as $filter}
-                            {continueIf !$filter->isValueSet()}
-                            <a
-                                    n:href="removeFilter! key: $filter->getKey()"
-                                    class="ajax inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-50"
-                                    aria-label="Odebrat filtr {$filter->getLabel()}"
-                            >
-                                {$filter->getActiveValueLabel()}
-                                {renderSvg App\UI\Icon\SvgIcon::X->value, ['class' => 'h-3 w-3']}
-                            </a>
-                        {/foreach}
-                        <a
-                                n:href="resetFilters!"
-                                class="ajax ml-auto text-xs font-semibold text-gray-600 hover:text-gray-900"
-                        >
-                            Zrušit vše
-                        </a>
-                    </div>
-                {/if}
+		{if $filters->count() > 0}
+			{snippet filters}
+				{if $activeFilterCount > 0}
+					<div class="flex flex-wrap items-center gap-2 border-b border-gray-100 bg-blue-50/50 px-4 py-3 sm:px-5">
+						<span class="text-xs font-semibold uppercase tracking-wide text-gray-500">Aktivní filtry</span>
+						{foreach $filters as $filter}
+							{continueIf !$filter->isValueSet()}
+							<a
+									n:href="removeFilter! key: $filter->getKey()"
+									class="ajax inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-white px-2.5 py-1 text-xs font-medium text-blue-700 hover:border-blue-300 hover:bg-blue-50"
+									aria-label="Odebrat filtr {$filter->getLabel()}"
+							>
+								{$filter->getActiveValueLabel()}
+								{renderSvg App\UI\Icon\SvgIcon::X->value, ['class' => 'h-3 w-3']}
+							</a>
+						{/foreach}
+						<a
+								n:href="resetFilters!"
+								class="ajax ml-auto text-xs font-semibold text-gray-600 hover:text-gray-900"
+						>
+							Zrušit vše
+						</a>
+					</div>
+				{/if}
 
-                <div
-                        x-show="filterOpen"
-                        x-cloak
-                        x-transition
-                        class="border-b border-gray-100 bg-gray-50/70"
-                >
-                    <form class="ajax" n:name="filterForm">
-                        <div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:p-5">
-                            {foreach $form->getComponents() as $component}
-                                {continueIf $component instanceof Nette\Forms\Controls\SubmitButton}
-                                {continueIf $component instanceof Nette\Forms\Controls\HiddenField}
-                                <div>
-                                    <label
-                                            for="{$component->getHtmlId()}"
-                                            class="mb-1.5 block text-sm font-medium text-gray-700"
-                                    >
-                                        {$component->getCaption()}
-                                    </label>
-                                    {if $component instanceof App\UI\Control\Form\Input\DatePickerInput}
-                                        <input
-                                                n:name="{$component->getName()}"
-                                                type="date"
-                                                class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                    {elseif $component instanceof Nette\Forms\Controls\SelectBox}
-                                        <select
-                                                n:name="{$component->getName()}"
-                                                class="block w-full rounded-lg border-gray-300 py-2 pl-3 pr-9 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
-                                        ></select>
-                                    {elseif $component instanceof Nette\Forms\Controls\TextInput}
-                                        <input
-                                                n:name="{$component->getName()}"
-                                                autocomplete="off"
-                                                class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                    {/if}
-                                </div>
-                            {/foreach}
-                        </div>
-                        <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 px-4 py-3 sm:px-5">
-                            <button
-                                    n:name="submit"
-                                    class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                            >
-                                {renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-4 w-4']}
-                                Použít filtry
-                            </button>
-                            <a
-                                    n:href="resetFilters!"
-                                    class="ajax inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-                            >
-                                {renderSvg App\UI\Icon\SvgIcon::X_CIRCLE->value, ['class' => 'h-4 w-4']}
-                                Resetovat
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            {/snippet}
-        {/if}
+				<div
+						id="{$control->getUniqueId()}-filter-panel"
+						x-show="filterOpen"
+						x-cloak
+						x-transition
+						class="border-b border-gray-100 bg-gray-50/70"
+				>
+					<form class="ajax" n:name="filterForm">
+						<div class="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:p-5">
+							{foreach $form->getComponents() as $component}
+								{continueIf $component instanceof Nette\Forms\Controls\SubmitButton}
+								{continueIf $component instanceof Nette\Forms\Controls\HiddenField}
+								<div>
+									<label
+											for="{$component->getHtmlId()}"
+											class="mb-1.5 block text-sm font-medium text-gray-700"
+									>
+										{$component->getCaption()}
+									</label>
+									{if $component instanceof App\UI\Control\Form\Input\DatePickerInput}
+										<input
+												n:name="{$component->getName()}"
+												type="date"
+												class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
+										>
+									{elseif $component instanceof Nette\Forms\Controls\SelectBox}
+										<select
+												n:name="{$component->getName()}"
+												class="block w-full rounded-lg border-gray-300 py-2 pl-3 pr-9 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
+										></select>
+									{elseif $component instanceof Nette\Forms\Controls\TextInput}
+										<input
+												n:name="{$component->getName()}"
+												autocomplete="off"
+												class="block w-full rounded-lg border-gray-300 px-3 py-2 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"
+										>
+									{/if}
+								</div>
+							{/foreach}
+						</div>
+						<div class="flex flex-wrap items-center gap-3 border-t border-gray-200 px-4 py-3 sm:px-5">
+							<button
+									n:name="submit"
+									class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+							>
+								{renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-4 w-4']}
+								Použít filtry
+							</button>
+							<a
+									n:href="resetFilters!"
+									class="ajax inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+							>
+								{renderSvg App\UI\Icon\SvgIcon::X_CIRCLE->value, ['class' => 'h-4 w-4']}
+								Resetovat
+							</a>
+						</div>
+					</form>
+				</div>
+			{/snippet}
+		{/if}
 
-        {snippet items}
-            <div
-                    class="hidden overflow-x-auto sm:block"
-                    x-data="dragScroll()"
-                    x-on:mousedown="startDrag($event)"
-                    x-on:mouseleave="stopDrag()"
-                    x-on:mousemove="drag($event)"
-            >
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr class="bg-gray-50/80">
-                            {foreach $columns as $column}
-                                <th
-                                        x-show="isColumnVisible('{$column->getColumn()}')"
-                                        scope="col"
-                                        n:class="$compact ? 'px-3 py-2.5' : 'px-5 py-3.5',
-                                            'whitespace-nowrap text-xs font-semibold uppercase tracking-wider text-gray-600',
-                                            $column->getAlignment()->getCellClass()"
-                                        {if $column->getSort() !== null}
-                                            aria-sort="{if $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::ASC}ascending{elseif $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::DESC}descending{else}none{/if}"
-                                        {/if}
-                                >
-                                    {if $column->getSort() !== null}
-                                        <a
-                                                n:href="sort! column: $column->getColumn(), defaultSortFilters: $defaultSortFilters"
-                                                class="ajax group inline-flex items-center gap-1.5 text-blue-600 transition-colors hover:text-blue-700"
-                                        >
-                                            <span>{$column->getLabel()}</span>
-                                            {if $column->getSort()->getCurrentDirection() === null}
-                                                {renderSvg App\UI\Icon\SvgIcon::SWITCH_VERTICAL->value, ['class' => 'h-3.5 w-3.5 text-gray-400 group-hover:text-blue-600']}
-                                            {elseif $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::ASC}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'h-3.5 w-3.5']}
-                                            {else}
-                                                {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
-                                            {/if}
-                                        </a>
-                                    {else}
-                                        {$column->getLabel()}
-                                    {/if}
-                                </th>
-                            {/foreach}
-                            {if $actions->count() > 0}
-                                <th scope="col" n:class="$compact ? 'px-3 py-2.5' : 'px-5 py-3.5', 'text-right text-xs font-semibold uppercase tracking-wider text-gray-600'">
-                                    Akce
-                                </th>
-                            {/if}
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100 bg-white">
-                        {if count($items) === 0}
-                            <tr>
-                                <td colspan="{$columns->count() + ($actions->count() > 0 ? 1 : 0)}" class="px-5 py-12 text-center">
-                                    <div class="flex flex-col items-center gap-2 text-gray-400">
-                                        {renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-10 w-10']}
-                                        <p class="text-sm font-medium text-gray-500">Nebyly nalezeny žádné výsledky</p>
-                                    </div>
-                                </td>
-                            </tr>
-                        {else}
-                            {foreach $items as $item}
-                                <tr n:class="$rowRenderer !== null ? $rowRenderer->getRowClasses($item, $iterator->getCounter()), 'transition-colors hover:bg-gray-50/70'">
-                                    {foreach $columns as $column}
-                                        {include
-                                            $column->getTemplate(),
-                                            value: $datasource->getValueForColumn($column, $item),
-                                            column: $column,
-                                            item: $item,
-                                            compact: $compact
-                                        }
-                                    {/foreach}
+		{snippet items}
+			<div
+					class="relative isolate hidden overflow-x-auto sm:block"
+					x-data="dragScroll()"
+					x-on:mousedown="startDrag($event)"
+					x-on:mouseleave="stopDrag()"
+					x-on:mousemove="drag($event)"
+			>
+				<table class="min-w-full divide-y divide-gray-200">
+					<thead>
+						<tr class="bg-gray-50/80">
+							{foreach $columns as $column}
+								<th
+										x-show="isColumnVisible('{$column->getColumn()}')"
+										scope="col"
+										n:class="$compact ? 'px-4 py-3' : 'px-5 py-3.5',
+											'text-xs font-semibold text-gray-600',
+											$column->getAlignment()->getCellClass()"
+										{if $column->getSort() !== null}
+											aria-sort="{if $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::ASC}ascending{elseif $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::DESC}descending{else}none{/if}"
+										{/if}
+								>
+									{if $column->getSort() !== null}
+										<a
+												n:href="sort! column: $column->getColumn(), defaultSortFilters: $defaultSortFilters"
+												class="ajax group inline-flex items-center gap-1.5 text-gray-600 transition-colors hover:text-blue-600"
+										>
+											<span class="max-w-40 text-left">{$column->getLabel()}</span>
+											{if $column->getSort()->getCurrentDirection() === null}
+												{renderSvg App\UI\Icon\SvgIcon::SWITCH_VERTICAL->value, ['class' => 'h-3.5 w-3.5 text-gray-400 group-hover:text-blue-600']}
+											{elseif $column->getSort()->getCurrentDirection() === App\UI\Control\Datagrid\Sort\SortDirectionEnum::ASC}
+												{renderSvg App\UI\Icon\SvgIcon::CHEVRON_UP->value, ['class' => 'h-3.5 w-3.5']}
+											{else}
+												{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
+											{/if}
+										</a>
+									{else}
+										{$column->getLabel()}
+									{/if}
+								</th>
+							{/foreach}
+							{if $actions->count() > 0}
+								<th scope="col" n:class="$compact ? 'px-4 py-3' : 'px-5 py-3.5', 'sticky right-0 z-10 bg-gray-50 text-right text-xs font-semibold text-gray-500 shadow-[-1px_0_0_0_#e5e7eb]'">
+									Akce
+								</th>
+							{/if}
+						</tr>
+					</thead>
+					<tbody class="divide-y divide-gray-100 bg-white">
+						{if count($items) === 0}
+							<tr>
+								<td colspan="{$columns->count() + ($actions->count() > 0 ? 1 : 0)}" class="px-5 py-12 text-center">
+									<div class="flex flex-col items-center gap-2 text-gray-400">
+										{renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-10 w-10']}
+										<p class="text-sm font-medium text-gray-500">Nebyly nalezeny žádné výsledky</p>
+									</div>
+								</td>
+							</tr>
+						{else}
+							{foreach $items as $item}
+								<tr n:class="$rowRenderer !== null ? $rowRenderer->getRowClasses($item, $iterator->getCounter()), 'group/row transition-colors hover:bg-gray-50/70'">
+									{foreach $columns as $column}
+										{include
+											$column->getTemplate(),
+											value: $datasource->getValueForColumn($column, $item),
+											column: $column,
+											item: $item,
+											compact: $compact
+										}
+									{/foreach}
 
-                                    {if $actions->count() > 0}
-                                        <td n:class="$compact ? 'px-3 py-2.5' : 'px-5 py-4', 'whitespace-nowrap text-right text-sm'">
-                                            {if $actionsInDropdown}
-                                                <el-dropdown class="relative inline-block text-left">
-                                                    <button
-                                                            type="button"
-                                                            aria-haspopup="menu"
-                                                            class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                                    >
-                                                        Akce
-                                                        {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
-                                                    </button>
-                                                    <el-menu
-                                                            anchor="bottom end"
-                                                            popover
-                                                            role="menu"
-                                                            class="m-0 w-52 origin-top-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-                                                    >
-                                                        {foreach $actions as $action}
-                                                            {if $action->getConditionCallback() !== null}
-                                                                {continueIf $action->getConditionCallback()($item) === false}
-                                                            {/if}
-                                                            <a
-                                                                    href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-                                                                    n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 focus:outline-hidden'"
-                                                                    role="menuitem"
-                                                                    {if $action->getConfirmation() !== null}
-                                                                        onclick="return confirm({$action->getConfirmation()})"
-                                                                    {/if}
-                                                            >
-                                                                {if $action->getIcon() !== null}
-                                                                    {renderSvg $action->getIcon(), ['class' => 'h-4 w-4 text-gray-400']}
-                                                                {/if}
-                                                                {$action->getLabel()}
-                                                            </a>
-                                                        {/foreach}
-                                                    </el-menu>
-                                                </el-dropdown>
-                                            {else}
-                                                <div class="flex items-center justify-end gap-2">
-                                                    {foreach $actions as $action}
-                                                        {if $action->getConditionCallback() !== null}
-                                                            {continueIf $action->getConditionCallback()($item) === false}
-                                                        {/if}
-                                                        {include $action->getTemplateFile(), action: $action, item: $item}
-                                                    {/foreach}
-                                                </div>
-                                            {/if}
-                                        </td>
-                                    {/if}
-                                </tr>
-                            {/foreach}
-                        {/if}
-                    </tbody>
-                </table>
-            </div>
+									{if $actions->count() > 0}
+										<td n:class="$compact ? 'px-4 py-3' : 'px-5 py-4', 'sticky right-0 z-10 whitespace-nowrap bg-white text-right text-sm shadow-[-1px_0_0_0_#e5e7eb] group-hover/row:bg-gray-50'">
+											{include rowActions, item: $item}
+										</td>
+									{/if}
+								</tr>
+							{/foreach}
+						{/if}
+					</tbody>
+				</table>
+			</div>
 
-            <ul role="list" class="divide-y divide-gray-100 sm:hidden">
-                {if count($items) === 0}
-                    <li class="px-4 py-12 text-center">
-                        <div class="flex flex-col items-center gap-2 text-gray-400">
-                            {renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-10 w-10']}
-                            <p class="text-sm font-medium text-gray-500">Nebyly nalezeny žádné výsledky</p>
-                        </div>
-                    </li>
-                {else}
-                    {foreach $items as $item}
-                        <li n:class="$rowRenderer !== null ? $rowRenderer->getRowClasses($item, $iterator->getCounter()), 'bg-white'">
-                            <div class="space-y-2.5 px-4 py-4">
-                                {foreach $columns as $column}
-                                    {continueIf !$column->isMobileVisible()}
-                                    <div class="flex items-start justify-between gap-4">
-                                        <span class="text-xs font-medium uppercase tracking-wide text-gray-500">{$column->getLabel()}</span>
-                                        <span class="text-right text-sm text-gray-900">
-                                            {include
-                                                $column->getMobileTemplate(),
-                                                value: $datasource->getValueForColumn($column, $item),
-                                                column: $column,
-                                                item: $item
-                                            }
-                                        </span>
-                                    </div>
-                                {/foreach}
-                                {if $actions->count() > 0}
-                                    <div class="flex justify-end border-t border-gray-100 pt-3">
-                                        {if $actionsInDropdown}
-                                            <el-dropdown class="relative">
-                                                <button
-                                                        type="button"
-                                                        aria-haspopup="menu"
-                                                        class="inline-flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-gray-700 shadow-xs"
-                                                >
-                                                    Akce
-                                                    {renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
-                                                </button>
-                                                <el-menu
-                                                        anchor="top end"
-                                                        popover
-                                                        role="menu"
-                                                        class="m-0 w-52 origin-bottom-right rounded-lg border border-gray-200 bg-white py-1 shadow-lg transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
-                                                >
-                                                    {foreach $actions as $action}
-                                                        {if $action->getConditionCallback() !== null}
-                                                            {continueIf $action->getConditionCallback()($item) === false}
-                                                        {/if}
-                                                        <a
-                                                                href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
-                                                                n:class="$action->isAjax() ? 'ajax', 'flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 focus:bg-gray-50 focus:outline-hidden'"
-                                                                role="menuitem"
-                                                                {if $action->getConfirmation() !== null}
-                                                                    onclick="return confirm({$action->getConfirmation()})"
-                                                                {/if}
-                                                        >
-                                                            {if $action->getIcon() !== null}
-                                                                {renderSvg $action->getIcon(), ['class' => 'h-4 w-4 text-gray-400']}
-                                                            {/if}
-                                                            {$action->getLabel()}
-                                                        </a>
-                                                    {/foreach}
-                                                </el-menu>
-                                            </el-dropdown>
-                                        {else}
-                                            <div class="flex flex-wrap justify-end gap-2">
-                                                {foreach $actions as $action}
-                                                    {if $action->getConditionCallback() !== null}
-                                                        {continueIf $action->getConditionCallback()($item) === false}
-                                                    {/if}
-                                                    {include $action->getTemplateFile(), action: $action, item: $item}
-                                                {/foreach}
-                                            </div>
-                                        {/if}
-                                    </div>
-                                {/if}
-                            </div>
-                        </li>
-                    {/foreach}
-                {/if}
-            </ul>
-        {/snippet}
+			<ul role="list" class="divide-y divide-gray-100 sm:hidden">
+				{if count($items) === 0}
+					<li class="px-4 py-12 text-center">
+						<div class="flex flex-col items-center gap-2 text-gray-400">
+							{renderSvg App\UI\Icon\SvgIcon::MAGNIFYING_GLASS->value, ['class' => 'h-10 w-10']}
+							<p class="text-sm font-medium text-gray-500">Nebyly nalezeny žádné výsledky</p>
+						</div>
+					</li>
+				{else}
+					{foreach $items as $item}
+						<li n:class="$rowRenderer !== null ? $rowRenderer->getRowClasses($item, $iterator->getCounter()), 'bg-white'">
+							<div class="space-y-2.5 px-4 py-4">
+								{foreach $columns as $column}
+									{continueIf !$column->isMobileVisible()}
+									<div class="flex items-start justify-between gap-4">
+										<span class="text-xs font-medium uppercase tracking-wide text-gray-500">{$column->getLabel()}</span>
+										<span class="text-right text-sm text-gray-900">
+											{include
+												$column->getMobileTemplate(),
+												value: $datasource->getValueForColumn($column, $item),
+												column: $column,
+												item: $item
+											}
+										</span>
+									</div>
+								{/foreach}
+								{if $actions->count() > 0}
+									<div class="flex justify-end border-t border-gray-100 pt-3">
+										{include rowActions, item: $item}
+									</div>
+								{/if}
+							</div>
+						</li>
+					{/foreach}
+				{/if}
+			</ul>
+		{/snippet}
 
-        {snippet pagination}
-            <div class="flex flex-col items-center justify-between gap-4 border-t border-gray-100 bg-gray-50/50 px-4 py-3 sm:flex-row sm:px-5">
-                <p class="text-sm text-gray-600">
-                    Výsledky
-                    <span class="font-semibold text-gray-900">{$itemsCount === 0 ? 0 : $pagination->getOffset() + 1}</span>
-                    –
-                    <span class="font-semibold text-gray-900">{min($itemsCount, $pagination->getOffset() + $pagination->getLimit())}</span>
-                    z
-                    <span class="font-semibold text-gray-900">{$itemsCount}</span>
-                </p>
-                <nav aria-label="Stránkování" class="inline-flex max-w-full flex-wrap items-center justify-center gap-1">
-                    {if $pagination->getOffset() === 0}
-                        <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-lg text-gray-300">‹</span>
-                    {else}
-                        <a n:href="arrowLeft!" aria-label="Předchozí" class="ajax inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg text-gray-500 hover:bg-gray-50">‹</a>
-                    {/if}
+		{snippet pagination}
+			<div class="flex flex-col items-center justify-between gap-4 rounded-b-xl border-t border-gray-200 bg-white px-4 py-3 sm:flex-row sm:px-5">
+				<p class="text-sm text-gray-600">
+					Výsledky
+					<span class="font-semibold text-gray-900">{$itemsCount === 0 ? 0 : $pagination->getOffset() + 1}</span>
+					–
+					<span class="font-semibold text-gray-900">{min($itemsCount, $pagination->getOffset() + $pagination->getLimit())}</span>
+					z
+					<span class="font-semibold text-gray-900">{$itemsCount}</span>
+				</p>
+				<nav aria-label="Stránkování" class="inline-flex max-w-full flex-wrap items-center justify-center gap-1">
+					{if $pagination->getOffset() === 0}
+						<span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-lg text-gray-300">‹</span>
+					{else}
+						<a n:href="arrowLeft!" aria-label="Předchozí" class="ajax inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg text-gray-500 hover:bg-gray-50">‹</a>
+					{/if}
 
-                    {foreach $pagination->getPaginationItems() as $paginationItem}
-                        {if $paginationItem->isDisabled()}
-                            <span class="inline-flex h-9 min-w-9 items-center justify-center px-3 text-sm font-medium text-gray-400">
-                                {$paginationItem->getLabel()}
-                            </span>
-                        {else}
-                            <a
-                                    href="{link changePagination!, limit: $pagination->getLimit(), offset: $paginationItem->getOffset()}"
-                                    n:class="'ajax inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500',
-                                        $paginationItem->isActive()
-                                            ? 'bg-blue-600 text-white shadow-xs'
-                                            : 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'"
-                                    {if $paginationItem->isActive()}aria-current="page"{/if}
-                            >
-                                {$paginationItem->getLabel()}
-                            </a>
-                        {/if}
-                    {/foreach}
+					{foreach $pagination->getPaginationItems() as $paginationItem}
+						{if $paginationItem->isDisabled()}
+							<span class="inline-flex h-9 min-w-9 items-center justify-center px-3 text-sm font-medium text-gray-400">
+								{$paginationItem->getLabel()}
+							</span>
+						{else}
+							<a
+									href="{link changePagination!, limit: $pagination->getLimit(), offset: $paginationItem->getOffset()}"
+									n:class="'ajax inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-blue-500',
+										$paginationItem->isActive()
+											? 'bg-blue-600 text-white shadow-xs'
+											: 'border border-gray-200 bg-white text-gray-700 hover:bg-gray-50'"
+									{if $paginationItem->isActive()}aria-current="page"{/if}
+							>
+								{$paginationItem->getLabel()}
+							</a>
+						{/if}
+					{/foreach}
 
-                    {if $pagination->getOffset() + $pagination->getLimit() >= $itemsCount}
-                        <span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-lg text-gray-300">›</span>
-                    {else}
-                        <a n:href="arrowRight!" aria-label="Další" class="ajax inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg text-gray-500 hover:bg-gray-50">›</a>
-                    {/if}
-                </nav>
-            </div>
-        {/snippet}
-    </div>
+					{if $pagination->getOffset() + $pagination->getLimit() >= $itemsCount}
+						<span aria-disabled="true" class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-gray-100 text-lg text-gray-300">›</span>
+					{else}
+						<a n:href="arrowRight!" aria-label="Další" class="ajax inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-200 bg-white text-lg text-gray-500 hover:bg-gray-50">›</a>
+					{/if}
+				</nav>
+			</div>
+		{/snippet}
+	</div>
 </div>
+
+{define rowActions, App\Doctrine\Entity $item}
+	{var $dropdownActions = []}
+	<div class="flex flex-wrap items-center justify-end gap-1.5 sm:flex-nowrap">
+		{foreach $actions as $action}
+			{if $action->getConditionCallback() !== null}
+				{continueIf $action->getConditionCallback()($item) === false}
+			{/if}
+			{if $actionsInDropdown && !in_array($action->getId(), $inlineActionIds, true)}
+				{do $dropdownActions[] = $action}
+			{else}
+				{include $action->getTemplateFile(), action: $action, item: $item}
+			{/if}
+		{/foreach}
+		{if count($dropdownActions) > 0}
+			<el-dropdown class="relative inline-block text-left">
+				<button
+						type="button"
+						aria-haspopup="menu"
+						aria-label="Další akce"
+						class="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+				>
+					Další
+					{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-3.5 w-3.5']}
+				</button>
+				<el-menu
+						anchor="bottom end"
+						popover
+						role="menu"
+						class="m-0 w-64 origin-top-right space-y-1 rounded-xl border border-gray-200 bg-white p-1.5 shadow-lg transition transition-discrete [--anchor-gap:--spacing(2)] data-closed:scale-95 data-closed:transform data-closed:opacity-0 data-enter:duration-100 data-enter:ease-out data-leave:duration-75 data-leave:ease-in"
+				>
+					{foreach $dropdownActions as $action}
+						<a
+								href="{plink $action->getDestination(), (expand) $action->formatParametersForAction($item)}"
+								n:class="$action->isAjax() ? 'ajax',
+									'flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-blue-600',
+									'bg-' . $action->getColor() . '-50 text-' . $action->getColor() . '-700'"
+								role="menuitem"
+								{if $action->getConfirmation() !== null}
+									onclick="return confirm({$action->getConfirmation()})"
+								{/if}
+						>
+							{if $action->getIcon() !== null}
+								<span n:class="'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md', 'bg-' . $action->getColor() . '-100 text-' . $action->getColor() . '-600'">
+									{renderSvg $action->getIcon(), ['class' => 'h-4 w-4', 'aria-hidden' => 'true']}
+								</span>
+							{/if}
+							{$action->getLabel()}
+						</a>
+					{/foreach}
+				</el-menu>
+			</el-dropdown>
+		{/if}
+	</div>
+{/define}

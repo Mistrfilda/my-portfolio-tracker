@@ -46,7 +46,12 @@ class DatagridTemplate extends BaseControlTemplate
 
 	public bool $actionsInDropdown;
 
+	/** @var list<string> */
+	public array $inlineActionIds;
+
 	public string $defaultVisibleColumnsJson;
+
+	public string $visibleColumnsJson;
 
 	public int $activeFilterCount;
 
