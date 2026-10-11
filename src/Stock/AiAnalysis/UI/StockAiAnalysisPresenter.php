@@ -196,8 +196,10 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$watchlistResults = [];
 		$simpleWatchlistResults = [];
 		$singleStockResults = [];
+		$quickSummaries = [];
 
 		foreach ($run->getResults() as $result) {
+			$quickSummaries[$result->getId()->toString()] = StockAiAnalysisQuickSummary::fromResult($result);
 			if ($result->getType() === StockAiAnalysisResultTypeEnum::PORTFOLIO) {
 				$portfolioResults[] = $result;
 			} elseif ($result->getType() === StockAiAnalysisResultTypeEnum::WATCHLIST) {
@@ -213,7 +215,11 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			$scoreA = $this->getActionScore($a->getActionSuggestion());
 			$scoreB = $this->getActionScore($b->getActionSuggestion());
 
-			return $scoreA <=> $scoreB;
+			if ($scoreA !== $scoreB) {
+				return $scoreA <=> $scoreB;
+			}
+
+			return strnatcasecmp($a->getStockTicker() ?? '', $b->getStockTicker() ?? '');
 		};
 
 		usort($portfolioResults, $sortFunction);
@@ -224,6 +230,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		$this->template->watchlistResults = $watchlistResults;
 		$this->template->simpleWatchlistResults = $simpleWatchlistResults;
 		$this->template->singleStockResults = $singleStockResults;
+		$this->template->quickSummaries = $quickSummaries;
 		$this->template->generatedPromptForDisplay = $this->stockAiAnalysisFacade->getGeneratedPromptForDisplay($run);
 		$this->template->codexStartPrompt = StockAiAnalysisCodexBundleFactory::START_PROMPT;
 		$this->template->geminiResponseTempFileCount = $this->stockAiAnalysisGeminiProcessorFacade

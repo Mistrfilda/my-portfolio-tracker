@@ -179,6 +179,21 @@ Alpine.data('select', (config: SelectConfig) => ({
 
 Alpine.data('datagrid', datagrid);
 
+Alpine.data('stockAiAnalysisDetail', () => ({
+	init() {
+		this.openLinkedAnalysis();
+	},
+	openLinkedAnalysis(hash: string = window.location.hash) {
+		if (!hash.startsWith('#analysis-')) return;
+		const detail = document.getElementById(hash.slice(1));
+		if (detail instanceof HTMLDetailsElement) {
+			detail.open = true;
+			detail.querySelector('summary')?.focus({preventScroll: true});
+			detail.scrollIntoView({block: 'start'});
+		}
+	}
+}));
+
 Alpine.data('modal', () => ({
     modalOpen: true,
 

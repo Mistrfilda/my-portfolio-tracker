@@ -261,57 +261,31 @@
 		{/if}
 
 		{if $run->getProcessedAt() && (count($portfolioResults) > 0 || count($watchlistResults) > 0 || count($simpleWatchlistResults) > 0)}
-			<section aria-labelledby="recommendations-summary" class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<section aria-labelledby="recommendations-summary" x-data="stockAiAnalysisDetail" @hashchange.window="openLinkedAnalysis()" class="mb-6 scroll-mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
 				<div class="border-b border-gray-100 px-5 py-4 sm:px-6">
 					<h2 id="recommendations-summary" class="text-base font-semibold text-gray-900">Rychlý souhrn doporučení</h2>
-					<p class="mt-1 text-sm text-gray-500">Kliknutím přejdete na detail konkrétní akcie.</p>
+					<p class="mt-1 text-sm text-gray-500">Nejdříve prodej a nákup, potom držení a sledování. V rámci doporučení podle tickeru. Kliknutím otevřete celý rozbor.</p>
 				</div>
-				<div class="space-y-5 px-5 py-5 sm:px-6">
-					{if count($portfolioResults) > 0}
-						<div>
-							<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">Portfolio</h3>
-							<ul role="list" class="mt-3 flex flex-wrap gap-2">
-								{foreach $portfolioResults as $result}
+				<div>
+					{foreach ['Portfolio' => $portfolioResults, 'Watchlist' => $watchlistResults, 'Jednoduchý watchlist' => $simpleWatchlistResults] as $groupLabel => $results}
+						{if count($results) > 0}
+							<h3 class="border-y border-gray-100 bg-gray-50 px-5 py-2 text-xs font-semibold uppercase tracking-wider text-gray-600 sm:px-6">{$groupLabel} <span class="ml-1 font-normal">({count($results)})</span></h3>
+							<ul role="list" class="divide-y divide-gray-100">
+								{foreach $results as $result}
 									<li>
-										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 hover:bg-gray-50">
-											<span class="truncate text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
-											{include #actionBadge, action: $result->getActionSuggestion(), compact: true}
+										<a href="#analysis-{$result->getId()}" @click="openLinkedAnalysis($event.currentTarget.hash)" class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2 px-5 py-3 transition-colors hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600 sm:grid-cols-[9rem_8rem_minmax(0,1fr)] sm:px-6">
+											<span class="min-w-0">
+												<span class="block text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
+												<span class="block truncate text-xs text-gray-500" title="{$result->getStockName()}">{$result->getStockName()}</span>
+											</span>
+											<span>{include #actionBadge, action: $result->getActionSuggestion(), compact: true}</span>
+											<span class="col-span-2 text-sm leading-6 text-gray-700 sm:col-span-1">{$quickSummaries[$result->getId()->toString()]}</span>
 										</a>
 									</li>
 								{/foreach}
 							</ul>
-						</div>
-					{/if}
-					{if count($watchlistResults) > 0}
-						<div>
-							<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">Watchlist</h3>
-							<ul role="list" class="mt-3 flex flex-wrap gap-2">
-								{foreach $watchlistResults as $result}
-									<li>
-										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 hover:bg-gray-50">
-											<span class="truncate text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
-											{include #actionBadge, action: $result->getActionSuggestion(), compact: true}
-										</a>
-									</li>
-								{/foreach}
-							</ul>
-						</div>
-					{/if}
-					{if count($simpleWatchlistResults) > 0}
-						<div>
-							<h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500">Jednoduchý watchlist</h3>
-							<ul role="list" class="mt-3 flex flex-wrap gap-2">
-								{foreach $simpleWatchlistResults as $result}
-									<li>
-										<a href="#analysis-{$result->getId()}" class="inline-flex items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 transition-colors hover:border-gray-300 hover:bg-gray-50">
-											<span class="truncate text-sm font-semibold text-gray-900">{$result->getStockTicker()}</span>
-											{include #actionBadge, action: $result->getActionSuggestion(), compact: true}
-										</a>
-									</li>
-								{/foreach}
-							</ul>
-						</div>
-					{/if}
+						{/if}
+					{/foreach}
 				</div>
 			</section>
 		{/if}
@@ -533,8 +507,8 @@
 						{var $analysis = $result->getStructuredData()}
 						{var $valuation = $analysis['valuation']}
 						{var $recommendation = $analysis['recommendation']}
-						<article id="analysis-{$result->getId()}" class="mb-5 scroll-mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
-							<header class="border-b border-gray-100 px-5 py-4 sm:px-6">
+						<details id="analysis-{$result->getId()}" n:attr="open: $pdfExport || $result->getType() === App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum::SINGLE_STOCK" class="group mb-5 scroll-mt-6 overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+							<summary class="cursor-pointer list-none border-b border-gray-100 px-5 py-4 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:px-6 [&::-webkit-details-marker]:hidden">
 								<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
 									<div class="min-w-0">
 										<p class="text-xs font-semibold uppercase tracking-wider text-gray-500">{include #resultTypeLabel, type: $result->getType()}</p>
@@ -548,9 +522,10 @@
 									<div class="flex flex-wrap items-center gap-2">
 										{include #actionBadge, action: $result->getActionSuggestion(), compact: false}
 										{include #confidenceBadge, confidence: $result->getConfidenceLevel()}
+										<span n:if="!$pdfExport" class="ml-2 text-gray-400" aria-hidden="true">{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 transition-transform group-open:rotate-180']}</span>
 									</div>
 								</div>
-							</header>
+							</summary>
 
 							<div class="space-y-6 px-5 py-5 sm:px-6">
 								<p class="text-sm leading-6 text-gray-700">{$analysis['summary']}</p>
@@ -685,8 +660,9 @@
 										<p class="mt-2 text-sm leading-6 text-gray-700">{$analysis['conclusion']}</p>
 									</section>
 								{/if}
+								<a n:if="!$pdfExport && $result->getType() !== App\Stock\AiAnalysis\StockAiAnalysisResultTypeEnum::SINGLE_STOCK" href="#recommendations-summary" class="inline-flex text-sm font-medium text-blue-600 hover:text-blue-800">↑ Zpět na rychlý souhrn</a>
 							</div>
-						</article>
+						</details>
 					{/foreach}
 				{/foreach}
 			{else}

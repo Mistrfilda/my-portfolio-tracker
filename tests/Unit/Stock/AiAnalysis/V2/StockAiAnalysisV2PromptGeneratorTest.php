@@ -26,6 +26,13 @@ class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 			);
 			self::assertStringContainsString('respecting their stated scope and exceptions', $prompt);
 			self::assertStringContainsString('allows reconsideration', $prompt);
+			self::assertStringContainsString('treat the associated allocation as intentional', $prompt);
+			self::assertStringContainsString('Mention the accepted concentration once as neutral context', $prompt);
+			self::assertStringContainsString('concrete deterioration in fundamentals, dividend safety', $prompt);
+			self::assertStringContainsString(
+				'without implying a change when no comparable earlier evidence is available',
+				$prompt,
+			);
 		}
 
 		self::assertSame('Keep Czech holdings; disclose valuation risks.', $snapshot['investorInstructions']);
@@ -47,6 +54,19 @@ class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 		self::assertStringContainsString('name the concrete blocker', $prompt);
 		self::assertStringContainsString('Do not target a quota', $prompt);
 		self::assertStringContainsString('a purchase is not yet justified', $prompt);
+	}
+
+	public function testEveryProviderIncludesAConciseDecisionAndAvoidsDuplicateConcentrationWarnings(): void
+	{
+		foreach ($this->createProviderPrompts($this->createSnapshot('portfolio_evaluation')) as $prompt) {
+			self::assertStringContainsString('one short, self-contained Czech sentence of at most 35 words', $prompt);
+			self::assertStringContainsString('any essential condition or uncertainty', $prompt);
+			self::assertStringContainsString(
+				'distinguish intentional allocations from actionable concentration problems',
+				$prompt,
+			);
+			self::assertStringContainsString('Do not repeat the same concentration warning', $prompt);
+		}
 	}
 
 	public function testEveryProviderCanRecommendBuyingSimpleWatchlistCompaniesAfterPriceResearch(): void
