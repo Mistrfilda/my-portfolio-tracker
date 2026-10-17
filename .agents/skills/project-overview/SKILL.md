@@ -17,6 +17,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - `src/Notification/` — outbound notifications, including Discord.
 - `src/UI/` — presenters, controls, datagrids, forms, filters, icons, and shared template infrastructure.
 - `src/Api/` and module `Api/` folders — REST API endpoints.
+- `src/OAuth2/` — OAuth grants, client lifecycle, sessionless authorization, and token persistence.
 - `puppeter/` — Puppeteer scrapers that typically produce JSON consumed by PHP downloaders.
 - `config/` — DI wiring, routing, and environment-specific configuration.
 - `tests/` — unit and integration tests.
@@ -50,6 +51,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - **REST API**
 	- Start in `src/Api/` or the module-specific `Api/` folder.
 	- Read `api-slim` before adding or changing endpoints.
+	- For OAuth grants, scopes, client commands, or application integration, use [oauth2-server](../oauth2-server/SKILL.md).
 
 - **Background jobs / async recalculation / queue consumers**
 	- Start in `src/JobRequest/` for generic deferred work.

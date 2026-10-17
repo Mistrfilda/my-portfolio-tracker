@@ -16,6 +16,8 @@ class CurrentAppAdminGetter
 
 	private AppAdmin|null $apiAppAdmin = null;
 
+	private bool $apiRequest = false;
+
 	public function __construct(User $user, AppAdminRepository $appAdminRepository)
 	{
 		$this->user = $user;
@@ -29,7 +31,19 @@ class CurrentAppAdminGetter
 
 	public function isLoggedIn(): bool
 	{
-		return $this->apiAppAdmin !== null || $this->user->isLoggedIn();
+		return $this->apiAppAdmin !== null || (!$this->apiRequest && $this->user->isLoggedIn());
+	}
+
+	public function beginApiRequest(): void
+	{
+		$this->apiRequest = true;
+		$this->apiAppAdmin = null;
+	}
+
+	public function endApiRequest(): void
+	{
+		$this->apiRequest = false;
+		$this->apiAppAdmin = null;
 	}
 
 	public function getAppAdmin(): AppAdmin
@@ -38,7 +52,7 @@ class CurrentAppAdminGetter
 			return $this->apiAppAdmin;
 		}
 
-		if (!$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
+		if ($this->apiRequest || !$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
 			throw new AppAdminNotLoggedInException();
 		}
 
@@ -55,7 +69,7 @@ class CurrentAppAdminGetter
 			return $this->apiAppAdmin;
 		}
 
-		if (!$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
+		if ($this->apiRequest || !$this->user->isLoggedIn() || $this->user->getIdentity() === null) {
 			return null;
 		}
 

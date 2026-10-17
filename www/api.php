@@ -7,7 +7,7 @@ use App\Bootstrap;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-$container = Bootstrap::boot()
+$container = Bootstrap::boot(apiMode: true)
 	->createContainer();
 
 /** @var SlimAppFactory $slimAppFactory */

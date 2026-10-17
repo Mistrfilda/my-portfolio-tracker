@@ -15,7 +15,7 @@ tags:
       description: Home device measurement endpoints.
 
 security:
-    - ApiKey: []
+    - OAuth2: [api:read]
 
 paths:
     /ping:
@@ -24,7 +24,7 @@ paths:
             tags:
                 - System
             security:
-                - ApiKey: []
+                - OAuth2: [api:read]
             responses:
                 '200':
                     description: OK
@@ -42,7 +42,7 @@ paths:
             tags:
                 - Dashboard
             security:
-                - ApiKey: []
+                - OAuth2: [api:read]
             responses:
                 '200':
                     description: List of dashboard value groups
@@ -58,7 +58,7 @@ paths:
             tags:
                 - Stocks
             security:
-                - ApiKey: []
+                - OAuth2: [api:read]
             responses:
                 '200':
                     description: List of stock assets
@@ -74,7 +74,7 @@ paths:
             tags:
                 - Stocks
             security:
-                - ApiKey: []
+                - OAuth2: [api:read]
             parameters:
                 - name: id
                   in: path
@@ -102,6 +102,7 @@ paths:
             tags:
                 - Home Devices
             security:
+                - OAuth2: [home:write]
                 - ApiKey: []
             requestBody:
                 required: true
@@ -122,6 +123,7 @@ paths:
             tags:
                 - Home Devices
             security:
+                - OAuth2: [home:read]
                 - ApiKey: []
             parameters:
                 - name: limit
@@ -141,8 +143,255 @@ paths:
                                 items:
                                     $ref: '#/components/schemas/HomeDeviceWithRecords'
 
+    /me:
+        get:
+            summary: Get the user represented by an OAuth access token
+            security:
+                - OAuth2: [api:read]
+            responses:
+                '200':
+                    description: Authenticated user
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required: [id, name, username]
+                                properties:
+                                    id:
+                                        type: string
+                                    name:
+                                        type: string
+                                    username:
+                                        type: string
+                '401':
+                    description: Missing or invalid access token
+                '403':
+                    description: Missing scope or client-only token
+    /api/oauth/token:
+        servers:
+            - url: /
+        post:
+            summary: Issue or refresh OAuth tokens
+            description: Supports client_credentials, authorization_code with S256 PKCE, and refresh_token. Authenticate with HTTP Basic or form client_id/client_secret, never both. Native clients provide client_id without a secret.
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            required: [grant_type]
+                            properties:
+                                grant_type:
+                                    type: string
+                                    enum: [client_credentials, authorization_code, refresh_token]
+                                client_id:
+                                    type: string
+                                client_secret:
+                                    type: string
+                                scope:
+                                    type: string
+                                code:
+                                    type: string
+                                code_verifier:
+                                    type: string
+                                redirect_uri:
+                                    type: string
+                                refresh_token:
+                                    type: string
+            responses:
+                '200':
+                    description: Bearer tokens; refresh tokens are issued only for user authorization
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                required: [token_type, expires_in, access_token]
+                                properties:
+                                    token_type:
+                                        type: string
+                                        enum: [Bearer]
+                                    expires_in:
+                                        type: integer
+                                    access_token:
+                                        type: string
+                                    refresh_token:
+                                        type: string
+                '400':
+                    description: OAuth protocol error
+                '401':
+                    description: Invalid client credentials
+                '429':
+                    description: Rate limit exceeded
+                '503':
+                    description: OAuth signing keys are not configured
+    /api/oauth/revoke:
+        servers:
+            - url: /
+        post:
+            summary: Revoke a token and its authorization family
+            description: Authenticate with HTTP Basic or form client_id/client_secret, never both. Native clients provide client_id without a secret. Unknown tokens and tokens owned by another client return 200.
+            security: []
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            required: [token]
+                            properties:
+                                token:
+                                    type: string
+                                token_type_hint:
+                                    type: string
+                                    enum: [access_token, refresh_token]
+                                client_id:
+                                    type: string
+                                client_secret:
+                                    type: string
+            responses:
+                '200':
+                    description: Token revoked or already invalid
+                '400':
+                    description: Invalid request
+                '401':
+                    description: Invalid client credentials
+                '429':
+                    description: Rate limit exceeded
+                '503':
+                    description: OAuth signing keys are not configured
+    /api/oauth/authorize:
+        servers:
+            - url: /
+        get:
+            summary: Display the sessionless login and consent form
+            description: Requires response_type=code, client_id, registered redirect_uri, state, scope, code_challenge and code_challenge_method=S256. This browser endpoint does not support CORS.
+            security: []
+            parameters:
+                - name: response_type
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      enum: [code]
+                - name: client_id
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                - name: redirect_uri
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                - name: scope
+                  in: query
+                  required: true
+                  description: Space-separated scopes allowed for this client
+                  schema:
+                      type: string
+                - name: state
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      minLength: 1
+                      maxLength: 2048
+                - name: code_challenge
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      pattern: '^[A-Za-z0-9_-]{43}$'
+                - name: code_challenge_method
+                  in: query
+                  required: true
+                  schema:
+                      type: string
+                      enum: [S256]
+            responses:
+                '200':
+                    description: HTML login and consent form with a short-lived CSRF cookie
+                    content:
+                        text/html:
+                            schema:
+                                type: string
+                '400':
+                    description: Invalid authorization request
+                '401':
+                    description: Invalid client or unregistered redirect URI
+                '429':
+                    description: Rate limit exceeded
+                '503':
+                    description: OAuth signing keys are not configured
+        post:
+            summary: Authenticate the user and approve or deny the authorization request
+            description: Browser form only. Requires the one-time transaction, its CSRF cookie, credentials and consent. Does not accept a password grant and never returns access tokens here.
+            security: []
+            parameters:
+                - name: oauth_authorization
+                  in: cookie
+                  required: true
+                  description: Short-lived CSRF proof set by the authorization form
+                  schema:
+                      type: string
+            requestBody:
+                required: true
+                content:
+                    application/x-www-form-urlencoded:
+                        schema:
+                            type: object
+                            required: [transaction, decision]
+                            properties:
+                                transaction:
+                                    type: string
+                                decision:
+                                    type: string
+                                    enum: [approve, deny]
+                                username:
+                                    type: string
+                                    description: Required for approval
+                                password:
+                                    type: string
+                                    format: password
+                                    description: Required for approval
+            responses:
+                '303':
+                    description: GET redirect to the registered application with a code or denial; credentials are never forwarded
+                    headers:
+                        Location:
+                            schema:
+                                type: string
+                '400':
+                    description: Expired or invalid transaction
+                '401':
+                    description: Invalid credentials or mandatory password change
+                '403':
+                    description: Invalid CSRF proof
+                '429':
+                    description: Rate limit exceeded
+                '503':
+                    description: OAuth signing keys are not configured
+
 components:
     securitySchemes:
+        OAuth2:
+            type: oauth2
+            flows:
+                clientCredentials:
+                    tokenUrl: /api/oauth/token
+                    scopes:
+                        api:read: Read shared portfolio and stock data
+                        home:read: Read shared home devices and records
+                        home:write: Create home device records
+                authorizationCode:
+                    authorizationUrl: /api/oauth/authorize
+                    tokenUrl: /api/oauth/token
+                    refreshUrl: /api/oauth/token
+                    scopes:
+                        api:read: Read shared portfolio and stock data
+                        home:read: Read shared home devices and records
+                        home:write: Create home device records
         ApiKey:
             type: apiKey
             in: header

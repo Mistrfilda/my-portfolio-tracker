@@ -43,6 +43,9 @@ This repository contains the application code for my personal portfolio tracker.
 - `src/Goal` - portfolio and income goals
 - `src/JobRequest` and `src/RabbitMQ` - asynchronous processing and queue integration
 - `src/UI` - shared presenters, controls, datagrids, forms, filters, and charts
+- `src/Api` and `src/OAuth2` - REST API and OAuth authorization, including client registration commands
+
+The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintenance rules, scopes, sensor compatibility, and the follow-up for per-account data isolation. Its [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) describes deployment, registration commands, and mobile/desktop integration.
 
 ## Core functionality
 

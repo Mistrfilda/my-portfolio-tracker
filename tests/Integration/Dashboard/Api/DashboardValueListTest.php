@@ -29,7 +29,7 @@ class DashboardValueListTest extends ApiTestCase
 	public function testList(): void
 	{
 		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/dashboard/values')
-			->withHeader('X-Api-Key', 'test-api-key');
+			->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
 		$response = $this->app->handle($request);
 
 		$this->assertSame(200, $response->getStatusCode());

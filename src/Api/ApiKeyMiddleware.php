@@ -45,7 +45,7 @@ class ApiKeyMiddleware implements MiddlewareInterface
 	private function findAppAdminIdByApiKey(string $apiKey): string|null
 	{
 		foreach ($this->apiKeys as $keyConfig) {
-			if ($keyConfig['apiKey'] === $apiKey) {
+			if ($apiKey !== '' && hash_equals($keyConfig['apiKey'], $apiKey)) {
 				return $keyConfig['appAdminId'];
 			}
 		}

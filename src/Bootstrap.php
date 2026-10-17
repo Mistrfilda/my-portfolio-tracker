@@ -12,7 +12,11 @@ use function is_file;
 class Bootstrap
 {
 
-	public static function boot(bool $forceDebugMode = false, bool $enableTracy = true): Configurator
+	public static function boot(
+		bool $forceDebugMode = false,
+		bool $enableTracy = true,
+		bool $apiMode = false,
+	): Configurator
 	{
 		$configurator = new Configurator();
 		$appDir = dirname(__DIR__);
@@ -47,6 +51,10 @@ class Bootstrap
 		if (getenv('MY_PORTFOLIO_TRACKER_CODEX') === '1' && is_file($integrationTestLocalConfig)) {
 			$configurator->addConfig($appDir . '/tests/Integration/integration.test.neon');
 			$configurator->addConfig($integrationTestLocalConfig);
+		}
+
+		if ($apiMode) {
+			$configurator->addConfig(['session' => ['autoStart' => 'never']]);
 		}
 
 		return $configurator;

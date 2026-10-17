@@ -95,6 +95,8 @@ parameters:
 	api:
 		corsAllowedOrigins: []
 		apiKeys: []
+		oauth:
+			keysDirectory: %appDir%/../var/oauth
 
 application:
 	errorPresenter: Error:Error
@@ -107,6 +109,7 @@ session:
 	expiration: 14 days
 
 tracy:
+	keysToHide: [password, client_secret, secret, secretHash, encryptionKey, privateKey, keyContents, token, access_token, refresh_token, code, code_verifier, Authorization, X-Api-Key, oauth_authorization]
 	maxDepth: 6
 	showLocation: true
 	dumpTheme: dark
@@ -201,8 +204,10 @@ services:
 	- App\Router\RouterFactory::createRouter
 
 	# API
-	- App\Api\RouterFactory(apiKeyMiddleware: @apiKeyMiddleware)
+	- App\Api\RouterFactory
+	- App\Api\ApiAuthenticationMiddlewareFactory(apiKeys: @apiKeyMiddleware)
 	- App\Api\Controller\PingController
+	- App\Api\Controller\MeController
 	- App\Dashboard\Api\DashboardValueController
 	- App\Stock\Asset\Api\StockAssetSerializer
 	- App\Stock\Asset\Api\StockAssetController
@@ -211,6 +216,32 @@ services:
 	- App\Api\SlimAppFactory(corsAllowedOrigins: %api.corsAllowedOrigins%, debugMode: %debugMode%)
 	- Slim\CallableResolver(@psr11.container)
 	- Slim\Middleware\ErrorMiddleware(callableResolver: @Slim\Interfaces\CallableResolverInterface, responseFactory: Slim\Psr7\Factory\ResponseFactory(), displayErrorDetails: %debugMode%, logErrors: true, logErrorDetails: true)
+
+	# OAuth2 (keys are loaded only when an OAuth operation is requested)
+	- App\OAuth2\OAuthKeys(directory: %api.oauth.keysDirectory%)
+	- App\OAuth2\OAuthServerFactory
+	- App\OAuth2\Client\OAuthClientRepository(App\OAuth2\Client\OAuthClient)
+	- App\OAuth2\Client\OAuthClientFacade
+	- App\OAuth2\Token\OAuthTokenContext
+	- App\OAuth2\Token\OAuthTokenStore
+	- App\OAuth2\Protocol\AccessTokenRepository
+	- App\OAuth2\Protocol\AuthCodeRepository
+	- App\OAuth2\Protocol\RefreshTokenRepository
+	- App\OAuth2\Protocol\ScopeRepository
+	- App\OAuth2\Authorization\OAuthAuthorizationStore
+	- App\OAuth2\Authorization\OAuthUserAuthenticator
+	- App\OAuth2\Http\OAuthResponses
+	- App\OAuth2\Http\OAuthRateLimiter
+	- App\OAuth2\Http\OAuthHttpGuard
+	- App\OAuth2\Http\OAuthClientAuthentication
+	- App\OAuth2\Http\TokenController
+	- App\OAuth2\Http\RevocationController
+	- App\OAuth2\Http\AuthorizationController
+	- App\OAuth2\Command\CreateOAuthClientCommand
+	- App\OAuth2\Command\RotateOAuthClientSecretCommand
+	- App\OAuth2\Command\DisableOAuthClientCommand
+	- App\OAuth2\Command\GenerateOAuthKeysCommand
+	- App\OAuth2\Command\CleanupOAuthCommand
 
 	latte.latteFactory:
 		setup:

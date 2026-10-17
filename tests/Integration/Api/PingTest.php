@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Api;
 
 use Slim\Exception\HttpNotFoundException;
-use Slim\Exception\HttpUnauthorizedException;
 use Slim\Psr7\Factory\ServerRequestFactory;
 
 class PingTest extends ApiTestCase
@@ -14,7 +13,7 @@ class PingTest extends ApiTestCase
 	public function testPing(): void
 	{
 		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/ping')
-			->withHeader('X-Api-Key', 'test-api-key');
+			->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
 		$response = $this->app->handle($request);
 
 		$this->assertSame(200, $response->getStatusCode());
@@ -36,8 +35,7 @@ class PingTest extends ApiTestCase
 		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/ping')
 			->withHeader('X-Api-Key', 'invalid-api-key');
 
-		$this->expectException(HttpUnauthorizedException::class);
-		$this->app->handle($request);
+		self::assertSame(401, $this->app->handle($request)->getStatusCode());
 	}
 
 }

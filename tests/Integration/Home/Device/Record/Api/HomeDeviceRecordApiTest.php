@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Home\Device\Record\Api;
 
 use App\Admin\AppAdmin;
-use App\Admin\CurrentAppAdminGetter;
 use App\Doctrine\NoEntityFoundException;
 use App\Home\Device\HomeDevice;
 use App\Home\Device\HomeDeviceType;
@@ -40,15 +39,7 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 		$this->entityManager = $this->getService(EntityManagerInterface::class);
 		$suffix = Uuid::uuid4()->toString();
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
-		$this->appAdmin = new AppAdmin(
-			'Home API Admin',
-			'home-api-' . $suffix,
-			'home-api-' . $suffix . '@example.test',
-			'password',
-			$now,
-			false,
-			false,
-		);
+		$this->appAdmin = $this->legacyApiAdmin;
 		$home = new Home('Home API ' . $suffix, $now);
 		$this->device = new HomeDevice(
 			$home,
@@ -57,13 +48,9 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 			HomeDeviceType::TEMPERATURE,
 			$now,
 		);
-		$this->entityManager->persist($this->appAdmin);
 		$this->entityManager->persist($home);
 		$this->entityManager->persist($this->device);
 		$this->entityManager->flush();
-
-		$currentAppAdminGetter = $this->getService(CurrentAppAdminGetter::class);
-		$currentAppAdminGetter->setApiAppAdmin($this->appAdmin);
 	}
 
 	#[DataProvider('provideValues')]

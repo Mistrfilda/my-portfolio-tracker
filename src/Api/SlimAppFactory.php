@@ -13,6 +13,7 @@ use Slim\App;
 use Slim\Factory\AppFactory;
 use Slim\Middleware\ContentLengthMiddleware;
 use Slim\Middleware\ErrorMiddleware;
+use Slim\Psr7\Response;
 use const PHP_SAPI;
 
 class SlimAppFactory
@@ -70,12 +71,21 @@ class SlimAppFactory
 		$corsAllowedOrigins = $this->corsAllowedOrigins;
 		$app->add(
 			function (ServerRequestInterface $request, RequestHandlerInterface $handler) use ($corsAllowedOrigins): ResponseInterface {
-				$response = $handler->handle($request);
 				$origin = $request->getHeaderLine('Origin');
+				$corsAllowed = in_array($origin, $corsAllowedOrigins, true) && !str_ends_with(
+					$request->getUri()->getPath(),
+					'/api/oauth/authorize',
+				);
+				$response = $request->getMethod() === 'OPTIONS' && $corsAllowed
+					? new Response(204)
+					: $handler->handle(
+						$request,
+					);
 
-				if (in_array($origin, $corsAllowedOrigins, true)) {
+				if ($corsAllowed) {
 					return $response
 						->withHeader('Access-Control-Allow-Origin', $origin)
+						->withAddedHeader('Vary', 'Origin')
 						->withHeader(
 							'Access-Control-Allow-Headers',
 							'X-Requested-With, Content-Type, Accept, Origin, Authorization',

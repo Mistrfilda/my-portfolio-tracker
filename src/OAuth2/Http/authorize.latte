@@ -1,0 +1,26 @@
+{templateType App\OAuth2\Http\AuthorizationPage}
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Povolení přístupu — My Portfolio Tracker</title>
+</head>
+<body>
+<main>
+	<h1>Povolit přístup aplikaci {$clientName}</h1>
+	<p>Přihlaste se účtem My Portfolio Tracker a potvrďte požadovaná oprávnění.</p>
+	<ul>
+		<li n:foreach="$scopeLabels as $label">{$label}</li>
+	</ul>
+	<p n:if="$error !== null" role="alert">{$error}</p>
+	<form method="post" action="{$action}">
+		<input type="hidden" name="transaction" value="{$transaction}">
+		<p><label for="username">Uživatelské jméno</label><br><input id="username" name="username" autocomplete="username" required maxlength="255"></p>
+		<p><label for="password">Heslo</label><br><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="4096"></p>
+		<button type="submit" name="decision" value="approve">Přihlásit se a povolit přístup</button>
+		<button type="submit" name="decision" value="deny" formnovalidate>Zamítnout</button>
+	</form>
+</main>
+</body>
+</html>

@@ -14,7 +14,7 @@ class StockAssetListTest extends ApiTestCase
 	public function testList(): void
 	{
 		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/stocks')
-			->withHeader('X-Api-Key', 'test-api-key');
+			->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
 		$response = $this->app->handle($request);
 
 		$this->assertSame(200, $response->getStatusCode());
@@ -39,7 +39,7 @@ class StockAssetListTest extends ApiTestCase
 		$request = (new ServerRequestFactory())->createServerRequest(
 			'GET',
 			'/api/v1/stocks/00000000-0000-0000-0000-000000000000',
-		)->withHeader('X-Api-Key', 'test-api-key');
+		)->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
 		$response = $this->app->handle($request);
 
 		$this->assertSame(404, $response->getStatusCode());
