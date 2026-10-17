@@ -7,9 +7,20 @@ Use this reference for server provisioning, client registration, and application
 When setting up OAuth in the requested environment:
 
 1. Install Composer dependencies and apply the OAuth migration through the project's normal deployment process.
-2. Run `bin/console oauth:keys:generate` once. It creates a signing key pair and a separate encryption key in `var/oauth` and refuses to overwrite existing keys.
+2. Run `bin/console oauth:keys:generate` once as the PHP worker's OS user, with permission to create `resources/oauth`. It creates a signing key pair and a separate encryption key and refuses to overwrite existing keys. Clients can be registered before this step; keys are needed when issuing tokens or rendering authorization.
 3. Keep that directory persistent across deployments and shared by application instances; back it up securely. Key files have mode `0600`. The public configuration parameter is `api.oauth.keysDirectory` in `config/config.neon`.
 4. Configure daily execution of `bin/console oauth:cleanup`. It retains consumed code/refresh records until their authorization family expires.
+
+In the project's Docker image, the application root is `/var`, the default key directory is `/var/resources/oauth`, and PHP workers run as `www-data`. Infrastructure is maintained in the sibling `kubedev` repository: `volumes/my-portfolio-tracker-oauth-pvc.yaml` defines `my-pt-oauth-pvc`, and `deployment/my-portfolio-tracker-php-deployment.yaml` mounts it at `/var/resources/oauth`. Its init container sets ownership and directory mode on every pod start without generating or replacing keys. Deploy an application image containing this path together with those manifests. After the first rollout, provision an empty volume with:
+
+```sh
+kubectl -n default exec deployment/php-deployment -c php-container -- \
+	su -s /bin/sh www-data -c 'cd /var && bin/console oauth:keys:generate'
+```
+
+Keep key files at `0600` and their directory at `0700`. If keys were generated as root, repair ownership with `chown -R www-data:www-data /var/resources/oauth`. PHP workers also need access through every parent directory; generation creates missing parents with mode `0700` too. An inaccessible parent directory causes HTTP 503 `OAuth is not configured.`; regenerating keys or clients does not fix it.
+
+For existing installations using the previous `var/oauth` default, move the existing key files securely to `resources/oauth` while preserving their contents and permissions, or retain the old path through `api.oauth.keysDirectory`. In Kubernetes, restore existing keys onto the PVC before serving OAuth traffic. Never replace surviving keys during this migration: replacement invalidates issued tokens and pending grants. The new directory is excluded from Git and the Docker build context. Keep a separate secure backup; the MicroK8s hostpath volume is node-local, and deleting its PVC can delete its data.
 
 Both HTTP and HTTPS are accepted. Existing sensors do not require OAuth keys to be initialized. Keep credentials, authorization headers, codes, and token responses out of application and proxy logs; preserve the corresponding Tracy redaction settings.
 

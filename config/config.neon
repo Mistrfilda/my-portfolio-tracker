@@ -96,7 +96,7 @@ parameters:
 		corsAllowedOrigins: []
 		apiKeys: []
 		oauth:
-			keysDirectory: %appDir%/../var/oauth
+			keysDirectory: %appDir%/../resources/oauth
 
 application:
 	errorPresenter: Error:Error

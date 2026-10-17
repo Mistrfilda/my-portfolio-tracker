@@ -22,6 +22,7 @@ OAuth lives in `src/OAuth2/`, uses `league/oauth2-server`, and persists protocol
 - Native mobile/desktop applications are public clients without a secret. Client credentials represent a confidential application, have no user identity, and receive no refresh token.
 - API authentication never falls back to a Nette session. Browser authorization verifies the account password directly without `Nette\Security\User::login()`. Preserve the existing web administration's separate login behavior.
 - Keep the ten-minute, single-use authorization transaction bound to its HttpOnly, SameSite=Strict CSRF cookie. Preserve Origin/cross-site checks, framing protection, stored client/scope/redirect parameters, and HTTP 303 callbacks. Each authorization requires credentials and consent; persistent browser SSO is not implemented.
+- Authorization HTML uses `Referrer-Policy: same-origin` so browser form submissions retain their Origin; redirects and JSON errors use `no-referrer`. Keep rejecting `Origin: null` and cross-site submissions.
 - HTTP and HTTPS are supported, including HTTP on the local network. Mark the CSRF cookie `Secure` only for HTTPS requests.
 - Accept `X-Api-Key` only on `POST /api/v1/home/device/record` and `GET /api/v1/home/device/records`, preserving sensor payloads and configured user identity. Both operations also accept their respective OAuth home scopes. New routes require OAuth unless explicitly requested otherwise.
 - Reject simultaneous Bearer and API-key authentication; an invalid Bearer token must not fall back to an API key.

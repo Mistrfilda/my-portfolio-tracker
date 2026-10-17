@@ -378,19 +378,26 @@ class OAuthFlowTest extends ApiTestCase
 		self::assertStringContainsString('Secure', $page->getHeaderLine('Set-Cookie'));
 		self::assertCount(1, $page->getHeader('Set-Cookie'));
 		self::assertStringContainsString("frame-ancestors 'none'", $page->getHeaderLine('Content-Security-Policy'));
+		self::assertSame('same-origin', $page->getHeaderLine('Referrer-Policy'));
 		$request = $this->request(
 			'POST',
 			'/api/oauth/authorize',
 			['transaction' => $transaction, 'decision' => 'deny'],
-		);
+		)->withHeader('Origin', $this->baseUrl);
 		self::assertSame(403, $this->app->handle($request)->getStatusCode());
 		$request = $request->withCookieParams(['oauth_authorization' => $cookie]);
 		self::assertSame(
 			403,
 			$this->app->handle($request->withHeader('Origin', 'https://attacker.example'))->getStatusCode(),
 		);
+		self::assertSame(403, $this->app->handle($request->withHeader('Origin', 'null'))->getStatusCode());
+		self::assertSame(
+			403,
+			$this->app->handle($request->withHeader('Sec-Fetch-Site', 'cross-site'))->getStatusCode(),
+		);
 		$denied = $this->app->handle($request);
 		self::assertSame(303, $denied->getStatusCode());
+		self::assertSame('no-referrer', $denied->getHeaderLine('Referrer-Policy'));
 		self::assertStringContainsString('error=access_denied', $denied->getHeaderLine('Location'));
 		self::assertStringContainsString('state=expected-state', $denied->getHeaderLine('Location'));
 		self::assertSame(400, $this->app->handle($request)->getStatusCode());
@@ -413,6 +420,7 @@ class OAuthFlowTest extends ApiTestCase
 			])->withCookieParams(['oauth_authorization' => $cookie]);
 			$response = $this->app->handle($request);
 			self::assertSame(401, $response->getStatusCode());
+			self::assertSame('same-origin', $response->getHeaderLine('Referrer-Policy'));
 			self::assertFalse($response->hasHeader('Location'));
 		}
 	}
@@ -578,6 +586,7 @@ class OAuthFlowTest extends ApiTestCase
 		$verifier = bin2hex(random_bytes(32));
 		[, , $page] = $this->authorizationForm($client, $verifier);
 		self::assertStringNotContainsString('; Secure', $page->getHeaderLine('Set-Cookie'));
+		self::assertSame('same-origin', $page->getHeaderLine('Referrer-Policy'));
 		[$code] = $this->code($client, $verifier);
 		$exchange = $this->exchange($client, $code, $verifier);
 		self::assertSame(200, $exchange->getStatusCode());
@@ -655,8 +664,9 @@ class OAuthFlowTest extends ApiTestCase
 		$user = $this->user();
 		$response = $this->app->handle($this->request('POST', '/api/oauth/authorize', [
 			'transaction' => $transaction, 'decision' => 'approve', 'username' => $user->getUsername(), 'password' => self::PASSWORD,
-		])->withCookieParams(['oauth_authorization' => $cookie]));
+		])->withCookieParams(['oauth_authorization' => $cookie])->withHeader('Origin', $this->baseUrl));
 		self::assertSame(303, $response->getStatusCode());
+		self::assertSame('no-referrer', $response->getHeaderLine('Referrer-Policy'));
 		parse_str(
 			TypeValidator::validateString(parse_url($response->getHeaderLine('Location'), PHP_URL_QUERY)),
 			$query,

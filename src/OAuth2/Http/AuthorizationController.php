@@ -167,9 +167,11 @@ class AuthorizationController
 			$cookie .= '; Secure';
 		}
 
+		// no-referrer would send Origin: null on the browser's same-origin form POST.
 		return $this->secure(
 			$response->withHeader('Content-Type', 'text/html; charset=utf-8')->withHeader('Set-Cookie', $cookie),
-		);
+		)
+			->withHeader('Referrer-Policy', 'same-origin');
 	}
 
 	private function checkOrigin(ServerRequestInterface $request): void

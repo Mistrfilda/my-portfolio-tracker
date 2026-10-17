@@ -96,6 +96,48 @@ The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintena
 - Structural checks for `AGENTS.md`, skills and their reference links, and Codex TOML syntax: `composer agent-docs`. This does not assess instruction quality or validate every Codex setting against its runtime schema.
 - Full project verification: `composer build-all`
 
+### OAuth client registration
+
+Run these commands from the project root in the environment where the client should be registered. The OAuth database migration must already be applied.
+
+Create a server integration using Client Credentials:
+
+```bash
+bin/console oauth:client:create "Reporting service" --scope=api:read
+```
+
+The command generates a `client_id` and a `client_secret`. Save the secret when it is displayed: only its hash is stored, so it cannot be retrieved later. Add `--json` for machine-readable output.
+
+Create public clients for mobile and desktop applications:
+
+```bash
+bin/console oauth:client:create "Portfolio mobile" --public \
+	--redirect-uri=com.example.portfolio:/oauth/callback --scope=api:read
+
+bin/console oauth:client:create "Portfolio desktop" --public \
+	--redirect-uri=http://127.0.0.1:8000/oauth/callback --scope=api:read
+```
+
+Public clients receive a `client_id` without a secret and use Authorization Code with S256 PKCE. Replace the example callback with the application's actual redirect URI. Repeat `--redirect-uri` or `--scope` for multiple values; the default scope is `api:read`, with `home:read` and `home:write` also available.
+
+To replace a server client's secret or disable a client:
+
+```bash
+bin/console oauth:client:rotate-secret CLIENT_ID
+bin/console oauth:client:disable CLIENT_ID
+```
+
+Both operations revoke the client's existing tokens. Before issuing tokens in a newly configured environment, generate the server keys once with `bin/console oauth:keys:generate`; these keys are shared by all clients and are not regenerated for each registration. See the [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) for the complete integration flow.
+
+Keys are stored in `resources/oauth` (`/var/resources/oauth` in Docker), excluded from Git and the Docker build context. Kubernetes manifests in the `kubedev` repository mount the `my-pt-oauth-pvc` volume there and initialize its ownership for `www-data`. Deploy an application image containing this path change together with the updated manifests, then generate keys once as the PHP worker's OS user:
+
+```bash
+kubectl -n default exec deployment/php-deployment -c php-container -- \
+	su -s /bin/sh www-data -c 'cd /var && bin/console oauth:keys:generate'
+```
+
+Keep existing keys when migrating from `var/oauth`; do not regenerate them on every deployment. See the [server provisioning instructions](.agents/skills/oauth2-server/references/client-setup.md#server-provisioning) for migration, permissions, and backup requirements.
+
 ### Browser smoke tests
 
 Browser smoke tests use Playwright Test and are stored in `tests/Browser`. They are read-only checks against an already running local application; the test command does not start PHP, Docker, or the database.
