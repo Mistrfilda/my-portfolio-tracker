@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Statistic\Total\XirrCalculator;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
@@ -13,6 +14,7 @@ class PortfolioPerformanceCalculator
 	private const float ROUNDING_TOLERANCE = 1.0;
 
 	public function calculateMonth(
+		AppAdmin $appAdmin,
 		ImmutableDateTime $periodStartAt,
 		ImmutableDateTime $periodEndAt,
 		float $investedAtStart,
@@ -54,6 +56,7 @@ class PortfolioPerformanceCalculator
 		) / $denominator;
 
 		return new PortfolioPerformanceMonth(
+			$appAdmin,
 			new ImmutableDateTime($periodEndAt->format('Y-m-01')),
 			$periodStartAt,
 			$periodEndAt,

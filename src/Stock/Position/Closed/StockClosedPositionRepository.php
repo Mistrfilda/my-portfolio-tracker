@@ -38,6 +38,12 @@ class StockClosedPositionRepository extends BaseRepository
 		}
 	}
 
+	/** @return array<StockClosedPosition> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
 	/**
 	 * @return array<StockClosedPosition>
 	 */

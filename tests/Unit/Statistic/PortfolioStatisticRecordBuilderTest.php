@@ -41,6 +41,7 @@ class PortfolioStatisticRecordBuilderTest extends TestCase
 		$dashboardValueGroupEnumTest = DashboardValueGroupEnum::TOTAL_VALUES;
 		$svgIconEnumTest = SvgIcon::PENCIL;
 		$portfolioStatisticRecord = Mockery::mock(PortfolioStatisticRecord::class);
+		$portfolioStatisticRecord->shouldReceive('addPortfolioStatistic')->once();
 
 		$portfolioStatistic = new PortfolioStatistic(
 			$portfolioStatisticRecord,

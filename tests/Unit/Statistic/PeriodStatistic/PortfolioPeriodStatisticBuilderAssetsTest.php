@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
 use App\Admin\AppAdmin;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\SummaryPrice;
 use App\Crypto\Asset\CryptoAsset;
@@ -49,6 +48,15 @@ use Ramsey\Uuid\Uuid;
 class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 {
 
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
+
 	public function testBuildCalculatesStockBoundariesCashFlowsAndDividends(): void
 	{
 		$start = new ImmutableDateTime('2026-01-02 10:00:00');
@@ -63,6 +71,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		$stockAsset->method('getDividendTax')->willReturn(20.0);
 
 		$openPosition = $this->createStub(StockPosition::class);
+		$openPosition->method('getAppAdmin')->willReturn($this->appAdmin);
 		$openPosition->method('getOrderDate')->willReturn($start);
 		$openPosition->method('getOrderPiecesCount')->willReturn(2);
 		$openPosition->method('getStockClosedPosition')->willReturn(null);
@@ -71,6 +80,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		);
 
 		$closedPosition = $this->createStub(StockPosition::class);
+		$closedPosition->method('getAppAdmin')->willReturn($this->appAdmin);
 		$closedPosition->method('getOrderDate')->willReturn(new ImmutableDateTime('2025-12-01'));
 		$closedPosition->method('getOrderPiecesCount')->willReturn(1);
 		$closed = $this->createStub(StockClosedPosition::class);
@@ -81,10 +91,12 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		$closedPosition->method('getStockClosedPosition')->willReturn($closed);
 
 		$futurePosition = $this->createStub(StockPosition::class);
+		$futurePosition->method('getAppAdmin')->willReturn($this->appAdmin);
 		$futurePosition->method('getOrderDate')->willReturn(new ImmutableDateTime('2026-02-01'));
 		$futurePosition->method('getStockClosedPosition')->willReturn(null);
 
 		$oldPosition = $this->createStub(StockPosition::class);
+		$oldPosition->method('getAppAdmin')->willReturn($this->appAdmin);
 		$oldPosition->method('getOrderDate')->willReturn(new ImmutableDateTime('2025-01-01'));
 		$oldClosed = $this->createStub(StockClosedPosition::class);
 		$oldClosed->method('getDate')->willReturn(new ImmutableDateTime('2025-12-31'));
@@ -97,7 +109,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 			$oldPosition,
 		]);
 		$stockAssetRepository = $this->createStub(StockAssetRepository::class);
-		$stockAssetRepository->method('findAll')->willReturn([$stockAsset]);
+		$stockAssetRepository->method('findWithPositionsForAppAdmin')->willReturn([$stockAsset]);
 
 		$startPriceRecord = new StockAssetPriceRecord(
 			$start,
@@ -204,6 +216,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		$cryptoAsset->method('getTicker')->willReturn('BTC');
 		$cryptoAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
 		$position = $this->createStub(CryptoPosition::class);
+		$position->method('getAppAdmin')->willReturn($this->appAdmin);
 		$position->method('getOrderDate')->willReturn($start);
 		$position->method('getOrderPiecesCount')->willReturn(0.5);
 		$position->method('getCryptoClosedPosition')->willReturn(null);
@@ -212,7 +225,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		);
 		$cryptoAsset->method('getPositions')->willReturn([$position]);
 		$cryptoAssetRepository = $this->createStub(CryptoAssetRepository::class);
-		$cryptoAssetRepository->method('findAll')->willReturn([$cryptoAsset]);
+		$cryptoAssetRepository->method('findWithPositionsForAppAdmin')->willReturn([$cryptoAsset]);
 
 		$endPriceRecord = new CryptoAssetPriceRecord(
 			$end,
@@ -265,12 +278,14 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		$portuAsset->method('getName')->willReturn('Portu strategy');
 		$portuAsset->method('getCurrency')->willReturn(CurrencyEnum::CZK);
 		$position = $this->createStub(PortuPosition::class);
+		$position->method('getAppAdmin')->willReturn($this->appAdmin);
 		$position->method('getOrderDate')->willReturn(new ImmutableDateTime('2025-12-01'));
 		$futurePosition = $this->createStub(PortuPosition::class);
+		$futurePosition->method('getAppAdmin')->willReturn($this->appAdmin);
 		$futurePosition->method('getOrderDate')->willReturn(new ImmutableDateTime('2026-02-01'));
 		$portuAsset->method('getPositions')->willReturn([$position, $futurePosition]);
 		$portuAssetRepository = $this->createStub(PortuAssetRepository::class);
-		$portuAssetRepository->method('findAll')->willReturn([$portuAsset]);
+		$portuAssetRepository->method('findAllForAppAdmin')->willReturn([$portuAsset]);
 
 		$startRecord = $this->createStub(PortuAssetPriceRecord::class);
 		$startRecord->method('getDate')->willReturn($start);
@@ -420,7 +435,6 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 			$stockAssetPriceRecordRepository ?? $this->createStub(StockAssetPriceRecordRepository::class),
 			$cryptoAssetPriceRecordRepository ?? $this->createStub(CryptoAssetPriceRecordRepository::class),
 			$portuAssetPriceRecordRepository ?? $this->createStub(PortuAssetPriceRecordRepository::class),
-			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 
@@ -443,7 +457,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		float $value,
 	): PortfolioStatisticRecord
 	{
-		$record = new PortfolioStatisticRecord($now);
+		$record = new PortfolioStatisticRecord($this->appAdmin, $now);
 		$this->addStatistic($record, $now, PortolioStatisticType::TOTAL_INVESTED_IN_CZK, $invested);
 		$this->addStatistic($record, $now, PortolioStatisticType::TOTAL_VALUE_IN_CZK, $value);
 
@@ -457,7 +471,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 		float $value,
 	): void
 	{
-		$record->getPortfolioStatistics()->add(new PortfolioStatistic(
+		$record->addPortfolioStatistic(new PortfolioStatistic(
 			$record,
 			$now,
 			DashboardValueGroupEnum::TOTAL_VALUES,
@@ -475,6 +489,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 	private function createReport(): PortfolioPeriodStatistic
 	{
 		return new PortfolioPeriodStatistic(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01 00:00:00'),
 			new ImmutableDateTime('2026-01-31 23:59:59'),
 			new ImmutableDateTime('2026-02-01 12:00:00'),

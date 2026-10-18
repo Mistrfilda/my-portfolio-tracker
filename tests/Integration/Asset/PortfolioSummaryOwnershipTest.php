@@ -23,6 +23,7 @@ use App\Dashboard\DashboardValueBuilderFacade;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\JobRequest\JobRequestFacade;
 use App\Portu\Position\PortuPositionFacade;
+use App\Statistic\PortolioStatisticType;
 use App\Statistic\UI\Chart\PortfolioTotalValueChartProvider;
 use App\Statistic\UI\Chart\PortfolioTotalValueLastMonthChartProvider;
 use App\Statistic\UI\Chart\StockDividendByCompanyAndMonthChartDataProvider;
@@ -304,7 +305,9 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 			PortfolioTotalValueChartProvider::class,
 			PortfolioTotalValueLastMonthChartProvider::class,
 		] as $provider) {
-			self::assertSame([], $this->getService($provider)->getChartData()->jsonSerialize()['datasets']);
+			$chartProvider = $this->getService($provider);
+			$chartProvider->addType(PortolioStatisticType::TOTAL_VALUE_IN_CZK);
+			self::assertSame([], $chartProvider->getChartData()->jsonSerialize()['datasets'][0]['data']);
 		}
 
 		foreach ([
@@ -387,6 +390,9 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 	#[TestWith(['CryptoAssetPositionDetail', 'default', 'crypto'])]
 	#[TestWith(['CryptoAssetClosedPositionDetail', 'default', 'crypto'])]
 	#[TestWith(['Dashboard', 'default', 'stock'])]
+	#[TestWith(['PortfolioStatisticRecord', 'default', 'stock'])]
+	#[TestWith(['PortfolioStatisticTotal', 'default', 'stock'])]
+	#[TestWith(['PortfolioPeriodStatistic', 'default', 'stock'])]
 	#[TestWith(['PortfolioGoal', 'default', 'stock'])]
 	#[TestWith(['StockAiAnalysis', 'default', 'stock'])]
 	#[TestWith(['StockAiInvestmentPlan', 'default', 'stock'])]
@@ -421,23 +427,6 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		$this->currentAdmin->setApiAppAdmin($this->fixture->admins[1]);
 		$this->expectException(BadRequestException::class);
 		$this->presenter($name)->run(new Request('Admin:' . $name, 'GET', ['action' => 'default']));
-	}
-
-	#[TestWith(['Dashboard', 'portfolioStatisticTotalControl'])]
-	public function testLegacyWidgetsCannotBeRequestedDirectly(string $name, string $component): void
-	{
-		$this->currentAdmin->setApiAppAdmin($this->fixture->admins[1]);
-		$presenter = $this->presenter($name);
-		$presenter->run(
-			new Request(
-				'Admin:' . $name,
-				'GET',
-				['action' => $name === 'Dashboard' ? 'default' : 'detail', 'id' => $this->fixture->stock->getId()->toString()],
-			),
-		);
-		$this->expectException(BadRequestException::class);
-		$this->expectExceptionCode(404);
-		$presenter->getComponent($component);
 	}
 
 	private function presenter(string $name): BaseAdminPresenter

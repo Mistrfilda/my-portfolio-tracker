@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\Identifier;
@@ -14,13 +15,17 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
 #[ORM\Entity]
 #[ORM\Table('portfolio_performance_month')]
-#[ORM\UniqueConstraint(name: 'portfolio_performance_month_unidx', fields: ['periodMonth'])]
+#[ORM\UniqueConstraint(name: 'portfolio_performance_owner_month_unidx', fields: ['appAdmin', 'periodMonth'])]
 class PortfolioPerformanceMonth implements Entity
 {
 
 	use Identifier;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::DATE_IMMUTABLE)]
 	private ImmutableDateTime $periodMonth;
@@ -62,6 +67,7 @@ class PortfolioPerformanceMonth implements Entity
 	private float $returnFactor;
 
 	public function __construct(
+		AppAdmin $appAdmin,
 		ImmutableDateTime $periodMonth,
 		ImmutableDateTime $periodStartAt,
 		ImmutableDateTime $periodEndAt,
@@ -78,6 +84,7 @@ class PortfolioPerformanceMonth implements Entity
 		ImmutableDateTime $now,
 	)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->periodMonth = $periodMonth;
 		$this->periodStartAt = $periodStartAt;
 		$this->periodEndAt = $periodEndAt;
@@ -93,6 +100,11 @@ class PortfolioPerformanceMonth implements Entity
 		$this->returnFactor = $returnFactor;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function getPeriodMonth(): ImmutableDateTime

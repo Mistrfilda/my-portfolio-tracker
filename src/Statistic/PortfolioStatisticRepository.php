@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\OrderBy;
 use Doctrine\ORM\QueryBuilder;
@@ -15,18 +16,24 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class PortfolioStatisticRepository extends BaseRepository
 {
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('portfolioStatistic');
+		$qb = $this->doctrineRepository->createQueryBuilder('portfolioStatistic');
+		$qb->innerJoin('portfolioStatistic.portfolioStatisticRecord', 'record');
+		$this->addAppAdminToQueryBuilder($qb, 'record', $appAdmin ?? $this->currentAppAdminGetter->getAppAdmin());
+		return $qb;
 	}
 
 	/**
 	 * @return array<PortfolioStatistic>
 	 */
-	public function getPortfolioTotalValueForType(PortolioStatisticType $type, int $currentDay): array
+	public function getPortfolioTotalValueForType(
+		PortolioStatisticType $type,
+		int $currentDay,
+		AppAdmin|null $appAdmin = null,
+	): array
 	{
-		$qb = $this->createQueryBuilder();
-		$qb->innerJoin('portfolioStatistic.portfolioStatisticRecord', 'record');
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->in('DAY(record.createdAt)', ':days'),
 		);
@@ -45,10 +52,10 @@ class PortfolioStatisticRepository extends BaseRepository
 	public function getPortfolioTotalValueForTypeForGreaterDate(
 		PortolioStatisticType $type,
 		ImmutableDateTime $date,
+		AppAdmin|null $appAdmin = null,
 	): array
 	{
-		$qb = $this->createQueryBuilder();
-		$qb->innerJoin('portfolioStatistic.portfolioStatisticRecord', 'record');
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->gte('record.createdAt', ':date'),
 		);

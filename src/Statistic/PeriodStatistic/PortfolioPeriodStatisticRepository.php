@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -22,7 +23,20 @@ class PortfolioPeriodStatisticRepository extends BaseRepository
 		LockModeEnum|null $lockMode = null,
 	): PortfolioPeriodStatistic
 	{
-		$qb = $this->createQueryBuilder();
+		return $this->loadById($id, $this->createQueryBuilder(), $lockMode);
+	}
+
+	public function getByIdForProcessing(UuidInterface $id): PortfolioPeriodStatistic
+	{
+		return $this->loadById($id, $this->doctrineRepository->createQueryBuilder('portfolioPeriodStatistic'));
+	}
+
+	private function loadById(
+		UuidInterface $id,
+		QueryBuilder $qb,
+		LockModeEnum|null $lockMode = null,
+	): PortfolioPeriodStatistic
+	{
 		$qb->andWhere($qb->expr()->eq('portfolioPeriodStatistic.id', ':id'));
 		$qb->setParameter('id', $id);
 
@@ -40,9 +54,15 @@ class PortfolioPeriodStatisticRepository extends BaseRepository
 		}
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('portfolioPeriodStatistic');
+		$qb = $this->doctrineRepository->createQueryBuilder('portfolioPeriodStatistic');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'portfolioPeriodStatistic',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb;
 	}
 
 }

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -17,6 +18,7 @@ class PortfolioStatisticSaveCommand extends Command
 	public function __construct(
 		private readonly PortfolioStatisticFacade $portfolioStatisticFacade,
 		private readonly PortfolioPerformanceRebuildFacade $portfolioPerformanceRebuildFacade,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 		parent::__construct();
@@ -31,8 +33,9 @@ class PortfolioStatisticSaveCommand extends Command
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$output->writeln('Saving current porfolio statistics');
-		$record = $this->portfolioStatisticFacade->saveCurrentDashboardValues(false);
-		$months = $this->portfolioPerformanceRebuildFacade->rebuild();
+		$appAdmin = $this->legacyOwnerProvider->getOwner();
+		$record = $this->portfolioStatisticFacade->saveCurrentDashboardValues($appAdmin, false);
+		$months = $this->portfolioPerformanceRebuildFacade->rebuild($appAdmin);
 		$this->portfolioStatisticFacade->appendPortfolioPerformanceValues($record);
 		$output->writeln(sprintf('Rebuilt %d portfolio performance months', $months));
 		$output->writeln('Saving of current porfolio statistics finished');

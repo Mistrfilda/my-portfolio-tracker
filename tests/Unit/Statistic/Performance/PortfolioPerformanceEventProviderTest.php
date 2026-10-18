@@ -4,7 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Asset;
 use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
@@ -21,9 +22,23 @@ use App\Stock\Position\Closed\StockClosedPosition;
 use App\Stock\Position\Closed\StockClosedPositionRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPerformanceEventProviderTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	private CurrentAppAdminGetter $currentAppAdminGetter;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+		$this->currentAppAdminGetter = $this->createStub(CurrentAppAdminGetter::class);
+		$this->currentAppAdminGetter->method('getAppAdmin')->willReturn($this->appAdmin);
+	}
 
 	public function testIncomeUsesStartExclusiveAndEndInclusiveBoundariesAndCachesEvents(): void
 	{
@@ -55,11 +70,11 @@ class PortfolioPerformanceEventProviderTest extends TestCase
 
 		$stockClosedPositionRepository = $this->createMock(StockClosedPositionRepository::class);
 		$stockClosedPositionRepository->expects(self::once())
-			->method('findAll')
+			->method('findAllForAppAdmin')
 			->willReturn([$stockClosedPosition]);
 		$cryptoClosedPositionRepository = $this->createMock(CryptoClosedPositionRepository::class);
 		$cryptoClosedPositionRepository->expects(self::once())
-			->method('findAll')
+			->method('findAllForAppAdmin')
 			->willReturn([$cryptoClosedPosition]);
 
 		$dividendDate = new ImmutableDateTime('2026-01-15 12:00:00');
@@ -98,7 +113,7 @@ class PortfolioPerformanceEventProviderTest extends TestCase
 			$cryptoClosedPositionRepository,
 			$dividendRecordRepository,
 			$currencyConversionFacade,
-			$this->createStub(LegacyPortfolioOwnerProvider::class),
+			$this->currentAppAdminGetter,
 		);
 
 		$income = $provider->getIncomeBetween($start, $end);

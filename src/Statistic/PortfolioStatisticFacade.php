@@ -4,9 +4,10 @@ declare(strict_types = 1);
 
 namespace App\Statistic;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Dashboard\DashboardValueGroupEnum;
+use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
@@ -20,16 +21,19 @@ class PortfolioStatisticFacade
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
+		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 	)
 	{
 	}
 
-	public function saveCurrentDashboardValues(bool $includePortfolioPerformance = true): PortfolioStatisticRecord
+	public function saveCurrentDashboardValues(
+		AppAdmin $appAdmin,
+		bool $includePortfolioPerformance = true,
+	): PortfolioStatisticRecord
 	{
 		$dashboardValues = $this->dashboardValueBuilder->buildValues(
 			$includePortfolioPerformance,
-			$this->legacyOwnerProvider->getOwner(),
+			$appAdmin,
 		);
 		$this->logger->info('Saving current dashboard values');
 
@@ -37,6 +41,7 @@ class PortfolioStatisticFacade
 
 		try {
 			$portfolioStatisticRecord = new PortfolioStatisticRecord(
+				$appAdmin,
 				$this->datetimeFactory->createNow(),
 			);
 
@@ -88,6 +93,7 @@ class PortfolioStatisticFacade
 			throw $e;
 		}
 
+		$this->portfolioStatisticTotalValueProvider->invalidateCache($appAdmin);
 		$this->logger->info('Saving of current dashboard values finished successfully');
 		return $portfolioStatisticRecord;
 	}
@@ -95,7 +101,9 @@ class PortfolioStatisticFacade
 	public function appendPortfolioPerformanceValues(PortfolioStatisticRecord $record): void
 	{
 		$now = $this->datetimeFactory->createNow();
-		foreach ($this->dashboardValueBuilder->buildPortfolioPerformanceValues() as $dashboardValue) {
+		foreach ($this->dashboardValueBuilder->buildPortfolioPerformanceValues(
+			$record->getAppAdmin(),
+		) as $dashboardValue) {
 			$this->entityManager->persist(
 				new PortfolioStatistic(
 					$record,

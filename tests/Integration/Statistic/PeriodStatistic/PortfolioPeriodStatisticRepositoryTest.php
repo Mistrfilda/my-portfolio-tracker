@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Doctrine\NoEntityFoundException;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetSectionDTO;
@@ -23,6 +25,8 @@ use Ramsey\Uuid\Uuid;
 class PortfolioPeriodStatisticRepositoryTest extends IntegrationTestCase
 {
 
+	private AppAdmin $appAdmin;
+
 	private PortfolioPeriodStatisticRepository $repository;
 
 	private EntityManagerInterface $entityManager;
@@ -30,6 +34,20 @@ class PortfolioPeriodStatisticRepositoryTest extends IntegrationTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$em = $this->getService(EntityManagerInterface::class);
+		$name = 'statistic-' . Uuid::uuid4()->toString();
+		$this->appAdmin = new AppAdmin(
+			$name,
+			$name,
+			$name . '@example.test',
+			'unused',
+			new ImmutableDateTime('2026-01-01'),
+			false,
+			false,
+		);
+		$em->persist($this->appAdmin);
+		$em->flush();
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($this->appAdmin);
 
 		$this->repository = $this->getService(PortfolioPeriodStatisticRepository::class);
 		$this->entityManager = $this->getService(EntityManagerInterface::class);
@@ -38,6 +56,7 @@ class PortfolioPeriodStatisticRepositoryTest extends IntegrationTestCase
 	public function testPersistsAndHydratesCompletedTypedSections(): void
 	{
 		$report = new PortfolioPeriodStatistic(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-06-01 00:00:00'),
 			new ImmutableDateTime('2026-06-30 23:59:59'),
 			new ImmutableDateTime('2026-07-01 08:00:00'),

@@ -6,7 +6,6 @@ namespace App\Test\Unit\Dashboard;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -103,7 +102,6 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->linkGenerator,
 			$this->datetimeFactory,
 			$this->createStub(CurrentAppAdminGetter::class),
-			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 

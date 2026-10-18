@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\PeriodStatistic;
 
+use App\Admin\CurrentAppAdminGetter;
 use App\JobRequest\JobRequestFacade;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -25,6 +26,7 @@ class PortfolioPeriodStatisticFacade
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
 		private LoggerInterface $logger,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -39,7 +41,7 @@ class PortfolioPeriodStatisticFacade
 		$this->validateRange($startAt, $endAt);
 
 		$now = $this->datetimeFactory->createNow();
-		$report = new PortfolioPeriodStatistic($startAt, $endAt, $now);
+		$report = new PortfolioPeriodStatistic($this->currentAppAdminGetter->getAppAdmin(), $startAt, $endAt, $now);
 		$this->entityManager->persist($report);
 		$this->entityManager->flush();
 
@@ -82,7 +84,7 @@ class PortfolioPeriodStatisticFacade
 
 	public function process(string $id): void
 	{
-		$report = $this->get($id);
+		$report = $this->portfolioPeriodStatisticRepository->getByIdForProcessing(Uuid::fromString($id));
 		if ($report->isCompleted() || $report->isProcessing()) {
 			return;
 		}

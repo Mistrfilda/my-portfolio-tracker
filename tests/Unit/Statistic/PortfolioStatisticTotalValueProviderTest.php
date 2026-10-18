@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\Performance\PortfolioPerformanceSummary;
@@ -20,9 +22,23 @@ use Nette\Caching\Storages\FileStorage;
 use Nette\Caching\Storages\MemoryStorage;
 use Nette\Utils\FileSystem;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioStatisticTotalValueProviderTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	private CurrentAppAdminGetter $currentAppAdminGetter;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+		$this->currentAppAdminGetter = $this->createStub(CurrentAppAdminGetter::class);
+		$this->currentAppAdminGetter->method('getAppAdmin')->willReturn($this->appAdmin);
+	}
 
 	public function testBuildsAllTimeValueFromDailySnapshots(): void
 	{
@@ -52,12 +68,14 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 				$repository,
 				$performanceProvider,
 				new FileStorage($directory),
+				$this->currentAppAdminGetter,
 			))
 				->getAllTimeValue();
 			$cachedValue = (new PortfolioStatisticTotalValueProvider(
 				$repository,
 				$performanceProvider,
 				new FileStorage($directory),
+				$this->currentAppAdminGetter,
 			))
 				->getAllTimeValue();
 		} finally {
@@ -85,10 +103,20 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 		$storage = new MemoryStorage();
 
 		self::assertNull(
-			(new PortfolioStatisticTotalValueProvider($repository, $performanceProvider, $storage))->getAllTimeValue(),
+			(new PortfolioStatisticTotalValueProvider(
+				$repository,
+				$performanceProvider,
+				$storage,
+				$this->currentAppAdminGetter,
+			))->getAllTimeValue(),
 		);
 		self::assertNull(
-			(new PortfolioStatisticTotalValueProvider($repository, $performanceProvider, $storage))->getAllTimeValue(),
+			(new PortfolioStatisticTotalValueProvider(
+				$repository,
+				$performanceProvider,
+				$storage,
+				$this->currentAppAdminGetter,
+			))->getAllTimeValue(),
 		);
 	}
 
@@ -113,13 +141,23 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			),
 		);
 		$storage = new MemoryStorage();
-		$provider = new PortfolioStatisticTotalValueProvider($repository, $performanceProvider, $storage);
-		$otherProvider = new PortfolioStatisticTotalValueProvider($repository, $performanceProvider, $storage);
+		$provider = new PortfolioStatisticTotalValueProvider(
+			$repository,
+			$performanceProvider,
+			$storage,
+			$this->currentAppAdminGetter,
+		);
+		$otherProvider = new PortfolioStatisticTotalValueProvider(
+			$repository,
+			$performanceProvider,
+			$storage,
+			$this->currentAppAdminGetter,
+		);
 
 		self::assertNull($provider->getAllTimeValue());
 		self::assertNull($otherProvider->getAllTimeValue());
 
-		$otherProvider->invalidateCache();
+		$otherProvider->invalidateCache($this->appAdmin);
 		$value = $provider->getAllTimeValue();
 
 		self::assertNotNull($value);
@@ -145,6 +183,7 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			$repository,
 			$this->createStub(PortfolioPerformanceProvider::class),
 			$storage,
+			$this->currentAppAdminGetter,
 		);
 
 		self::assertNull($provider->getAllTimeValue());
@@ -153,7 +192,7 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 	private function createRecord(string $date, float $invested, float $portfolioValue): PortfolioStatisticRecord
 	{
 		$now = new ImmutableDateTime($date);
-		$record = new PortfolioStatisticRecord($now);
+		$record = new PortfolioStatisticRecord($this->appAdmin, $now);
 		$investedStatistic = $this->createStatistic(
 			$record,
 			$now,
@@ -166,8 +205,8 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			PortolioStatisticType::TOTAL_VALUE_IN_CZK,
 			$portfolioValue,
 		);
-		$record->getPortfolioStatistics()->add($investedStatistic);
-		$record->getPortfolioStatistics()->add($valueStatistic);
+		$record->addPortfolioStatistic($investedStatistic);
+		$record->addPortfolioStatistic($valueStatistic);
 
 		return $record;
 	}

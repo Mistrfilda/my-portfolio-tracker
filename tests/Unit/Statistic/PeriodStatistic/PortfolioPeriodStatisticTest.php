@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetSectionDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticChartPointDTO;
@@ -16,16 +17,26 @@ use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticJson;
 use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticStatusEnum;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPeriodStatisticTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
 
 	public function testCompleteStoresTypedSections(): void
 	{
 		$start = new ImmutableDateTime('2026-01-01 00:00:00');
 		$end = new ImmutableDateTime('2026-01-31 23:59:59');
 		$now = new ImmutableDateTime('2026-02-01 12:00:00');
-		$report = new PortfolioPeriodStatistic($start, $end, $now);
+		$report = new PortfolioPeriodStatistic($this->appAdmin, $start, $end, $now);
 
 		$summary = new PortfolioPeriodStatisticSummaryDTO(
 			100.0,
@@ -110,6 +121,7 @@ class PortfolioPeriodStatisticTest extends TestCase
 	{
 		$now = new ImmutableDateTime('2026-02-01 12:00:00');
 		$report = new PortfolioPeriodStatistic(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			$now,

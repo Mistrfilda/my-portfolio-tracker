@@ -4,23 +4,31 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Statistic\Performance\PortfolioPerformanceCalculator;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPerformanceCalculatorTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
 
 	private PortfolioPerformanceCalculator $calculator;
 
 	protected function setUp(): void
 	{
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+
 		$this->calculator = new PortfolioPerformanceCalculator();
 	}
 
 	public function testCarriesSaleProceedsAndReinvestsThemWithoutNewContribution(): void
 	{
 		$saleMonth = $this->calculator->calculateMonth(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			100.0,
@@ -38,6 +46,7 @@ class PortfolioPerformanceCalculatorTest extends TestCase
 		self::assertEqualsWithDelta(1.5, $saleMonth->getReturnFactor(), 0.0001);
 
 		$reinvestmentMonth = $this->calculator->calculateMonth(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-31'),
 			new ImmutableDateTime('2026-02-28'),
 			0.0,
@@ -62,6 +71,7 @@ class PortfolioPerformanceCalculatorTest extends TestCase
 	public function testKeepsUninvestedDividendAsPortfolioCash(): void
 	{
 		$month = $this->calculator->calculateMonth(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			100.0,
@@ -83,6 +93,7 @@ class PortfolioPerformanceCalculatorTest extends TestCase
 	public function testUsesOnlyUncoveredFundingNeedAsExternalContribution(): void
 	{
 		$month = $this->calculator->calculateMonth(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			100.0,
@@ -103,6 +114,7 @@ class PortfolioPerformanceCalculatorTest extends TestCase
 	public function testTreatsSubCrownFundingDifferenceAsRoundingNoise(): void
 	{
 		$month = $this->calculator->calculateMonth(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			100.0,

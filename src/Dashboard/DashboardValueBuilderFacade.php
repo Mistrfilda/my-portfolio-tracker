@@ -6,7 +6,6 @@ namespace App\Dashboard;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceEnum;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
@@ -48,7 +47,6 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly LinkGenerator $linkGenerator,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -59,9 +57,8 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	public function buildValues(bool $includePortfolioPerformance = true, AppAdmin|null $appAdmin = null): array
 	{
 		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
-		$includeLegacyData = $this->legacyOwnerProvider->isOwner($appAdmin);
 		return [
-			$this->getTotalValues($appAdmin, $includePortfolioPerformance && $includeLegacyData),
+			$this->getTotalValues($appAdmin, $includePortfolioPerformance),
 			$this->getStockValues($appAdmin),
 			$this->getPortuValues($appAdmin),
 			$this->dashboardDividendvalueBuilderFacade->buildDividendValues($appAdmin),
@@ -323,7 +320,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					'Pouze otevřené pozice',
 					PortolioStatisticType::TOTAL_PROFIT_PERCENTAGE,
 				),
-				...($includePortfolioPerformance ? $this->buildPortfolioPerformanceValues() : []),
+				...($includePortfolioPerformance ? $this->buildPortfolioPerformanceValues($appAdmin) : []),
 			],
 		);
 	}
@@ -331,9 +328,11 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	/**
 	 * @return array<DashboardValue>
 	 */
-	public function buildPortfolioPerformanceValues(): array
+	public function buildPortfolioPerformanceValues(AppAdmin|null $appAdmin = null): array
 	{
-		$value = $this->portfolioStatisticTotalValueProvider->getAllTimeValue();
+		$value = $this->portfolioStatisticTotalValueProvider->getAllTimeValue(
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
 		if ($value === null) {
 			return [];
 		}

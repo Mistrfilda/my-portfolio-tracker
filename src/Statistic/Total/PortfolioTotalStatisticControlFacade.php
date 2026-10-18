@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Total;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
@@ -18,6 +20,7 @@ class PortfolioTotalStatisticControlFacade
 		private DatetimeFactory $datetimeFactory,
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 
@@ -26,8 +29,10 @@ class PortfolioTotalStatisticControlFacade
 	/**
 	 * @return array<PortfolioStatisticTotalGroup>
 	 */
-	public function getData(): array
+	public function getData(AppAdmin|null $appAdmin = null): array
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
+		$this->portfolioPerformanceProvider->invalidateCache($appAdmin);
 		$now = $this->datetimeFactory->createNow();
 		$currentYear = $now->getYear();
 
@@ -38,7 +43,10 @@ class PortfolioTotalStatisticControlFacade
 		for ($year = $this->startYear; $year <= $currentYear; $year++) {
 			$group = new PortfolioStatisticTotalGroup($year);
 
-			$minMaxValuesByMonth = $this->portfolioStatisticRecordRepository->findMinMaxDateByMonth($year);
+			$minMaxValuesByMonth = $this->portfolioStatisticRecordRepository->findMinMaxDateByMonth($year, $appAdmin);
+			if ($minMaxValuesByMonth === []) {
+				continue;
+			}
 
 			$month = null;
 			$firstMonthValue = null;
@@ -65,6 +73,7 @@ class PortfolioTotalStatisticControlFacade
 				$income = $this->portfolioPerformanceProvider->getIncomeBetween(
 					$firstMonthValue->getCreatedAt(),
 					$portfolioStatisticRecord->getCreatedAt(),
+					$appAdmin,
 				);
 				$group->addValue(
 					new PortfolioStatisticTotalValue(
@@ -101,6 +110,7 @@ class PortfolioTotalStatisticControlFacade
 						performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
 							$firstMonthValue->getCreatedAt(),
 							$portfolioStatisticRecord->getCreatedAt(),
+							$appAdmin,
 						),
 					),
 				);
@@ -119,6 +129,7 @@ class PortfolioTotalStatisticControlFacade
 			$income = $this->portfolioPerformanceProvider->getIncomeBetween(
 				$firstYearValue->getCreatedAt(),
 				$lastYearValue->getCreatedAt(),
+				$appAdmin,
 			);
 			$group->setYearValue(
 				new PortfolioStatisticTotalValue(
@@ -154,6 +165,7 @@ class PortfolioTotalStatisticControlFacade
 					performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
 						$firstYearValue->getCreatedAt(),
 						$lastYearValue->getCreatedAt(),
+						$appAdmin,
 					),
 				),
 			);

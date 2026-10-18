@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use Doctrine\ORM\QueryBuilder;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -17,17 +18,20 @@ class PortfolioPerformanceMonthRepository extends BaseRepository
 	/**
 	 * @return array<PortfolioPerformanceMonth>
 	 */
-	public function findAllOrdered(): array
+	public function findAllOrdered(AppAdmin|null $appAdmin = null): array
 	{
-		return $this->createQueryBuilder()
+		return $this->createQueryBuilder($appAdmin)
 			->orderBy('portfolioPerformanceMonth.periodEndAt', 'ASC')
 			->getQuery()
 			->getResult();
 	}
 
-	public function findLastEndingAtOrBefore(ImmutableDateTime $date): PortfolioPerformanceMonth|null
+	public function findLastEndingAtOrBefore(
+		ImmutableDateTime $date,
+		AppAdmin|null $appAdmin = null,
+	): PortfolioPerformanceMonth|null
 	{
-		$result = $this->createQueryBuilder()
+		$result = $this->createQueryBuilder($appAdmin)
 			->andWhere('portfolioPerformanceMonth.periodEndAt <= :date')
 			->setParameter('date', $date)
 			->orderBy('portfolioPerformanceMonth.periodEndAt', 'DESC')
@@ -39,17 +43,23 @@ class PortfolioPerformanceMonthRepository extends BaseRepository
 		return $result;
 	}
 
-	public function deleteAll(): void
+	public function deleteAll(AppAdmin $appAdmin): void
 	{
-		$this->createQueryBuilder()
+		$this->createQueryBuilder($appAdmin)
 			->delete()
 			->getQuery()
 			->execute();
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('portfolioPerformanceMonth');
+		$qb = $this->doctrineRepository->createQueryBuilder('portfolioPerformanceMonth');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'portfolioPerformanceMonth',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb;
 	}
 
 }

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -19,13 +20,17 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('portfolio_period_statistic')]
-#[ORM\Index(fields: ['createdAt'], name: 'portfolio_period_statistic_created_at_idx')]
+#[ORM\Index(fields: ['appAdmin', 'createdAt'], name: 'portfolio_period_statistic_owner_created_idx')]
 class PortfolioPeriodStatistic implements Entity
 {
 
 	use SimpleUuid;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $requestedStartAt;
@@ -64,17 +69,24 @@ class PortfolioPeriodStatistic implements Entity
 	private string|null $processingError = null;
 
 	public function __construct(
+		AppAdmin $appAdmin,
 		ImmutableDateTime $requestedStartAt,
 		ImmutableDateTime $requestedEndAt,
 		ImmutableDateTime $now,
 	)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 		$this->requestedStartAt = $requestedStartAt;
 		$this->requestedEndAt = $requestedEndAt;
 		$this->status = PortfolioPeriodStatisticStatusEnum::QUEUED;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function markProcessing(ImmutableDateTime $now): void

@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Statistic\UI\Chart;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Statistic\PortfolioStatisticRepository;
 use App\Statistic\PortolioStatisticType;
 use App\UI\Control\Chart\ChartData;
@@ -22,7 +21,6 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 	public function __construct(
 		private PortfolioStatisticRepository $portfolioStatisticRepository,
 		private DatetimeFactory $datetimeFactory,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -42,11 +40,6 @@ class PortfolioTotalValueChartProvider implements ChartDataProvider
 
 	public function getChartData(): ChartDataSet
 	{
-		// History remains assigned to its original owner until steps 6 and 8.
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			return new ChartDataSet([]);
-		}
-
 		if ($this->types === null) {
 			throw new InvalidArgumentException();
 		}

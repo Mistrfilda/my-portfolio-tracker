@@ -71,6 +71,7 @@ class PortfolioStatistic implements Entity
 	)
 	{
 		$this->portfolioStatisticRecord = $portfolioStatisticRecord;
+		$portfolioStatisticRecord->addPortfolioStatistic($this);
 		$this->createdAt = $now;
 		$this->dashboardValueGroup = $dashboardValueGroup;
 		$this->label = $label;

@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\PeriodStatistic;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
 use App\Asset\Asset;
 use App\Asset\Position\AssetClosedPosition;
 use App\Asset\Position\AssetPosition;
@@ -53,20 +53,23 @@ class PortfolioPeriodStatisticBuilder
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private CryptoAssetPriceRecordRepository $cryptoAssetPriceRecordRepository,
 		private PortuAssetPriceRecordRepository $portuAssetPriceRecordRepository,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
 
 	public function build(PortfolioPeriodStatistic $report): PortfolioPeriodStatisticBuildResult
 	{
+		$appAdmin = $report->getAppAdmin();
+		$this->portfolioPerformanceProvider->invalidateCache($appAdmin);
 		$startRecord = $this->portfolioStatisticRecordRepository->findFirstBetweenDates(
 			$report->getRequestedStartAt(),
 			$report->getRequestedEndAt(),
+			$appAdmin,
 		);
 		$endRecord = $this->portfolioStatisticRecordRepository->findLastBetweenDates(
 			$report->getRequestedStartAt(),
 			$report->getRequestedEndAt(),
+			$appAdmin,
 		);
 
 		if ($startRecord === null || $endRecord === null) {
@@ -84,8 +87,8 @@ class PortfolioPeriodStatisticBuilder
 		}
 
 		$warnings = $this->buildRangeWarnings($report, $effectiveStartAt, $effectiveEndAt);
-		$dividendSection = $this->buildDividendSection($effectiveStartAt, $effectiveEndAt);
-		$assetSection = $this->buildAssetSection($effectiveStartAt, $effectiveEndAt, $dividendSection);
+		$dividendSection = $this->buildDividendSection($effectiveStartAt, $effectiveEndAt, $appAdmin);
+		$assetSection = $this->buildAssetSection($effectiveStartAt, $effectiveEndAt, $dividendSection, $appAdmin);
 		$summary = $this->buildSummary(
 			$startRecord,
 			$endRecord,
@@ -96,6 +99,7 @@ class PortfolioPeriodStatisticBuilder
 			$effectiveStartAt,
 			$effectiveEndAt,
 			$dividendSection,
+			$appAdmin,
 		);
 
 		return new PortfolioPeriodStatisticBuildResult(
@@ -126,11 +130,13 @@ class PortfolioPeriodStatisticBuilder
 		$income = $this->portfolioPerformanceProvider->getIncomeBetween(
 			$startRecord->getCreatedAt(),
 			$endRecord->getCreatedAt(),
+			$startRecord->getAppAdmin(),
 		);
 		$warnings = array_merge($warnings, $dividendSection->warnings);
 		$performanceSummary = $this->portfolioPerformanceProvider->getSummaryBetween(
 			$startRecord->getCreatedAt(),
 			$endRecord->getCreatedAt(),
+			$startRecord->getAppAdmin(),
 		);
 
 		$value = new PortfolioStatisticTotalValue(
@@ -177,6 +183,7 @@ class PortfolioPeriodStatisticBuilder
 	private function buildDividendSection(
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
+		AppAdmin $appAdmin,
 	): PortfolioPeriodStatisticDividendSectionDTO
 	{
 		$items = [];
@@ -188,7 +195,7 @@ class PortfolioPeriodStatisticBuilder
 		foreach ($this->stockAssetDividendRecordRepository->findCashReceivedBetweenDates(
 			$start,
 			$end,
-			$this->legacyOwnerProvider->getOwner(),
+			$appAdmin,
 		) as $record) {
 			$dividend = $record->getStockAssetDividend();
 			$paymentDate = $dividend->getPaymentDate() ?? $dividend->getExDate();
@@ -260,6 +267,7 @@ class PortfolioPeriodStatisticBuilder
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
 		PortfolioPeriodStatisticDividendSectionDTO $dividendSection,
+		AppAdmin $appAdmin,
 	): PortfolioPeriodStatisticAssetSectionDTO
 	{
 		$dividendsByAsset = [];
@@ -273,15 +281,16 @@ class PortfolioPeriodStatisticBuilder
 		}
 
 		$assets = [];
-		foreach ($this->stockAssetRepository->findAll() as $stockAsset) {
+		foreach ($this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin) as $stockAsset) {
 			$positions = array_values(array_filter(
 				$stockAsset->getPositions(),
-				fn (StockPosition $position): bool => $this->positionIntersectsPeriod(
-					$position,
-					$position->getStockClosedPosition(),
-					$start,
-					$end,
-				),
+				fn (StockPosition $position): bool => $position->getAppAdmin()->getId()->equals($appAdmin->getId())
+					&& $this->positionIntersectsPeriod(
+						$position,
+						$position->getStockClosedPosition(),
+						$start,
+						$end,
+					),
 			));
 			if ($positions === []) {
 				continue;
@@ -310,15 +319,16 @@ class PortfolioPeriodStatisticBuilder
 			);
 		}
 
-		foreach ($this->cryptoAssetRepository->findAll() as $cryptoAsset) {
+		foreach ($this->cryptoAssetRepository->findWithPositionsForAppAdmin($appAdmin) as $cryptoAsset) {
 			$positions = array_values(array_filter(
 				$cryptoAsset->getPositions(),
-				fn (CryptoPosition $position): bool => $this->positionIntersectsPeriod(
-					$position,
-					$position->getCryptoClosedPosition(),
-					$start,
-					$end,
-				),
+				fn (CryptoPosition $position): bool => $position->getAppAdmin()->getId()->equals($appAdmin->getId())
+					&& $this->positionIntersectsPeriod(
+						$position,
+						$position->getCryptoClosedPosition(),
+						$start,
+						$end,
+					),
 			));
 			if ($positions === []) {
 				continue;
@@ -347,8 +357,8 @@ class PortfolioPeriodStatisticBuilder
 			);
 		}
 
-		foreach ($this->portuAssetRepository->findAll() as $portuAsset) {
-			$asset = $this->buildPortuAsset($portuAsset, $start, $end);
+		foreach ($this->portuAssetRepository->findAllForAppAdmin($appAdmin) as $portuAsset) {
+			$asset = $this->buildPortuAsset($portuAsset, $start, $end, $appAdmin);
 			if ($asset !== null) {
 				$assets[] = $asset;
 			}
@@ -501,11 +511,13 @@ class PortfolioPeriodStatisticBuilder
 		PortuAsset $asset,
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
+		AppAdmin $appAdmin,
 	): PortfolioPeriodStatisticAssetDTO|null
 	{
 		$positions = array_values(array_filter(
 			$asset->getPositions(),
-			static fn (AssetPosition $position): bool => $position->getOrderDate() <= $end,
+			static fn (AssetPosition $position): bool => $position->getOrderDate() <= $end
+				&& $position->getAppAdmin()->getId()->equals($appAdmin->getId()),
 		));
 		if ($positions === []) {
 			return null;
@@ -622,10 +634,15 @@ class PortfolioPeriodStatisticBuilder
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
 		PortfolioPeriodStatisticDividendSectionDTO $dividendSection,
+		AppAdmin $appAdmin,
 	): PortfolioPeriodStatisticChartSectionDTO
 	{
 		$dailyValues = [];
-		foreach ($this->portfolioStatisticRecordRepository->findDailyChartValuesBetweenDates($start, $end) as $values) {
+		foreach ($this->portfolioStatisticRecordRepository->findDailyChartValuesBetweenDates(
+			$start,
+			$end,
+			$appAdmin,
+		) as $values) {
 			$dailyValues[$values['date']->format('Y-m-d')] = $values;
 		}
 

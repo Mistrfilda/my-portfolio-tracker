@@ -4,7 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Crypto\Position\Closed\CryptoClosedPositionRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -15,15 +16,15 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 class PortfolioPerformanceEventProvider
 {
 
-	/** @var array<PortfolioPerformanceEvent>|null */
-	private array|null $events = null;
+	/** @var array<string, array<PortfolioPerformanceEvent>> */
+	private array $events = [];
 
 	public function __construct(
 		private readonly StockClosedPositionRepository $stockClosedPositionRepository,
 		private readonly CryptoClosedPositionRepository $cryptoClosedPositionRepository,
 		private readonly StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
 		private readonly CurrencyConversionFacade $currencyConversionFacade,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -31,12 +32,14 @@ class PortfolioPerformanceEventProvider
 	public function getIncomeBetween(
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
+		AppAdmin|null $appAdmin = null,
 	): PortfolioPerformanceIncome
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$realizedProfit = 0.0;
 		$netDividends = 0.0;
 
-		foreach ($this->getEvents() as $event) {
+		foreach ($this->getEvents($appAdmin) as $event) {
 			if ($event->date <= $start || $event->date > $end) {
 				continue;
 			}
@@ -48,19 +51,25 @@ class PortfolioPerformanceEventProvider
 		return new PortfolioPerformanceIncome($realizedProfit, $netDividends);
 	}
 
+	public function invalidateCache(AppAdmin $appAdmin): void
+	{
+		unset($this->events[$appAdmin->getId()->toString()]);
+	}
+
 	/**
 	 * @return array<PortfolioPerformanceEvent>
 	 */
-	private function getEvents(): array
+	private function getEvents(AppAdmin $appAdmin): array
 	{
-		if ($this->events !== null) {
-			return $this->events;
+		$key = $appAdmin->getId()->toString();
+		if (isset($this->events[$key])) {
+			return $this->events[$key];
 		}
 
 		$events = [];
 		$closedPositions = array_merge(
-			$this->stockClosedPositionRepository->findAll(),
-			$this->cryptoClosedPositionRepository->findAll(),
+			$this->stockClosedPositionRepository->findAllForAppAdmin($appAdmin),
+			$this->cryptoClosedPositionRepository->findAllForAppAdmin($appAdmin),
 		);
 
 		foreach ($closedPositions as $closedPosition) {
@@ -84,7 +93,7 @@ class PortfolioPerformanceEventProvider
 		}
 
 		foreach ($this->stockAssetDividendRecordRepository->findAll(
-			$this->legacyOwnerProvider->getOwner(),
+			$appAdmin,
 		) as $dividendRecord) {
 			$dividend = $dividendRecord->getStockAssetDividend();
 			$paymentDate = $dividend->getPaymentDate() ?? $dividend->getExDate();
@@ -103,7 +112,7 @@ class PortfolioPerformanceEventProvider
 				$left->date <=> $right->date,
 		);
 
-		$this->events = $events;
+		$this->events[$key] = $events;
 		return $events;
 	}
 
