@@ -4,8 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance\Command;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
-use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
+use App\Statistic\PortfolioStatisticBatchFacade;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -16,8 +15,7 @@ class PortfolioPerformanceRebuildCommand extends Command
 {
 
 	public function __construct(
-		private readonly PortfolioPerformanceRebuildFacade $portfolioPerformanceRebuildFacade,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
+		private readonly PortfolioStatisticBatchFacade $portfolioStatisticBatchFacade,
 	)
 	{
 		parent::__construct();
@@ -26,14 +24,19 @@ class PortfolioPerformanceRebuildCommand extends Command
 	public function configure(): void
 	{
 		parent::configure();
-		$this->setDescription('Rebuild monthly portfolio performance cache');
+		$this->setDescription('Rebuild monthly portfolio performance for every account');
 	}
 
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
-		$count = $this->portfolioPerformanceRebuildFacade->rebuild($this->legacyOwnerProvider->getOwner());
-		$output->writeln(sprintf('Rebuilt %d portfolio performance months', $count));
+		if (!$this->portfolioStatisticBatchFacade->rebuildForAll()) {
+			$output->writeln(
+				'<error>Portfolio performance failed for one or more accounts. See the application log.</error>',
+			);
+			return self::FAILURE;
+		}
 
+		$output->writeln('Portfolio performance rebuilt for all accounts');
 		return self::SUCCESS;
 	}
 

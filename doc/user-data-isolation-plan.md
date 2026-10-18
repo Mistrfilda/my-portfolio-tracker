@@ -2,7 +2,7 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–8 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je v commitu `a83912d`, včetně Filipem potvrzené migrace a průchodu webem. Krok 7a i 7b je v commitu `9a0057b`, včetně potvrzené migrace a ověření databáze i webu. Krok 8 má dokončené automatické kontroly, kontrolu IDE, Filipem potvrzenou migraci a ověření databáze i webu; commit provede Filip. Následuje krok 9: crony a dokončení úloh na pozadí.
+Aktualizováno 18. 10. 2026. **Kroky 1–9 jsou hotové v popsaném rozsahu aplikace a webu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je v commitu `a83912d`, včetně Filipem potvrzené migrace a průchodu webem. Krok 7a i 7b je v commitu `9a0057b`, včetně potvrzené migrace a ověření databáze i webu. Krok 8 je v commitu `55fee3f`, včetně automatických kontrol, kontroly IDE, Filipem potvrzené migrace a ověření databáze i webu. Krok 9 má dokončené automatické kontroly, kontrolu IDE a ověření webu; commit provede Filip. Nevyžaduje další migraci. Samostatný audit API zůstává další fází.
 
 ## Dohodnutý rozsah
 
@@ -44,9 +44,9 @@ Aktualizováno 18. 10. 2026. **Kroky 1–8 jsou hotové v popsaném rozsahu.** K
 	- [x] **7a. Cíle a jejich opakování.**
 	- [x] **7b. AI zadání, snímky, výsledky, plány a exporty.**
 - [x] **8. Uložení a čtení statistik** — snímky, měsíční výsledky, reporty, dotazy, výpočty a cache podle účtu; celý build, kontrola IDE, potvrzená migrace a ověření databáze i webu dokončeny.
-- [ ] **9. Crony a dokončení úloh na pozadí.**
+- [x] **9. Crony a dokončení úloh na pozadí** — statistické příkazy pro všechny účty, pořadí operací, transakce a cache po účtech, ověřená chyba jednoho účtu, audit ostatních úloh, celý build a ověření webu. Bez nové migrace.
 
-Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády a webové formuláře nyní samostatné mazání pozic nenabízejí; nevznikala nová funkce mazání. Souhrnné výpočty nad pozicemi patří do kroku 4. Krok 1 připravil rozhraní pro explicitního vlastníka, přechod všech úloh na něj dokončí příslušné doménové kroky a krok 9.
+Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády a webové formuláře nyní samostatné mazání pozic nenabízejí; nevznikala nová funkce mazání. Souhrnné výpočty nad pozicemi pokryl krok 4. Krok 1 připravil rozhraní pro explicitního vlastníka; přechod osobních úloh na něj pokrývají příslušné doménové kroky a krok 9.
 
 ## Podkroky kroku 3
 
@@ -62,7 +62,7 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 
 - [x] Doplnit vlastníka v `src/Cash/Income/WorkMonthlyIncome/` a upravit načítání, zápis a webový přehled.
 - [x] Upravit výběr období a unikátní omezení pro kombinaci vlastník + rok + měsíc.
-- [x] Připravit načítání a zápis pro výslovně předaného vlastníka i pro import; dokončení spouštění úloh pro jednotlivé účty navazuje v kroku 9.
+- [x] Připravit načítání a zápis pro výslovně předaného vlastníka i pro import; krok 9 ověřil spouštění importu pro jediného konfigurovaného vlastníka.
 - [x] Připravit a otestovat převod historie pod `filip` a ověřit stejné období u dvou uživatelů; opakovaný zápis A nesmí přepsat B.
 
 ### 3d Domácnosti a zařízení
@@ -198,7 +198,36 @@ Po Filipově potvrzení byl na webové databázi ověřen záznam `Migrations\Ve
 
 V izolovaném Playwrightu pod existujícím přihlášením Filipa prošly dashboard s roční výkonností, seznam i detail uloženého snímku, roční statistiky 2023–2026, finanční nezávislost, seznam reportů s formulářem nového reportu a naplněný detail reportu. Detail dokončil oba datové požadavky grafů; samostatná stránka grafů dokončila všech 11 požadavků. Navigace i datové požadavky vracely HTTP 200, grafy měly validní datasety a nebyly zaznamenány chyby JavaScriptu. Formuláře, skutečné crony, fronty ani externí služby se nespouštěly. Dva účty, prázdný účet a cizí ID pokrývají automatické testy.
 
-Příkazy pro uložení statistik a přepočet v tomto kroku předávají výslovně Filipa přes dosavadní `LegacyPortfolioOwnerProvider`. Automatické zpracování všech účtů, izolace chyby jednoho účtu a finální průchod ostatních cronů patří do kroku 9. Samostatné oddělení API nadále čeká na další fázi. Při nasazení použít migrované schéma a restartovat job worker; formát již uložených požadavků na report se nemění.
+Na konci kroku 8 příkazy pro uložení statistik a přepočet ještě předávaly výslovně Filipa přes `LegacyPortfolioOwnerProvider`. Krok 9 toto přechodné řešení nahrazuje průchodem všech účtů a izolací chyby jednoho účtu. Samostatné oddělení API nadále čeká na další fázi. Při nasazení použít migrované schéma a restartovat job worker; formát již uložených požadavků na report se nemění.
+
+## Krok 9: crony a úlohy na pozadí
+
+- [x] `portfolio:statistics:save` zpracovává všechny účty `AppAdmin`, včetně běžných a prázdných. Pro každý zachovává pořadí snímek bez výkonnosti → přepočet jeho měsíců → doplnění čerstvé výkonnosti do snímku.
+- [x] `portfolio:performance:rebuild` používá stejný průchod účty a nevytváří snímky. Přechodný `LegacyPortfolioOwnerProvider` zůstal pouze u dosud neodděleného API dashboardu.
+- [x] [PortfolioStatisticBatchFacade](../src/Statistic/PortfolioStatisticBatchFacade.php) obaluje celý výpočet jednoho účtu transakcí. Chyba výpočtu vrátí jeho změny zpět a pokračuje dalším účtem; chyba DBAL nebo zavřený EntityManager zastaví dávku. Příkaz při kterékoli chybě vrací kód 1, log obsahuje UUID účtu a výjimku. Již dokončené účty zůstávají uložené.
+- [x] Po každém účtu se uvolní spravované entity a zneplatní jeho souhrnná i paměťová cache příjmů, včetně případu rollbacku. Následující účet se načte znovu jako spravovaná entita. Vlastníkem se nestává přihlášený uživatel ani účet předchozí iterace.
+- [x] Prověřeny vstupní příkazy, generické i samostatné consumery a návaznosti osobních úloh; viz tabulka níže. Stávající oddělení těchto domén z předchozích kroků nevyžaduje další změnu payloadů ani schématu.
+- [x] Závěrečný `composer cs-fix && composer build-all`: **827 unit testů / 3 726 assertions a 281 integračních testů / 2 059 assertions**. Prošly PHP lint, PHPStan, styl, validace mapování a schématu, Latte, závislosti i agent dokumentace. PhpStorm nenašel chyby v osmi změněných PHP/NEON souborech; samostatný NEON lint i `git diff --check` prošly.
+- [x] V izolovaném Playwrightu pod existujícím přihlášením prošly dashboard, seznam uložených statistik a roční přehledy 2023–2026. Adresy a nadpisy odpovídaly, přehledy vracely HTTP 200 a nebyly zaznamenány nové chyby JavaScriptu. Čtení webu proběhlo nad databází z PhpStormu; zápis statistické dávky ověřují automatické testy výhradně na integrační databázi.
+
+Nový [StatisticBatchOwnershipTest](../tests/Integration/Statistic/StatisticBatchOwnershipTest.php) spouští oba skutečné příkazy v integrační databázi s pevnými cenami, časem a náhradou publisheru. Ověřuje dva vlastníky v obou pořadích v témže procesu bez přihlášení, vlastní zisky a dividendy, čerstvé hodnoty ve snímku přes dříve naplněnou cache, prázdný účet a opakovaný přepočet bez dalších snímků. Skutečná chyba výpočtu i uměle vyvolaná chyba až po zápisu posledních hodnot ověřují rollback snímku, jeho hodnot i nahrazených měsíců a obnovu cache. Chyba po zápisu se testuje před i po úspěšném zpracování druhého účtu. Unit testy kontrolují přesné pořadí operací, chybu v každé fázi, návratové kódy, dávku bez účtů a zastavení po chybě perzistence.
+
+| Úloha | Zdroj vlastníka a zpracování | Automatické ověření |
+|---|---|---|
+| Statistiky a přepočet výkonnosti | Všechny účty z `AppAdminRepository`, celý postup vždy pro jeden explicitní účet. | `StatisticBatchOwnershipTest`, `PortfolioStatisticBatchFacadeTest`, testy obou příkazů. |
+| Dividendové záznamy a prognózy | Dividendový cron prochází účty; následný hromadný přepočet má `appAdminId`. Samostatná prognóza bere účet z uloženého záznamu. Starý payload bez účtu prochází vlastníky odděleně. | `DividendOwnershipTest`, `JobRequestProcessorTest`. |
+| Cíle a opakování | Cron čte aktivní cíle napříč účty, každý resolver, opakovaný cíl i zpráva používá vlastníka cíle. Osobní požadavek na přepočet omezuje `appAdminId`. | `GoalOwnershipTest`, `JobRequestProcessorTest`. |
+| Bankovní výdaje a štítky | Cron a staré úlohy procházejí účty; nové osobní úlohy obsahují `appAdminId`. Pravidla i výdaje mají stejného vlastníka. | `PersonalDataOwnershipTest`, `JobRequestProcessorTest`. |
+| Pracovní příjmy z Harvestu | Jedna konfigurace importu → `workMonthlyIncome.ownerUsername`, výchozí `filip`. Stejná externí data se nerozkopírují do ostatních účtů. Účet se ověří před voláním služby. | `PersonalIncomeImportOwnershipTest`, `WorkMonthlyIncomeOwnerProviderTest`. |
+| AI analýzy a doplňující otázky | Fronta nese ID analýzy či otázky. Worker načte uloženého vlastníka; V2 používá osobní neměnný snímek, V1 předává účet tvorbě zadání a portfolia. | `AiAnalysisOwnershipTest`, testy Gemini processoru a consumeru. |
+| Reporty za období | Fronta nese ID reportu; worker i opakování berou vlastníka z reportu. | `StatisticOwnershipTest`, `JobRequestProcessorTest`. |
+| Notifikace a trendy | Příjemce osobní zprávy je uložený; opakování ho nemění. Portu trendy jsou po vlastnících, společné tržní zprávy zůstávají společné. | `NotificationDeliveryOwnershipTest`, testy Discord směrování a `AssetTrendFacadeTest`. |
+
+Generický `JobRequestConsumer` čistí EntityManager před i po zprávě. Samostatný notification a Gemini consumer vycházejí z ID uloženého záznamu; jejich payload nenese implicitního „aktuálního uživatele“. Neošetřená výjimka v RabbitMQ runneru provede `nack` podle konfigurace fronty a ukončí worker. Pokračování po chybě a transakce po účtech přidané v tomto kroku platí pro statistickou dávku; u ostatních cronů a front se zachovává dosavadní zpracování chyb.
+
+Společné ceny, měny, dividendové události, valuace, katalog a jeho monitoring se nadále zpracovávají společně. Samostatný audit API zůstává další fází.
+
+**Nasazení:** krok 9 nemá databázovou migraci. Názvy příkazů, Composer skript `save-current-portfolio-statistics` i jejich parametry zůstávají stejné; použít nový kód/image také pro cron. Nejbližší běžný statistický běh pak vytvoří snímek každému účtu automaticky. Prázdný účet získá nulové hodnoty portfolia a nemá měsíční výkonnost. Skutečné crony, fronty ani externí služby se při ověřování nespouštějí.
 
 ## Doklady dokončených částí
 
@@ -212,7 +241,8 @@ Příkazy pro uložení statistik a přepočet v tomto kroku předávají výslo
 | 5 | `d02e1d1` | [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php), [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php), unit testy Discord směrování a rozdělení trendů. |
 | 6 | `a83912d` | [DividendOwnershipTest](../tests/Integration/Stock/DividendOwnershipTest.php), [DividendOwnershipMigrationTest](../tests/Integration/Migrations/DividendOwnershipMigrationTest.php), unit testy dividendových výpočtů, cashflow a přenosu vlastníka úlohou. |
 | 7a–7b | `9a0057b` | [GoalOwnershipTest](../tests/Integration/Goal/GoalOwnershipTest.php), [AiAnalysisOwnershipTest](../tests/Integration/Stock/AiAnalysisOwnershipTest.php), [GoalAiOwnershipMigrationTest](../tests/Integration/Migrations/GoalAiOwnershipMigrationTest.php), unit testy cílů, AI snímků, plánů a zpracování úloh. |
-| 8 | Dokončeno, commit provede Filip | [StatisticOwnershipTest](../tests/Integration/Statistic/StatisticOwnershipTest.php), [StatisticOwnershipMigrationTest](../tests/Integration/Migrations/StatisticOwnershipMigrationTest.php), doplněné testy repository, webu a výpočtů. |
+| 8 | `55fee3f` | [StatisticOwnershipTest](../tests/Integration/Statistic/StatisticOwnershipTest.php), [StatisticOwnershipMigrationTest](../tests/Integration/Migrations/StatisticOwnershipMigrationTest.php), doplněné testy repository, webu a výpočtů. |
+| 9 | Dokončeno, commit provede Filip | [StatisticBatchOwnershipTest](../tests/Integration/Statistic/StatisticBatchOwnershipTest.php), [PortfolioStatisticBatchFacadeTest](../tests/Unit/Statistic/PortfolioStatisticBatchFacadeTest.php), testy obou statistických příkazů a audit úloh popsaný výše. |
 
 Po implementaci 3a a Portu portfolií prošlo `composer cs-fix && composer build-all`: 793 unit testů a 176 integračních testů, včetně statické analýzy a validace schématu. Kontroly změněných PHP souborů v PhpStormu prošly. V izolovaném Playwrightu byly pod účtem `filip` ověřeny přehledy Portu a watchlistu, jejich editace a formuláře Portu pozic. Oddělení dvou uživatelů pokrývají integrační testy.
 
@@ -224,7 +254,7 @@ Po potvrzené migraci byly v izolovaném Playwrightu pod účtem `filip` ověře
 
 Při průchodu webem nalezen starší nesouvisející problém: `BankAccountGridFactory` vede akcí „Editovat“ na `PortfolioGoal:edit` místo `BankAccount:edit`. Odkaz byl chybný už před touto změnou a zůstává beze změny; samotný formulář bankovního účtu byl ověřen přes správnou adresu. Opravu navigace řešit samostatně.
 
-Samotné dokončení těchto částí ještě neznamená oddělení všech dat aplikace. Například globální metody `StockPositionRepository::findAll()` a `PortuAssetRepository::findAll()` ještě používají další výpočty; jejich spotřebitele je potřeba projít v dalších krocích. Filtrování watchlistu v novém AI snímku rovněž neznamená dokončené oddělení AI analýz z kroku 7.
+Po samotném kroku 3 ještě nebyly oddělené všechny výpočty ani AI: spotřebitele společných aktiv a pozic následně pokryly kroky 4–8, osobní úlohy dokončuje krok 9. Samostatné oddělení API do tohoto plánu nepatří.
 
 Po kroku 4 prošlo `composer cs-fix && composer build-all`: **800 unit testů (3607 assertions), 230 integračních testů (1110 assertions)**, statická analýza, styl, PHP/Latte kontrola, validace mapování a schématu a kontrola závislostí. Nový integrační soubor obsahuje 20 scénářů; unit testy doplňují nulové procentní zhodnocení, přechodného vlastníka a nepoužití cizí historie ve finanční nezávislosti. Regresní test API potvrzuje funkčnost dosavadního klientského OAuth tokenu bez uživatelské identity. PhpStorm nenašel chyby v 55 změněných či nových PHP souborech.
 
@@ -247,6 +277,8 @@ Po Filipově potvrzení byl na webové databázi ověřen záznam `Migrations\Ve
 V izolovaném Playwrightu pod existujícím přihlášením Filipa prošly dashboard, seznam prognóz, naplněné detaily prognóz 2025 a 2026 včetně 19 a 25 formulářů položek, formulář úpravy i vytvoření prognózy, přehled vyplacených dividend, obecný dividendový přehled, dividendová záložka AT&T a přehled uzavřených akciových pozic. Adresy a nadpisy odpovídaly; navigace vracely HTTP 200. Stránka grafů dokončila všech 11 datových požadavků s HTTP 200 a validními datasety, včetně pěti dividendových grafů. Nebyly zaznamenány chyby JavaScriptu. Formuláře se neodesílaly a přepočet ani skutečná fronta se nespouštěly. Dva vlastníky a prázdný účet ověřují integrační testy; webový dump byl kontrolován pouze pod existujícím přihlášením.
 
 ## Migrace a předávání jednotlivých změn
+
+Krok 9 nemá novou migraci. Pro statistický cron nasadit aktuální kód/image; dosavadní příkaz i Composer skript zůstávají stejné. Skutečný běh cronu v clusteru se při této práci nespouštěl.
 
 Krok 8: [Version20261018122526](../migrations/Version20261018122526.php) je otestovaná na CLI databázi a Filip potvrdil její spuštění na webové databázi. Zachování historie, vlastnictví, schéma i web jsou ověřené. Spuštění v clusteru zde zatím potvrzené není.
 
