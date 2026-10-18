@@ -40,8 +40,8 @@ paths:
         get:
             summary: Get dashboard value groups
             description: >-
-                Temporarily returns the original portfolio owner's data (filip)
-                for both user and client tokens. Per-account API isolation is a separate migration.
+                Requires a user access token. Personal values, dividends and performance
+                belong only to the token's user. Market prices and currency rates are shared.
             tags:
                 - Dashboard
             security:
@@ -55,9 +55,16 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/DashboardValueGroup'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
     /stocks:
         get:
             summary: Get list of all stock assets
+            description: >-
+                Shared stock catalog. AI analysis prices belong only to the token's user
+                and are null for client-only tokens or users without their own analysis.
             tags:
                 - Stocks
             security:
@@ -71,9 +78,17 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/StockAsset'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
     /stocks/{id}:
         get:
             summary: Get single stock asset detail
+            description: >-
+                Requires a user access token. The stock and dividend events are shared;
+                open positions, dividend records, paid amounts and AI analysis prices
+                belong only to the token's user. A user may view a stock they do not own.
             tags:
                 - Stocks
             security:
@@ -93,6 +108,10 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/StockAssetDetail'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
                 '404':
                     description: Stock asset not found
                     content:
@@ -102,6 +121,10 @@ paths:
     /home/device/record:
         post:
             summary: Create a new home device record
+            description: >-
+                Requires a user access token or a legacy API key bound to a user.
+                The device must belong to that user's home. Unknown and other users'
+                internal IDs both return 404. Client-only OAuth tokens are rejected.
             tags:
                 - Home Devices
             security:
@@ -120,9 +143,23 @@ paths:
                         application/json:
                             schema:
                                 $ref: '#/components/schemas/HomeDeviceRecord'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '404':
+                    description: Home device not found for the authenticated user
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/ErrorResponse'
     /home/device/records:
         get:
             summary: Get all devices with their latest measurements
+            description: >-
+                Returns only devices and records belonging to the authenticated user's homes.
+                Requires a user access token or a legacy API key bound to that user.
+                Client-only OAuth tokens are rejected.
             tags:
                 - Home Devices
             security:
@@ -145,6 +182,10 @@ paths:
                                 type: array
                                 items:
                                     $ref: '#/components/schemas/HomeDeviceWithRecords'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
 
     /me:
         get:
@@ -377,6 +418,19 @@ paths:
                     description: OAuth signing keys are not configured
 
 components:
+    responses:
+        Unauthorized:
+            description: Missing or invalid authentication
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/OAuthErrorResponse'
+        Forbidden:
+            description: Missing scope or user authorization required
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/OAuthErrorResponse'
     securitySchemes:
         OAuth2:
             type: oauth2
@@ -384,22 +438,30 @@ components:
                 clientCredentials:
                     tokenUrl: /api/oauth/token
                     scopes:
-                        api:read: Read shared portfolio and stock data
-                        home:read: Read shared home devices and records
-                        home:write: Create home device records
+                        api:read: Read shared stock catalog; personal endpoints require user authorization
+                        home:read: Read own home devices and records; requires user authorization
+                        home:write: Create records for own home devices; requires user authorization
                 authorizationCode:
                     authorizationUrl: /api/oauth/authorize
                     tokenUrl: /api/oauth/token
                     refreshUrl: /api/oauth/token
                     scopes:
-                        api:read: Read shared portfolio and stock data
-                        home:read: Read shared home devices and records
-                        home:write: Create home device records
+                        api:read: Read own portfolio and shared stock data
+                        home:read: Read own home devices and records
+                        home:write: Create records for own home devices
         ApiKey:
             type: apiKey
             in: header
             name: X-Api-Key
     schemas:
+        OAuthErrorResponse:
+            type: object
+            required: [error, error_description]
+            properties:
+                error:
+                    type: string
+                error_description:
+                    type: string
         StockAsset:
             type: object
             additionalProperties: false

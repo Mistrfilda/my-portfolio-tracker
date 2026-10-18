@@ -34,21 +34,27 @@ class RouterFactory
 	{
 		$v1Group = $slimApp->group('/api/v1', function (RouteCollectorProxy $v1): void {
 			$v1->get('/ping', PingController::class . ':ping');
-			$v1->get('/me', MeController::class . ':me');
-			$v1->get('/dashboard/values', DashboardValueController::class . ':list');
 			$v1->get('/stocks', StockAssetController::class . ':list');
-			$v1->get('/stocks/{id}', StockAssetController::class . ':detail');
 		});
 
 		$v1Group->add($this->requestValidationMiddleware);
 		$v1Group->add($this->authentication->create(OAuthScope::API_READ));
 
+		$userGroup = $slimApp->group('/api/v1', function (RouteCollectorProxy $v1): void {
+			$v1->get('/me', MeController::class . ':me');
+			$v1->get('/dashboard/values', DashboardValueController::class . ':list');
+			$v1->get('/stocks/{id}', StockAssetController::class . ':detail');
+		});
+
+		$userGroup->add($this->requestValidationMiddleware);
+		$userGroup->add($this->authentication->create(OAuthScope::API_READ, requireUser: true));
+
 		$slimApp->post('/api/v1/home/device/record', HomeDeviceRecordController::class . ':create')
 			->add($this->requestValidationMiddleware)
-			->add($this->authentication->create(OAuthScope::HOME_WRITE, true));
+			->add($this->authentication->create(OAuthScope::HOME_WRITE, allowLegacy: true, requireUser: true));
 		$slimApp->get('/api/v1/home/device/records', HomeDeviceRecordController::class . ':list')
 			->add($this->requestValidationMiddleware)
-			->add($this->authentication->create(OAuthScope::HOME_READ, true));
+			->add($this->authentication->create(OAuthScope::HOME_READ, allowLegacy: true, requireUser: true));
 
 		$slimApp->post('/api/oauth/token', TokenController::class . ':token');
 		$slimApp->post('/api/oauth/revoke', RevocationController::class . ':revoke');

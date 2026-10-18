@@ -45,7 +45,7 @@ This repository contains the application code for my personal portfolio tracker.
 - `src/UI` - shared presenters, controls, datagrids, forms, filters, and charts
 - `src/Api` and `src/OAuth2` - REST API and OAuth authorization, including client registration commands
 
-The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintenance rules, scopes, sensor compatibility, and the follow-up for per-account data isolation. Its [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) describes deployment, registration commands, and mobile/desktop integration.
+The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintenance rules, scopes, sensor compatibility, and per-account API ownership. Its [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) describes deployment, registration commands, and mobile/desktop integration.
 
 The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agreed implementation steps, completed work, remaining modules, verification, and database migrations.
 
@@ -121,6 +121,8 @@ bin/console oauth:client:create "Portfolio desktop" --public \
 ```
 
 Public clients receive a `client_id` without a secret and use Authorization Code with S256 PKCE. Replace the example callback with the application's actual redirect URI. Repeat `--redirect-uri` or `--scope` for multiple values; the default scope is `api:read`, with `home:read` and `home:write` also available.
+
+Personal endpoints require a user token and return only that user's data. Client-credentials tokens can access ping and the shared stock catalog, but receive 403 on dashboard, stock detail, `/me` and home endpoints. Existing sensor API keys continue to work only with devices owned by their configured user. See [resource ownership](.agents/skills/oauth2-server/references/client-setup.md#resource-ownership) for migration details.
 
 To replace a server client's secret or disable a client:
 

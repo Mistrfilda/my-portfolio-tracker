@@ -29,11 +29,12 @@ class HomeDeviceRecordFacade
 		HomeDeviceRecordUnit|null $unit,
 	): HomeDeviceRecord
 	{
-		$homeDevice = $this->homeDeviceRepository->getByInternalId($internalId);
+		$appAdmin = $this->currentAppAdminGetter->getAppAdmin();
+		$homeDevice = $this->homeDeviceRepository->getByInternalId($internalId, $appAdmin);
 
 		$record = new HomeDeviceRecord(
 			$homeDevice,
-			$this->currentAppAdminGetter->getAppAdminOrNull(),
+			$appAdmin,
 			$stringValue,
 			$floatValue,
 			$booleanValue,

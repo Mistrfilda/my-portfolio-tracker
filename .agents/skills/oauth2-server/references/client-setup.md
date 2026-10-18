@@ -94,3 +94,11 @@ Store native refresh tokens in the operating system's secure credential storage.
 Revocation checks client ownership. A recognized token revokes its authorization family; a client-credentials access token is revoked individually. Unknown/already-invalid tokens and tokens owned by another client return 200 without exposing their existence or revoking another client's access.
 
 Bearer authentication failures return 401, insufficient scopes return 403, and rate limits return 429. All OAuth responses are non-cacheable.
+
+### Resource ownership
+
+- User tokens access only their user's portfolio, positions, dividend records, AI prices and home devices. Do not send a user ID to select the account.
+- Client-credentials tokens can call `/api/v1/ping` and `/api/v1/stocks`. The stock catalog is shared and `aiAnalysisPrice` is null without a user.
+- `/api/v1/me`, `/api/v1/dashboard/values`, `/api/v1/stocks/{id}` and both home endpoints require user authorization and return 403 for client-only tokens, even with the matching scope. Services needing personal data must use an authorized user grant; they cannot impersonate the original portfolio owner.
+- Legacy `X-Api-Key` authentication remains available only for the two existing home endpoints, restricted to devices in the configured user's homes. Writing to an unknown or another user's `internalId` returns 404.
+- Existing response shapes are preserved. This ownership change intentionally removes the former client-credentials access to shared personal data; register a native public client and use PKCE for desktop/mobile portfolio access.

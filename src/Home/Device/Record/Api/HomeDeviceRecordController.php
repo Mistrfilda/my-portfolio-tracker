@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Home\Device\Record\Api;
 
+use App\Doctrine\NoEntityFoundException;
 use App\Home\Device\HomeDeviceRepository;
 use App\Home\Device\Record\HomeDeviceRecordFacade;
 use App\Home\Device\Record\HomeDeviceRecordRepository;
@@ -51,13 +52,18 @@ class HomeDeviceRecordController
 			$stringValue = $value;
 		}
 
-		$record = $this->homeDeviceRecordFacade->createByInternalId(
-			$internalId,
-			$stringValue,
-			$floatValue,
-			$booleanValue,
-			$unit,
-		);
+		try {
+			$record = $this->homeDeviceRecordFacade->createByInternalId(
+				$internalId,
+				$stringValue,
+				$floatValue,
+				$booleanValue,
+				$unit,
+			);
+		} catch (NoEntityFoundException) {
+			$response->getBody()->write(Json::encode(['error' => 'Home device not found.']));
+			return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+		}
 
 		$response->getBody()->write(Json::encode([
 			'id' => $record->getId()->toString(),

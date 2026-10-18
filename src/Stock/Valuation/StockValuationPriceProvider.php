@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\AssetPrice;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResultRepository;
 use App\Stock\Asset\StockAsset;
@@ -57,9 +58,9 @@ class StockValuationPriceProvider
 		);
 	}
 
-	public function getAiAnalysisPrice(StockAsset $stockAsset): AssetPrice|null
+	public function getAiAnalysisPrice(StockAsset $stockAsset, AppAdmin|null $appAdmin = null): AssetPrice|null
 	{
-		$aiResults = $this->stockAiAnalysisStockResultRepository->findLatestForStockAsset($stockAsset, 1);
+		$aiResults = $this->stockAiAnalysisStockResultRepository->findLatestForStockAsset($stockAsset, 1, $appAdmin);
 		$aiResult = $aiResults[0] ?? null;
 
 		if ($aiResult?->getFairPrice() === null) {

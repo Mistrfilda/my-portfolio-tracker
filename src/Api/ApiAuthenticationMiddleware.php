@@ -34,6 +34,7 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 		private OAuthUserAuthenticator $users,
 		private CurrentAppAdminGetter $currentUser,
 		private OAuthResponses $responses,
+		private bool $requireUser = false,
 	)
 	{
 	}
@@ -53,7 +54,7 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 
 			if (!$request->hasHeader('Authorization')) {
 				if ($this->allowLegacy && $request->hasHeader('X-Api-Key')) {
-					return $this->apiKeys->process($request, $handler);
+					return $this->responses->noStore($this->apiKeys->process($request, $handler));
 				}
 
 				return $this->unauthorized();
@@ -101,6 +102,15 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 			$user = $record->getUserId() === null ? null : $this->users->findActive($record->getUserId());
 			if ($record->getUserId() !== null && $user === null) {
 				return $this->unauthorized();
+			}
+
+			if ($this->requireUser && $user === null) {
+				return $this->responses->error(
+					new Response(),
+					'access_denied',
+					'This operation requires user authorization.',
+					403,
+				);
 			}
 
 			if ($user !== null) {

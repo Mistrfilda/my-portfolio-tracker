@@ -128,7 +128,7 @@ class OAuthFlowTest extends ApiTestCase
 		$client = $this->client(true, ['home:read']);
 		$data = $this->data($this->clientToken($client, ['scope' => 'home:read']));
 		self::assertSame(
-			200,
+			403,
 			$this->api('/home/device/records', TypeValidator::validateString($data['access_token']))->getStatusCode(),
 		);
 	}

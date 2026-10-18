@@ -59,11 +59,10 @@ class HomeDeviceRepository extends BaseRepository
 		return $device;
 	}
 
-	public function getByInternalId(string $internalId): HomeDevice
+	public function getByInternalId(string $internalId, AppAdmin|null $appAdmin = null): HomeDevice
 	{
-		// Keep the existing sensor ingestion contract until the separate API ownership migration.
-		$qb = $this->doctrineRepository->createQueryBuilder('homeDevice');
-		$qb->where($qb->expr()->eq('homeDevice.internalId', ':internalId'));
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin ?? $this->currentAppAdminGetter->getAppAdmin());
+		$qb->andWhere($qb->expr()->eq('homeDevice.internalId', ':internalId'));
 		$qb->setParameter('internalId', $internalId);
 
 		try {
@@ -97,8 +96,7 @@ class HomeDeviceRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		// Used by the existing sensor API; web lists use createQueryBuilderForHome().
-		return $this->doctrineRepository->findAll();
+		return $this->findAllForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	/** @return array<HomeDevice> */

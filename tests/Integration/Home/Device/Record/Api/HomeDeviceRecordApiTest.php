@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Home\Device\Record\Api;
 
 use App\Admin\AppAdmin;
-use App\Doctrine\NoEntityFoundException;
 use App\Home\Device\HomeDevice;
 use App\Home\Device\HomeDeviceType;
 use App\Home\Device\Record\HomeDeviceRecord;
@@ -89,14 +88,37 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 		$this->app->handle($this->createJsonRequest(['value' => 20.0]));
 	}
 
+	public function testLegacyKeyCannotListAnotherUsersDevice(): void
+	{
+		$name = 'other-sensor-owner-' . Uuid::uuid4()->toString();
+		$other = new AppAdmin($name, $name, $name . '@example.test', 'unused', $this->createDatetime(), false, false);
+		$home = new Home($other, $name, $this->createDatetime());
+		$device = new HomeDevice($home, $name, $name, HomeDeviceType::SENSOR, $this->createDatetime());
+		foreach ([$other, $home, $device] as $entity) {
+			$this->entityManager->persist($entity);
+		}
+
+		$this->entityManager->flush();
+		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/home/device/records')
+			->withHeader('X-Api-Key', 'test-api-key');
+		$response = $this->app->handle($request);
+		self::assertSame(200, $response->getStatusCode());
+		$data = Json::decode((string) $response->getBody(), forceArrays: true);
+		self::assertIsArray($data);
+		self::assertSame([$this->device->getInternalId()], array_column($data, 'internalId'));
+	}
+
 	public function testCreateRejectsUnknownDevice(): void
 	{
-		$this->expectException(NoEntityFoundException::class);
-
-		$this->app->handle($this->createJsonRequest([
+		$response = $this->app->handle($this->createJsonRequest([
 			'internalId' => 'unknown-device-' . Uuid::uuid4()->toString(),
 			'value' => 20.0,
 		]));
+		self::assertSame(404, $response->getStatusCode());
+		self::assertSame(
+			['error' => 'Home device not found.'],
+			Json::decode((string) $response->getBody(), forceArrays: true),
+		);
 	}
 
 	public function testListReturnsLatestLimitedRecordsAndDeviceWithoutRecords(): void

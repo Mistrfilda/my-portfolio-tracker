@@ -14,9 +14,9 @@ enum OAuthScope: string
 	public function getLabel(): string
 	{
 		return match ($this) {
-			self::API_READ => 'Čtení společného portfolia a akciových dat',
-			self::HOME_READ => 'Čtení domácích zařízení a měření',
-			self::HOME_WRITE => 'Zápis měření domácích zařízení',
+			self::API_READ => 'Čtení vlastního portfolia a společných akciových dat',
+			self::HOME_READ => 'Čtení vlastních domácích zařízení a měření',
+			self::HOME_WRITE => 'Zápis měření vlastních domácích zařízení',
 		};
 	}
 

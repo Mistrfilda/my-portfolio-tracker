@@ -2,7 +2,9 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–9 jsou hotové v popsaném rozsahu aplikace a webu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je v commitu `a83912d`, včetně Filipem potvrzené migrace a průchodu webem. Krok 7a i 7b je v commitu `9a0057b`, včetně potvrzené migrace a ověření databáze i webu. Krok 8 je v commitu `55fee3f`, včetně automatických kontrol, kontroly IDE, Filipem potvrzené migrace a ověření databáze i webu. Krok 9 má dokončené automatické kontroly, kontrolu IDE a ověření webu; commit provede Filip. Nevyžaduje další migraci. Samostatný audit API zůstává další fází.
+Aktualizováno 18. 10. 2026. **Kroky 1–9 jsou hotové v popsaném rozsahu aplikace a webu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je v commitu `a83912d`, včetně Filipem potvrzené migrace a průchodu webem. Krok 7a i 7b je v commitu `9a0057b`, včetně potvrzené migrace a ověření databáze i webu. Krok 8 je v commitu `55fee3f`, včetně automatických kontrol, kontroly IDE, Filipem potvrzené migrace a ověření databáze i webu. Krok 9 má dokončené automatické kontroly, kontrolu IDE a ověření webu; commit provede Filip. Nevyžaduje další migraci. Izolace existujícího API je dokončená v navazujícím kroku 10 níže.
+
+**Navazující krok 10 — API (18. 10. 2026):** Filip schválil dokončení izolace existujícího API před přidáváním desktopových endpointů. Implementace a ověření jsou popsány níže; historické poznámky o odloženém API u kroků 1–9 popisují tehdejší stav.
 
 ## Dohodnutý rozsah
 
@@ -228,6 +230,19 @@ Generický `JobRequestConsumer` čistí EntityManager před i po zprávě. Samos
 Společné ceny, měny, dividendové události, valuace, katalog a jeho monitoring se nadále zpracovávají společně. Samostatný audit API zůstává další fází.
 
 **Nasazení:** krok 9 nemá databázovou migraci. Názvy příkazů, Composer skript `save-current-portfolio-statistics` i jejich parametry zůstávají stejné; použít nový kód/image také pro cron. Nejbližší běžný statistický běh pak vytvoří snímek každému účtu automaticky. Prázdný účet získá nulové hodnoty portfolia a nemá měsíční výkonnost. Skutečné crony, fronty ani externí služby se při ověřování nespouštějí.
+
+## Krok 10: izolace existujícího API
+
+- [x] Dashboard bere vlastníka z uživatelského OAuth tokenu. `LegacyPortfolioOwnerProvider` a jeho registrace/test jsou odstraněné; osobní endpointy nemají náhradního vlastníka.
+- [x] Detail akcie zachovává společná tržní data a dividendové události, ale pozice, dividendové záznamy, `paidAmount` a AI cenu vybírá pouze pro uživatele tokenu. Společný seznam akcií vrací klientskému tokenu `aiAnalysisPrice: null`.
+- [x] Osobní routy vyžadují uživatelský token: dashboard, detail akcie, `/me` a domácí zařízení. `client_credentials` vrací 403 i se správným scopem. Ping a společný katalog zůstávají dostupné klientským tokenům.
+- [x] Domácí zařízení a měření se čtou přes vlastníka domácnosti. Zápis podle `internalId` kontroluje stejného vlastníka před uložením; cizí i neznámé ID vrací stejnou JSON chybu 404. Senzorové klíče zachovávají payload a používají svého nakonfigurovaného vlastníka. Také odpovědi přes API klíč mají `Cache-Control: no-store`.
+- [x] Aktualizován OpenAPI kontrakt, popisky scopes a integrační dokumentace. Nemění se názvy scopes ani formáty úspěšných odpovědí. Odebrání klientského přístupu k osobním datům je záměrná změna kompatibility.
+- [x] Automatické kontroly a PhpStorm inspekce dokončeny. `composer cs-fix && composer build-all` prošel: **824 unit testů (3724 assertions) a 289 integračních testů (2267 assertions)**, PHPStan, styl, syntaxe PHP/Latte, mapování/schéma, kontrola závislostí a agent dokumentace. PhpStorm bez chyb ve 22 změněných PHP/NEON/OpenAPI souborech; zůstávají nezměněná upozornění IDE na DI konfiguraci a SQL dialekt a doporučení ke stylu. `git diff --check` bez chyb.
+
+Regresní test před opravou prokázal, že senzorový klíč uživatele A dostal v seznamu také zařízení uživatele B. Nové API testy používají podepsané a uložené testovací OAuth tokeny nad izolovanou integrační databází. Pokrývají dva vlastníky téže akcie, samostatné dividendové částky a AI ceny, prázdný účet, střídání účtů v jednom procesu, podstrčený parametr účtu, klientské tokeny, scopes a čtení/zápis domácích zařízení přes OAuth i senzorový klíč.
+
+Krok 10 nevyžaduje databázovou migraci. Nové desktopové endpointy zůstávají samostatným dalším úkolem. Nasazení ani commit tato změna neprovádí. Ověření běželo pouze nad testovacími daty; skutečné senzory, externí služby a produkční OAuth klienti se nepoužívali.
 
 ## Doklady dokončených částí
 

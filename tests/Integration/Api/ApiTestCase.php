@@ -11,6 +11,8 @@ use App\Api\ApiKeyMiddleware;
 use App\Api\SlimAppFactory;
 use App\OAuth2\Client\OAuthClientFacade;
 use App\OAuth2\OAuthKeys;
+use App\OAuth2\Protocol\AccessTokenRepository;
+use App\OAuth2\Protocol\ScopeEntity;
 use App\Test\Integration\IntegrationTestCase;
 use App\Utils\TypeValidator;
 use Doctrine\ORM\EntityManagerInterface;
@@ -68,9 +70,10 @@ abstract class ApiTestCase extends IntegrationTestCase
 		$this->app = $slimAppFactory->create();
 	}
 
-	protected function getOAuthAccessToken(): string
+	/** @param list<string> $scopes */
+	protected function getOAuthAccessToken(array $scopes = ['api:read']): string
 	{
-		$client = $this->getService(OAuthClientFacade::class)->create('API test client', true, ['api:read'], []);
+		$client = $this->getService(OAuthClientFacade::class)->create('API test client', true, $scopes, []);
 		$request = (new ServerRequestFactory())->createServerRequest(
 			'POST',
 			'https://localhost/api/oauth/token',
@@ -78,12 +81,40 @@ abstract class ApiTestCase extends IntegrationTestCase
 		)
 			->withHeader('Content-Type', 'application/x-www-form-urlencoded')
 			->withParsedBody(
-				['grant_type' => 'client_credentials', 'client_id' => $client->client->getIdentifier(), 'client_secret' => $client->secret],
+				[
+					'grant_type' => 'client_credentials',
+					'client_id' => $client->client->getIdentifier(),
+					'client_secret' => $client->secret,
+					'scope' => implode(' ', $scopes),
+				],
 			);
 		$response = $this->app->handle($request);
 		self::assertSame(200, $response->getStatusCode());
 		$data = TypeValidator::validateArray(Json::decode((string) $response->getBody(), true));
 		return TypeValidator::validateString($data['access_token']);
+	}
+
+	/** @param list<non-empty-string> $scopes */
+	protected function getUserOAuthAccessToken(AppAdmin $appAdmin, array $scopes = ['api:read']): string
+	{
+		// Resource tests use real signed, persisted tokens; OAuthFlowTest covers their grant flow.
+		$client = $this->getService(OAuthClientFacade::class)->create(
+			'User API test client',
+			false,
+			$scopes,
+			['com.example.portfolio:/oauth/callback'],
+		);
+		$repository = $this->getService(AccessTokenRepository::class);
+		$token = $repository->getNewToken(
+			$client->client,
+			array_map(static fn (string $scope): ScopeEntity => new ScopeEntity($scope), $scopes),
+			$appAdmin->getId()->toString(),
+		);
+		$token->setIdentifier(bin2hex(random_bytes(40)));
+		$token->setExpiryDateTime($this->createDatetime()->addMinutesToDatetime(10));
+		$token->setPrivateKey($this->getService(OAuthKeys::class)->getPrivateKey());
+		$repository->persistNewAccessToken($token);
+		return $token->toString();
 	}
 
 }

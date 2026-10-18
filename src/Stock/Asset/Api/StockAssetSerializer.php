@@ -4,12 +4,14 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Api;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\SummaryPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Record\StockAssetDividendRecord;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Position\StockPosition;
+use App\Stock\Position\StockPositionRepository;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use App\Stock\Valuation\Model\StockValuationModelState;
 use App\Stock\Valuation\StockValuationFacade;
@@ -24,6 +26,7 @@ class StockAssetSerializer
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly StockValuationFacade $stockValuationFacade,
 		private readonly StockValuationPriceProvider $stockValuationPriceProvider,
+		private readonly StockPositionRepository $stockPositionRepository,
 	)
 	{
 	}
@@ -32,11 +35,11 @@ class StockAssetSerializer
 	 * @param array<StockAsset> $stockAssets
 	 * @return array<mixed>
 	 */
-	public function serializeList(array $stockAssets): array
+	public function serializeList(array $stockAssets, AppAdmin|null $appAdmin = null): array
 	{
 		$data = [];
 		foreach ($stockAssets as $stockAsset) {
-			$data[] = $this->serialize($stockAsset);
+			$data[] = $this->serialize($stockAsset, $appAdmin);
 		}
 
 		return $data;
@@ -45,23 +48,26 @@ class StockAssetSerializer
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function serialize(StockAsset $stockAsset): array
+	public function serialize(StockAsset $stockAsset, AppAdmin|null $appAdmin = null): array
 	{
-		return $this->serializeBase($stockAsset);
+		return $this->serializeBase($stockAsset, $appAdmin);
 	}
 
 	/**
 	 * @return array<string, mixed>
 	 */
-	public function serializeDetail(StockAsset $stockAsset): array
+	public function serializeDetail(StockAsset $stockAsset, AppAdmin $appAdmin): array
 	{
-		$data = $this->serializeBase($stockAsset);
+		$data = $this->serializeBase($stockAsset, $appAdmin);
 		$data['openPositions'] = array_map(
 			fn (StockPosition $stockPosition): array => $this->serializePosition($stockPosition),
-			$stockAsset->getPositions(true),
+			$this->stockPositionRepository->findByAssetForAppAdmin($stockAsset->getId(), $appAdmin, true),
 		);
 		$data['dividends'] = array_map(
-			fn (StockAssetDividend $stockAssetDividend): array => $this->serializeDividend($stockAssetDividend),
+			fn (StockAssetDividend $stockAssetDividend): array => $this->serializeDividend(
+				$stockAssetDividend,
+				$appAdmin,
+			),
 			$stockAsset->getDividends(),
 		);
 		$data['valuationModels'] = array_map(
@@ -77,7 +83,7 @@ class StockAssetSerializer
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function serializeBase(StockAsset $stockAsset): array
+	private function serializeBase(StockAsset $stockAsset, AppAdmin|null $appAdmin): array
 	{
 		$now = $this->datetimeFactory->createNow();
 		$oneDayChange = $stockAsset->getTrend($now->deductDaysFromDatetime(1));
@@ -85,7 +91,9 @@ class StockAssetSerializer
 		$thirtyDayChange = $stockAsset->getTrend($now->deductDaysFromDatetime(30));
 		$priceFromAllModels = $this->stockValuationPriceProvider->getModelConsensusPrice($stockAsset);
 		$analyticsPrice = $this->stockValuationPriceProvider->getAnalyticsPrice($stockAsset);
-		$aiAnalysisPrice = $this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset);
+		$aiAnalysisPrice = $appAdmin === null
+			? null
+			: $this->stockValuationPriceProvider->getAiAnalysisPrice($stockAsset, $appAdmin);
 
 		return [
 			'id' => $stockAsset->getId()->toString(),
@@ -129,9 +137,9 @@ class StockAssetSerializer
 	/**
 	 * @return array<string, mixed>
 	 */
-	private function serializeDividend(StockAssetDividend $stockAssetDividend): array
+	private function serializeDividend(StockAssetDividend $stockAssetDividend, AppAdmin $appAdmin): array
 	{
-		$records = $stockAssetDividend->getRecords();
+		$records = $stockAssetDividend->getRecordsForAppAdmin($appAdmin);
 
 		return [
 			'id' => $stockAssetDividend->getId()->toString(),

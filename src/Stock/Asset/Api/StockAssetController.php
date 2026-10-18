@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Api;
 
+use App\Admin\CurrentAppAdminGetter;
 use App\Doctrine\NoEntityFoundException;
 use App\Stock\Asset\StockAssetRepository;
 use App\Utils\TypeValidator;
@@ -18,6 +19,7 @@ class StockAssetController
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
 		private StockAssetSerializer $stockAssetSerializer,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -26,7 +28,10 @@ class StockAssetController
 	{
 		$stockAssets = $this->stockAssetRepository->findAllActive();
 
-		$data = Json::encode($this->stockAssetSerializer->serializeList($stockAssets));
+		$data = Json::encode($this->stockAssetSerializer->serializeList(
+			$stockAssets,
+			$this->currentAppAdminGetter->getAppAdminOrNull(),
+		));
 
 		$response->getBody()->write($data);
 		return $response->withHeader('Content-Type', 'application/json');
@@ -45,7 +50,10 @@ class StockAssetController
 			return $this->createNotFoundResponse($response);
 		}
 
-		$data = Json::encode($this->stockAssetSerializer->serializeDetail($stockAsset));
+		$data = Json::encode($this->stockAssetSerializer->serializeDetail(
+			$stockAsset,
+			$this->currentAppAdminGetter->getAppAdmin(),
+		));
 
 		$response->getBody()->write($data);
 		return $response->withHeader('Content-Type', 'application/json');

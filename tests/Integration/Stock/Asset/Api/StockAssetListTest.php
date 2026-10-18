@@ -39,7 +39,7 @@ class StockAssetListTest extends ApiTestCase
 		$request = (new ServerRequestFactory())->createServerRequest(
 			'GET',
 			'/api/v1/stocks/00000000-0000-0000-0000-000000000000',
-		)->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
+		)->withHeader('Authorization', 'Bearer ' . $this->getUserOAuthAccessToken($this->legacyApiAdmin));
 		$response = $this->app->handle($request);
 
 		$this->assertSame(404, $response->getStatusCode());

@@ -28,7 +28,11 @@ class ApiAuthenticationMiddlewareFactory
 	{
 	}
 
-	public function create(OAuthScope $scope, bool $allowLegacy = false): ApiAuthenticationMiddleware
+	public function create(
+		OAuthScope $scope,
+		bool $allowLegacy = false,
+		bool $requireUser = false,
+	): ApiAuthenticationMiddleware
 	{
 		return new ApiAuthenticationMiddleware(
 			$scope,
@@ -40,6 +44,7 @@ class ApiAuthenticationMiddlewareFactory
 			$this->users,
 			$this->currentUser,
 			$this->responses,
+			$requireUser,
 		);
 	}
 

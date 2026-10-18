@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Dashboard\Api;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\CurrentAppAdminGetter;
 use App\Dashboard\DashboardValueBuilderFacade;
 use Nette\Utils\Json;
 use Psr\Http\Message\ResponseInterface;
@@ -15,16 +15,15 @@ class DashboardValueController
 
 	public function __construct(
 		private readonly DashboardValueBuilderFacade $dashboardValueBuilderFacade,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
+		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
 
 	public function list(ServerRequestInterface $request, ResponseInterface $response): ResponseInterface
 	{
-		// Preserve the legacy API portfolio until the separate API isolation step.
 		$data = Json::encode($this->dashboardValueBuilderFacade->buildValues(
-			appAdmin: $this->legacyOwnerProvider->getOwner(),
+			appAdmin: $this->currentAppAdminGetter->getAppAdmin(),
 		));
 
 		$response->getBody()->write($data);

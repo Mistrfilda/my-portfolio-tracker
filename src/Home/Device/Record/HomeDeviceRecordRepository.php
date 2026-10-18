@@ -104,8 +104,7 @@ class HomeDeviceRecordRepository extends BaseRepository
 	 */
 	public function findLatestForDevice(HomeDevice $homeDevice, int $limit): array
 	{
-		// The sensor API supplies a selected device; web callers first load it through its owner's home.
-		$qb = $this->createQueryBuilderForDeviceForAppAdmin($homeDevice, $homeDevice->getHome()->getAppAdmin());
+		$qb = $this->createQueryBuilderForDevice($homeDevice);
 		$qb->setMaxResults($limit);
 
 		return $qb->getQuery()->getResult();

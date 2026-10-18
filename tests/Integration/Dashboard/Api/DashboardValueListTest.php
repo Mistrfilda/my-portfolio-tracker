@@ -4,9 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Dashboard\Api;
 
-use App\Admin\AppAdminRepository;
-use App\Admin\CurrentAppAdminGetter;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
@@ -27,21 +24,12 @@ class DashboardValueListTest extends ApiTestCase
 
 		$this->entityManager = $this->getService(EntityManagerInterface::class);
 		$this->createRequiredCurrencyConversions();
-		// Keep the legacy API owner synthetic and independent of other test accounts.
-		foreach ($this->container->findByType(LegacyPortfolioOwnerProvider::class) as $serviceName) {
-			$this->container->removeService($serviceName);
-			$this->container->addService($serviceName, new LegacyPortfolioOwnerProvider(
-				$this->getService(AppAdminRepository::class),
-				$this->getService(CurrentAppAdminGetter::class),
-				$this->legacyApiAdmin->getUsername(),
-			));
-		}
 	}
 
 	public function testList(): void
 	{
 		$request = (new ServerRequestFactory())->createServerRequest('GET', '/api/v1/dashboard/values')
-			->withHeader('Authorization', 'Bearer ' . $this->getOAuthAccessToken());
+			->withHeader('Authorization', 'Bearer ' . $this->getUserOAuthAccessToken($this->legacyApiAdmin));
 		$response = $this->app->handle($request);
 
 		$this->assertSame(200, $response->getStatusCode());
