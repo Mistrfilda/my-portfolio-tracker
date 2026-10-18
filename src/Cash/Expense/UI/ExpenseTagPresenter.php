@@ -4,18 +4,23 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
+use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Cash\Expense\Tag\UI\ExpenseTagDatagridFactory;
 use App\Cash\Expense\Tag\UI\ExpenseTagFormFactory;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
 
+/**
+ * @property-read ExpenseTagPresenterTemplate $template
+ */
 class ExpenseTagPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(
 		private ExpenseTagFormFactory $expenseTagFormFactory,
 		private ExpenseTagDatagridFactory $expenseTagDatagridFactory,
+		private ExpenseTagRepository $expenseTagRepository,
 	)
 	{
 		parent::__construct();
@@ -29,6 +34,7 @@ class ExpenseTagPresenter extends BaseAdminPresenter
 	public function renderEditTag(int|null $id): void
 	{
 		if ($id !== null) {
+			$this->expenseTagRepository->getById($id);
 			$this->template->heading = 'Úprava tagu';
 		} else {
 			$this->template->heading = 'Přidání tagu';

@@ -20,6 +20,9 @@ use App\UI\Control\Modal\FrontModalControlFactory;
 use App\UI\FlashMessage\FlashMessageType;
 use Ramsey\Uuid\Uuid;
 
+/**
+ * @property-read ExpensePresenterTemplate $template
+ */
 class ExpensePresenter extends BaseAdminPresenter
 {
 
@@ -56,6 +59,12 @@ class ExpensePresenter extends BaseAdminPresenter
 
 	public function renderForm(string|null $id, string|null $duplicateId): void
 	{
+		foreach ([$id, $duplicateId] as $expenseId) {
+			if ($expenseId !== null) {
+				$this->bankExpenseRepository->getById(Uuid::fromString($expenseId));
+			}
+		}
+
 		if ($id !== null) {
 			$this->template->heading = 'Editace výdaje';
 		} else {
@@ -117,7 +126,9 @@ class ExpensePresenter extends BaseAdminPresenter
 
 	public function handleAddProcessRequest(): void
 	{
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::EXPENSE_TAG_PROCESS);
+		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::EXPENSE_TAG_PROCESS, [
+			'appAdminId' => $this->currentAppAdminGetter->getAppAdmin()->getId()->toString(),
+		]);
 		$this->flashMessage('Request zařazen do fronty', FlashMessageType::SUCCESS);
 		$this->redirect('this');
 	}

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Cash\Expense\Bank;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Bank\Account\BankAccountTypeEnum;
 use App\Cash\Bank\BankSourceEnum;
@@ -17,6 +19,7 @@ use App\Currency\CurrencyEnum;
 use App\Test\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\Uuid;
 
 class BankExpenseRepositoryTest extends IntegrationTestCase
 {
@@ -37,7 +40,19 @@ class BankExpenseRepositoryTest extends IntegrationTestCase
 	{
 		$startInclusive = new ImmutableDateTime('2091-01-01 00:00:00');
 		$endExclusive = new ImmutableDateTime('2091-02-01 00:00:00');
-		$bankAccount = new BankAccount('FIRE test', 'Test bank', BankAccountTypeEnum::PERSONAL);
+		$username = 'fire-' . Uuid::uuid4()->toString();
+		$appAdmin = new AppAdmin(
+			$username,
+			$username,
+			$username . '@example.test',
+			'unused',
+			$startInclusive,
+			false,
+			false,
+		);
+		$this->entityManager->persist($appAdmin);
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($appAdmin);
+		$bankAccount = new BankAccount($appAdmin, 'FIRE test', 'Test bank', BankAccountTypeEnum::PERSONAL);
 		$investmentCategory = new ExpenseCategory(
 			'Investment',
 			ExpenseCategoryEnum::INVESTMENT,
@@ -49,6 +64,7 @@ class BankExpenseRepositoryTest extends IntegrationTestCase
 			$startInclusive,
 		);
 		$investmentTag = new ExpenseTag(
+			$appAdmin,
 			'Investment',
 			$investmentCategory,
 			null,
@@ -57,6 +73,7 @@ class BankExpenseRepositoryTest extends IntegrationTestCase
 			false,
 		);
 		$restaurantTag = new ExpenseTag(
+			$appAdmin,
 			'Restaurant',
 			$restaurantCategory,
 			null,

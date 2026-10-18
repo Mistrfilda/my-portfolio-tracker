@@ -78,6 +78,12 @@ class AppAdminRepository extends BaseAppAdminRepository
 		return (int) $result;
 	}
 
+	/** @return array<AppAdmin> */
+	public function findAll(): array
+	{
+		return $this->createQueryBuilder()->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('appAdmin');

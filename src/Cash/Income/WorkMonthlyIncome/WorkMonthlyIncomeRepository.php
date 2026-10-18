@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Income\WorkMonthlyIncome;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -19,13 +20,22 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): WorkMonthlyIncome
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
-		$qb->where($qb->expr()->eq('workMonthlyIncome.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): WorkMonthlyIncome
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('workMonthlyIncome.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -42,7 +52,17 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 	 */
 	public function findAll(int $year): array
 	{
-		return $this->doctrineRepository->findBy(['year' => $year], ['month' => 'DESC']);
+		return $this->findAllForAppAdmin($this->currentAppAdminGetter->getAppAdmin(), $year);
+	}
+
+	/** @return array<WorkMonthlyIncome> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin, int $year): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('workMonthlyIncome.year', ':year'));
+		$qb->setParameter('year', $year);
+		$qb->orderBy('workMonthlyIncome.month', 'DESC');
+		return $qb->getQuery()->getResult();
 	}
 
 	/**
@@ -55,15 +75,21 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
-		$qb->andWhere($qb->expr()->in('workMonthlyIncome.id', $ids));
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
+		$qb->andWhere($qb->expr()->in('workMonthlyIncome.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface $id): string => $id->toString(), $ids));
 
 		return $qb->getQuery()->getResult();
 	}
 
 	public function getByYearAndMonth(int $year, int $month): WorkMonthlyIncome|null
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
+		return $this->getByYearAndMonthForAppAdmin($year, $month, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function getByYearAndMonthForAppAdmin(int $year, int $month, AppAdmin $appAdmin): WorkMonthlyIncome|null
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->eq('workMonthlyIncome.year', ':year'),
 			$qb->expr()->eq('workMonthlyIncome.month', ':month'),
@@ -87,7 +113,7 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 	 */
 	public function findByYearAndMonth(int|null $year, int|null $month): array
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('workMonthlyIncome');
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
 
 		if ($year !== null) {
 			$qb->andWhere(
@@ -106,6 +132,19 @@ class WorkMonthlyIncomeRepository extends BaseRepository
 		}
 
 		return $qb->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addAppAdminToQueryBuilder($qb, 'workMonthlyIncome', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder

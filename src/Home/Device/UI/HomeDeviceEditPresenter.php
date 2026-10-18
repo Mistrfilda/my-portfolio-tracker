@@ -7,13 +7,16 @@ namespace App\Home\Device\UI;
 use App\Home\Device\HomeDeviceRepository;
 use App\Home\Home;
 use App\Home\HomeRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
 use Nette\Application\Attributes\Persistent;
 use Ramsey\Uuid\Uuid;
 
-class HomeDeviceEditPresenter extends BaseSysadminPresenter
+/**
+ * @property-read HomeDeviceEditPresenterTemplate $template
+ */
+class HomeDeviceEditPresenter extends BaseAdminPresenter
 {
 
 	#[Persistent]
@@ -38,7 +41,7 @@ class HomeDeviceEditPresenter extends BaseSysadminPresenter
 	public function renderDefault(string $homeId, string|null $id = null): void
 	{
 		if ($id !== null) {
-			$homeDevice = $this->homeDeviceRepository->getById(Uuid::fromString($id));
+			$homeDevice = $this->homeDeviceRepository->getByIdForHome(Uuid::fromString($id), $this->home);
 			$this->template->heading = sprintf('Úprava zařízení %s', $homeDevice->getName());
 		} else {
 			$this->template->heading = 'Přidání nového zařízení';

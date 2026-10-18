@@ -4,10 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Home\UI;
 
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 
-class HomePresenter extends BaseSysadminPresenter
+/**
+ * @property-read HomePresenterTemplate $template
+ */
+class HomePresenter extends BaseAdminPresenter
 {
 
 	public function __construct(

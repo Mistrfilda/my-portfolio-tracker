@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Bank\Account;
 
+use App\Admin\AppAdmin;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Income\Bank\BankIncome;
 use App\Doctrine\Entity;
@@ -19,6 +20,10 @@ class BankAccount implements Entity
 {
 
 	use SimpleUuid;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: 'string')]
 	private string $name;
@@ -37,14 +42,20 @@ class BankAccount implements Entity
 	#[ORM\OneToMany(targetEntity: BankIncome::class, mappedBy: 'bankAccount')]
 	private Collection $incomes;
 
-	public function __construct(string $name, string $bank, BankAccountTypeEnum $type)
+	public function __construct(AppAdmin $appAdmin, string $name, string $bank, BankAccountTypeEnum $type)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->id = Uuid::uuid4();
 		$this->name = $name;
 		$this->bank = $bank;
 		$this->type = $type;
 		$this->expenses = new ArrayCollection();
 		$this->incomes = new ArrayCollection();
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(string $name, string $bank, BankAccountTypeEnum $type): void

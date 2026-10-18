@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Cash\Expense\Tag;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
+use App\Admin\CurrentAppAdminGetter;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategory;
@@ -44,6 +47,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Test data
@@ -96,6 +101,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Test data
@@ -146,6 +153,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Expect exception
@@ -176,11 +185,14 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Create existing tag
 		$expenseCategory = Mockery::mock(ExpenseCategory::class);
 		$existingTag = new ExpenseTag(
+			$this->createStub(AppAdmin::class),
 			'Old Name',
 			$expenseCategory,
 			null,
@@ -234,6 +246,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Test data
@@ -287,6 +301,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Test data
@@ -340,6 +356,8 @@ class ExpenseTagFacadeTest extends TestCase
 			$entityManagerMock,
 			$consoleOutputHelperMock,
 			$systemValueFacadeMock,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(AppAdminRepository::class),
 		);
 
 		// Test data

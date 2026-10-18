@@ -40,7 +40,7 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 		$suffix = Uuid::uuid4()->toString();
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 		$this->appAdmin = $this->legacyApiAdmin;
-		$home = new Home('Home API ' . $suffix, $now);
+		$home = new Home($this->appAdmin, 'Home API ' . $suffix, $now);
 		$this->device = new HomeDevice(
 			$home,
 			'device-' . $suffix,
@@ -75,7 +75,7 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 		self::assertSame($unit, $data['unit']);
 
 		$recordRepository = $this->getService(HomeDeviceRecordRepository::class);
-		$record = $recordRepository->getById(Uuid::fromString((string) $data['id']));
+		$record = $recordRepository->getByIdForAppAdmin(Uuid::fromString((string) $data['id']), $this->appAdmin);
 		self::assertSame($this->appAdmin->getId()->toString(), $record->getCreatedBy()?->getId()->toString());
 		self::assertSame(is_float($value) ? $value : null, $record->getFloatValue());
 		self::assertSame(is_bool($value) ? $value : null, $record->getBooleanValue());

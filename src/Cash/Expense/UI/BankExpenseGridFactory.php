@@ -27,7 +27,7 @@ class BankExpenseGridFactory
 
 	public function create(bool $onlyWithoutMainTag = false): Datagrid
 	{
-		$qb = $this->bankExpenseRepository->createQueryBuilder();
+		$qb = $this->bankExpenseRepository->createQueryBuilderForCurrentAppAdmin();
 		if ($onlyWithoutMainTag) {
 			$qb->andWhere(
 				$qb->expr()->isNull('bankExpense.mainTag'),

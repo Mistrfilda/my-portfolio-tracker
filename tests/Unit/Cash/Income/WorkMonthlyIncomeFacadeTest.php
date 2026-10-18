@@ -4,9 +4,12 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Cash\Income;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Cash\Income\WorkMonthlyIncome\HarvestTimeDownloader;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncome;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade;
+use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeOwnerProvider;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -25,6 +28,10 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 
+		$appAdmin = $this->createStub(AppAdmin::class);
+		$ownerProvider = $this->createStub(WorkMonthlyIncomeOwnerProvider::class);
+		$ownerProvider->method('getOwner')->willReturn($appAdmin);
+
 		// Create facade
 		$currentHourlyRate = 500;
 		$facade = new WorkMonthlyIncomeFacade(
@@ -33,6 +40,8 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			$harvestTimeDownloaderMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$ownerProvider,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
 		// Test data
@@ -54,9 +63,9 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			->once()
 			->andReturn($timeEntries);
 
-		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonth')
+		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonthForAppAdmin')
 			->once()
-			->with(2024, 1)
+			->with(2024, 1, $appAdmin)
 			->andReturn(null);
 
 		$datetimeFactoryMock->shouldReceive('createNow')
@@ -84,6 +93,10 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 
+		$appAdmin = $this->createStub(AppAdmin::class);
+		$ownerProvider = $this->createStub(WorkMonthlyIncomeOwnerProvider::class);
+		$ownerProvider->method('getOwner')->willReturn($appAdmin);
+
 		// Create facade
 		$currentHourlyRate = 500;
 		$facade = new WorkMonthlyIncomeFacade(
@@ -92,6 +105,8 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			$harvestTimeDownloaderMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$ownerProvider,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
 		// Test data
@@ -103,16 +118,23 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		];
 
 		$now = new ImmutableDateTime('now');
-		$existingRecord = new WorkMonthlyIncome(2024, 2, 5.0, 450, new ImmutableDateTime('2024-02-01'));
+		$existingRecord = new WorkMonthlyIncome(
+			$this->createStub(AppAdmin::class),
+			2024,
+			2,
+			5.0,
+			450,
+			new ImmutableDateTime('2024-02-01'),
+		);
 
 		// Setup expectations
 		$harvestTimeDownloaderMock->shouldReceive('getData')
 			->once()
 			->andReturn($timeEntries);
 
-		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonth')
+		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonthForAppAdmin')
 			->once()
-			->with(2024, 2)
+			->with(2024, 2, $appAdmin)
 			->andReturn($existingRecord);
 
 		$datetimeFactoryMock->shouldReceive('createNow')
@@ -137,6 +159,10 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 
+		$appAdmin = $this->createStub(AppAdmin::class);
+		$ownerProvider = $this->createStub(WorkMonthlyIncomeOwnerProvider::class);
+		$ownerProvider->method('getOwner')->willReturn($appAdmin);
+
 		// Create facade
 		$currentHourlyRate = 600;
 		$facade = new WorkMonthlyIncomeFacade(
@@ -145,6 +171,8 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			$harvestTimeDownloaderMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$ownerProvider,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
 		// Test data - entries from multiple months
@@ -171,15 +199,15 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			->andReturn($timeEntries);
 
 		// January - no existing record
-		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonth')
+		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonthForAppAdmin')
 			->once()
-			->with(2024, 1)
+			->with(2024, 1, $appAdmin)
 			->andReturn(null);
 
 		// February - no existing record
-		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonth')
+		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonthForAppAdmin')
 			->once()
-			->with(2024, 2)
+			->with(2024, 2, $appAdmin)
 			->andReturn(null);
 
 		$datetimeFactoryMock->shouldReceive('createNow')
@@ -207,6 +235,10 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 
+		$appAdmin = $this->createStub(AppAdmin::class);
+		$ownerProvider = $this->createStub(WorkMonthlyIncomeOwnerProvider::class);
+		$ownerProvider->method('getOwner')->willReturn($appAdmin);
+
 		// Create facade
 		$currentHourlyRate = 550;
 		$facade = new WorkMonthlyIncomeFacade(
@@ -215,6 +247,8 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			$harvestTimeDownloaderMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$ownerProvider,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
 		// Test data
@@ -259,6 +293,10 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 		$datetimeFactoryMock = Mockery::mock(DatetimeFactory::class);
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 
+		$appAdmin = $this->createStub(AppAdmin::class);
+		$ownerProvider = $this->createStub(WorkMonthlyIncomeOwnerProvider::class);
+		$ownerProvider->method('getOwner')->willReturn($appAdmin);
+
 		// Create facade
 		$currentHourlyRate = 500;
 		$facade = new WorkMonthlyIncomeFacade(
@@ -267,6 +305,8 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			$harvestTimeDownloaderMock,
 			$datetimeFactoryMock,
 			$entityManagerMock,
+			$ownerProvider,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
 		// Test data - multiple entries in the same month
@@ -292,9 +332,9 @@ class WorkMonthlyIncomeFacadeTest extends TestCase
 			->once()
 			->andReturn($timeEntries);
 
-		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonth')
+		$workMonthlyIncomeRepositoryMock->shouldReceive('getByYearAndMonthForAppAdmin')
 			->once()
-			->with(2024, 1)
+			->with(2024, 1, $appAdmin)
 			->andReturn(null);
 
 		$datetimeFactoryMock->shouldReceive('createNow')

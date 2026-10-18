@@ -5,11 +5,14 @@ declare(strict_types = 1);
 namespace App\Home\UI;
 
 use App\Home\HomeRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
 
-class HomeEditPresenter extends BaseSysadminPresenter
+/**
+ * @property-read HomeEditPresenterTemplate $template
+ */
+class HomeEditPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(

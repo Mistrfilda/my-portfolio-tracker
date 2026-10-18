@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Tag;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
+use App\Admin\CurrentAppAdminGetter;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use App\System\SystemValueEnum;
@@ -25,6 +28,8 @@ class ExpenseTagFacade
 		private EntityManagerInterface $entityManager,
 		private ConsoleCurrentOutputHelper $consoleCurrentOutputHelper,
 		private SystemValueFacade $systemValueFacade,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
+		private AppAdminRepository $appAdminRepository,
 	)
 	{
 
@@ -57,7 +62,15 @@ class ExpenseTagFacade
 			$parentTagEntity = $this->expenseTagRepository->getById($parentTag);
 		}
 
-		$expenseTag = new ExpenseTag($name, $expenseCategoryEntity, $parentTagEntity, $regexes, $now, $isTax);
+		$expenseTag = new ExpenseTag(
+			$this->currentAppAdminGetter->getAppAdmin(),
+			$name,
+			$expenseCategoryEntity,
+			$parentTagEntity,
+			$regexes,
+			$now,
+			$isTax,
+		);
 		$this->entityManager->persist($expenseTag);
 		$this->entityManager->flush();
 		$this->entityManager->refresh($expenseTag);
@@ -84,13 +97,25 @@ class ExpenseTagFacade
 
 	public function processExpenses(OutputInterface|null $output = null): void
 	{
+		foreach ($this->appAdminRepository->findAll() as $appAdmin) {
+			$this->processExpensesForAppAdmin($appAdmin, $output);
+		}
+	}
+
+	public function processExpensesForAppAdminId(UuidInterface $appAdminId): void
+	{
+		$this->processExpensesForAppAdmin($this->appAdminRepository->findById($appAdminId));
+	}
+
+	public function processExpensesForAppAdmin(AppAdmin $appAdmin, OutputInterface|null $output = null): void
+	{
 		if ($output === null) {
 			$output = $this->consoleCurrentOutputHelper->getOutput();
 		}
 
 		$output?->writeln('Processing expenses...');
-		$expenseTags = $this->expenseTagRepository->findAll();
-		foreach ($this->bankExpenseRepository->findAll() as $bankExpense) {
+		$expenseTags = $this->expenseTagRepository->findAllForAppAdmin($appAdmin);
+		foreach ($this->bankExpenseRepository->findAllForAppAdmin($appAdmin) as $bankExpense) {
 			//remove new lines
 			$bankExpenseRawContent = str_replace("\n", ' ', $bankExpense->getTransactionRawContent());
 			//remove tabs

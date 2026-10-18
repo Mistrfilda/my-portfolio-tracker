@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Cash\Bank\Kb;
 
 use App\Cash\Bank\Account\BankAccount;
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankTransactionType;
 use App\Cash\Bank\Kb\KbCashFacade;
 use App\Cash\Bank\Kb\KbContentParserResult;
@@ -21,6 +22,7 @@ use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 
 class KbCashFacadeTest extends TestCase
 {
@@ -36,6 +38,8 @@ class KbCashFacadeTest extends TestCase
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 
+		$bankAccountRepository = $this->createStub(BankAccountRepository::class);
+
 		// Create facade
 		$facade = new KbCashFacade(
 			$kbPdfParserMock,
@@ -45,11 +49,14 @@ class KbCashFacadeTest extends TestCase
 			$datetimeFactoryMock,
 			$entityManagerMock,
 			$loggerMock,
+			$bankAccountRepository,
 		);
 
 		// Prepare test data
 		$fileContents = 'test csv content';
 		$bankAccount = Mockery::mock(BankAccount::class);
+		$bankAccount->shouldReceive('getId')->andReturn(Uuid::uuid4());
+		$bankAccountRepository->method('getById')->willReturn($bankAccount);
 
 		$transaction = new KbTransaction();
 		$transaction->setBankTransactionType(BankTransactionType::CARD_PAYMENT);
@@ -97,6 +104,8 @@ class KbCashFacadeTest extends TestCase
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 
+		$bankAccountRepository = $this->createStub(BankAccountRepository::class);
+
 		// Create facade
 		$facade = new KbCashFacade(
 			$kbPdfParserMock,
@@ -106,11 +115,14 @@ class KbCashFacadeTest extends TestCase
 			$datetimeFactoryMock,
 			$entityManagerMock,
 			$loggerMock,
+			$bankAccountRepository,
 		);
 
 		// Prepare test data
 		$fileContents = 'test pdf content';
 		$bankAccount = Mockery::mock(BankAccount::class);
+		$bankAccount->shouldReceive('getId')->andReturn(Uuid::uuid4());
+		$bankAccountRepository->method('getById')->willReturn($bankAccount);
 
 		$incomeTransaction = new KbTransaction();
 		$incomeTransaction->setBankTransactionType(BankTransactionType::TRANSACTION);
@@ -157,6 +169,8 @@ class KbCashFacadeTest extends TestCase
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 
+		$bankAccountRepository = $this->createStub(BankAccountRepository::class);
+
 		// Create facade
 		$facade = new KbCashFacade(
 			$kbPdfParserMock,
@@ -166,11 +180,14 @@ class KbCashFacadeTest extends TestCase
 			$datetimeFactoryMock,
 			$entityManagerMock,
 			$loggerMock,
+			$bankAccountRepository,
 		);
 
 		// Prepare test data
 		$fileContents = 'test content';
 		$bankAccount = Mockery::mock(BankAccount::class);
+		$bankAccount->shouldReceive('getId')->andReturn(Uuid::uuid4());
+		$bankAccountRepository->method('getById')->willReturn($bankAccount);
 
 		$unprocessedTransaction = new KbTransaction();
 		$unprocessedTransaction->setTransactionRawContent('Invalid transaction');
@@ -208,6 +225,8 @@ class KbCashFacadeTest extends TestCase
 		$entityManagerMock = Mockery::mock(EntityManagerInterface::class);
 		$loggerMock = Mockery::mock(LoggerInterface::class);
 
+		$bankAccountRepository = $this->createStub(BankAccountRepository::class);
+
 		// Create facade
 		$facade = new KbCashFacade(
 			$kbPdfParserMock,
@@ -217,11 +236,14 @@ class KbCashFacadeTest extends TestCase
 			$datetimeFactoryMock,
 			$entityManagerMock,
 			$loggerMock,
+			$bankAccountRepository,
 		);
 
 		// Prepare test data
 		$fileContents = 'test content';
 		$bankAccount = Mockery::mock(BankAccount::class);
+		$bankAccount->shouldReceive('getId')->andReturn(Uuid::uuid4());
+		$bankAccountRepository->method('getById')->willReturn($bankAccount);
 
 		$transaction = new KbTransaction();
 		$transaction->setBankTransactionType(BankTransactionType::CARD_PAYMENT);

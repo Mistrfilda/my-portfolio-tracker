@@ -26,7 +26,7 @@ class HomeGridFactory
 	{
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource(
-				$this->homeRepository->createQueryBuilder(),
+				$this->homeRepository->createQueryBuilderForCurrentAppAdmin(),
 			),
 		);
 

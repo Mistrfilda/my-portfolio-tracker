@@ -26,7 +26,7 @@ class BankAccountGridFactory
 	{
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource(
-				$this->bankAccountRepository->createQueryBuilder(),
+				$this->bankAccountRepository->createQueryBuilderForCurrentAppAdmin(),
 			),
 		);
 

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Home;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -19,14 +20,23 @@ class HomeRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): Home
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('home');
-		$qb->where($qb->expr()->eq('home.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): Home
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('home.id', ':id'));
 		$qb->setParameter('id', $id);
 
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -43,7 +53,26 @@ class HomeRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->createQueryBuilderForCurrentAppAdmin()->getQuery()->getResult();
+	}
+
+	/** @return array<Home> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addAppAdminToQueryBuilder($qb, 'home', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder
