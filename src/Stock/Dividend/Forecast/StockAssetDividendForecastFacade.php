@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Forecast;
 
+use App\Admin\CurrentAppAdminGetter;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -15,6 +16,7 @@ class StockAssetDividendForecastFacade
 		private StockAssetDividendForecastRepository $stockAssetDividendForecastRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -25,6 +27,7 @@ class StockAssetDividendForecastFacade
 			$forYear,
 			$trend,
 			$this->datetimeFactory->createNow(),
+			$this->currentAppAdminGetter->getAppAdmin(),
 		);
 
 		$this->entityManager->persist($stockAssetDividendForecast);
@@ -44,6 +47,7 @@ class StockAssetDividendForecastFacade
 
 		$existing = $this->stockAssetDividendForecastRepository->findByDefaultForYear(
 			$stockAssetDividendForecast->getForYear(),
+			$stockAssetDividendForecast->getAppAdmin(),
 		);
 
 		if ($stockAssetDividendForecast->getId() === $existing?->getId()) {

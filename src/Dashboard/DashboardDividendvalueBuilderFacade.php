@@ -4,9 +4,12 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Dividend\StockAssetDividendFacade;
@@ -29,6 +32,8 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		private StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private StockAssetDividendForecastRepository $stockAssetDividendForecastRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
+		private StockAssetRepository $stockAssetRepository,
 	)
 	{
 
@@ -44,8 +49,14 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		];
 	}
 
-	public function buildDividendValues(): DashboardValueGroup
+	public function buildDividendValues(AppAdmin|null $appAdmin = null): DashboardValueGroup
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
+		$ownedAssets = [];
+		foreach ($this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, true) as $asset) {
+			$ownedAssets[$asset->getId()->toString()] = true;
+		}
+
 		$lastYearRecords = $this->stockAssetDividendFacade->getLastYearDividendRecordsForDashboard();
 
 		$lastYearTable = new DashboardValueTable(
@@ -62,7 +73,9 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 
 		foreach ($lastYearRecords as $lastYearRecord) {
 			$lastYearTable->addData([
-				'rowColor' => $lastYearRecord->getStockAsset()->hasOpenPositions() ? TailwindColorConstant::GREEN : TailwindColorConstant::GRAY,
+				'rowColor' => isset($ownedAssets[$lastYearRecord->getStockAsset()->getId()->toString()])
+					? TailwindColorConstant::GREEN
+					: TailwindColorConstant::GRAY,
 				'stockAssetName' => $lastYearRecord->getStockAsset()->getName(),
 				'exDate' => DatetimeFormatFilter::formatValue(
 					$lastYearRecord->getExDate(),
@@ -90,7 +103,7 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		);
 
 		$now = $this->datetimeFactory->createNow();
-		foreach ($this->stockAssetDividendRecordFacade->getLastDividends(8) as $dividendRecord) {
+		foreach ($this->stockAssetDividendRecordFacade->getLastDividends(8, $appAdmin) as $dividendRecord) {
 			$rowColor = TailwindColorConstant::GREEN;
 			if ($dividendRecord->getStockAssetDividend()->getExDate() > $now) {
 				$rowColor = TailwindColorConstant::BLUE;
@@ -113,12 +126,12 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		}
 
 		$positions = [];
-		$remainingForecastValue = $this->buildRemainingForecastValue($now->getYear());
+		$remainingForecastValue = $this->buildRemainingForecastValue($now->getYear(), $appAdmin);
 		if ($remainingForecastValue !== null) {
 			$positions[] = $remainingForecastValue;
 		}
 
-		foreach ($this->stockAssetDividendRecordFacade->getDividendsByYears() as $yearSummary) {
+		foreach ($this->stockAssetDividendRecordFacade->getDividendsByYears($appAdmin) as $yearSummary) {
 			$positions[] = new DashboardValue(
 				sprintf('Obdržená dividenda celkem za rok %s', $yearSummary->getYear()),
 				CurrencyFilter::format(
@@ -149,9 +162,9 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		);
 	}
 
-	private function buildRemainingForecastValue(int $year): DashboardValue|null
+	private function buildRemainingForecastValue(int $year, AppAdmin $appAdmin): DashboardValue|null
 	{
-		$defaultForecast = $this->stockAssetDividendForecastRepository->findByDefaultForYear($year);
+		$defaultForecast = $this->stockAssetDividendForecastRepository->findByDefaultForYear($year, $appAdmin);
 		if ($defaultForecast === null) {
 			return null;
 		}

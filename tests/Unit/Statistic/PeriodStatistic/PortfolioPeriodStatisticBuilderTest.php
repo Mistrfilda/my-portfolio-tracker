@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Currency\CurrencyConversionFacade;
@@ -164,6 +165,7 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 			$this->createStub(StockAssetPriceRecordRepository::class),
 			$this->createStub(CryptoAssetPriceRecordRepository::class),
 			$this->createStub(PortuAssetPriceRecordRepository::class),
+			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 

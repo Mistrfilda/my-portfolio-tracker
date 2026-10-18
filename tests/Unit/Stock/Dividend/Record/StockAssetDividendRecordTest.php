@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Record\StockAssetDividendRecord;
@@ -35,6 +36,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			5750.0,
 			CurrencyEnum::CZK,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$this->assertSame($dividend, $record->getStockAssetDividend());
@@ -62,6 +64,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			null,
 			null,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$updateTime = new ImmutableDateTime('2024-02-01');
@@ -101,6 +104,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			null,
 			null,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$this->assertSame('Apple Inc. (AAPL)', $record->getStockAssetChartLabel());
@@ -124,6 +128,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			null,
 			null,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$summaryPrice = $record->getSummaryPrice(true);
@@ -150,6 +155,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			null,
 			null,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$summaryPrice = $record->getSummaryPrice(false);
@@ -175,6 +181,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			2300.0,
 			CurrencyEnum::CZK,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$summaryPrice = $record->getSummaryPriceInBrokerCurrency(true);
@@ -201,6 +208,7 @@ class StockAssetDividendRecordTest extends UpdatedTestCase
 			null,
 			null,
 			$now,
+			$this->createStub(AppAdmin::class),
 		);
 
 		$summaryPrice = $record->getSummaryPriceInBrokerCurrency(true);

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\JobRequest\JobRequestFacade;
 use App\Stock\Asset\StockAsset;
@@ -14,6 +16,7 @@ use App\Stock\Dividend\Record\StockAssetDividendRecordService;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Position\StockPosition;
+use App\Stock\Position\StockPositionRepository;
 use App\Test\UpdatedTestCase;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -21,6 +24,7 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mockery;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 
 class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 {
@@ -56,6 +60,10 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 
 		$this->jobRequestFacade->shouldReceive('addToQueue');
 
+		$owner = $this->createStub(AppAdmin::class);
+		$owner->method('getId')->willReturn(Uuid::uuid4());
+		$admins = $this->createStub(AppAdminRepository::class);
+		$admins->method('findAll')->willReturn([$owner]);
 		$this->stockAssetDividendRecordFacade = new StockAssetDividendRecordFacade(
 			$this->stockAssetDividendRecordRepository,
 			$this->stockAssetDividendRepository,
@@ -66,12 +74,15 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 			Mockery::mock(CurrencyConversionFacade::class),
 			$this->logger,
 			$this->jobRequestFacade,
+			$admins,
+			$this->createStub(StockPositionRepository::class),
 		);
 	}
 
 	public function testProcessAllDividends(): void
 	{
 		$stockAsset = Mockery::mock(StockAsset::class);
+		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
 		$stockAsset->shouldReceive('getName')->andReturn('test');
 		$stockAsset->shouldReceive('getPositions')->andReturn([Mockery::mock(StockPosition::class)]);
 

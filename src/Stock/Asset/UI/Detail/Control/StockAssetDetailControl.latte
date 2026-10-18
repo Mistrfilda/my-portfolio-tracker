@@ -87,7 +87,7 @@
                         <span x-show="currentTab === 'positions'" aria-hidden="true"
                               class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
                     </a>
-                    <a n:if="$showLegacyPortfolioData"
+                    <a
                             x-on:click="changeTab('dividends')"
                             :class="currentTab === 'dividends' ? '' : ''"
                             href="#"
@@ -274,7 +274,7 @@
             </div>
         </div>
 
-        <div n:if="$showLegacyPortfolioData"
+        <div
                 x-show="currentTab === 'dividends'"
                 x-transition:enter="transition-opacity ease-linear duration-300"
                 x-transition:enter-start="opacity-0"

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
@@ -38,6 +40,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 			$this->forecastRepository,
 			$this->datetimeFactory,
 			$this->entityManager,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 	}
 
@@ -62,6 +65,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->createStub(AppAdmin::class));
 		$forecast->shouldReceive('update')
 			->once()
 			->with(StockAssetDividendTrendEnum::NEUTRAL, $now);
@@ -84,6 +88,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 		$id = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->createStub(AppAdmin::class));
 		$forecast->shouldReceive('getId')->andReturn($id);
 		$forecast->shouldReceive('getForYear')->andReturn(2025);
 		$forecast->shouldReceive('defaultForYear')->once();
@@ -95,7 +100,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 
 		$this->forecastRepository->shouldReceive('findByDefaultForYear')
 			->once()
-			->with(2025)
+			->with(2025, Mockery::type(AppAdmin::class))
 			->andReturn(null);
 
 		$this->entityManager->shouldReceive('flush')->once();
@@ -110,6 +115,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 		$id = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->createStub(AppAdmin::class));
 		$forecast->shouldReceive('getId')->andReturn($id);
 		$forecast->shouldReceive('getForYear')->andReturn(2025);
 
@@ -120,7 +126,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 
 		$this->forecastRepository->shouldReceive('findByDefaultForYear')
 			->once()
-			->with(2025)
+			->with(2025, Mockery::type(AppAdmin::class))
 			->andReturn($forecast);
 
 		$this->facade->setDefaultForYear($id);
@@ -134,10 +140,12 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 		$existingId = Uuid::uuid4();
 
 		$existingForecast = Mockery::mock(StockAssetDividendForecast::class);
+		$existingForecast->shouldReceive('getAppAdmin')->andReturn($this->createStub(AppAdmin::class));
 		$existingForecast->shouldReceive('getId')->andReturn($existingId);
 		$existingForecast->shouldReceive('removeDefaultForYear')->once();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->createStub(AppAdmin::class));
 		$forecast->shouldReceive('getId')->andReturn($id);
 		$forecast->shouldReceive('getForYear')->andReturn(2025);
 		$forecast->shouldReceive('defaultForYear')->once();
@@ -149,7 +157,7 @@ class StockAssetDividendForecastFacadeTest extends UpdatedTestCase
 
 		$this->forecastRepository->shouldReceive('findByDefaultForYear')
 			->once()
-			->with(2025)
+			->with(2025, Mockery::type(AppAdmin::class))
 			->andReturn($existingForecast);
 
 		$this->entityManager->shouldReceive('flush')->once();

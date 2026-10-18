@@ -6,7 +6,6 @@ namespace App\Stock\Position\Closed;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -39,7 +38,6 @@ class StockClosedPositionFacade
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private readonly JobRequestFacade $jobRequestFacade,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -220,10 +218,10 @@ class StockClosedPositionFacade
 				return [];
 			}
 
-			// Personal dividend records gain ownership in step 6.
-			$dividendsSummaryPrice = $this->legacyOwnerProvider->isOwner($appAdmin)
-				? $this->stockAssetDividendRecordFacade->getTotalSummaryPriceForStockAsset($stockAsset)
-				: null;
+			$dividendsSummaryPrice = $this->stockAssetDividendRecordFacade->getTotalSummaryPriceForStockAsset(
+				$stockAsset,
+				$appAdmin,
+			);
 
 			$totalAmountWithDividends = null;
 			$totalAmountInBrokerCurrencyWithDividends = null;

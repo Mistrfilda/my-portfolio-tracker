@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Statistic\UI\Chart;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
@@ -20,7 +19,6 @@ class StockDividendByCompanyAndMonthChartDataProvider implements ChartDataProvid
 	public function __construct(
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -40,11 +38,6 @@ class StockDividendByCompanyAndMonthChartDataProvider implements ChartDataProvid
 
 	public function getChartData(): ChartDataSet
 	{
-		// History remains assigned to its original owner until steps 6 and 8.
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			return new ChartDataSet([]);
-		}
-
 		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
 
 		$labels = [];

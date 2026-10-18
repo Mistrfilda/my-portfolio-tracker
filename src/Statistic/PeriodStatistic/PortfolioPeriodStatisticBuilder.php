@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\PeriodStatistic;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Asset;
 use App\Asset\Position\AssetClosedPosition;
 use App\Asset\Position\AssetPosition;
@@ -52,6 +53,7 @@ class PortfolioPeriodStatisticBuilder
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private CryptoAssetPriceRecordRepository $cryptoAssetPriceRecordRepository,
 		private PortuAssetPriceRecordRepository $portuAssetPriceRecordRepository,
+		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -183,7 +185,11 @@ class PortfolioPeriodStatisticBuilder
 		$netTotalCzk = 0.0;
 		$partial = false;
 
-		foreach ($this->stockAssetDividendRecordRepository->findCashReceivedBetweenDates($start, $end) as $record) {
+		foreach ($this->stockAssetDividendRecordRepository->findCashReceivedBetweenDates(
+			$start,
+			$end,
+			$this->legacyOwnerProvider->getOwner(),
+		) as $record) {
 			$dividend = $record->getStockAssetDividend();
 			$paymentDate = $dividend->getPaymentDate() ?? $dividend->getExDate();
 			$gross = $record->getSummaryPrice(false);

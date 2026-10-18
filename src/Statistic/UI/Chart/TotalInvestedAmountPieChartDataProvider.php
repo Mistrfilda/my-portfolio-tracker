@@ -4,9 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\UI\Chart;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
-use App\Asset\Price\SummaryPrice;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
@@ -22,7 +20,6 @@ class TotalInvestedAmountPieChartDataProvider implements ChartDataProvider
 		private AssetPriceSummaryFacade $assetPriceSummaryFacade,
 		private StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private SummaryPriceService $summaryPriceService,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 
@@ -34,9 +31,7 @@ class TotalInvestedAmountPieChartDataProvider implements ChartDataProvider
 			CurrencyEnum::CZK,
 		);
 
-		$totalDividends = $this->legacyOwnerProvider->isCurrentUserOwner()
-			? $this->stockAssetDividendRecordFacade->getTotalSummaryPrice()
-			: new SummaryPrice(CurrencyEnum::CZK);
+		$totalDividends = $this->stockAssetDividendRecordFacade->getTotalSummaryPrice();
 
 		$totalInvestedCash = $this->summaryPriceService->getSummaryPriceDiff(
 			$totalInvestedAmount,

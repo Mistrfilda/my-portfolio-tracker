@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -25,6 +26,10 @@ class StockAssetDividendForecast implements Entity
 	use UpdatedAt;
 
 	public const START_YEAR = 2025;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::INTEGER)]
 	private int $forYear;
@@ -49,9 +54,15 @@ class StockAssetDividendForecast implements Entity
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $defaultForYear;
 
-	public function __construct(int $forYear, StockAssetDividendTrendEnum $trend, ImmutableDateTime $now)
+	public function __construct(
+		int $forYear,
+		StockAssetDividendTrendEnum $trend,
+		ImmutableDateTime $now,
+		AppAdmin $appAdmin,
+	)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 		$this->forYear = $forYear;
 		$this->trend = $trend;
 		$this->records = new ArrayCollection();
@@ -59,6 +70,11 @@ class StockAssetDividendForecast implements Entity
 		$this->defaultForYear = false;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(StockAssetDividendTrendEnum $trend, ImmutableDateTime $now): void

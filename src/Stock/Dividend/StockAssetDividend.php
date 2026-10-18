@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
@@ -138,6 +139,24 @@ class StockAssetDividend implements Entity
 	public function getRecords(): array
 	{
 		return $this->records->toArray();
+	}
+
+	public function addRecord(StockAssetDividendRecord $record): void
+	{
+		if (!$this->records->contains($record)) {
+			$this->records->add($record);
+		}
+	}
+
+	/** @return array<StockAssetDividendRecord> */
+	public function getRecordsForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return array_values(array_filter(
+			$this->getRecords(),
+			static fn (StockAssetDividendRecord $record): bool => $record->getAppAdmin()->getId()->equals(
+				$appAdmin->getId(),
+			),
+		));
 	}
 
 	public function getStockAssetId(): UuidInterface

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\SummaryPrice;
 use App\Crypto\Asset\CryptoAsset;
@@ -134,6 +136,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 			null,
 			null,
 			new ImmutableDateTime('2026-01-15'),
+			$this->createStub(AppAdmin::class),
 		);
 		$dividendRecordRepository = $this->createStub(StockAssetDividendRecordRepository::class);
 		$dividendRecordRepository->method('findCashReceivedBetweenDates')->willReturn([$dividendRecord]);
@@ -346,6 +349,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 			null,
 			null,
 			$dividendDate,
+			$this->createStub(AppAdmin::class),
 		);
 		$dividendRecordRepository = $this->createStub(StockAssetDividendRecordRepository::class);
 		$dividendRecordRepository->method('findCashReceivedBetweenDates')->willReturn([$record]);
@@ -416,6 +420,7 @@ class PortfolioPeriodStatisticBuilderAssetsTest extends TestCase
 			$stockAssetPriceRecordRepository ?? $this->createStub(StockAssetPriceRecordRepository::class),
 			$cryptoAssetPriceRecordRepository ?? $this->createStub(CryptoAssetPriceRecordRepository::class),
 			$portuAssetPriceRecordRepository ?? $this->createStub(PortuAssetPriceRecordRepository::class),
+			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -21,15 +22,19 @@ use Ramsey\Uuid\UuidInterface;
 class StockAssetDividendRecordRepository extends BaseRepository
 {
 
-	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): StockAssetDividendRecord
+	public function getById(
+		UuidInterface $id,
+		LockModeEnum|null $lockMode = null,
+		AppAdmin|null $appAdmin = null,
+	): StockAssetDividendRecord
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
-		$qb->where($qb->expr()->eq('stockAssetDividendRecord.id', ':id'));
+		$qb = $this->createQueryBuilder($appAdmin);
+		$qb->andWhere($qb->expr()->eq('stockAssetDividendRecord.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -44,17 +49,17 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findAll(): array
+	public function findAll(AppAdmin|null $appAdmin = null): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->createQueryBuilder($appAdmin)->getQuery()->getResult();
 	}
 
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findAllForMonthChart(): array
+	public function findAllForMonthChart(AppAdmin|null $appAdmin = null): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->orderBy('stockAssetDividend.exDate', OrderBy::ASC->value);
 		return $qb->getQuery()->getResult();
 	}
@@ -69,16 +74,20 @@ class StockAssetDividendRecordRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
-		$qb->andWhere($qb->expr()->in('stockAssetDividendRecord.id', $ids));
+		$qb = $this->createQueryBuilder($this->currentAppAdminGetter->getAppAdmin());
+		$qb->andWhere($qb->expr()->in('stockAssetDividendRecord.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface $id): string => $id->toString(), $ids));
 
 		return $qb->getQuery()->getResult();
 	}
 
-	public function findOneByStockDividend(StockAssetDividend $stockAssetDividend): StockAssetDividendRecord|null
+	public function findOneByStockDividend(
+		StockAssetDividend $stockAssetDividend,
+		AppAdmin|null $appAdmin = null,
+	): StockAssetDividendRecord|null
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
-		$qb->where($qb->expr()->eq('stockAssetDividendRecord.stockAssetDividend', ':stockAssetDividend'));
+		$qb = $this->createQueryBuilder($appAdmin);
+		$qb->andWhere($qb->expr()->eq('stockAssetDividendRecord.stockAssetDividend', ':stockAssetDividend'));
 		$qb->setParameter('stockAssetDividend', $stockAssetDividend);
 		try {
 			$result = $qb->getQuery()->getSingleResult();
@@ -93,9 +102,13 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findByStockAssetSinceDate(StockAsset $stockAsset, ImmutableDateTime $date): array
+	public function findByStockAssetSinceDate(
+		StockAsset $stockAsset,
+		ImmutableDateTime $date,
+		AppAdmin|null $appAdmin = null,
+	): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 
 		$qb->andWhere(
 			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
@@ -111,9 +124,9 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findByStockAssetForYear(StockAsset $stockAsset, int $year): array
+	public function findByStockAssetForYear(StockAsset $stockAsset, int $year, AppAdmin|null $appAdmin = null): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 
 		$qb->andWhere(
 			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
@@ -129,9 +142,9 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findByStockAsset(StockAsset $stockAsset): array
+	public function findByStockAsset(StockAsset $stockAsset, AppAdmin|null $appAdmin = null): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 
 		$qb->andWhere(
 			$qb->expr()->eq('stockAssetDividend.stockAsset', ':stockAsset'),
@@ -145,9 +158,9 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findByYearAndMonth(int|null $year, int|null $month): array
+	public function findByYearAndMonth(int|null $year, int|null $month, AppAdmin|null $appAdmin = null): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 
 		if ($year !== null) {
 			$qb->andWhere(
@@ -172,9 +185,13 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findGreaterThan(ImmutableDateTime $greaterThanDate, int $limit = 10): array
+	public function findGreaterThan(
+		ImmutableDateTime $greaterThanDate,
+		int $limit = 10,
+		AppAdmin|null $appAdmin = null,
+	): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->gte('stockAssetDividend.exDate', ':greaterThanDate'),
 		);
@@ -187,9 +204,13 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	public function findBetweenDates(
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+		AppAdmin|null $appAdmin = null,
+	): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->gte('stockAssetDividend.exDate', ':start'),
 			$qb->expr()->lte('stockAssetDividend.exDate', ':end'),
@@ -203,9 +224,13 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findCashReceivedBetweenDates(ImmutableDateTime $start, ImmutableDateTime $end): array
+	public function findCashReceivedBetweenDates(
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+		AppAdmin|null $appAdmin = null,
+	): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere(
 			$qb->expr()->orX(
 				$qb->expr()->andX(
@@ -239,17 +264,22 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function findLastDividendRecords(int $limit = 8): array
+	public function findLastDividendRecords(int $limit = 8, AppAdmin|null $appAdmin = null): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->setMaxResults($limit);
 		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
 		return $qb->getQuery()->getResult();
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendRecord');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'stockAssetDividendRecord',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
 		$qb->innerJoin('stockAssetDividendRecord.stockAssetDividend', 'stockAssetDividend');
 		$qb->innerJoin('stockAssetDividend.stockAsset', 'stockAsset');
 		return $qb;

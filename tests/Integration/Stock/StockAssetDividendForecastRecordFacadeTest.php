@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Stock;
 
 use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
@@ -62,7 +63,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 		);
 		$this->entityManager->persist($this->appAdmin);
 
-		$this->mockCurrentAppAdmin('Test Admin Forecast');
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($this->appAdmin);
 
 		$this->stockAsset = new StockAsset(
 			'Forecast Test Company',
@@ -126,6 +127,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -180,6 +182,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -248,6 +251,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::OPTIMISTIC_15,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -308,6 +312,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -368,6 +373,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -428,6 +434,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();
@@ -500,6 +507,7 @@ class StockAssetDividendForecastRecordFacadeTest extends IntegrationTestCase
 			2026,
 			StockAssetDividendTrendEnum::NEUTRAL,
 			new ImmutableDateTime(),
+			$this->appAdmin,
 		);
 		$this->entityManager->persist($forecast);
 		$this->entityManager->flush();

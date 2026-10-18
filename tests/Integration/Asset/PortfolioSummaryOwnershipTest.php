@@ -52,6 +52,8 @@ use Nette\Bootstrap\Configurator;
 use Nette\Bridges\ApplicationLatte\Template;
 use Nette\Http\IRequest;
 use Nette\Http\Request as HttpRequest;
+use Nette\Http\Session;
+use Nette\Http\SessionSection;
 use Nette\Http\UrlScript;
 use PHPUnit\Framework\Attributes\TestWith;
 use Ramsey\Uuid\Uuid;
@@ -145,6 +147,9 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		$this->replaceService(CurrencyConversionRepository::class, $conversionRepository);
 		$this->replaceService(JobRequestFacade::class, $this->createStub(JobRequestFacade::class));
 		$this->replaceService(WebpackAssetsFactory::class, $this->createStub(WebpackAssetsFactory::class));
+		$session = $this->createStub(Session::class);
+		$session->method('getSection')->willReturn($this->createStub(SessionSection::class));
+		$this->replaceService(Session::class, $session);
 		$this->currentAdmin = $this->getService(CurrentAppAdminGetter::class);
 		$this->currentAdmin->beginApiRequest();
 	}
@@ -298,12 +303,19 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		foreach ([
 			PortfolioTotalValueChartProvider::class,
 			PortfolioTotalValueLastMonthChartProvider::class,
+		] as $provider) {
+			self::assertSame([], $this->getService($provider)->getChartData()->jsonSerialize()['datasets']);
+		}
+
+		foreach ([
 			StockDividendByMonthChartDataProvider::class,
 			StockDividendByYearChartDataProvider::class,
 			StockDividendByCompanyChartDataProvider::class,
 			StockDividendByCompanyAndMonthChartDataProvider::class,
 		] as $provider) {
-			self::assertSame([], $this->getService($provider)->getChartData()->jsonSerialize()['datasets']);
+			foreach ($this->getService($provider)->getChartData()->jsonSerialize()['datasets'] as $dataset) {
+				self::assertSame([], $dataset['data']);
+			}
 		}
 
 		$chart = $this->getService(TotalInvestedAmountPieChartDataProvider::class)->getChartData()->jsonSerialize();
@@ -362,7 +374,7 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 				$byName[$group->getName()->name] = $group;
 			}
 
-			self::assertArrayNotHasKey(DashboardValueGroupEnum::DIVIDENDS->name, $byName);
+			self::assertArrayHasKey(DashboardValueGroupEnum::DIVIDENDS->name, $byName);
 			self::assertCount(4, $byName[DashboardValueGroupEnum::TOTAL_VALUES->name]->getPositions());
 			self::assertCount($index === 0 ? 0 : 2, $byName[DashboardValueGroupEnum::STOCKS->name]->getTables());
 		}
@@ -395,7 +407,7 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		self::assertStringNotContainsString($this->fixture->cryptoPositions[0]->getId()->toString(), $html);
 		if ($name === 'StockAssetDetail') {
 			self::assertStringNotContainsString("changeTab('aiAnalysis')", $html);
-			self::assertStringNotContainsString("changeTab('dividends')", $html);
+			self::assertStringContainsString("changeTab('dividends')", $html);
 		}
 	}
 
@@ -411,7 +423,6 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 	#[TestWith(['Dashboard', 'portfolioGoalControl'])]
 	#[TestWith(['Dashboard', 'portfolioStatisticTotalControl'])]
 	#[TestWith(['StockAssetDetail', 'stockAssetDetailControl-stockAssetAiAnalysisControl'])]
-	#[TestWith(['StockAssetDetail', 'stockAssetDetailControl-stockDividendDetailControl'])]
 	#[TestWith(['StockAssetDetail', 'stockAssetDetailControl-stockAiValuationComparisonControl'])]
 	public function testLegacyWidgetsCannotBeRequestedDirectly(string $name, string $component): void
 	{

@@ -4,12 +4,15 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
 use App\Asset\Price\SummaryPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
+use App\Stock\Position\StockPositionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Psr\Log\LoggerInterface;
@@ -26,16 +29,27 @@ class StockAssetDividendForecastRecordFacade
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
 		private LoggerInterface $logger,
+		private StockPositionRepository $stockPositionRepository,
+		private AppAdminRepository $appAdminRepository,
 	)
 	{
 	}
 
-	public function recalculateAll(): void
+	public function recalculateAll(UuidInterface|null $appAdminId = null): void
 	{
 		$this->logger->debug('Recalculating all forecasts');
 		$now = $this->datetimeFactory->createNow();
-		foreach ($this->stockAssetDividendForecastRepository->findAllActive($now->getYear()) as $stockAssetForecast) {
-			$this->recalculate($stockAssetForecast->getId());
+		// Legacy queue jobs without an owner still process each account separately.
+		$owners = $appAdminId === null
+			? $this->appAdminRepository->findAll()
+			: [$this->appAdminRepository->findById($appAdminId)];
+		foreach ($owners as $owner) {
+			foreach ($this->stockAssetDividendForecastRepository->findAllActive(
+				$now->getYear(),
+				$owner,
+			) as $stockAssetForecast) {
+				$this->recalculate($stockAssetForecast->getId());
+			}
 		}
 
 		$this->logger->debug('All forecasts recalculated');
@@ -43,10 +57,13 @@ class StockAssetDividendForecastRecordFacade
 
 	public function recalculate(UuidInterface $stockAssetForecastId): void
 	{
-		$stockAssetForecast = $this->stockAssetDividendForecastRepository->getById($stockAssetForecastId);
+		$stockAssetForecast = $this->stockAssetDividendForecastRepository->getByIdForProcessing($stockAssetForecastId);
+
+		$appAdmin = $stockAssetForecast->getAppAdmin();
 
 		$existingRecords = $this->stockAssetDividendForecastRecordRepository->findByStockAssetDividendForecast(
 			$stockAssetForecastId,
+			$appAdmin,
 		);
 
 		$existingRecordsByStockAsset = [];
@@ -67,9 +84,11 @@ class StockAssetDividendForecastRecordFacade
 				$stockAsset,
 				$forYear,
 			);
-			$hasOpenDividendPayingPosition = $stockAsset->hasOpenPositions() && $stockAsset->doesPaysDividends();
+			$piecesCurrentlyHeld = $this->getOpenPiecesCurrentlyHeld($stockAsset, $appAdmin);
+			$hasOpenDividendPayingPosition = $piecesCurrentlyHeld > 0 && $stockAsset->doesPaysDividends();
 			$hasActualDividendRecord = $this->hasActualDividendRecordForYear(
 				$stockAssetForecastYearReceivedDividends,
+				$appAdmin,
 			);
 
 			if ($hasOpenDividendPayingPosition === false && $hasActualDividendRecord === false) {
@@ -123,7 +142,7 @@ class StockAssetDividendForecastRecordFacade
 					$existingRegularDividendMonths[] = $stockAssetForecastYearReceivedDividend->getExDate()->getMonth();
 				}
 
-				if ($this->hasActualDividendRecord($stockAssetForecastYearReceivedDividend) === false) {
+				if ($this->hasActualDividendRecord($stockAssetForecastYearReceivedDividend, $appAdmin) === false) {
 					continue;
 				}
 
@@ -225,7 +244,6 @@ class StockAssetDividendForecastRecordFacade
 			$expectedDividendPerStockConvertedBeforeTax = $expectedDividendPerStockBeforeTax;
 			$specialDividendsConverted = $specialDividendsTotalPriceForYear->getPrice();
 			$specialDividendsConvertedBeforeTax = $specialDividendsTotalPriceForYearBeforeTax->getPrice();
-			$piecesCurrentlyHeld = $this->getOpenPiecesCurrentlyHeld($stockAsset);
 
 			if ($existingRecord !== null) {
 				$existingRecord->recalculate(
@@ -330,10 +348,10 @@ class StockAssetDividendForecastRecordFacade
 	/**
 	 * @param array<StockAssetDividend> $dividends
 	 */
-	private function hasActualDividendRecordForYear(array $dividends): bool
+	private function hasActualDividendRecordForYear(array $dividends, AppAdmin $appAdmin): bool
 	{
 		foreach ($dividends as $dividend) {
-			if ($this->hasActualDividendRecord($dividend)) {
+			if ($this->hasActualDividendRecord($dividend, $appAdmin)) {
 				return true;
 			}
 		}
@@ -341,15 +359,19 @@ class StockAssetDividendForecastRecordFacade
 		return false;
 	}
 
-	private function hasActualDividendRecord(StockAssetDividend $dividend): bool
+	private function hasActualDividendRecord(StockAssetDividend $dividend, AppAdmin $appAdmin): bool
 	{
-		return count($dividend->getRecords()) > 0;
+		return count($dividend->getRecordsForAppAdmin($appAdmin)) > 0;
 	}
 
-	private function getOpenPiecesCurrentlyHeld(StockAsset $stockAsset): int
+	private function getOpenPiecesCurrentlyHeld(StockAsset $stockAsset, AppAdmin $appAdmin): int
 	{
 		$total = 0;
-		foreach ($stockAsset->getPositions(true) as $position) {
+		foreach ($this->stockPositionRepository->findByAssetForAppAdmin(
+			$stockAsset->getId(),
+			$appAdmin,
+			true,
+		) as $position) {
 			$total += $position->getOrderPiecesCount();
 		}
 

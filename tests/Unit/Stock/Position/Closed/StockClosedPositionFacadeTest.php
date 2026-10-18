@@ -6,7 +6,6 @@ namespace App\Test\Unit\Stock\Position\Closed;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
@@ -28,6 +27,7 @@ use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Mockery;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
@@ -76,9 +76,6 @@ class StockClosedPositionFacadeTest extends TestCase
 		);
 		$this->summaryPriceService = UpdatedTestCase::createMockWithIgnoreMethods(SummaryPriceService::class);
 
-		$legacyOwner = $this->createStub(LegacyPortfolioOwnerProvider::class);
-		$legacyOwner->method('isOwner')->willReturn(true);
-
 		$this->facade = new StockClosedPositionFacade(
 			$this->stockPositionRepository,
 			$this->stockClosedPositionRepository,
@@ -91,7 +88,6 @@ class StockClosedPositionFacadeTest extends TestCase
 			$this->summaryPriceService,
 			$this->stockAssetDividendRecordFacade,
 			$this->jobRequestFacade,
-			$legacyOwner,
 		);
 	}
 
@@ -264,7 +260,7 @@ class StockClosedPositionFacadeTest extends TestCase
 		$dividendsSummary = new SummaryPrice(CurrencyEnum::USD, 90.0, 1);
 		$this->stockAssetDividendRecordFacade->shouldReceive('getTotalSummaryPriceForStockAsset')
 			->once()
-			->with($stockAsset)
+			->with($stockAsset, Mockery::type(AppAdmin::class))
 			->andReturn($dividendsSummary);
 		$this->currencyConversionFacade->shouldReceive('getConvertedSummaryPrice')
 			->times(3)
