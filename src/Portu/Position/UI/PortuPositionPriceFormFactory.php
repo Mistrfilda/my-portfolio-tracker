@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Portu\Position\UI;
 
+use App\Doctrine\NoEntityFoundException;
 use App\Portu\Position\PortuPositionFacade;
+use App\Portu\Position\PortuPositionRepository;
 use App\Portu\Price\PortuAssetPriceRecord;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
 use App\UI\Control\Form\AdminForm;
@@ -23,6 +25,7 @@ class PortuPositionPriceFormFactory
 		private readonly PortuPositionFacade $portuPositionFacade,
 		private readonly PortuAssetPriceRecordRepository $portuAssetPriceRecordRepository,
 		private readonly DatetimeFactory $datetimeFactory,
+		private readonly PortuPositionRepository $portuPositionRepository,
 	)
 	{
 	}
@@ -33,6 +36,8 @@ class PortuPositionPriceFormFactory
 		callable $onSuccess,
 	): AdminForm
 	{
+		$this->portuPositionRepository->getById($portuPositionId);
+
 		$form = $this->adminFormFactory->create();
 
 		$form->addDatePicker('date', 'Datum');
@@ -52,10 +57,12 @@ class PortuPositionPriceFormFactory
 			->setDefaultValue(true);
 
 		if ($previousPortuPositionPrice !== null) {
-			$this->setDefaults(
-				$this->portuAssetPriceRecordRepository->getById($previousPortuPositionPrice),
-				$form,
-			);
+			$previousPriceRecord = $this->portuAssetPriceRecordRepository->getById($previousPortuPositionPrice);
+			if (!$previousPriceRecord->getPortuPosition()->getId()->equals($portuPositionId)) {
+				throw new NoEntityFoundException();
+			}
+
+			$this->setDefaults($previousPriceRecord, $form);
 		}
 
 		$form->onSuccess[] = function (Form $form) use ($portuPositionId, $onSuccess): void {

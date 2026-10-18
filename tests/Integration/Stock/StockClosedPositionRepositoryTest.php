@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Stock;
 
 use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -50,6 +51,7 @@ class StockClosedPositionRepositoryTest extends IntegrationTestCase
 
 	public function testGetByIdThrowsExceptionWhenNotFound(): void
 	{
+		$this->createClosedPositionWithDependencies('CP-MISSING-1', 'cp-missing', 100.0, '2025-01-01');
 		$this->expectException(NoEntityFoundException::class);
 
 		$this->closedPositionRepository->getById(Uuid::uuid4());
@@ -146,6 +148,9 @@ class StockClosedPositionRepositoryTest extends IntegrationTestCase
 			'2025-05-20',
 		);
 
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin(
+			$closedPosition1->getAssetPositon()->getAppAdmin(),
+		);
 		$result = $this->closedPositionRepository->findByIds([$closedPosition1->getId()->toString()]);
 
 		$this->assertCount(1, $result);
@@ -227,6 +232,7 @@ class StockClosedPositionRepositoryTest extends IntegrationTestCase
 
 		$this->entityManager->persist($stockAsset);
 		$this->entityManager->persist($appAdmin);
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($appAdmin);
 
 		$position = new StockPosition(
 			$appAdmin,

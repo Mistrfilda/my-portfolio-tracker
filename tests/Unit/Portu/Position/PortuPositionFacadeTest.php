@@ -186,7 +186,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 
 		$currentAppAdminGetterMock
 			->shouldReceive('getAppAdmin')
-			->twice()
+			->once()
 			->andReturn($appAdminMock);
 
 		$datetimeFactoryMock
@@ -212,6 +212,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$totalInvestedToThisDatePrice,
 		);
 
+		$this->assertSame($appAdminMock, $updatedPosition->getAppAdmin());
 		$this->assertEquals($portuAssetMock, $updatedPosition->getPortuAsset());
 		$this->assertEquals($startDate, $updatedPosition->getStartDate());
 		$this->assertEquals($startInvestmentPrice, $updatedPosition->getStartInvestment()->getPrice());

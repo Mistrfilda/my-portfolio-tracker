@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Portu\Price;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -40,13 +41,22 @@ class PortuAssetPriceRecordRepository extends BaseRepository
 
 	public function getById(int $id, LockModeEnum|null $lockMode = null): PortuAssetPriceRecord
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('portuAssetPriceRecord');
-		$qb->where($qb->expr()->eq('portuAssetPriceRecord.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		int $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): PortuAssetPriceRecord
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('portuAssetPriceRecord.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -101,17 +111,27 @@ class PortuAssetPriceRecordRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('portuAssetPriceRecord');
-		$qb->andWhere($qb->expr()->in('portuAssetPriceRecord.id', $ids));
+		$qb = $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
+		$qb->andWhere($qb->expr()->in('portuAssetPriceRecord.id', ':ids'));
+		$qb->setParameter('ids', $ids);
 
 		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilderForDatagrid(UuidInterface $portuPositionId): QueryBuilder
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 		$qb->andWhere($qb->expr()->eq('portuAssetPriceRecord.portuPosition', ':position'));
 		$qb->setParameter('position', $portuPositionId);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('portuAssetPriceRecord.portuPosition', 'portuPosition');
+		$this->addAppAdminToQueryBuilder($qb, 'portuPosition', $appAdmin);
 
 		return $qb;
 	}

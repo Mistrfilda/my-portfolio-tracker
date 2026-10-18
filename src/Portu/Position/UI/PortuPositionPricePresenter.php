@@ -9,6 +9,9 @@ use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
 
+/**
+ * @property-read PortuPositionPricePresenterTemplate $template
+ */
 class PortuPositionPricePresenter extends BaseAdminPresenter
 {
 
@@ -23,7 +26,13 @@ class PortuPositionPricePresenter extends BaseAdminPresenter
 
 	public function renderPrices(string $portuPositionId): void
 	{
+		$this->portuPositionRepository->getById($this->processParameterRequiredUuid('portuPositionId'));
 		$this->template->id = $portuPositionId;
+	}
+
+	public function actionEditPrice(): void
+	{
+		$this->getComponent('portuPositionPriceForm');
 	}
 
 	public function renderEditPrice(string $portuPositionId, int|null $previousPortuPositionId): void

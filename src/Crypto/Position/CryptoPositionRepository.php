@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Crypto\Position;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
@@ -20,13 +21,22 @@ class CryptoPositionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): CryptoPosition
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('cryptoPosition');
-		$qb->where($qb->expr()->eq('cryptoPosition.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): CryptoPosition
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('cryptoPosition.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -78,7 +88,7 @@ class CryptoPositionRepository extends BaseRepository
 	}
 
 	/**
-	 * @param array<UuidInterface> $ids
+	 * @param array<UuidInterface|string> $ids
 	 * @return array<CryptoPosition>
 	 */
 	public function findByIds(array $ids): array
@@ -87,18 +97,32 @@ class CryptoPositionRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('cryptoPosition');
-		$qb->andWhere($qb->expr()->in('cryptoPosition.id', $ids));
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
+		$qb->andWhere($qb->expr()->in('cryptoPosition.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface|string $id): string => (string) $id, $ids));
 
 		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilderForDatagrid(): QueryBuilder
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
 		$qb->innerJoin('cryptoPosition.cryptoAsset', 'cryptoAsset');
 
 		return $qb;
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addAppAdminToQueryBuilder($qb, 'cryptoPosition', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder

@@ -9,7 +9,6 @@ use App\Currency\CurrencyEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
-use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Ramsey\Uuid\UuidInterface;
@@ -22,7 +21,7 @@ class StockPositionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): StockPosition
 	{
-		return $this->getByIdFromQueryBuilder($this->createQueryBuilder(), $id, $lockMode);
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
 	}
 
 	public function getByIdForAppAdmin(
@@ -82,7 +81,7 @@ class StockPositionRepository extends BaseRepository
 	}
 
 	/**
-	 * @param array<UuidInterface> $ids
+	 * @param array<UuidInterface|string> $ids
 	 * @return array<StockPosition>
 	 */
 	public function findByIds(array $ids): array
@@ -91,15 +90,16 @@ class StockPositionRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('stockPosition');
-		$qb->andWhere($qb->expr()->in('stockPosition.id', $ids));
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
+		$qb->andWhere($qb->expr()->in('stockPosition.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface|string $id): string => (string) $id, $ids));
 
 		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilderForDatagrid(): QueryBuilder
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
 		$qb->innerJoin('stockPosition.stockAsset', 'stockAsset');
 
 		return $qb;
@@ -137,12 +137,7 @@ class StockPositionRepository extends BaseRepository
 		try {
 			$query = $queryBuilder->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode(match ($lockMode) {
-					LockModeEnum::NONE => LockMode::NONE,
-					LockModeEnum::OPTIMISTIC => LockMode::OPTIMISTIC,
-					LockModeEnum::PESSIMISTIC_READ => LockMode::PESSIMISTIC_READ,
-					LockModeEnum::PESSIMISTIC_WRITE => LockMode::PESSIMISTIC_WRITE,
-				});
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
