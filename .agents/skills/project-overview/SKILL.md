@@ -9,6 +9,9 @@ Use the map to locate the owning code and load only the guidance needed for the 
 
 ### High-level map
 
+- `clients/desktop/` — macOS Electron + React client with independent npm dependencies, build, and tests.
+- `clients/ios/` — future Swift/SwiftUI client; currently a documented reserved location.
+- `doc/openapi.yaml` — common HTTP contract for the backend and both client implementations.
 - `src/Asset/` — shared contracts and price infrastructure used by all asset types. Start here when the task affects multiple asset modules or shared price behavior.
 - `src/Stock/` — the largest investment domain: assets, positions, dividends, prices, valuations, AI analysis.
 - `src/Portu/` and `src/Crypto/` — asset-specific modules outside stocks.
@@ -23,6 +26,10 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - `tests/` — unit and integration tests.
 
 ### Choose the likely entry point
+
+- **Desktop application**
+	- Start in `clients/desktop/src/`. Read [desktop-electron](../desktop-electron/SKILL.md) for main/preload/IPC, [desktop-react-ui](../desktop-react-ui/SKILL.md) for the renderer, or [desktop-build](../desktop-build/SKILL.md) for dependencies, packaging, and build isolation.
+	- OAuth and API integrations also use the relevant server skill; do not duplicate protocol or data-ownership rules in client guidance.
 
 - **Price download / price history / price rendering**
 	- Start in `src/Asset/` for shared contracts.
@@ -73,4 +80,4 @@ Use the map to locate the owning code and load only the guidance needed for the 
 
 ### Practical workflow
 
-Mirror the nearest implementation in the owning module. For shared behavior, inspect the base in `src/Asset/` or `src/UI/` and the affected downstream modules. Use `testing-conventions` when writing tests and the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix) for final checks.
+Mirror the nearest implementation in the owning module. For shared PHP behavior, inspect the base in `src/Asset/` or `src/UI/` and the affected downstream modules. Use `testing-conventions` when writing PHPUnit tests and the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix) for final checks.
