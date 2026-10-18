@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Ai\Gemini\GeminiClient;
 use App\RabbitMQ\RabbitMQPublisher;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
@@ -32,7 +33,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 	{
 		$now = new ImmutableDateTime('2026-05-24 10:00:00');
 		$runId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
 		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
 			StockAiAnalysisFollowUpQuestionRepository::class,
@@ -79,7 +88,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$createdAt = new ImmutableDateTime('2026-05-24 10:00:00');
 		$responseAt = new ImmutableDateTime('2026-05-24 11:00:00');
 		$questionId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
 		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
@@ -117,7 +134,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$createdAt = new ImmutableDateTime('2026-05-24 10:00:00');
 		$queuedAt = new ImmutableDateTime('2026-05-24 11:00:00');
 		$questionId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 		$publisher = new class implements RabbitMQPublisher {
 
@@ -173,7 +198,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$responseAt = new ImmutableDateTime('2026-05-24 11:01:00');
 		$completedAt = new ImmutableDateTime('2026-05-24 11:02:00');
 		$questionId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
 		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
@@ -187,7 +220,7 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
 
-		$questionRepository->shouldReceive('getById')
+		$questionRepository->shouldReceive('getByIdForProcessing')
 			->withArgs(static fn ($id): bool => $id->equals($questionId))
 			->once()
 			->andReturn($question);
@@ -227,7 +260,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$responseAt = new ImmutableDateTime('2026-05-24 11:01:00');
 		$completedAt = new ImmutableDateTime('2026-05-24 11:02:00');
 		$questionId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
 		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
@@ -241,7 +282,7 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
 
-		$questionRepository->shouldReceive('getById')
+		$questionRepository->shouldReceive('getByIdForProcessing')
 			->withArgs(static fn ($id): bool => $id->equals($questionId))
 			->once()
 			->andReturn($question);
@@ -280,7 +321,15 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$responseAt = new ImmutableDateTime('2026-05-24 11:01:00');
 		$completedAt = new ImmutableDateTime('2026-05-24 11:02:00');
 		$questionId = Uuid::uuid4();
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 		$runRepository = UpdatedTestCase::createMockWithIgnoreMethods(StockAiAnalysisRunRepository::class);
 		$questionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
@@ -294,7 +343,7 @@ class StockAiAnalysisFollowUpQuestionFacadeTest extends TestCase
 		$entityManager = UpdatedTestCase::createMockWithIgnoreMethods(EntityManagerInterface::class);
 		$datetimeFactory = UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
 
-		$questionRepository->shouldReceive('getById')
+		$questionRepository->shouldReceive('getByIdForProcessing')
 			->withArgs(static fn ($id): bool => $id->equals($questionId))
 			->once()
 			->andReturn($question);

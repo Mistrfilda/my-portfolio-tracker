@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\AiAnalysis;
 
 use App\Ai\Gemini\GeminiClient;
+use App\Doctrine\NoEntityFoundException;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
 use App\Utils\TypeValidator;
@@ -64,18 +65,18 @@ class StockAiAnalysisFollowUpQuestionFacade
 		return $this->stockAiAnalysisFollowUpQuestionRepository->findByRun($run);
 	}
 
-	public function processManualResponse(string $questionId, string $rawResponse): void
+	public function processManualResponse(string $questionId, string $rawResponse, string|null $runId = null): void
 	{
 		$rawResponse = TypeValidator::validateString($rawResponse);
-		$followUpQuestion = $this->getQuestion($questionId);
+		$followUpQuestion = $this->getQuestionForRun($questionId, $runId);
 		$followUpQuestion->setResponse($rawResponse, $this->datetimeFactory->createNow());
 
 		$this->entityManager->flush();
 	}
 
-	public function enqueueGeminiProcessing(string $questionId): void
+	public function enqueueGeminiProcessing(string $questionId, string|null $runId = null): void
 	{
-		$followUpQuestion = $this->getQuestion($questionId);
+		$followUpQuestion = $this->getQuestionForRun($questionId, $runId);
 		if (!$followUpQuestion->canBeQueuedForGeminiProcessing()) {
 			return;
 		}
@@ -95,7 +96,9 @@ class StockAiAnalysisFollowUpQuestionFacade
 
 	public function processGeminiQuestion(string $questionId): void
 	{
-		$followUpQuestion = $this->getQuestion($questionId);
+		$followUpQuestion = $this->stockAiAnalysisFollowUpQuestionRepository->getByIdForProcessing(
+			Uuid::fromString($questionId),
+		);
 		if ($followUpQuestion->getRawResponse() !== null) {
 			return;
 		}
@@ -125,6 +128,16 @@ class StockAiAnalysisFollowUpQuestionFacade
 
 			throw $exception;
 		}
+	}
+
+	private function getQuestionForRun(string $questionId, string|null $runId): StockAiAnalysisFollowUpQuestion
+	{
+		$question = $this->getQuestion($questionId);
+		if ($runId !== null && !$question->getStockAiAnalysisRun()->getId()->equals(Uuid::fromString($runId))) {
+			throw new NoEntityFoundException();
+		}
+
+		return $question;
 	}
 
 	private function normalizeGeminiResponse(string $response): string

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\InvestmentPlan;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlan;
@@ -51,6 +52,7 @@ class StockAiInvestmentPlanTest extends TestCase
 	private function createReferenceRun(ImmutableDateTime $now): StockAiAnalysisRun
 	{
 		return new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Prompt',
 			true,
 			true,

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -25,6 +26,10 @@ class StockAiAnalysisRun implements Entity
 	use SimpleUuid;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::TEXT)]
 	private string $generatedPrompt;
@@ -133,6 +138,7 @@ class StockAiAnalysisRun implements Entity
 	 * @param array<string, mixed>|null $inputSnapshot
 	 */
 	public function __construct(
+		AppAdmin $appAdmin,
 		string $generatedPrompt,
 		bool $includesPortfolio,
 		bool $includesWatchlist,
@@ -148,6 +154,7 @@ class StockAiAnalysisRun implements Entity
 	)
 	{
 		$this->id = $id ?? Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 		$this->generatedPrompt = $generatedPrompt;
 		$this->includesPortfolio = $includesPortfolio;
 		$this->includesWatchlist = $includesWatchlist;
@@ -161,6 +168,11 @@ class StockAiAnalysisRun implements Entity
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->results = new ArrayCollection();
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	/**

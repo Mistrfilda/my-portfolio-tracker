@@ -261,6 +261,7 @@ class PersonalAssetOwnershipTest extends IntegrationTestCase
 			null,
 			null,
 			null,
+			$this->fixture->admins[0],
 		);
 
 		self::assertSame([$items[0]->getId()->toString()], array_column($snapshot['simpleWatchlist'], 'stockAssetId'));

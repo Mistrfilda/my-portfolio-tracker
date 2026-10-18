@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Goal\Resolver;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Currency\CurrencyEnum;
 use App\Goal\PortfolioGoal;
@@ -15,7 +14,6 @@ class PortfolioGoalTotalInvestedAmountResolver implements PortfolioGoalResolver
 
 	public function __construct(
 		private AssetPriceSummaryFacade $assetPriceSummaryFacade,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 
@@ -25,7 +23,7 @@ class PortfolioGoalTotalInvestedAmountResolver implements PortfolioGoalResolver
 	{
 		$totalInvestedAmount = $this->assetPriceSummaryFacade->getTotalInvestedAmount(
 			CurrencyEnum::CZK,
-			$this->legacyOwnerProvider->getOwner(),
+			$portfolioGoal->getAppAdmin(),
 		);
 
 		return $totalInvestedAmount->getPrice();

@@ -5,7 +5,6 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Goal;
 
 use App\Admin\AppAdmin;
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Goal\PortfolioGoal;
 use App\Goal\PortfolioGoalFacade;
 use App\Goal\PortfolioGoalRepeatableEnum;
@@ -40,8 +39,6 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 
 	private NotificationFacade $notificationFacade;
 
-	private LegacyPortfolioOwnerProvider $legacyOwnerProvider;
-
 	private AppAdmin $legacyOwner;
 
 	protected function setUp(): void
@@ -52,8 +49,6 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$this->portfolioGoalFacade = $this->createMock(PortfolioGoalFacade::class);
 		$this->notificationFacade = $this->createMock(NotificationFacade::class);
 		$this->legacyOwner = $this->createStub(AppAdmin::class);
-		$this->legacyOwnerProvider = $this->createStub(LegacyPortfolioOwnerProvider::class);
-		$this->legacyOwnerProvider->method('getOwner')->willReturn($this->legacyOwner);
 
 		$resolver = $this->createMock(PortfolioGoalResolver::class);
 		$resolver->method('canResolveType')->willReturn(true);
@@ -66,7 +61,6 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			$this->datetimeFactory,
 			$this->portfolioGoalFacade,
 			$this->notificationFacade,
-			$this->legacyOwnerProvider,
 		);
 	}
 
@@ -120,7 +114,6 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			$this->datetimeFactory,
 			$this->portfolioGoalFacade,
 			$this->notificationFacade,
-			$this->legacyOwnerProvider,
 		);
 
 		$this->portfolioGoalRepository
@@ -179,6 +172,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$portfolioGoal
 			->method('getEndDate')
 			->willReturn(new ImmutableDateTime('-1 day'));
+		$portfolioGoal->method('isActive')->willReturn(true);
 
 		$portfolioGoal
 			->method('getRepeatable')
@@ -202,7 +196,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$this->portfolioGoalFacade
 			->expects($this->once())
 			->method('createNewMonthGoal')
-			->with($portfolioGoalId)
+			->with($portfolioGoal)
 			->willReturn($newPortfolioGoal);
 
 		$this->portfolioGoalRepository
@@ -232,6 +226,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$portfolioGoal
 			->method('getEndDate')
 			->willReturn(new ImmutableDateTime('-1 day'));
+		$portfolioGoal->method('isActive')->willReturn(true);
 
 		$portfolioGoal
 			->method('getRepeatable')
@@ -255,7 +250,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$this->portfolioGoalFacade
 			->expects($this->once())
 			->method('createNewWeeklyGoal')
-			->with($portfolioGoalId)
+			->with($portfolioGoal)
 			->willReturn($newPortfolioGoal);
 
 		$this->portfolioGoalRepository
@@ -278,6 +273,7 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 		$now = new ImmutableDateTime();
 
 		$portfolioGoal = new PortfolioGoal(
+			$this->legacyOwner,
 			$now->modify('-1 month'),
 			$now->modify('+1 month'),
 			PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT,
@@ -313,7 +309,6 @@ class PortfolioGoalUpdateFacadeTest extends TestCase
 			$this->datetimeFactory,
 			$this->portfolioGoalFacade,
 			$this->notificationFacade,
-			$this->legacyOwnerProvider,
 		);
 
 		$this->notificationFacade->expects($this->never())->method('create');

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\ActionChecklist;
 
+use App\Admin\AppAdmin;
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistPriorityEnum;
 use App\Stock\AiAnalysis\ActionChecklist\StockAiAnalysisActionChecklistProvider;
 use App\Stock\AiAnalysis\StockAiAnalysisDailyBriefActionNeededEnum;
@@ -58,6 +59,7 @@ class StockAiAnalysisActionChecklistProviderTest extends TestCase
 	{
 		$now = new ImmutableDateTime('2026-01-01');
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'prompt',
 			true,
 			true,

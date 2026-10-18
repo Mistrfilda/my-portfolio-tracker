@@ -4,21 +4,34 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use Doctrine\ORM\QueryBuilder;
+use UnexpectedValueException;
 
 /** @extends BaseRepository<StockAiAnalysisSettings> */
 class StockAiAnalysisSettingsRepository extends BaseRepository
 {
 
-	public function findSettings(): StockAiAnalysisSettings|null
+	public function findSettings(AppAdmin|null $appAdmin = null): StockAiAnalysisSettings|null
 	{
-		return $this->doctrineRepository->find(1);
+		$result = $this->createQueryBuilder($appAdmin)->getQuery()->getOneOrNullResult();
+		if ($result !== null && !$result instanceof StockAiAnalysisSettings) {
+			throw new UnexpectedValueException('Expected AI analysis settings.');
+		}
+
+		return $result;
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('stockAiAnalysisSettings');
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisSettings');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'stockAiAnalysisSettings',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb;
 	}
 
 }

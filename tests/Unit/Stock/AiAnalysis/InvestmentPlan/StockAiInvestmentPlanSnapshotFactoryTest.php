@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\InvestmentPlan;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\InvestmentPlan\StockAiInvestmentPlanSnapshotFactory;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
@@ -27,6 +28,7 @@ class StockAiInvestmentPlanSnapshotFactoryTest extends TestCase
 		$factory = new StockAiInvestmentPlanSnapshotFactory($analysisPromptGenerator, $settings);
 		$now = new ImmutableDateTime('2026-08-18 10:00:00');
 		$referenceRun = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Prompt',
 			true,
 			true,

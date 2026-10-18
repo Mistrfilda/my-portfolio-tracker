@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -20,13 +21,13 @@ class PortfolioGoalRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): PortfolioGoal
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
-		$qb->where($qb->expr()->eq('portfolioGoal.id', ':id'));
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->eq('portfolioGoal.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -43,13 +44,37 @@ class PortfolioGoalRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->createQueryBuilder()->getQuery()->getResult();
 	}
 
 	/**
 	 * @return array<PortfolioGoal>
 	 */
-	public function findActive(ImmutableDateTime $now): array
+	public function findActive(ImmutableDateTime $now, AppAdmin|null $appAdmin = null): array
+	{
+		$qb = $this->createActiveQueryBuilder($now);
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'portfolioGoal',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<PortfolioGoal> */
+	public function findActiveForProcessing(ImmutableDateTime $now, UuidInterface|null $appAdminId = null): array
+	{
+		// Scheduled jobs derive the owner from each persisted goal.
+		$qb = $this->createActiveQueryBuilder($now);
+		if ($appAdminId !== null) {
+			$qb->andWhere('portfolioGoal.appAdmin = :owner');
+			$qb->setParameter('owner', $appAdminId->toString());
+		}
+
+		return $qb->getQuery()->getResult();
+	}
+
+	private function createActiveQueryBuilder(ImmutableDateTime $now): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
 		$qb->andWhere(
@@ -60,17 +85,18 @@ class PortfolioGoalRepository extends BaseRepository
 		$qb->setParameter('now', $now);
 		$qb->setParameter('active', true);
 		$qb->orderBy('portfolioGoal.startDate', 'ASC');
-		return $qb->getQuery()->getResult();
+		return $qb;
 	}
 
 	public function findFirstActiveByType(PortfolioGoalTypeEnum $type): PortfolioGoal|null
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
+		$qb = $this->createQueryBuilder();
 		$qb->andWhere($qb->expr()->eq('portfolioGoal.type', ':type'));
 		$qb->andWhere($qb->expr()->eq('portfolioGoal.active', ':active'));
 		$qb->setParameter('type', $type);
 		$qb->setParameter('active', true);
 		$qb->orderBy('portfolioGoal.startDate', 'ASC');
+		$qb->setMaxResults(1);
 		$result = $qb->getQuery()->getOneOrNullResult();
 		if ($result === null) {
 			return null;
@@ -90,15 +116,22 @@ class PortfolioGoalRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
-		$qb->andWhere($qb->expr()->in('portfolioGoal.id', $ids));
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->in('portfolioGoal.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface $id): string => $id->toString(), $ids));
 
 		return $qb->getQuery()->getResult();
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('portfolioGoal');
+		$qb = $this->doctrineRepository->createQueryBuilder('portfolioGoal');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'portfolioGoal',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb;
 	}
 
 }

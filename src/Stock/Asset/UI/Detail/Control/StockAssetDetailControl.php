@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\UI\Detail\Control;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Stock\AiAnalysis\UI\Control\StockAiValuationComparisonControl;
 use App\Stock\AiAnalysis\UI\Control\StockAiValuationComparisonControlFactory;
 use App\Stock\AiAnalysis\UI\Control\StockAssetAiAnalysisControl;
@@ -39,7 +38,6 @@ class StockAssetDetailControl extends BaseControl
 
 	public function __construct(
 		private UuidInterface $id,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 		private int $currentChartDays,
 		private StockAssetRepository $stockAssetRepository,
 		private StockPositionFacade $stockPositionFacade,
@@ -65,7 +63,6 @@ class StockAssetDetailControl extends BaseControl
 			$this->id,
 			StockAssetListDetailControlEnum::CLOSED_POSITIONS,
 		);
-		$template->showLegacyPortfolioData = $this->legacyOwnerProvider->isCurrentUserOwner();
 		$template->now = $this->datetimeFactory->createNow();
 		$template->chartOptions = self::CHART_OPTIONS;
 		$template->currentChartDays = $this->currentChartDays;
@@ -97,19 +94,11 @@ class StockAssetDetailControl extends BaseControl
 
 	protected function createComponentStockAssetAiAnalysisControl(): StockAssetAiAnalysisControl
 	{
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			$this->getPresenter()->error('Not found.');
-		}
-
 		return $this->stockAssetAiAnalysisControlFactory->create($this->id);
 	}
 
 	protected function createComponentStockAiValuationComparisonControl(): StockAiValuationComparisonControl
 	{
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			$this->getPresenter()->error('Not found.');
-		}
-
 		return $this->stockAiValuationComparisonControlFactory->create($this->id);
 	}
 

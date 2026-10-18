@@ -76,7 +76,10 @@ class StockClosedPositionFacade
 			),
 		);
 
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
+		$this->jobRequestFacade->addToQueue(
+			JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE,
+			['appAdminId' => $stockAssetPosition->getAppAdmin()->getId()->toString()],
+		);
 
 		return $stockPosition;
 	}

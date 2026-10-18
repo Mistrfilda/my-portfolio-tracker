@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\InvestmentPlan\Codex;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\InvestmentPlan\Codex\StockAiInvestmentPlanCodexBundleFactory;
@@ -30,6 +31,7 @@ class StockAiInvestmentPlanCodexBundleFactoryTest extends TestCase
 		$planId = Uuid::uuid4();
 		$referenceId = Uuid::uuid4();
 		$referenceRun = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Reference prompt',
 			true,
 			true,

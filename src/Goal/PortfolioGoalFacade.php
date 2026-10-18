@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
+use App\Admin\CurrentAppAdminGetter;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -16,6 +17,7 @@ class PortfolioGoalFacade
 		private PortfolioGoalRepository $portfolioGoalRepository,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimefactory,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -29,6 +31,7 @@ class PortfolioGoalFacade
 	): void
 	{
 		$portfolioGoal = new PortfolioGoal(
+			$this->currentAppAdminGetter->getAppAdmin(),
 			$startDate,
 			$endDate,
 			$type,
@@ -60,12 +63,12 @@ class PortfolioGoalFacade
 		$this->entityManager->flush();
 	}
 
-	public function createNewMonthGoal(UuidInterface $portfolioGoalId): PortfolioGoal
+	public function createNewMonthGoal(PortfolioGoal $portfolioGoal): PortfolioGoal
 	{
 		$now = $this->datetimefactory->createNow();
-		$portfolioGoal = $this->portfolioGoalRepository->getById($portfolioGoalId);
 
 		$newPortfolioGoal = new PortfolioGoal(
+			$portfolioGoal->getAppAdmin(),
 			$now->modify('first day of this month'),
 			$now->modify('last day of this month'),
 			$portfolioGoal->getType(),
@@ -80,12 +83,12 @@ class PortfolioGoalFacade
 		return $newPortfolioGoal;
 	}
 
-	public function createNewWeeklyGoal(UuidInterface $portfolioGoalId): PortfolioGoal
+	public function createNewWeeklyGoal(PortfolioGoal $portfolioGoal): PortfolioGoal
 	{
 		$now = $this->datetimefactory->createNow();
-		$portfolioGoal = $this->portfolioGoalRepository->getById($portfolioGoalId);
 
 		$newPortfolioGoal = new PortfolioGoal(
+			$portfolioGoal->getAppAdmin(),
 			$now->modify('monday this week'),
 			$now->modify('sunday this week'),
 			$portfolioGoal->getType(),

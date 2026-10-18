@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
@@ -36,6 +37,7 @@ class StockAiAnalysisFacade
 		private StockAiAnalysisV2SnapshotFactory $v2SnapshotFactory,
 		private StockAiAnalysisV2PromptGenerator $v2PromptGenerator,
 		private StockAiAnalysisV2ResponseValidator $v2ResponseValidator,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -49,6 +51,7 @@ class StockAiAnalysisFacade
 		string|null $stockName = null,
 	): StockAiAnalysisRun
 	{
+		$appAdmin = $this->currentAppAdminGetter->getAppAdmin();
 		$stockAsset = null;
 		if ($stockTicker !== null) {
 			$stockAsset = $this->stockAssetRepository->findByTicker($stockTicker);
@@ -66,9 +69,11 @@ class StockAiAnalysisFacade
 			$stockTicker,
 			$stockName,
 			$stockAsset,
+			$appAdmin,
 		);
 		$prompt = $this->v2PromptGenerator->generateManualPrompt($snapshot);
 		$run = new StockAiAnalysisRun(
+			$appAdmin,
 			$prompt,
 			$includesPortfolio,
 			$includesWatchlist,
@@ -94,6 +99,11 @@ class StockAiAnalysisFacade
 		return $this->stockAiAnalysisRunRepository->getById(Uuid::fromString($id));
 	}
 
+	public function getRunForProcessing(string $id): StockAiAnalysisRun
+	{
+		return $this->stockAiAnalysisRunRepository->getByIdForProcessing(Uuid::fromString($id));
+	}
+
 	public function getGeneratedPromptForDisplay(StockAiAnalysisRun $run): string
 	{
 		if ($run->isV2() && $run->getInputSnapshot() !== null) {
@@ -108,7 +118,7 @@ class StockAiAnalysisFacade
 
 		return sprintf(
 			"Systémový prompt:\n\n%s\n\nUživatelský prompt:\n\n%s",
-			$this->promptGenerator->generateSystemInstruction(),
+			$this->promptGenerator->generateSystemInstruction(appAdmin: $run->getAppAdmin()),
 			$run->getGeneratedPrompt(),
 		);
 	}
@@ -142,7 +152,20 @@ class StockAiAnalysisFacade
 		StockAiAnalysisProcessingSourceEnum $processingSource = StockAiAnalysisProcessingSourceEnum::MANUAL,
 	): void
 	{
-		$run = $this->getRun($runId);
+		$this->processRunResponse($this->getRun($runId), $rawResponse, $processingSource);
+	}
+
+	public function processGeminiResponse(StockAiAnalysisRun $run, string $rawResponse): void
+	{
+		$this->processRunResponse($run, $rawResponse, StockAiAnalysisProcessingSourceEnum::GEMINI);
+	}
+
+	private function processRunResponse(
+		StockAiAnalysisRun $run,
+		string $rawResponse,
+		StockAiAnalysisProcessingSourceEnum $processingSource,
+	): void
+	{
 		if ($run->isV2()) {
 			$this->processV2Response($run, $rawResponse, $processingSource);
 			return;
@@ -269,15 +292,18 @@ class StockAiAnalysisFacade
 
 		$response = $this->v2ResponseValidator->validate($rawResponse, $snapshot);
 		$runId = $run->getId();
+		$appAdmin = $run->getAppAdmin();
 		$this->entityManager->wrapInTransaction(function () use (
 			$runId,
+			$appAdmin,
 			$rawResponse,
 			$processingSource,
 			$response,
 			$snapshot,
 		): void {
-			$lockedRun = $this->stockAiAnalysisRunRepository->getById(
+			$lockedRun = $this->stockAiAnalysisRunRepository->getByIdForAppAdmin(
 				$runId,
+				$appAdmin,
 				LockMode::PESSIMISTIC_WRITE,
 			);
 			if ($lockedRun->getProcessedAt() !== null) {

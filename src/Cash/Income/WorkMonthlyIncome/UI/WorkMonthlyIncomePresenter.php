@@ -6,7 +6,6 @@ namespace App\Cash\Income\WorkMonthlyIncome\UI;
 
 use App\Asset\Price\SummaryPrice;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade;
-use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeOwnerProvider;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
 use App\Goal\PortfolioGoalRepository;
@@ -70,7 +69,6 @@ class WorkMonthlyIncomePresenter extends BaseAdminPresenter
 		private CzechHolidayService $czechHolidayService,
 		private WorkMonthlyIncomeFacade $workMonthlyIncomeFacade,
 		private PortfolioGoalRepository $portfolioGoalRepository,
-		private WorkMonthlyIncomeOwnerProvider $ownerProvider,
 	)
 	{
 		parent::__construct();
@@ -178,9 +176,9 @@ class WorkMonthlyIncomePresenter extends BaseAdminPresenter
 		}
 
 		// Legacy goals still belong to the configured income owner until step 7.
-		$activeIncomeGoal = $this->currentAppAdminGetter->getAppAdmin()->getUsername() === $this->ownerProvider->getOwnerUsername()
-			? $this->portfolioGoalRepository->findFirstActiveByType(PortfolioGoalTypeEnum::MONTHLY_INCOME)
-			: null;
+		$activeIncomeGoal = $this->portfolioGoalRepository->findFirstActiveByType(
+			PortfolioGoalTypeEnum::MONTHLY_INCOME,
+		);
 		$this->template->activeIncomeGoal = $activeIncomeGoal;
 		$this->template->activeGoalProgressPercentage = null;
 		$this->template->activeGoalProgressBarPercentage = null;

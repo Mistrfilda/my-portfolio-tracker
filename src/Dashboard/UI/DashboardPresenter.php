@@ -44,10 +44,6 @@ class DashboardPresenter extends BaseAdminPresenter
 
 	protected function createComponentPortfolioGoalControl(): PortfolioGoalControl
 	{
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			$this->error('Not found.');
-		}
-
 		return $this->portfolioGoalControlFactory->create();
 	}
 

@@ -18,8 +18,25 @@ class StockAiAnalysisFollowUpQuestionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, int|null $lockMode = null): StockAiAnalysisFollowUpQuestion
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisFollowUpQuestion');
-		$qb->where($qb->expr()->eq('stockAiAnalysisFollowUpQuestion.id', ':id'));
+		return $this->getFromQueryBuilder($this->createQueryBuilder(), $id, $lockMode);
+	}
+
+	// Workers derive the recipient and context from the question's parent run.
+	public function getByIdForProcessing(UuidInterface $id): StockAiAnalysisFollowUpQuestion
+	{
+		return $this->getFromQueryBuilder(
+			$this->doctrineRepository->createQueryBuilder('stockAiAnalysisFollowUpQuestion'),
+			$id,
+		);
+	}
+
+	private function getFromQueryBuilder(
+		QueryBuilder $qb,
+		UuidInterface $id,
+		int|null $lockMode = null,
+	): StockAiAnalysisFollowUpQuestion
+	{
+		$qb->andWhere($qb->expr()->eq('stockAiAnalysisFollowUpQuestion.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
@@ -41,15 +58,17 @@ class StockAiAnalysisFollowUpQuestionRepository extends BaseRepository
 	 */
 	public function findByRun(StockAiAnalysisRun $stockAiAnalysisRun): array
 	{
-		return $this->doctrineRepository->findBy(
-			['stockAiAnalysisRun' => $stockAiAnalysisRun],
-			['createdAt' => 'DESC'],
-		);
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere('stockAiAnalysisFollowUpQuestion.stockAiAnalysisRun = :run');
+		$qb->setParameter('run', $stockAiAnalysisRun);
+		return $qb->getQuery()->getResult();
 	}
 
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisFollowUpQuestion');
+		$qb->innerJoin('stockAiAnalysisFollowUpQuestion.stockAiAnalysisRun', 'run');
+		$this->addCurrentUserToQueryBuilder($qb, 'run');
 		$qb->orderBy('stockAiAnalysisFollowUpQuestion.createdAt', 'DESC');
 		return $qb;
 	}

@@ -37,7 +37,9 @@ class StockAiInvestmentPlanSnapshotFactory
 		string $consideredCompanies,
 	): array
 	{
-		$portfolio = $this->stockAiAnalysisPromptGenerator->getAutomaticPortfolioData();
+		$portfolio = $this->stockAiAnalysisPromptGenerator->getAutomaticPortfolioData(
+			$referenceAnalysisRun->getAppAdmin(),
+		);
 		$watchlist = $this->stockAiAnalysisPromptGenerator->getAutomaticWatchlistData();
 		$sectorAllocation = [];
 
@@ -60,7 +62,9 @@ class StockAiInvestmentPlanSnapshotFactory
 			'planId' => $planId->toString(),
 			'analysisAsOf' => $analysisAsOf->format(DATE_ATOM),
 			'timezone' => 'Europe/Prague',
-			'investorInstructions' => $this->settingsFacade->getInvestorInstructions(),
+			'investorInstructions' => $this->settingsFacade->getInvestorInstructions(
+				$referenceAnalysisRun->getAppAdmin(),
+			),
 			'conventions' => [
 				'percentageUnit' => 'percentage_points',
 				'priceUnit' => 'major_currency_unit',

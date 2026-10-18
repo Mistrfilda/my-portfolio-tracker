@@ -44,7 +44,7 @@ class StockAiAnalysisGeminiProcessorFacade
 
 	public function process(string $runId): void
 	{
-		$run = $this->stockAiAnalysisFacade->getRun($runId);
+		$run = $this->stockAiAnalysisFacade->getRunForProcessing($runId);
 		if ($run->getProcessedAt() !== null) {
 			return;
 		}
@@ -54,15 +54,7 @@ class StockAiAnalysisGeminiProcessorFacade
 
 		try {
 			$response = $this->createGeminiResponse($run);
-			if ($run->isV2()) {
-				$this->stockAiAnalysisFacade->processResponse(
-					$runId,
-					Json::encode($response),
-					StockAiAnalysisProcessingSourceEnum::GEMINI,
-				);
-			} else {
-				$this->stockAiAnalysisFacade->processResponse($runId, Json::encode($response));
-			}
+			$this->stockAiAnalysisFacade->processGeminiResponse($run, Json::encode($response));
 
 			$run->markGeminiCompleted($this->datetimeFactory->createNow());
 			$this->entityManager->flush();
@@ -111,7 +103,7 @@ class StockAiAnalysisGeminiProcessorFacade
 			return $this->createV2GeminiResponse($run);
 		}
 
-		$systemInstruction = $this->promptGenerator->generateSystemInstruction();
+		$systemInstruction = $this->promptGenerator->generateSystemInstruction(appAdmin: $run->getAppAdmin());
 
 		if (!$run->includesPortfolio() && !$run->includesWatchlist()) {
 			return $this->loadOrCreateGeminiResponse(
@@ -133,7 +125,7 @@ class StockAiAnalysisGeminiProcessorFacade
 		$portfolioAnalysis = [];
 		if ($run->includesPortfolio()) {
 			$portfolioItemNumber = 1;
-			foreach ($this->promptGenerator->getAutomaticPortfolioData() as $portfolioItem) {
+			foreach ($this->promptGenerator->getAutomaticPortfolioData($run->getAppAdmin()) as $portfolioItem) {
 				$portfolioItem = $this->validateStringKeyArray(TypeValidator::validateArray($portfolioItem));
 				$response = $this->loadOrCreateGeminiResponse(
 					$run,

@@ -19,8 +19,7 @@ class StockAiAnalysisStockResultRepository extends BaseRepository
 	 */
 	public function findLatestForStockAsset(StockAsset $stockAsset, int $limit = 5): array
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisStockResult');
-		$qb->innerJoin('stockAiAnalysisStockResult.stockAiAnalysisRun', 'run');
+		$qb = $this->createQueryBuilder();
 		$qb->andWhere($qb->expr()->eq('stockAiAnalysisStockResult.stockAsset', ':stockAsset'));
 		$qb->setParameter('stockAsset', $stockAsset);
 		$qb->orderBy('run.createdAt', 'DESC');
@@ -30,7 +29,10 @@ class StockAiAnalysisStockResultRepository extends BaseRepository
 
 	public function createQueryBuilder(): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('stockAiAnalysisStockResult');
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisStockResult');
+		$qb->innerJoin('stockAiAnalysisStockResult.stockAiAnalysisRun', 'run');
+		$this->addCurrentUserToQueryBuilder($qb, 'run');
+		return $qb;
 	}
 
 }

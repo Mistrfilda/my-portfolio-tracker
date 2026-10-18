@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Admin\AppAdmin;
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -43,7 +43,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$this->createStub(StockAssetPriceRecordRepository::class),
 			$datetimeFactory,
 			$settings,
-			$this->legacyOwnerProvider(),
+			$this->currentAppAdminGetter(),
 		);
 
 		self::assertStringNotContainsString(
@@ -341,10 +341,10 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		);
 	}
 
-	private function legacyOwnerProvider(): LegacyPortfolioOwnerProvider
+	private function currentAppAdminGetter(): CurrentAppAdminGetter
 	{
-		$provider = $this->createStub(LegacyPortfolioOwnerProvider::class);
-		$provider->method('getOwner')->willReturn($this->createStub(AppAdmin::class));
+		$provider = $this->createStub(CurrentAppAdminGetter::class);
+		$provider->method('getAppAdmin')->willReturn($this->createStub(AppAdmin::class));
 
 		return $provider;
 	}
@@ -374,7 +374,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$stockAssetPriceRecordRepository,
 			$datetimeFactory,
 			$this->createStub(StockAiAnalysisSettingsFacade::class),
-			$this->legacyOwnerProvider(),
+			$this->currentAppAdminGetter(),
 		);
 	}
 

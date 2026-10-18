@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\Codex;
 
+use App\Admin\AppAdmin;
 use App\Stock\AiAnalysis\Codex\StockAiAnalysisCodexBundleFactory;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
@@ -26,6 +27,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 		$snapshot = $this->createSnapshot($runId->toString());
 		$snapshot['investorInstructions'] = 'Keep Czech holdings.';
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Prompt',
 			true,
 			true,

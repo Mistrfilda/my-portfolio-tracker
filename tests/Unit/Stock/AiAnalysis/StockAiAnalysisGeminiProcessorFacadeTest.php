@@ -4,13 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Ai\Gemini\GeminiClient;
 use App\Stock\AiAnalysis\StockAiAnalysisFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestionFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiJsonNormalizer;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessingStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
-use App\Stock\AiAnalysis\StockAiAnalysisProcessingSourceEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
@@ -34,6 +34,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 	public function testProcessMergesPortfolioWatchlistAndReduceResponse(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated manual prompt',
 			true,
 			true,
@@ -55,7 +56,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$watchlistResponseSchema = ['type' => 'watchlist'];
 		$reduceResponseSchema = ['type' => 'reduce'];
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')
 			->with($runId)
 			->once()
 			->andReturn($run);
@@ -137,8 +138,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 				],
 			]));
 
-		$stockAiAnalysisFacade->shouldReceive('processResponse')
-			->with($runId, Mockery::on(static function (string $rawResponse): bool {
+		$stockAiAnalysisFacade->shouldReceive('processGeminiResponse')
+			->with($run, Mockery::on(static function (string $rawResponse): bool {
 				$data = Json::decode($rawResponse, forceArrays: true);
 
 				return $data['portfolioEvaluation']['summary'] === 'Portfolio summary'
@@ -184,6 +185,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 	public function testProcessReusesExistingGeminiResponseFiles(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated manual prompt',
 			true,
 			true,
@@ -228,7 +230,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$entityManager = Mockery::mock(EntityManagerInterface::class);
 		$logger = Mockery::mock(LoggerInterface::class);
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')
 			->with($runId)
 			->once()
 			->andReturn($run);
@@ -283,8 +285,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			->once()
 			->andReturn(['type' => 'reduce']);
 		$geminiClient->shouldNotReceive('generateContent');
-		$stockAiAnalysisFacade->shouldReceive('processResponse')
-			->with($runId, Mockery::on(static function (string $rawResponse): bool {
+		$stockAiAnalysisFacade->shouldReceive('processGeminiResponse')
+			->with($run, Mockery::on(static function (string $rawResponse): bool {
 				$data = Json::decode($rawResponse, forceArrays: true);
 
 				return $data['portfolioEvaluation']['summary'] === 'Cached portfolio summary'
@@ -317,6 +319,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 	public function testProcessRetriesOnceWhenGeminiResponseIsInvalid(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated manual prompt',
 			false,
 			false,
@@ -336,7 +339,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$entityManager = Mockery::mock(EntityManagerInterface::class);
 		$logger = Mockery::mock(LoggerInterface::class);
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')
 			->with($runId)
 			->once()
 			->andReturn($run);
@@ -364,8 +367,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 					'summary' => 'Retry summary',
 				],
 			]));
-		$stockAiAnalysisFacade->shouldReceive('processResponse')
-			->with($runId, Mockery::on(static function (string $rawResponse): bool {
+		$stockAiAnalysisFacade->shouldReceive('processGeminiResponse')
+			->with($run, Mockery::on(static function (string $rawResponse): bool {
 				$data = Json::decode($rawResponse, forceArrays: true);
 
 				return $data['marketOverview']['summary'] === 'Retry summary';
@@ -414,6 +417,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 	public function testProcessMarksRunAsFailedWhenGeminiResponseIsInvalid(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated manual prompt',
 			false,
 			false,
@@ -433,11 +437,11 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$manualResponseSchema = ['type' => 'manual'];
 		$tempDir = $this->createTempDir();
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')
 			->with($runId)
 			->once()
 			->andReturn($run);
-		$stockAiAnalysisFacade->shouldNotReceive('processResponse');
+		$stockAiAnalysisFacade->shouldNotReceive('processGeminiResponse');
 		$promptGenerator->shouldReceive('generateSystemInstruction')
 			->once()
 			->andReturn('system instruction');
@@ -521,6 +525,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			'singleStock' => null,
 		];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated v2 prompt',
 			false,
 			false,
@@ -554,7 +559,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$schemaFactory = new StockAiAnalysisV2SchemaFactory();
 		$v2PromptGenerator = new StockAiAnalysisV2PromptGenerator($schemaFactory);
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')->with($runId->toString())->once()->andReturn($run);
 		$geminiClient->shouldReceive('generateContent')
 			->with(
 				Mockery::on(
@@ -569,8 +574,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			)
 			->once()
 			->andReturn(Json::encode($response));
-		$stockAiAnalysisFacade->shouldReceive('processResponse')
-			->with($runId->toString(), Json::encode($response), StockAiAnalysisProcessingSourceEnum::GEMINI)
+		$stockAiAnalysisFacade->shouldReceive('processGeminiResponse')
+			->with($run, Json::encode($response))
 			->once();
 		$datetimeFactory->shouldReceive('createNow')
 			->twice()
@@ -638,6 +643,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			'singleStock' => null,
 		];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated v2 prompt',
 			false,
 			true,
@@ -701,7 +707,7 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 		$schemaFactory = new StockAiAnalysisV2SchemaFactory();
 		$v2PromptGenerator = new StockAiAnalysisV2PromptGenerator($schemaFactory);
 
-		$stockAiAnalysisFacade->shouldReceive('getRun')->with($runId->toString())->once()->andReturn($run);
+		$stockAiAnalysisFacade->shouldReceive('getRunForProcessing')->with($runId->toString())->once()->andReturn($run);
 		$geminiClient->shouldReceive('generateContent')
 			->with(
 				Mockery::on(
@@ -712,8 +718,8 @@ class StockAiAnalysisGeminiProcessorFacadeTest extends UpdatedTestCase
 			)
 			->once()
 			->andReturn(Json::encode($partialResponse));
-		$stockAiAnalysisFacade->shouldReceive('processResponse')
-			->with($runId->toString(), Json::encode($mergedResponse), StockAiAnalysisProcessingSourceEnum::GEMINI)
+		$stockAiAnalysisFacade->shouldReceive('processGeminiResponse')
+			->with($run, Json::encode($mergedResponse))
 			->once();
 		$datetimeFactory->shouldReceive('createNow')
 			->twice()
