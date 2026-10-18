@@ -1,9 +1,11 @@
 ---
 name: alpine-tailwind
-description: Add or change Tailwind styling, Alpine components, or Naja integration in the project's frontend.
+description: Add or change Tailwind styling, Alpine components, or Naja integration in the existing Nette web frontend. Use desktop-react-ui for the desktop renderer.
 ---
 
 ## Stack overview
+
+This skill owns the root web assets. The Electron client has independent React/Tailwind configuration; use [desktop-react-ui](../desktop-react-ui/SKILL.md) there. Preserve the client exclusion in the web Tailwind source scan.
 
 - **Alpine.js 3** (`alpinejs` in `package.json`) – bootstrapped in `assets/ts/alpine/AppAlpine.ts` via `Alpine.start()`.
 - **Tailwind CSS 4** (`tailwindcss`, `@tailwindcss/postcss`, `@tailwindcss/forms`, `@tailwindcss/typography`, `@tailwindcss/aspect-ratio`) – config in `tailwind.config.js`, entrypoint `assets/css/index.css`.

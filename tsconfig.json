@@ -15,5 +15,6 @@
       ]
     },
   },
-  "exclude": ["vendor", "node_modules"]
+  "include": ["assets/**/*.ts"],
+  "exclude": ["vendor", "node_modules", "clients"]
 }

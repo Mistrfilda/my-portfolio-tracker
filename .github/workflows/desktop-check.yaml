@@ -1,0 +1,37 @@
+name: Desktop checks
+
+on:
+  push:
+    paths:
+      - 'clients/desktop/**'
+      - 'build-desktop.sh'
+      - 'doc/openapi.yaml'
+      - '.github/workflows/desktop-check.yaml'
+  pull_request:
+    paths:
+      - 'clients/desktop/**'
+      - 'build-desktop.sh'
+      - 'doc/openapi.yaml'
+      - '.github/workflows/desktop-check.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  desktop:
+    runs-on: macos-15
+    defaults:
+      run:
+        working-directory: clients/desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: clients/desktop/package-lock.json
+      - run: npm ci
+      - run: npm run check
+      - run: npm run build
+      - run: npm run test:smoke
+      - run: npm run package:mac
