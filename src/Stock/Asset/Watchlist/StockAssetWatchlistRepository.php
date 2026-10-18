@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Watchlist;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use App\Doctrine\OrderBy;
@@ -19,8 +20,13 @@ class StockAssetWatchlistRepository extends BaseRepository
 
 	public function getById(UuidInterface $id): StockAssetWatchlist
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetWatchlist');
-		$qb->where($qb->expr()->eq('stockAssetWatchlist.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function getByIdForAppAdmin(UuidInterface $id, AppAdmin $appAdmin): StockAssetWatchlist
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('stockAssetWatchlist.id', ':id'));
 		$qb->setParameter('id', $id);
 
 		try {
@@ -35,7 +41,12 @@ class StockAssetWatchlistRepository extends BaseRepository
 
 	public function findByTicker(string $ticker): StockAssetWatchlist|null
 	{
-		$result = $this->doctrineRepository->findOneBy(['ticker' => $ticker]);
+		return $this->findByTickerForAppAdmin($ticker, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function findByTickerForAppAdmin(string $ticker, AppAdmin $appAdmin): StockAssetWatchlist|null
+	{
+		$result = $this->doctrineRepository->findOneBy(['ticker' => $ticker, 'appAdmin' => $appAdmin]);
 
 		return $result instanceof StockAssetWatchlist ? $result : null;
 	}
@@ -45,7 +56,26 @@ class StockAssetWatchlistRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findBy([], ['ticker' => OrderBy::ASC->value]);
+		return $this->findAllForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	/** @return array<StockAssetWatchlist> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addAppAdminToQueryBuilder($qb, 'stockAssetWatchlist', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder

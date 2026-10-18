@@ -27,7 +27,7 @@ class StockAssetWatchlistGridFactory
 	public function create(): Datagrid
 	{
 		$grid = $this->datagridFactory->create(
-			new DoctrineDataSource($this->stockAssetWatchlistRepository->createQueryBuilder()),
+			new DoctrineDataSource($this->stockAssetWatchlistRepository->createQueryBuilderForCurrentAppAdmin()),
 		);
 
 		$name = $grid->addColumnText('name', 'Jméno');

@@ -35,6 +35,8 @@ class PositionOwnershipFixture
 
 	public PortuAsset $portu;
 
+	public PortuAsset $otherPortu;
+
 	/** @var array<int, StockPosition> */
 	public array $stockPositions = [];
 
@@ -79,8 +81,9 @@ class PositionOwnershipFixture
 			SvgIcon::CRYPTO_BITCOIN,
 			$now,
 		);
-		$this->portu = new PortuAsset('Ownership Portu', CurrencyEnum::CZK, $now);
-		foreach ([$this->stock, $this->crypto, $this->portu] as $asset) {
+		$this->portu = new PortuAsset($this->admins[0], 'Ownership Portu', CurrencyEnum::CZK, $now);
+		$this->otherPortu = new PortuAsset($this->admins[1], 'Other ownership Portu', CurrencyEnum::CZK, $now);
+		foreach ([$this->stock, $this->crypto, $this->portu, $this->otherPortu] as $asset) {
 			$this->entityManager->persist($asset);
 		}
 
@@ -146,7 +149,7 @@ class PositionOwnershipFixture
 	{
 		$now = new ImmutableDateTime('2026-01-15');
 		$position = new PortuPosition(
-			$this->portu,
+			$admin->getId()->equals($this->admins[0]->getId()) ? $this->portu : $this->otherPortu,
 			$admin,
 			$now,
 			new AssetPriceEmbeddable(1000.0, CurrencyEnum::CZK),

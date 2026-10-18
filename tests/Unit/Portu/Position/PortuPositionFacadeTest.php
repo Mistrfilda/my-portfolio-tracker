@@ -62,6 +62,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$portuAssetMock = new PortuAsset(
+			$this->createStub(AppAdmin::class),
 			'Test Asset',
 			CurrencyEnum::CZK,
 			new ImmutableDateTime('2025-01-01 00:00:00'),
@@ -153,6 +154,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$portuAssetMock = new PortuAsset(
+			$this->createStub(AppAdmin::class),
 			'Test Asset Updated',
 			CurrencyEnum::EUR,
 			new ImmutableDateTime('2025-01-01 00:00:00'),
@@ -162,7 +164,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$appAdminMock->shouldReceive('getId')->andReturn(Uuid::uuid4());
 
 		$existingPosition = new PortuPosition(
-			new PortuAsset('Old Asset', CurrencyEnum::CZK, new ImmutableDateTime('2025-01-01')),
+			new PortuAsset($appAdminMock, 'Old Asset', CurrencyEnum::CZK, new ImmutableDateTime('2025-01-01')),
 			$appAdminMock,
 			new ImmutableDateTime('2025-01-01'),
 			new AssetPriceEmbeddable(10000.0, CurrencyEnum::CZK),
@@ -253,7 +255,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$appAdminMock = Mockery::mock(AppAdmin::class);
-		$portuAssetMock = new PortuAsset('Test Asset', CurrencyEnum::CZK, $now);
+		$portuAssetMock = new PortuAsset($appAdminMock, 'Test Asset', CurrencyEnum::CZK, $now);
 		$portuPositionMock = new PortuPosition(
 			$portuAssetMock,
 			$appAdminMock,
@@ -344,7 +346,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$appAdminMock = Mockery::mock(AppAdmin::class);
-		$portuAssetMock = new PortuAsset('Test Asset', CurrencyEnum::CZK, $now);
+		$portuAssetMock = new PortuAsset($appAdminMock, 'Test Asset', CurrencyEnum::CZK, $now);
 		$portuPositionMock = new PortuPosition(
 			$portuAssetMock,
 			$appAdminMock,

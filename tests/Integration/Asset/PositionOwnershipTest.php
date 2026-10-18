@@ -126,7 +126,7 @@ class PositionOwnershipTest extends IntegrationTestCase
 				$this->getService(StockPositionRepository::class)->createQueryBuilderForDatagrid(),
 				$this->getService(CryptoPositionRepository::class)->createQueryBuilderForDatagrid(),
 				$this->getService(PortuPositionRepository::class)->createQueryBuilderForDatagrid(
-					$this->fixture->portu->getId(),
+					$this->fixture->portuPositions[$index]->getPortuAsset()->getId(),
 				),
 				$this->getService(PortuAssetPriceRecordRepository::class)->createQueryBuilderForDatagrid(
 					$this->fixture->portuPositions[$index]->getId(),
@@ -314,7 +314,7 @@ class PositionOwnershipTest extends IntegrationTestCase
 			false,
 		);
 		$portu = $this->getService(PortuPositionFacade::class)->create(
-			$this->fixture->portu->getId(),
+			$this->fixture->otherPortu->getId(),
 			$date,
 			1000.0,
 			100.0,

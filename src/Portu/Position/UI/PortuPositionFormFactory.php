@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Portu\Position\UI;
 
+use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Position\PortuPosition;
 use App\Portu\Position\PortuPositionFacade;
 use App\Portu\Position\PortuPositionRepository;
@@ -21,12 +22,14 @@ class PortuPositionFormFactory
 		private readonly AdminFormFactory $adminFormFactory,
 		private readonly PortuPositionFacade $portuPositionFacade,
 		private readonly PortuPositionRepository $portuPositionRepository,
+		private readonly PortuAssetRepository $portuAssetRepository,
 	)
 	{
 	}
 
 	public function create(UuidInterface|null $id, UuidInterface $portuAssetId, callable $onSuccess): AdminForm
 	{
+		$this->portuAssetRepository->getById($portuAssetId);
 		$form = $this->adminFormFactory->create();
 
 		$form->addDatePicker('startDate', 'Datum vytvoření portfolia');

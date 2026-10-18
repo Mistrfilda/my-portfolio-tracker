@@ -28,7 +28,7 @@ class PortuAssetGridFactory
 	{
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource(
-				$this->portuAssetRepository->createQueryBuilder(),
+				$this->portuAssetRepository->createQueryBuilderForCurrentAppAdmin(),
 			),
 		);
 

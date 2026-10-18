@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Watchlist;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -16,6 +17,7 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'stock_asset_watchlist')]
+#[ORM\UniqueConstraint(name: 'watchlist_owner_ticker_unique', columns: ['app_admin_id', 'ticker'])]
 class StockAssetWatchlist implements Entity
 {
 
@@ -23,10 +25,14 @@ class StockAssetWatchlist implements Entity
 	use CreatedAt;
 	use UpdatedAt;
 
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
+
 	#[ORM\Column(type: Types::STRING)]
 	private string $name;
 
-	#[ORM\Column(type: Types::STRING, unique: true)]
+	#[ORM\Column(type: Types::STRING)]
 	private string $ticker;
 
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
@@ -36,6 +42,7 @@ class StockAssetWatchlist implements Entity
 	private CurrencyEnum|null $currency;
 
 	public function __construct(
+		AppAdmin $appAdmin,
 		string $name,
 		string $ticker,
 		float|null $recommendedEntryPrice,
@@ -44,6 +51,7 @@ class StockAssetWatchlist implements Entity
 	)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 		$this->name = $name;
 		$this->ticker = $ticker;
 		$this->recommendedEntryPrice = $recommendedEntryPrice;
@@ -65,6 +73,11 @@ class StockAssetWatchlist implements Entity
 		$this->recommendedEntryPrice = $recommendedEntryPrice;
 		$this->currency = $currency;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function getName(): string
