@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Total;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatistic;
 use App\Statistic\PortfolioStatisticRecordRepository;
@@ -14,7 +16,7 @@ use Nette\Caching\Storage;
 class PortfolioStatisticTotalValueProvider
 {
 
-	private const string CACHE_KEY = 'all-time-value-v1';
+	private const string CACHE_KEY = 'all-time-value-v2-';
 
 	private readonly Cache $cache;
 
@@ -22,16 +24,18 @@ class PortfolioStatisticTotalValueProvider
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
 		Storage $storage,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 		$this->cache = new Cache($storage, self::class);
 	}
 
-	public function getAllTimeValue(): PortfolioStatisticTotalValue|null
+	public function getAllTimeValue(AppAdmin|null $appAdmin = null): PortfolioStatisticTotalValue|null
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$value = $this->cache->load(
-			self::CACHE_KEY,
-			fn (): PortfolioStatisticTotalValue|false => $this->buildAllTimeValue() ?? false,
+			self::CACHE_KEY . $appAdmin->getId()->toString(),
+			fn (): PortfolioStatisticTotalValue|false => $this->buildAllTimeValue($appAdmin) ?? false,
 			[Cache::Expire => '1 hour'],
 		);
 		assert($value === false || $value instanceof PortfolioStatisticTotalValue);
@@ -39,15 +43,15 @@ class PortfolioStatisticTotalValueProvider
 		return $value === false ? null : $value;
 	}
 
-	public function invalidateCache(): void
+	public function invalidateCache(AppAdmin $appAdmin): void
 	{
-		$this->cache->remove(self::CACHE_KEY);
+		$this->cache->remove(self::CACHE_KEY . $appAdmin->getId()->toString());
 	}
 
-	private function buildAllTimeValue(): PortfolioStatisticTotalValue|null
+	private function buildAllTimeValue(AppAdmin $appAdmin): PortfolioStatisticTotalValue|null
 	{
-		$firstRecord = $this->portfolioStatisticRecordRepository->findFirst();
-		$lastRecord = $this->portfolioStatisticRecordRepository->findLast();
+		$firstRecord = $this->portfolioStatisticRecordRepository->findFirst($appAdmin);
+		$lastRecord = $this->portfolioStatisticRecordRepository->findLast($appAdmin);
 		if ($firstRecord === null || $lastRecord === null || $firstRecord === $lastRecord) {
 			return null;
 		}
@@ -74,7 +78,7 @@ class PortfolioStatisticTotalValueProvider
 			return null;
 		}
 
-		$performanceSummary = $this->portfolioPerformanceProvider->getAllTimeSummary();
+		$performanceSummary = $this->portfolioPerformanceProvider->getAllTimeSummary($appAdmin);
 		if ($performanceSummary === null) {
 			return null;
 		}

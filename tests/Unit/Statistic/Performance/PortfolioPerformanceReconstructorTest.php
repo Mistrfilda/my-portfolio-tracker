@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Statistic\Performance\PortfolioPerformanceCalculator;
 use App\Statistic\Performance\PortfolioPerformanceEventProvider;
 use App\Statistic\Performance\PortfolioPerformanceIncome;
@@ -11,9 +12,19 @@ use App\Statistic\Performance\PortfolioPerformanceReconstructor;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPerformanceReconstructorTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
 
 	public function testReconstructReturnsEmptyResultWithoutTwoDailyValues(): void
 	{
@@ -37,6 +48,7 @@ class PortfolioPerformanceReconstructorTest extends TestCase
 		);
 
 		self::assertSame([], $reconstructor->reconstruct(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01'),
 			new ImmutableDateTime('2026-01-31'),
 			0.0,
@@ -77,6 +89,7 @@ class PortfolioPerformanceReconstructorTest extends TestCase
 		);
 
 		$months = $reconstructor->reconstruct(
+			$this->appAdmin,
 			$start,
 			$end,
 			0.0,

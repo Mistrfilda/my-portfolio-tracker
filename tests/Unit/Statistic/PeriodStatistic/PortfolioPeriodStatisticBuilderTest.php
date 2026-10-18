@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Currency\CurrencyConversionFacade;
@@ -28,9 +28,19 @@ use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\Stock\Price\StockAssetPriceRecordRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPeriodStatisticBuilderTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
 
 	public function testBuildThrowsWhenPeriodDoesNotContainSnapshots(): void
 	{
@@ -165,13 +175,13 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 			$this->createStub(StockAssetPriceRecordRepository::class),
 			$this->createStub(CryptoAssetPriceRecordRepository::class),
 			$this->createStub(PortuAssetPriceRecordRepository::class),
-			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 
 	private function createReport(): PortfolioPeriodStatistic
 	{
 		return new PortfolioPeriodStatistic(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-01-01 00:00:00'),
 			new ImmutableDateTime('2026-01-31 23:59:59'),
 			new ImmutableDateTime('2026-02-01 12:00:00'),
@@ -185,7 +195,7 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 	): PortfolioStatisticRecord
 	{
 		$now = new ImmutableDateTime($date);
-		$record = new PortfolioStatisticRecord($now);
+		$record = new PortfolioStatisticRecord($this->appAdmin, $now);
 		$this->addStatistic($record, $now, PortolioStatisticType::TOTAL_INVESTED_IN_CZK, $invested);
 		if ($value !== null) {
 			$this->addStatistic($record, $now, PortolioStatisticType::TOTAL_VALUE_IN_CZK, $value);
@@ -201,7 +211,7 @@ class PortfolioPeriodStatisticBuilderTest extends TestCase
 		float $value,
 	): void
 	{
-		$record->getPortfolioStatistics()->add(new PortfolioStatistic(
+		$record->addPortfolioStatistic(new PortfolioStatistic(
 			$record,
 			$now,
 			DashboardValueGroupEnum::TOTAL_VALUES,

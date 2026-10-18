@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\PeriodStatistic;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\JobRequest\JobRequestFacade;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticAssetSectionDTO;
 use App\Statistic\PeriodStatistic\DTO\PortfolioPeriodStatisticChartPointDTO;
@@ -23,10 +25,24 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
 class PortfolioPeriodStatisticFacadeTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	private CurrentAppAdminGetter $currentAppAdminGetter;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+		$this->currentAppAdminGetter = $this->createStub(CurrentAppAdminGetter::class);
+		$this->currentAppAdminGetter->method('getAppAdmin')->willReturn($this->appAdmin);
+	}
 
 	public function testCreateNormalizesRangePersistsReportAndAddsJobToQueue(): void
 	{
@@ -82,7 +98,7 @@ class PortfolioPeriodStatisticFacadeTest extends TestCase
 		$now = new ImmutableDateTime('2026-07-15 12:00:00');
 		$report = $this->createReport();
 		$repository = $this->createStub(PortfolioPeriodStatisticRepository::class);
-		$repository->method('getById')->willReturn($report);
+		$repository->method('getByIdForProcessing')->willReturn($report);
 		$builder = $this->createMock(PortfolioPeriodStatisticBuilder::class);
 		$builder->expects(self::once())->method('build')->with($report)->willReturn($this->createBuildResult());
 		$entityManager = $this->createMock(EntityManagerInterface::class);
@@ -107,7 +123,7 @@ class PortfolioPeriodStatisticFacadeTest extends TestCase
 		$now = new ImmutableDateTime('2026-07-15 12:00:00');
 		$report = $this->createReport();
 		$repository = $this->createStub(PortfolioPeriodStatisticRepository::class);
-		$repository->method('getById')->willReturn($report);
+		$repository->method('getByIdForProcessing')->willReturn($report);
 		$exception = new RuntimeException('Builder failed');
 		$builder = $this->createMock(PortfolioPeriodStatisticBuilder::class);
 		$builder->expects(self::once())->method('build')->with($report)->willThrowException($exception);
@@ -153,7 +169,7 @@ class PortfolioPeriodStatisticFacadeTest extends TestCase
 			$now,
 		);
 		$repository = $this->createStub(PortfolioPeriodStatisticRepository::class);
-		$repository->method('getById')->willReturn($report);
+		$repository->method('getByIdForProcessing')->willReturn($report);
 		$builder = $this->createMock(PortfolioPeriodStatisticBuilder::class);
 		$builder->expects(self::never())->method('build');
 		$entityManager = $this->createMock(EntityManagerInterface::class);
@@ -210,6 +226,7 @@ class PortfolioPeriodStatisticFacadeTest extends TestCase
 			$entityManager,
 			$datetimeFactory,
 			$logger ?? $this->createStub(LoggerInterface::class),
+			$this->currentAppAdminGetter,
 		);
 	}
 
@@ -223,6 +240,7 @@ class PortfolioPeriodStatisticFacadeTest extends TestCase
 	private function createReport(): PortfolioPeriodStatistic
 	{
 		return new PortfolioPeriodStatistic(
+			$this->appAdmin,
 			new ImmutableDateTime('2026-06-01 00:00:00'),
 			new ImmutableDateTime('2026-06-30 23:59:59'),
 			new ImmutableDateTime('2026-07-01 12:00:00'),

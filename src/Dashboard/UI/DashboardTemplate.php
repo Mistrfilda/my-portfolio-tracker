@@ -10,8 +10,6 @@ use App\UI\Base\BaseAdminPresenterTemplate;
 class DashboardTemplate extends BaseAdminPresenterTemplate
 {
 
-	public bool $showLegacyPortfolioData;
-
 	/** @var array<int, DashboardValueGroup> */
 	public array $dashboardValueGroups;
 

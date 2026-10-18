@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance\Command;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -16,6 +17,7 @@ class PortfolioPerformanceRebuildCommand extends Command
 
 	public function __construct(
 		private readonly PortfolioPerformanceRebuildFacade $portfolioPerformanceRebuildFacade,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 		parent::__construct();
@@ -29,7 +31,7 @@ class PortfolioPerformanceRebuildCommand extends Command
 
 	public function execute(InputInterface $input, OutputInterface $output): int
 	{
-		$count = $this->portfolioPerformanceRebuildFacade->rebuild();
+		$count = $this->portfolioPerformanceRebuildFacade->rebuild($this->legacyOwnerProvider->getOwner());
 		$output->writeln(sprintf('Rebuilt %d portfolio performance months', $count));
 
 		return self::SUCCESS;

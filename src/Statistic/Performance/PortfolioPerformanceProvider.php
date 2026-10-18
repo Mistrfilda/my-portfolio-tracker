@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -18,24 +20,28 @@ class PortfolioPerformanceProvider
 		private readonly PortfolioPerformanceEventProvider $portfolioPerformanceEventProvider,
 		private readonly PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private readonly DatetimeFactory $datetimeFactory,
+		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
 
-	public function getAllTimeSummary(): PortfolioPerformanceSummary|null
+	public function getAllTimeSummary(AppAdmin|null $appAdmin = null): PortfolioPerformanceSummary|null
 	{
 		return $this->portfolioPerformanceCalculator->calculateSummary(
-			$this->portfolioPerformanceMonthRepository->findAllOrdered(),
+			$this->portfolioPerformanceMonthRepository->findAllOrdered($appAdmin),
 		);
 	}
 
 	public function getSummaryBetween(
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
+		AppAdmin|null $appAdmin = null,
 	): PortfolioPerformanceSummary|null
 	{
-		$cashAtStart = $this->resolveCashAtStart($start);
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
+		$cashAtStart = $this->resolveCashAtStart($start, $appAdmin);
 		$months = $this->portfolioPerformanceReconstructor->reconstruct(
+			$appAdmin,
 			$start,
 			$end,
 			$cashAtStart,
@@ -48,20 +54,27 @@ class PortfolioPerformanceProvider
 	public function getIncomeBetween(
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
+		AppAdmin|null $appAdmin = null,
 	): PortfolioPerformanceIncome
 	{
-		return $this->portfolioPerformanceEventProvider->getIncomeBetween($start, $end);
+		return $this->portfolioPerformanceEventProvider->getIncomeBetween($start, $end, $appAdmin);
 	}
 
-	private function resolveCashAtStart(ImmutableDateTime $start): float
+	public function invalidateCache(AppAdmin $appAdmin): void
 	{
-		$previousMonth = $this->portfolioPerformanceMonthRepository->findLastEndingAtOrBefore($start);
+		$this->portfolioPerformanceEventProvider->invalidateCache($appAdmin);
+	}
+
+	private function resolveCashAtStart(ImmutableDateTime $start, AppAdmin $appAdmin): float
+	{
+		$previousMonth = $this->portfolioPerformanceMonthRepository->findLastEndingAtOrBefore($start, $appAdmin);
 		if ($previousMonth !== null) {
 			if ($previousMonth->getPeriodEndAt()->getTimestamp() === $start->getTimestamp()) {
 				return $previousMonth->getCashAtEnd();
 			}
 
 			$bridge = $this->portfolioPerformanceReconstructor->reconstruct(
+				$appAdmin,
 				$previousMonth->getPeriodEndAt(),
 				$start,
 				$previousMonth->getCashAtEnd(),
@@ -75,12 +88,13 @@ class PortfolioPerformanceProvider
 			return $previousMonth->getCashAtEnd();
 		}
 
-		$firstRecord = $this->portfolioStatisticRecordRepository->findFirst();
+		$firstRecord = $this->portfolioStatisticRecordRepository->findFirst($appAdmin);
 		if ($firstRecord === null || $firstRecord->getCreatedAt() >= $start) {
 			return 0.0;
 		}
 
 		$bridge = $this->portfolioPerformanceReconstructor->reconstruct(
+			$appAdmin,
 			$firstRecord->getCreatedAt(),
 			$start,
 			0.0,

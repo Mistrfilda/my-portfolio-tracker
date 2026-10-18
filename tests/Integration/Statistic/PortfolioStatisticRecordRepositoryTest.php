@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Statistic;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Dashboard\DashboardValueGroupEnum;
 use App\Statistic\PortfolioStatistic;
 use App\Statistic\PortfolioStatisticControlTypeEnum;
@@ -13,9 +15,12 @@ use App\Statistic\PortolioStatisticType;
 use App\Test\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 {
+
+	private AppAdmin $appAdmin;
 
 	private PortfolioStatisticRecordRepository $repository;
 
@@ -24,6 +29,20 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$em = $this->getService(EntityManagerInterface::class);
+		$name = 'statistic-' . Uuid::uuid4()->toString();
+		$this->appAdmin = new AppAdmin(
+			$name,
+			$name,
+			$name . '@example.test',
+			'unused',
+			new ImmutableDateTime('2026-01-01'),
+			false,
+			false,
+		);
+		$em->persist($this->appAdmin);
+		$em->flush();
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($this->appAdmin);
 
 		$this->repository = $this->getService(PortfolioStatisticRecordRepository::class);
 		$this->entityManager = $this->getService(EntityManagerInterface::class);
@@ -89,7 +108,7 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 	private function persistRecord(string $date, string $investedValue, string $portfolioValue): void
 	{
 		$now = new ImmutableDateTime($date);
-		$record = new PortfolioStatisticRecord($now);
+		$record = new PortfolioStatisticRecord($this->appAdmin, $now);
 		$investedStatistic = new PortfolioStatistic(
 			$record,
 			$now,
@@ -116,8 +135,8 @@ class PortfolioStatisticRecordRepositoryTest extends IntegrationTestCase
 			PortfolioStatisticControlTypeEnum::SIMPLE_VALUE,
 			null,
 		);
-		$record->getPortfolioStatistics()->add($investedStatistic);
-		$record->getPortfolioStatistics()->add($portfolioValueStatistic);
+		$record->addPortfolioStatistic($investedStatistic);
+		$record->addPortfolioStatistic($portfolioValueStatistic);
 
 		$this->entityManager->persist($record);
 		$this->entityManager->persist($investedStatistic);

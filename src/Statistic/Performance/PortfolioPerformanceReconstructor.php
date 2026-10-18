@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\AppAdmin;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
@@ -22,6 +23,7 @@ class PortfolioPerformanceReconstructor
 	 * @return array<PortfolioPerformanceMonth>
 	 */
 	public function reconstruct(
+		AppAdmin $appAdmin,
 		ImmutableDateTime $start,
 		ImmutableDateTime $end,
 		float $cashAtStart,
@@ -31,6 +33,7 @@ class PortfolioPerformanceReconstructor
 		$dailyValues = $this->portfolioStatisticRecordRepository->findDailyPerformanceValuesBetweenDates(
 			$start,
 			$end,
+			$appAdmin,
 		);
 		if (count($dailyValues) < 2) {
 			return [];
@@ -45,9 +48,23 @@ class PortfolioPerformanceReconstructor
 			$income = $this->portfolioPerformanceEventProvider->getIncomeBetween(
 				$startValue['date'],
 				$endValue['date'],
+				$appAdmin,
 			);
 
+			if (
+				$startValue['amount'] === 0.0
+				&& $endValue['amount'] === 0.0
+				&& $startValue['portfolioValue'] === 0.0
+				&& $endValue['portfolioValue'] === 0.0
+				&& $income->realizedProfit === 0.0
+				&& $income->netDividends === 0.0
+				&& $cashAtStart === 0.0
+			) {
+				continue;
+			}
+
 			$month = $this->portfolioPerformanceCalculator->calculateMonth(
+				$appAdmin,
 				$startValue['date'],
 				$endValue['date'],
 				$startValue['amount'],

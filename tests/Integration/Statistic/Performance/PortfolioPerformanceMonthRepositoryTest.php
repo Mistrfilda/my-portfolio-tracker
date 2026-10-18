@@ -4,14 +4,38 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Statistic\Performance;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceMonth;
 use App\Statistic\Performance\PortfolioPerformanceMonthRepository;
 use App\Test\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPerformanceMonthRepositoryTest extends IntegrationTestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$em = $this->getService(EntityManagerInterface::class);
+		$name = 'statistic-' . Uuid::uuid4()->toString();
+		$this->appAdmin = new AppAdmin(
+			$name,
+			$name,
+			$name . '@example.test',
+			'unused',
+			new ImmutableDateTime('2026-01-01'),
+			false,
+			false,
+		);
+		$em->persist($this->appAdmin);
+		$em->flush();
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($this->appAdmin);
+	}
 
 	public function testFindsMonthsInOrderAndLastMonthBeforeDate(): void
 	{
@@ -49,6 +73,7 @@ class PortfolioPerformanceMonthRepositoryTest extends IntegrationTestCase
 		$now = new ImmutableDateTime('2098-03-01');
 
 		return new PortfolioPerformanceMonth(
+			$this->appAdmin,
 			new ImmutableDateTime($end->format('Y-m-01')),
 			$start,
 			$end,

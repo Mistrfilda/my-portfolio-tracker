@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
+use App\Admin\AppAdmin;
+use App\Statistic\Performance\PortfolioPerformanceEventProvider;
 use App\Statistic\Performance\PortfolioPerformanceMonth;
 use App\Statistic\Performance\PortfolioPerformanceMonthRepository;
 use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
@@ -16,10 +18,20 @@ use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
+use Ramsey\Uuid\Uuid;
 use RuntimeException;
 
 class PortfolioPerformanceRebuildFacadeTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
 
 	public function testRebuildClearsCacheWhenThereIsNoHistory(): void
 	{
@@ -38,7 +50,10 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects(self::once())
 			->method('info')
-			->with('Portfolio performance cache rebuilt', ['months' => 0]);
+			->with(
+				'Portfolio performance cache rebuilt',
+				['appAdminId' => $this->appAdmin->getId()->toString(), 'months' => 0],
+			);
 		$totalValueProvider = $this->createMock(PortfolioStatisticTotalValueProvider::class);
 		$totalValueProvider->expects(self::once())->method('invalidateCache');
 
@@ -50,15 +65,16 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$this->createStub(DatetimeFactory::class),
 			$logger,
 			$totalValueProvider,
+			$this->createStub(PortfolioPerformanceEventProvider::class),
 		);
 
-		self::assertSame(0, $facade->rebuild());
+		self::assertSame(0, $facade->rebuild($this->appAdmin));
 	}
 
 	public function testRebuildPersistsReconstructedMonthsAndCommits(): void
 	{
-		$firstRecord = new PortfolioStatisticRecord(new ImmutableDateTime('2026-01-01'));
-		$lastRecord = new PortfolioStatisticRecord(new ImmutableDateTime('2026-02-28'));
+		$firstRecord = new PortfolioStatisticRecord($this->appAdmin, new ImmutableDateTime('2026-01-01'));
+		$lastRecord = new PortfolioStatisticRecord($this->appAdmin, new ImmutableDateTime('2026-02-28'));
 		$now = new ImmutableDateTime('2026-03-01');
 		$months = [
 			$this->createMonth('2026-01-01', '2026-01-31'),
@@ -72,7 +88,7 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$reconstructor = $this->createMock(PortfolioPerformanceReconstructor::class);
 		$reconstructor->expects(self::once())
 			->method('reconstruct')
-			->with($firstRecord->getCreatedAt(), $lastRecord->getCreatedAt(), 0.0, $now)
+			->with($this->appAdmin, $firstRecord->getCreatedAt(), $lastRecord->getCreatedAt(), 0.0, $now)
 			->willReturn($months);
 		$entityManager = $this->createMock(EntityManagerInterface::class);
 		$entityManager->expects(self::once())->method('beginTransaction');
@@ -97,7 +113,10 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$logger = $this->createMock(LoggerInterface::class);
 		$logger->expects(self::once())
 			->method('info')
-			->with('Portfolio performance cache rebuilt', ['months' => 2]);
+			->with(
+				'Portfolio performance cache rebuilt',
+				['appAdminId' => $this->appAdmin->getId()->toString(), 'months' => 2],
+			);
 		$totalValueProvider = $this->createMock(PortfolioStatisticTotalValueProvider::class);
 		$totalValueProvider->expects(self::once())
 			->method('invalidateCache')
@@ -113,9 +132,10 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$datetimeFactory,
 			$logger,
 			$totalValueProvider,
+			$this->createStub(PortfolioPerformanceEventProvider::class),
 		);
 
-		self::assertSame(2, $facade->rebuild());
+		self::assertSame(2, $facade->rebuild($this->appAdmin));
 		self::assertSame($months, $persisted);
 		self::assertSame(['commit', 'invalidate'], $steps);
 	}
@@ -147,12 +167,13 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 			$this->createStub(DatetimeFactory::class),
 			$logger,
 			$totalValueProvider,
+			$this->createStub(PortfolioPerformanceEventProvider::class),
 		);
 
 		$this->expectException(RuntimeException::class);
 		$this->expectExceptionMessage('Flush failed');
 
-		$facade->rebuild();
+		$facade->rebuild($this->appAdmin);
 	}
 
 	private function createMonth(string $start, string $end): PortfolioPerformanceMonth
@@ -161,6 +182,7 @@ class PortfolioPerformanceRebuildFacadeTest extends TestCase
 		$endDate = new ImmutableDateTime($end);
 
 		return new PortfolioPerformanceMonth(
+			$this->appAdmin,
 			new ImmutableDateTime($endDate->format('Y-m-01')),
 			$startDate,
 			$endDate,

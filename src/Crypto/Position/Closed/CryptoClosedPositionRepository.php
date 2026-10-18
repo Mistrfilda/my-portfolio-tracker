@@ -38,6 +38,12 @@ class CryptoClosedPositionRepository extends BaseRepository
 		}
 	}
 
+	/** @return array<CryptoClosedPosition> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
 	/**
 	 * @return array<CryptoClosedPosition>
 	 */

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceCalculator;
 use App\Statistic\Performance\PortfolioPerformanceEventProvider;
 use App\Statistic\Performance\PortfolioPerformanceIncome;
@@ -17,9 +19,23 @@ use App\Statistic\PortfolioStatisticRecordRepository;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 
 class PortfolioPerformanceProviderTest extends TestCase
 {
+
+	private AppAdmin $appAdmin;
+
+	private CurrentAppAdminGetter $currentAppAdminGetter;
+
+	protected function setUp(): void
+	{
+		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+		$this->currentAppAdminGetter = $this->createStub(CurrentAppAdminGetter::class);
+		$this->currentAppAdminGetter->method('getAppAdmin')->willReturn($this->appAdmin);
+	}
 
 	public function testGetAllTimeSummaryUsesCachedMonths(): void
 	{
@@ -52,7 +68,7 @@ class PortfolioPerformanceProviderTest extends TestCase
 		$reconstructor = $this->createMock(PortfolioPerformanceReconstructor::class);
 		$reconstructor->expects(self::once())
 			->method('reconstruct')
-			->with($start, $end, 75.0, $now)
+			->with($this->appAdmin, $start, $end, 75.0, $now)
 			->willReturn([$requestedMonth]);
 		$calculator = $this->createMock(PortfolioPerformanceCalculator::class);
 		$calculator->expects(self::once())
@@ -90,6 +106,7 @@ class PortfolioPerformanceProviderTest extends TestCase
 		$reconstructor->expects(self::exactly(2))
 			->method('reconstruct')
 			->willReturnCallback(static function (
+				AppAdmin $appAdmin,
 				ImmutableDateTime $actualStart,
 				ImmutableDateTime $actualEnd,
 				float $cashAtStart,
@@ -143,11 +160,11 @@ class PortfolioPerformanceProviderTest extends TestCase
 		$monthRepository = $this->createStub(PortfolioPerformanceMonthRepository::class);
 		$monthRepository->method('findLastEndingAtOrBefore')->willReturn(null);
 		$recordRepository = $this->createStub(PortfolioStatisticRecordRepository::class);
-		$recordRepository->method('findFirst')->willReturn(new PortfolioStatisticRecord($start));
+		$recordRepository->method('findFirst')->willReturn(new PortfolioStatisticRecord($this->appAdmin, $start));
 		$reconstructor = $this->createMock(PortfolioPerformanceReconstructor::class);
 		$reconstructor->expects(self::once())
 			->method('reconstruct')
-			->with($start, $end, 0.0, $now)
+			->with($this->appAdmin, $start, $end, 0.0, $now)
 			->willReturn([]);
 		$datetimeFactory = $this->createStub(DatetimeFactory::class);
 		$datetimeFactory->method('createNow')->willReturn($now);
@@ -194,6 +211,7 @@ class PortfolioPerformanceProviderTest extends TestCase
 			$eventProvider ?? $this->createStub(PortfolioPerformanceEventProvider::class),
 			$recordRepository ?? $this->createStub(PortfolioStatisticRecordRepository::class),
 			$datetimeFactory ?? $this->createStub(DatetimeFactory::class),
+			$this->currentAppAdminGetter,
 		);
 	}
 
@@ -203,6 +221,7 @@ class PortfolioPerformanceProviderTest extends TestCase
 		$endDate = new ImmutableDateTime($end);
 
 		return new PortfolioPerformanceMonth(
+			$this->appAdmin,
 			new ImmutableDateTime($endDate->format('Y-m-01')),
 			$startDate,
 			$endDate,
