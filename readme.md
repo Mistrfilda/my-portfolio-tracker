@@ -47,6 +47,8 @@ This repository contains the application code for my personal portfolio tracker.
 
 The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintenance rules, scopes, sensor compatibility, and the follow-up for per-account data isolation. Its [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) describes deployment, registration commands, and mobile/desktop integration.
 
+The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agreed implementation steps, completed work, remaining modules, verification, and database migrations.
+
 ## Core functionality
 
 ### Investments
