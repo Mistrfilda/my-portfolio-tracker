@@ -102,7 +102,6 @@ class PortuPositionFacade implements AssetPriceFacade
 
 		$portuPosition->update(
 			$portuAsset,
-			$this->currentAppAdminGetter->getAppAdmin(),
 			$startDate,
 			new AssetPriceEmbeddable(
 				$startInvestmentPrice,

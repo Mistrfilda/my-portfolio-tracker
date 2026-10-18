@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Crypto\Position\Closed;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
@@ -19,8 +20,13 @@ class CryptoClosedPositionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id): CryptoClosedPosition
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('cryptoClosedPosition');
-		$qb->where($qb->expr()->eq('cryptoClosedPosition.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function getByIdForAppAdmin(UuidInterface $id, AppAdmin $appAdmin): CryptoClosedPosition
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('cryptoClosedPosition.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$result = $qb->getQuery()->getSingleResult();
@@ -58,7 +64,7 @@ class CryptoClosedPositionRepository extends BaseRepository
 	}
 
 	/**
-	 * @param array<UuidInterface> $ids
+	 * @param array<UuidInterface|string> $ids
 	 * @return array<CryptoClosedPosition>
 	 */
 	public function findByIds(array $ids): array
@@ -67,10 +73,20 @@ class CryptoClosedPositionRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('cryptoClosedPosition');
-		$qb->andWhere($qb->expr()->in('cryptoClosedPosition.id', $ids));
+		$qb = $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
+		$qb->andWhere($qb->expr()->in('cryptoClosedPosition.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface|string $id): string => (string) $id, $ids));
 
 		return $qb->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('cryptoClosedPosition.cryptoPosition', 'cryptoPosition');
+		$this->addAppAdminToQueryBuilder($qb, 'cryptoPosition', $appAdmin);
+
+		return $qb;
 	}
 
 	public function createQueryBuilder(): QueryBuilder

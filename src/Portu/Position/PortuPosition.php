@@ -88,7 +88,6 @@ class PortuPosition implements AssetPosition, Entity
 
 	public function update(
 		PortuAsset $portuAsset,
-		AppAdmin $appAdmin,
 		ImmutableDateTime $startDate,
 		AssetPriceEmbeddable $startInvestment,
 		AssetPriceEmbeddable $monthlyIncrease,
@@ -98,7 +97,6 @@ class PortuPosition implements AssetPosition, Entity
 	): void
 	{
 		$this->portuAsset = $portuAsset;
-		$this->appAdmin = $appAdmin;
 		$this->startDate = $startDate;
 		$this->startInvestment = $startInvestment;
 		$this->monthlyIncrease = $monthlyIncrease;

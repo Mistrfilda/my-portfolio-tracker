@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Integration\Stock;
 
 use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -53,6 +54,8 @@ class StockPositionRepositoryTest extends IntegrationTestCase
 
 	public function testGetByIdThrowsExceptionWhenNotFound(): void
 	{
+		$this->entityManager->persist($this->createAppAdmin('pos-missing'));
+		$this->entityManager->flush();
 		$this->expectException(NoEntityFoundException::class);
 
 		$this->stockPositionRepository->getById(Uuid::uuid4());
@@ -196,7 +199,7 @@ class StockPositionRepositoryTest extends IntegrationTestCase
 
 	private function createAppAdmin(string $suffix): AppAdmin
 	{
-		return new AppAdmin(
+		$appAdmin = new AppAdmin(
 			'Test Admin ' . $suffix,
 			'testadmin_' . $suffix,
 			'testadmin_' . $suffix . '@test.com',
@@ -205,6 +208,9 @@ class StockPositionRepositoryTest extends IntegrationTestCase
 			false,
 			false,
 		);
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($appAdmin);
+
+		return $appAdmin;
 	}
 
 	private function createStockPosition(

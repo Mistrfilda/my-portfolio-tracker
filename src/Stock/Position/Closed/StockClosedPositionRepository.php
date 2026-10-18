@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Position\Closed;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
@@ -19,8 +20,13 @@ class StockClosedPositionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id): StockClosedPosition
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockClosedPosition');
-		$qb->where($qb->expr()->eq('stockClosedPosition.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function getByIdForAppAdmin(UuidInterface $id, AppAdmin $appAdmin): StockClosedPosition
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('stockClosedPosition.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$result = $qb->getQuery()->getSingleResult();
@@ -41,7 +47,7 @@ class StockClosedPositionRepository extends BaseRepository
 	}
 
 	/**
-	 * @param array<UuidInterface> $ids
+	 * @param array<UuidInterface|string> $ids
 	 * @return array<StockClosedPosition>
 	 */
 	public function findByIds(array $ids): array
@@ -50,8 +56,9 @@ class StockClosedPositionRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('stockClosedPosition');
-		$qb->andWhere($qb->expr()->in('stockClosedPosition.id', $ids));
+		$qb = $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
+		$qb->andWhere($qb->expr()->in('stockClosedPosition.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface|string $id): string => (string) $id, $ids));
 
 		return $qb->getQuery()->getResult();
 	}
@@ -71,6 +78,15 @@ class StockClosedPositionRepository extends BaseRepository
 		$qb->orderBy('stockClosedPosition.orderDate', 'ASC');
 
 		return $qb->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('stockClosedPosition.stockPosition', 'stockPosition');
+		$this->addAppAdminToQueryBuilder($qb, 'stockPosition', $appAdmin);
+
+		return $qb;
 	}
 
 	public function createQueryBuilder(): QueryBuilder

@@ -2,6 +2,23 @@ parameters:
 	database:
 		dbname: my-portfolio-app-tracker-tests
 
+# Debug panels retain containers and query traces across test cases.
+di:
+	debugger: false
+
+dbal:
+	debug:
+		panel: false
+
+application:
+	debugger: false
+
+routing:
+	debugger: false
+
+security:
+	debugger: false
+
 monolog:
 	hook:
 		fromTracy: false

@@ -4,9 +4,13 @@ declare(strict_types = 1);
 
 namespace App\UI\Base;
 
+use App\Doctrine\NoEntityFoundException;
 use App\UI\Control\Search\SearchControl;
 use App\UI\Control\Search\SearchControlFactory;
 use App\UI\Menu\MenuBuilder;
+use Nette\Application\BadRequestException;
+use Nette\Application\Request;
+use Nette\Application\Response;
 
 /**
  * Control is renderable Presenter component.
@@ -19,6 +23,15 @@ abstract class BaseAdminPresenter extends BasePresenter
 	protected MenuBuilder $menuBuilder;
 
 	protected SearchControlFactory $searchControlFactory;
+
+	public function run(Request $request): Response
+	{
+		try {
+			return parent::run($request);
+		} catch (NoEntityFoundException $exception) {
+			throw new BadRequestException('Record not found.', 404, $exception);
+		}
+	}
 
 	public function injectMenuBuilder(MenuBuilder $menuBuilder): void
 	{
