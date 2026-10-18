@@ -26,7 +26,9 @@ class PortuAssetFacade
 
 	public function create(string $name, CurrencyEnum $currency,): PortuAsset
 	{
+		$appAdmin = $this->currentAppAdminGetter->getAppAdmin();
 		$portuAsset = new PortuAsset(
+			$appAdmin,
 			$name,
 			$currency,
 			$this->datetimeFactory->createNow(),
@@ -38,7 +40,7 @@ class PortuAssetFacade
 		$this->logger->info(
 			sprintf(
 				'User %s create new portu asset %s - %s',
-				$this->currentAppAdminGetter->getAppAdmin()->getName(),
+				$appAdmin->getName(),
 				$portuAsset->getName(),
 				$portuAsset->getId()->toString(),
 			),

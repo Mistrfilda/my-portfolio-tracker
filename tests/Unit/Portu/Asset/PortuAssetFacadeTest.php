@@ -69,6 +69,7 @@ class PortuAssetFacadeTest extends UpdatedTestCase
 		$this->assertEquals($name, $portuAsset->getName());
 		$this->assertEquals($currency, $portuAsset->getCurrency());
 		$this->assertEquals($now, $portuAsset->getCreatedAt());
+		$this->assertSame($appAdminMock, $portuAsset->getAppAdmin());
 	}
 
 	public function testUpdate(): void
@@ -94,6 +95,7 @@ class PortuAssetFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$existingPortuAsset = new PortuAsset(
+			$this->createStub(AppAdmin::class),
 			'Old Name',
 			CurrencyEnum::CZK,
 			new ImmutableDateTime('2025-12-01 10:00:00'),
@@ -127,6 +129,7 @@ class PortuAssetFacadeTest extends UpdatedTestCase
 		$this->assertEquals($name, $updatedPortuAsset->getName());
 		$this->assertEquals($currency, $updatedPortuAsset->getCurrency());
 		$this->assertEquals($now, $updatedPortuAsset->getUpdatedAt());
+		$this->assertSame($existingPortuAsset->getAppAdmin(), $updatedPortuAsset->getAppAdmin());
 	}
 
 }

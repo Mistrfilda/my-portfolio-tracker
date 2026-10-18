@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset\Watchlist;
 
+use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\Watchlist\Exception\StockAssetWatchlistTickerAlreadyExistsException;
 use Doctrine\ORM\EntityManagerInterface;
@@ -17,6 +18,7 @@ class StockAssetWatchlistFacade
 		private readonly StockAssetWatchlistRepository $stockAssetWatchlistRepository,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
+		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -32,6 +34,7 @@ class StockAssetWatchlistFacade
 		$this->assertTickerIsUnique($ticker);
 
 		$stockAssetWatchlist = new StockAssetWatchlist(
+			$this->currentAppAdminGetter->getAppAdmin(),
 			$name,
 			$ticker,
 			$recommendedEntryPrice,
@@ -52,10 +55,10 @@ class StockAssetWatchlistFacade
 		CurrencyEnum|null $currency,
 	): StockAssetWatchlist
 	{
+		$stockAssetWatchlist = $this->stockAssetWatchlistRepository->getById($id);
 		$ticker = $this->normalizeTicker($ticker);
 		$this->assertTickerIsUnique($ticker, $id);
 
-		$stockAssetWatchlist = $this->stockAssetWatchlistRepository->getById($id);
 		$stockAssetWatchlist->update(
 			$name,
 			$ticker,

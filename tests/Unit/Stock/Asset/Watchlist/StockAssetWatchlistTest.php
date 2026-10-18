@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Asset\Watchlist;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\Watchlist\StockAssetWatchlist;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -16,7 +17,9 @@ class StockAssetWatchlistTest extends TestCase
 	{
 		$createdAt = new ImmutableDateTime('2026-08-20 09:00:00');
 		$updatedAt = new ImmutableDateTime('2026-08-20 10:00:00');
+		$appAdmin = $this->createStub(AppAdmin::class);
 		$stockAssetWatchlist = new StockAssetWatchlist(
+			$appAdmin,
 			'Apple Inc.',
 			'AAPL',
 			180.0,
@@ -36,6 +39,7 @@ class StockAssetWatchlistTest extends TestCase
 		self::assertNull($stockAssetWatchlist->getRecommendedEntryPrice());
 		self::assertNull($stockAssetWatchlist->getCurrency());
 		self::assertSame($updatedAt, $stockAssetWatchlist->getUpdatedAt());
+		self::assertSame($appAdmin, $stockAssetWatchlist->getAppAdmin());
 	}
 
 }

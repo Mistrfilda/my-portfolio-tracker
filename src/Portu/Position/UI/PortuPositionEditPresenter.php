@@ -4,17 +4,22 @@ declare(strict_types = 1);
 
 namespace App\Portu\Position\UI;
 
+use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Position\PortuPositionRepository;
 use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
 
+/**
+ * @property-read PortuPositionEditPresenterTemplate $template
+ */
 class PortuPositionEditPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(
 		private readonly PortuPositionFormFactory $portuPositionFormFactory,
 		private readonly PortuPositionRepository $portuPositionRepository,
+		private readonly PortuAssetRepository $portuAssetRepository,
 	)
 	{
 		parent::__construct();
@@ -22,6 +27,7 @@ class PortuPositionEditPresenter extends BaseAdminPresenter
 
 	public function renderEdit(string $portuAssetId, string|null $portuPositionId): void
 	{
+		$this->portuAssetRepository->getById($this->createUuidFromString($portuAssetId));
 		if ($portuPositionId !== null) {
 			$portuPosition = $this->portuPositionRepository->getById($this->processParameterRequiredUuid(
 				'portuPositionId',

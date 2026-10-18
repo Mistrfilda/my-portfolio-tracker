@@ -6,7 +6,7 @@ namespace App\Stock\Asset\Watchlist\UI;
 
 use App\Stock\Asset\Watchlist\StockAssetWatchlistFacade;
 use App\Stock\Asset\Watchlist\StockAssetWatchlistRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
@@ -15,7 +15,7 @@ use Ramsey\Uuid\Uuid;
 /**
  * @property-read StockAssetWatchlistTemplate $template
  */
-class StockAssetWatchlistPresenter extends BaseSysadminPresenter
+class StockAssetWatchlistPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(

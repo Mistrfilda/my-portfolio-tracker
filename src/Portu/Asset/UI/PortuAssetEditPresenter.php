@@ -5,11 +5,14 @@ declare(strict_types = 1);
 namespace App\Portu\Asset\UI;
 
 use App\Portu\Asset\PortuAssetRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
 
-class PortuAssetEditPresenter extends BaseSysadminPresenter
+/**
+ * @property-read PortuAssetEditPresenterTemplate $template
+ */
+class PortuAssetEditPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(

@@ -4,10 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Portu\Asset\UI;
 
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 
-class PortuAssetPresenter extends BaseSysadminPresenter
+/**
+ * @property-read PortuAssetPresenterTemplate $template
+ */
+class PortuAssetPresenter extends BaseAdminPresenter
 {
 
 	public function __construct(

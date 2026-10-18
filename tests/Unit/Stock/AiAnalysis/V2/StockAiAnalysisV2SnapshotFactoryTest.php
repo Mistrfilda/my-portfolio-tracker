@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\V2;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
@@ -23,7 +24,14 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 		$legacyPromptGenerator = $this->createStub(StockAiAnalysisPromptGenerator::class);
 		$legacyPromptGenerator->method('getAutomaticPortfolioData')->willReturn([]);
 		$legacyPromptGenerator->method('getAutomaticWatchlistData')->willReturn([]);
-		$stockAssetWatchlist = new StockAssetWatchlist('Apple Inc.', 'AAPL', 180.0, CurrencyEnum::USD, $now);
+		$stockAssetWatchlist = new StockAssetWatchlist(
+			$this->createStub(AppAdmin::class),
+			'Apple Inc.',
+			'AAPL',
+			180.0,
+			CurrencyEnum::USD,
+			$now,
+		);
 		$repository = $this->createStub(StockAssetWatchlistRepository::class);
 		$repository->method('findAll')->willReturn([$stockAssetWatchlist]);
 		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);

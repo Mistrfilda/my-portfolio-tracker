@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Portu\Asset;
 
+use App\Admin\AppAdmin;
 use App\Asset\Asset;
 use App\Asset\AssetTypeEnum;
 use App\Asset\Position\AssetPosition;
@@ -31,6 +32,10 @@ class PortuAsset implements Asset, Entity
 	use CreatedAt;
 	use UpdatedAt;
 
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
+
 	#[ORM\Column(type: Types::STRING)]
 	private string $name;
 
@@ -41,9 +46,10 @@ class PortuAsset implements Asset, Entity
 	#[ORM\OneToMany(targetEntity: PortuPosition::class, mappedBy: 'portuAsset')]
 	private Collection $portuPositions;
 
-	public function __construct(string $name, CurrencyEnum $currency, ImmutableDateTime $now)
+	public function __construct(AppAdmin $appAdmin, string $name, CurrencyEnum $currency, ImmutableDateTime $now)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 
 		$this->name = $name;
 		$this->currency = $currency;
@@ -63,6 +69,11 @@ class PortuAsset implements Asset, Entity
 	public function getType(): AssetTypeEnum
 	{
 		return AssetTypeEnum::PORTU;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function getName(): string
