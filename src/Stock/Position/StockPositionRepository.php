@@ -4,10 +4,12 @@ declare(strict_types = 1);
 
 namespace App\Stock\Position;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
+use Doctrine\DBAL\LockMode;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
 use Ramsey\Uuid\UuidInterface;
@@ -20,22 +22,16 @@ class StockPositionRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): StockPosition
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockPosition');
-		$qb->where($qb->expr()->eq('stockPosition.id', ':id'));
-		$qb->setParameter('id', $id);
-		try {
-			$query = $qb->getQuery();
-			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
-			}
+		return $this->getByIdFromQueryBuilder($this->createQueryBuilder(), $id, $lockMode);
+	}
 
-			$result = $query->getSingleResult();
-			assert($result instanceof StockPosition);
-
-			return $result;
-		} catch (NoResultException) {
-			throw new NoEntityFoundException();
-		}
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): StockPosition
+	{
+		return $this->getByIdFromQueryBuilder($this->createQueryBuilderForAppAdmin($appAdmin), $id, $lockMode);
 	}
 
 	/**
@@ -44,6 +40,14 @@ class StockPositionRepository extends BaseRepository
 	public function findAll(): array
 	{
 		return $this->doctrineRepository->findAll();
+	}
+
+	/**
+	 * @return array<StockPosition>
+	 */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
 	}
 
 	/**
@@ -101,9 +105,53 @@ class StockPositionRepository extends BaseRepository
 		return $qb;
 	}
 
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addAppAdminToQueryBuilder($qb, 'stockPosition', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$this->addCurrentUserToQueryBuilder($qb, 'stockPosition');
+
+		return $qb;
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		return $this->doctrineRepository->createQueryBuilder('stockPosition');
+	}
+
+	private function getByIdFromQueryBuilder(
+		QueryBuilder $queryBuilder,
+		UuidInterface $id,
+		LockModeEnum|null $lockMode,
+	): StockPosition
+	{
+		$queryBuilder->andWhere($queryBuilder->expr()->eq('stockPosition.id', ':id'));
+		$queryBuilder->setParameter('id', $id);
+		try {
+			$query = $queryBuilder->getQuery();
+			if ($lockMode !== null) {
+				$query->setLockMode(match ($lockMode) {
+					LockModeEnum::NONE => LockMode::NONE,
+					LockModeEnum::OPTIMISTIC => LockMode::OPTIMISTIC,
+					LockModeEnum::PESSIMISTIC_READ => LockMode::PESSIMISTIC_READ,
+					LockModeEnum::PESSIMISTIC_WRITE => LockMode::PESSIMISTIC_WRITE,
+				});
+			}
+
+			$result = $query->getSingleResult();
+			assert($result instanceof StockPosition);
+
+			return $result;
+		} catch (NoResultException) {
+			throw new NoEntityFoundException();
+		}
 	}
 
 }

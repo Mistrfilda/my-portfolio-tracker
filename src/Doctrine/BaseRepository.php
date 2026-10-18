@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Doctrine;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\EntityRepository;
@@ -40,9 +41,18 @@ abstract class BaseRepository
 
 	protected function addCurrentUserToQueryBuilder(QueryBuilder $queryBuilder, string $alias): void
 	{
-		$key = uniqid() . 'appAdmin';
+		$this->addAppAdminToQueryBuilder($queryBuilder, $alias, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	protected function addAppAdminToQueryBuilder(QueryBuilder $queryBuilder, string $alias, AppAdmin $appAdmin): void
+	{
+		$parameterIndex = 0;
+		do {
+			$key = 'appAdmin' . $parameterIndex++;
+		} while ($queryBuilder->getParameter($key) !== null);
+
 		$queryBuilder->andWhere($queryBuilder->expr()->eq($alias . '.appAdmin', ':' . $key));
-		$queryBuilder->setParameter($key, $this->currentAppAdminGetter->getAppAdmin());
+		$queryBuilder->setParameter($key, $appAdmin);
 	}
 
 	abstract public function createQueryBuilder(): QueryBuilder;
