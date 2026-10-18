@@ -10,6 +10,7 @@ use App\Notification\NotificationFacade;
 use App\Notification\NotificationParameterEnum;
 use App\Notification\NotificationParameters;
 use App\Notification\NotificationTypeEnum;
+use App\Portu\Asset\PortuAsset;
 use Mistrfilda\Datetime\DatetimeFactory;
 
 class AssetTrendFacade
@@ -34,6 +35,8 @@ class AssetTrendFacade
 		$now = $this->datetimeFactory->createNow();
 		$dateToCompare = $now->deductDaysFromDatetime($numberOfDaysToCompare);
 		$trends = [];
+		$personalTrends = [];
+		$recipients = [];
 
 		foreach ($this->assetRepositories as $assetRepository) {
 			foreach ($assetRepository->getAllActiveAssets() as $activeAsset) {
@@ -44,29 +47,46 @@ class AssetTrendFacade
 				}
 
 				$currentPrice = $activeAsset->getAssetCurrentPrice();
-				$trends[] = [
+				$trendData = [
 					'name' => $activeAsset->getName(),
 					'currentPrice' => $currentPrice->getPrice(),
 					'currency' => $currentPrice->getCurrency()->value,
 					'trend' => $trend,
 				];
+				if ($activeAsset instanceof PortuAsset) {
+					$owner = $activeAsset->getAppAdmin();
+					$ownerId = $owner->getId()->toString();
+					$recipients[$ownerId] = $owner;
+					$personalTrends[$ownerId][] = $trendData;
+				} else {
+					$trends[] = $trendData;
+				}
 			}
-		}
-
-		if ($trends === []) {
-			return;
 		}
 
 		$parameters = new NotificationParameters();
 		$parameters->addParameter(NotificationParameterEnum::TREND_DAYS_THRESHOLD, $numberOfDaysToCompare);
 
-		$this->notificationFacade->create(
-			NotificationTypeEnum::ASSET_TRENDS,
-			[NotificationChannelEnum::DISCORD],
-			'Asset trends',
-			$parameters,
-			['trends' => $trends],
-		);
+		if ($trends !== []) {
+			$this->notificationFacade->create(
+				NotificationTypeEnum::ASSET_TRENDS,
+				[NotificationChannelEnum::DISCORD],
+				'Asset trends',
+				$parameters,
+				['trends' => $trends],
+			);
+		}
+
+		foreach ($personalTrends as $ownerId => $ownerTrends) {
+			$this->notificationFacade->createForRecipient(
+				$recipients[$ownerId],
+				NotificationTypeEnum::ASSET_TRENDS,
+				[NotificationChannelEnum::DISCORD],
+				'Portu trends',
+				$parameters,
+				['trends' => $ownerTrends],
+			);
+		}
 	}
 
 }

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Notification;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -12,6 +13,7 @@ use App\RabbitMQ\RabbitMQDatabaseMessage;
 use App\RabbitMQ\RabbitMQMessage;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use InvalidArgumentException;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\Uuid;
 
@@ -22,6 +24,10 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 
 	use SimpleUuid;
 	use CreatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: true)]
+	private AppAdmin|null $recipient;
 
 	#[ORM\Column(type: Types::STRING, enumType: NotificationTypeEnum::class)]
 	private NotificationTypeEnum $notificationTypeEnum;
@@ -54,9 +60,15 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 		string $message,
 		ImmutableDateTime $now,
 		array $data = [],
+		AppAdmin|null $recipient = null,
 	)
 	{
+		if ($notificationTypeEnum === NotificationTypeEnum::GOALS_UPDATES && $recipient === null) {
+			throw new InvalidArgumentException('Goal notifications require a recipient.');
+		}
+
 		$this->id = Uuid::uuid4();
+		$this->recipient = $recipient;
 		$this->notificationTypeEnum = $notificationTypeEnum;
 		$this->notificationChannels = array_map(
 			static fn (NotificationChannelEnum $enum): string => $enum->value,
@@ -96,6 +108,14 @@ class Notification implements Entity, RabbitMQDatabaseMessage
 	public function getNotificationTypeEnum(): NotificationTypeEnum
 	{
 		return $this->notificationTypeEnum;
+	}
+
+	/**
+	 * Null denotes a shared market notification. Personal recipients cannot be reassigned.
+	 */
+	public function getRecipient(): AppAdmin|null
+	{
+		return $this->recipient;
 	}
 
 	/**

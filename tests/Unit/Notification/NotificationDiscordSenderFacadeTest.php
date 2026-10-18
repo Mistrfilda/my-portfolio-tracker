@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Notification;
 
+use App\Admin\AppAdmin;
 use App\Gotenberg\GotenbergScreenshotService;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
@@ -13,6 +14,7 @@ use App\Notification\Discord\DiscordMessageService;
 use App\Notification\Discord\NotificationDiscordSenderFacade;
 use App\Notification\Notification;
 use App\Notification\NotificationTypeEnum;
+use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Client\ClientInterface;
@@ -20,6 +22,37 @@ use Psr\Http\Message\RequestInterface;
 
 class NotificationDiscordSenderFacadeTest extends TestCase
 {
+
+	public function testUnconfiguredPersonalReportDoesNotRenderOrMakeAnyExternalRequest(): void
+	{
+		$owner = $this->createStub(AppAdmin::class);
+		$owner->method('getUsername')->willReturn('filip2');
+		$notification = new Notification(
+			NotificationTypeEnum::ASSET_TRENDS,
+			[],
+			'Personal portfolio',
+			new ImmutableDateTime(),
+			recipient: $owner,
+		);
+		$channelService = new DiscordChannelService(['asset_trends' => 'https://example.test/filip']);
+		$clientFactory = $this->createMock(Psr18ClientFactory::class);
+		$clientFactory->expects($this->never())->method('getClient');
+		$messageService = $this->createMock(DiscordMessageService::class);
+		$messageService->expects($this->never())->method('getMessage');
+		$renderer = $this->createMock(AssetTrendReportRenderer::class);
+		$renderer->expects($this->never())->method('render');
+		$gotenberg = $this->createMock(GotenbergScreenshotService::class);
+		$gotenberg->expects($this->never())->method('captureHtml');
+		$sender = new NotificationDiscordSenderFacade(
+			$clientFactory,
+			new Psr7RequestFactory(),
+			$messageService,
+			$channelService,
+			$renderer,
+			$gotenberg,
+		);
+		$sender->send($notification);
+	}
 
 	public function testSendUploadsAssetTrendReportAsEmbedImage(): void
 	{

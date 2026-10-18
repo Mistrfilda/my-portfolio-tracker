@@ -2,7 +2,7 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–4 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je dokončený a ověřený v pracovní větvi; commit doplnit po vytvoření Filipem. Následuje krok 5.
+Aktualizováno 18. 10. 2026. **Kroky 1–5 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je dokončený a ověřený v pracovní větvi, včetně Filipem potvrzené migrace webové databáze; commit doplnit po vytvoření Filipem. Následuje krok 6.
 
 ## Dohodnutý rozsah
 
@@ -38,7 +38,7 @@ Aktualizováno 18. 10. 2026. **Kroky 1–4 jsou hotové v popsaném rozsahu.** K
 	- [x] **3d. Domácnosti, zařízení a jejich záznamy** — vlastník domácnosti, navázané přístupy a kontrola vztahů ve formulářích.
 	- [x] **Předání 3b–3d** — celý build prošel; Filip potvrdil migraci webové databáze, následně ověřena data a web v izolovaném Playwrightu.
 - [x] **4. Souhrny portfolia a web** — výpočty a web podle vlastníka, přechodná ochrana nepřevedených widgetů, automatické kontroly a ověření webu dokončeny. Bez nové migrace.
-- [ ] **5. Směrování notifikací.**
+- [x] **5. Směrování notifikací** — uložený příjemce, osobní konfigurace Discordu, oddělené společné a osobní trendy, ověřený retry, automatické kontroly a potvrzená migrace s ověřením webové databáze a webu.
 - [ ] **6. Dividendy a prognózy.**
 - [ ] **7. Cíle a AI analýzy.**
 	- [ ] **7a. Cíle a jejich opakování.**
@@ -101,6 +101,28 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 - V krocích 6–9 postupně nahradit přechodné podmínky skutečnými dotazy podle vlastníka konkrétního záznamu. Společné kolekce pozic na entitách se nemění; zbývající použití v dividendových výpočtech, `PortfolioPeriodStatisticBuilder` a API serializéru vyžadují navazující úpravy.
 - Krok 4 nepřidává databázovou migraci: mapování ani schéma se nemění. Nepouštěl se přepočet statistik, AI úloha ani odesílání notifikací na webové databázi.
 
+## Krok 5: směrování notifikací
+
+- [x] Osobní notifikace ukládá neměnného příjemce `AppAdmin`; `null` označuje společnou tržní zprávu. Vazba neumožňuje smazáním účtu převést osobní zprávu na společnou.
+- [x] `NotificationFacade::createForRecipient()` vyžaduje vlastníka výslovně; `create()` slouží společným tržním zprávám. Milník cíle bez příjemce nelze vytvořit.
+- [x] Nové dividendové události obsahují jen společnou částku na akcii. Report trendů akcií a krypta obsahuje jen tržní ceny; osobní hodnoty Portu jsou v samostatných zprávách seskupených podle vlastníka portfolia.
+- [x] Discord vybírá konfiguraci uloženého příjemce, bez závislosti na přihlášení. Účet bez konfigurace nic osobního neodesílá, negeneruje obrázek ani nevolá Gotenberg.
+- [x] Formát zprávy RabbitMQ zůstává stejný: ID odkazuje na uloženou notifikaci včetně příjemce a snímku dat. Opakované zpracování znovu načte stejný záznam; stav `SENT` už nic neposílá.
+- [x] Ověřit migraci historie pod `filip`, chybějící účet, ochranu návratu a načtení příjemce po vyprázdnění EntityManageru.
+- [x] Dokončit celý build a kontroly PhpStormu.
+- [x] Filip potvrdil migraci webové databáze; převod historie i start aplikace ověřeny přes PhpStorm a izolovaný Playwright.
+
+### Konfigurace a návaznosti kroku 5
+
+- Dosavadní `notifications.discord.webhooks` zůstává konfigurací společných zpráv. Pro osobní zprávy ji smí použít jen účet určený `notifications.discord.legacyRecipientUsername`, výchozí `filip`. Stávající lokální konfigurace se nemusí měnit.
+- `notifications.discord.userWebhooks` je mapa podle uživatelského jména. Například `userWebhooks: {filip2: {goals_updates: null, trend_alert_default: null}}` připraví samostatnou konfiguraci pro testovací účet bez odesílání. Skutečné webhooky se doplňují pouze v soukromé konfiguraci.
+- Uživatelská mapa se používá celá, nedoplňuje se ze společné konfigurace. Chybějící typ nemá cizí náhradu; prázdná mapa vypne všechny osobní zprávy daného účtu i pro Filipa. `null` u konkrétního typu nebo období výslovně vypíná danou zprávu. Trend bez klíče pro konkrétní období může použít `trend_alert_default` téhož účtu.
+- Cíle podporují původní konfigurační klíč `goals_update` i kanonický `goals_updates`; kanonický klíč má přednost včetně hodnoty `null`. Obecný historický klíč `default` se nadále nepoužívá jako náhradní příjemce.
+- Dosavadní cíle nemají vlastníka do kroku 7. Jejich zprávy proto nyní výslovně používají `LegacyPortfolioOwnerProvider` a patří Filipovi; v kroku 7 nahradit příjemcem konkrétního cíle.
+- Migrace `Version20261018112629` přiřadí všechny existující notifikace Filipovi, včetně starých smíšených trendů. Obsah, ID a stav zůstanou zachované; migrace nic nepublikuje do fronty ani neodesílá. Nové společné zprávy mají příjemce `null`. Chybějící Filip při existující historii zastaví migraci před DDL; návrat je zakázán, pokud má notifikace jiný uživatel.
+- Stav `SENT` zůstává dle stávajícího chování dokončením zpracování i při vypnutém webhooku. Pozdější doplnění konfigurace tak samo neodešle přeskočenou historii. Kontrola `SENT` chrání před opětovným zpracováním dokončené zprávy, nezaručuje přesně jedno doručení při pádu mezi HTTP požadavkem a zápisem stavu nebo při souběžných consumerech.
+- Změna nemění Discord logger, transport RabbitMQ ani plánování cronů. Při nasazení použít migrované schéma a restartovat běžící notification consumer, aby načetl nový kód i konfiguraci.
+
 ## Doklady dokončených částí
 
 | Část | Implementace | Hlavní automatické ověření |
@@ -109,7 +131,8 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 | 2 | `0fdb398` | [PositionOwnershipTest](../tests/Integration/Asset/PositionOwnershipTest.php) a [PositionWebAccessTest](../tests/Integration/Asset/PositionWebAccessTest.php): seznamy, ID, editace, uzavření, historie, zachování vlastníka a odmítnutí cizích URL. |
 | 3a a Portu portfolia | `e8aad85` | [PersonalAssetOwnershipTest](../tests/Integration/Asset/PersonalAssetOwnershipTest.php): přístupy a vazby podle vlastníka, unikátnost tickeru, mazání watchlistu a přístup běžného účtu. [PersonalAssetOwnershipMigrationTest](../tests/Integration/Migrations/PersonalAssetOwnershipMigrationTest.php): převod historie a ochrany migrace. |
 | 3b–3d | `ed1d260` | [PersonalDataOwnershipTest](../tests/Integration/PersonalData/PersonalDataOwnershipTest.php), [PersonalIncomeImportOwnershipTest](../tests/Integration/PersonalData/PersonalIncomeImportOwnershipTest.php), [PersonalDataOwnershipMigrationTest](../tests/Integration/Migrations/PersonalDataOwnershipMigrationTest.php). |
-| 4 | Pracovní větev; commit doplnit po vytvoření Filipem | [PortfolioSummaryOwnershipTest](../tests/Integration/Asset/PortfolioSummaryOwnershipTest.php): společná akcie s 10 a 20 kusy, Stock/Crypto/Portu souhrny, otevřené a uzavřené pozice, řazení, A → B → A v jednom procesu, explicitní vlastník bez přihlášení, prázdný účet, vykreslené osobní stránky běžného účtu, ochrana katalogu a nepřevedených widgetů. |
+| 4 | `8aae230` | [PortfolioSummaryOwnershipTest](../tests/Integration/Asset/PortfolioSummaryOwnershipTest.php): společná akcie s 10 a 20 kusy, Stock/Crypto/Portu souhrny, otevřené a uzavřené pozice, řazení, A → B → A v jednom procesu, explicitní vlastník bez přihlášení, prázdný účet, vykreslené osobní stránky běžného účtu, ochrana katalogu a nepřevedených widgetů. |
+| 5 | Pracovní větev; commit doplnit po vytvoření Filipem | [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php), [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php), unit testy Discord směrování a rozdělení trendů. |
 
 Po implementaci 3a a Portu portfolií prošlo `composer cs-fix && composer build-all`: 793 unit testů a 176 integračních testů, včetně statické analýzy a validace schématu. Kontroly změněných PHP souborů v PhpStormu prošly. V izolovaném Playwrightu byly pod účtem `filip` ověřeny přehledy Portu a watchlistu, jejich editace a formuláře Portu pozic. Oddělení dvou uživatelů pokrývají integrační testy.
 
@@ -127,6 +150,12 @@ Po kroku 4 prošlo `composer cs-fix && composer build-all`: **800 unit testů (3
 
 V izolovaném Playwrightu byly po kroku 4 pod existujícím přihlášením Filipa ověřeny dashboard, přehledy otevřených a uzavřených pozic Stock i Crypto, detail 3M a Bitcoinu včetně přepnutí na pozice, Portu portfolio a jeho pozice, finanční nezávislost a stránka grafů. Grafy dokončily všech 11 datových AJAX požadavků s HTTP 200; nebyly zaznamenány chyby konzole. Webový dump nemá uzavřené kryptopozice, jejich naplněný přehled pokrývá integrační test. Oddělení dvou vlastníků a prázdného účtu i přístup běžného uživatele ověřují automatické testy; na webu se nezakládala nová data ani druhé přihlášení.
 
+Krok 5 pokrývají [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php) a [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php): uložení příjemce, zachovaný formát fronty, A → B → retry A se změněnou identitou, opětovné načtení z databáze, přeskočení `SENT` a převod historie bez změny obsahu nebo stavu. Unit testy ověřují oddělené Portu reporty, oba účty v jednom resolveru, účet bez konfigurace bez HTTP i Gotenbergu, zpětnou kompatibilitu Filipa, prázdné mapy, explicitní `null`, přednost kanonického klíče, uložení před publikováním a odmítnutí cílové zprávy bez příjemce. Všechny externí služby i publisher jsou nahrazené testovacími náhradami.
+
+Po implementaci kroku 5 prošlo `composer cs-fix && composer build-all`: **812 unit testů (3667 assertions), 232 integračních testů (1140 assertions)**, statická analýza, styl, PHP/Latte kontrola, validace mapování a schématu, kontrola závislostí i agent dokumentace. PhpStorm nenašel chyby v 15 změněných nebo nových PHP souborech; cílená kontrola NEON a syntaxe migrace také prošla. Žádná skutečná zpráva ani úloha RabbitMQ nebyla odeslána.
+
+Po Filipově potvrzení migrace byl na webové databázi ověřen záznam `Migrations\Version20261018112629` z 18. 10. 2026 13:30:59. Všech **9 979** notifikací patří `filip`; počet chybějících, osiřelých nebo cizích příjemců je 0. Počty podle typu a stavu odpovídají stavu před migrací. PhpStorm vracel starý popis tabulky i po introspekci, proto byl nový sloupec ověřen přímo přes `SHOW COLUMNS` a výsledek přes čtecí SQL dotazy. V izolovaném Playwrightu prošel dashboard a přehledy Portu a cílů pod stávajícím přihlášením; adresy i nadpisy odpovídaly a přehledy vracely HTTP 200 bez nových chyb JavaScriptu. Historické chyby konzole z dřívějšího testu neexistujícího ID a faviconu se na kontrolovaných stránkách neopakovaly. Žádný formulář, cron ani skutečný notification consumer nebyl spuštěn.
+
 ## Migrace a předávání jednotlivých změn
 
 - CLI a integrační testy používají databázi `my-portfolio-app-tracker-tests`. PhpStorm a web používají `my-portfolio-tracker`. Integrační testy obnovují tabulky; nespouštět nad stejnou databází současně testy a migrace.
@@ -134,6 +163,7 @@ V izolovaném Playwrightu byly po kroku 4 pod existujícím přihlášením Fili
 - [Version20261018102336](../migrations/Version20261018102336.php) byla 18. 10. 2026 uživatelem spuštěna na webové databázi a následně ověřena: 1 Portu portfolio a 20 položek watchlistu patří účtu `filip`, nesoulad vlastníka Portu pozice a portfolia je 0. Spuštění v clusteru zde zatím potvrzené není.
 - [Version20261018104607](../migrations/Version20261018104607.php) pro 3b–3d byla 18. 10. 2026 spuštěna Filipem na webové databázi a následně ověřena v `doctrine_migrations`. Všechna převáděná data patří `filip`: 2 bankovní účty, 2307 výdajů, 137 příjmů, 71 štítků, 34 měsíčních příjmů, 1 domácnost a 2 zařízení. Počty odpovídají stavu před migrací, nesoulad vlastníků výdaje a hlavního štítku i rodičovského a potomkovského štítku je 0. Test převodu historie, ochran a návratu migrace prošel. Spuštění v clusteru zde zatím potvrzené není.
 - Krok 4 nevyžaduje migraci webové databáze ani databáze v clusteru.
+- [Version20261018112629](../migrations/Version20261018112629.php) pro krok 5 je ověřená na CLI testovací databázi a byla spuštěna Filipem na webové databázi. Všech 9 979 notifikací nyní patří `filip`; počty zůstaly stejné (9 685 `sent`, 294 `created`). Spuštění v clusteru zatím potvrzené není.
 - Před každou další změnou přečíst tento plán. Po dokončení aktualizovat příslušný podkrok, důkazy ověření a stav migrace; commit doplnit, jakmile je známý.
 - Celý krok odškrtnout až po splnění všech jeho podkroků a hlavního ověření. U kroku 3 jsou podmínky splněné: všechny podkroky, potvrzená migrace, automatické kontroly i ověření webu.
 - Na konci každé předávané změny uvést její přesné číslo a rozsah, zbývající práci a commit příkaz pro Filipa. Commity provádí Filip.
