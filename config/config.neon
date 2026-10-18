@@ -438,6 +438,7 @@ services:
 
 	#Portfolio statistics
 	- App\Statistic\PortfolioStatisticFacade
+	- App\Statistic\PortfolioStatisticBatchFacade
 	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)
 	- App\Statistic\PortfolioStatisticRecordRepository(App\Statistic\PortfolioStatisticRecord)
 	- App\Statistic\PortfolioStatisticSaveCommand
