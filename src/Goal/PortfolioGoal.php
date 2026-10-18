@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
@@ -22,6 +23,10 @@ class PortfolioGoal implements Entity
 	use SimpleUuid;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::DATETIME_IMMUTABLE)]
 	private ImmutableDateTime $startDate;
@@ -58,6 +63,7 @@ class PortfolioGoal implements Entity
 	private PortfolioGoalRepeatableEnum|null $repeatable;
 
 	public function __construct(
+		AppAdmin $appAdmin,
 		ImmutableDateTime $startDate,
 		ImmutableDateTime $endDate,
 		PortfolioGoalTypeEnum $type,
@@ -67,6 +73,7 @@ class PortfolioGoal implements Entity
 	)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 		$this->startDate = $startDate->setTime(0, 0, 1);
 		$this->endDate = $endDate->setTime(23, 59, 59);
 		$this->type = $type;
@@ -80,6 +87,11 @@ class PortfolioGoal implements Entity
 		$this->statistics = [];
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(

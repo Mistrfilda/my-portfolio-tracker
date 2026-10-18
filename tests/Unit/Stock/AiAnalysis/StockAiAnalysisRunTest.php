@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Stock\AiAnalysis\StockAiAnalysisMarketSentimentEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
@@ -16,7 +17,7 @@ class StockAiAnalysisRunTest extends TestCase
 	public function testCreate(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('Test prompt', true, false, true, null, $now);
+		$run = new StockAiAnalysisRun($this->createStub(AppAdmin::class), 'Test prompt', true, false, true, null, $now);
 
 		self::assertSame('Test prompt', $run->getGeneratedPrompt());
 		self::assertTrue($run->includesPortfolio());
@@ -35,6 +36,7 @@ class StockAiAnalysisRunTest extends TestCase
 	{
 		$now = new ImmutableDateTime();
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Test prompt',
 			true,
 			true,
@@ -87,7 +89,15 @@ class StockAiAnalysisRunTest extends TestCase
 	public function testSetResponseWithNullMarketOverview(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('Test prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Test prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 
 		$processedAt = new ImmutableDateTime();
 		$run->setResponse(

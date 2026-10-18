@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\RabbitMQ\RabbitMQPublisher;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
@@ -99,6 +101,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			$this->v2SnapshotFactory,
 			$this->v2PromptGenerator,
 			$this->v2ResponseValidator,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 	}
 
@@ -143,7 +146,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testGetGeneratedPromptForDisplayIncludesSystemInstruction(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('User prompt text', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'User prompt text',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 
 		$this->promptGenerator->shouldReceive('generateSystemInstruction')
 			->once()
@@ -159,6 +170,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	{
 		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => 'Keep Czech holdings.'];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Old task with duplicate investor instructions',
 			true,
 			false,
@@ -195,6 +207,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testEnqueueGeminiProcessing(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated prompt text',
 			true,
 			true,
@@ -238,6 +251,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testEnqueueGeminiProcessingSkipsAlreadyProcessedRun(): void
 	{
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Generated prompt text',
 			true,
 			true,
@@ -324,7 +338,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithMarketOverview(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, true, true, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			true,
+			true,
+			null,
+			$now,
+		);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -372,6 +394,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			'watchlist' => [],
 		];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'prompt',
 			true,
 			false,
@@ -420,9 +443,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->with($runIdMatcher)
 			->ordered()
 			->andReturn($run);
-		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+		$this->stockAiAnalysisRunRepository->shouldReceive('getByIdForAppAdmin')
 			->once()
-			->with($runIdMatcher, LockMode::PESSIMISTIC_WRITE)
+			->with($runIdMatcher, $run->getAppAdmin(), LockMode::PESSIMISTIC_WRITE)
 			->ordered()
 			->andReturn($run);
 		$this->v2ResponseValidator->shouldReceive('validate')->once()->with('{}', $snapshot)->andReturn($response);
@@ -480,6 +503,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 			]],
 		];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'prompt',
 			false,
 			true,
@@ -531,9 +555,9 @@ class StockAiAnalysisFacadeTest extends TestCase
 			->with($runIdMatcher)
 			->ordered()
 			->andReturn($run);
-		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
+		$this->stockAiAnalysisRunRepository->shouldReceive('getByIdForAppAdmin')
 			->once()
-			->with($runIdMatcher, LockMode::PESSIMISTIC_WRITE)
+			->with($runIdMatcher, $run->getAppAdmin(), LockMode::PESSIMISTIC_WRITE)
 			->ordered()
 			->andReturn($run);
 		$this->v2ResponseValidator->shouldReceive('validate')->once()->with('{}', $snapshot)->andReturn($response);
@@ -569,7 +593,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithPortfolioAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -637,6 +669,7 @@ class StockAiAnalysisFacadeTest extends TestCase
 	{
 		$now = new ImmutableDateTime();
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'prompt',
 			true,
 			true,
@@ -712,7 +745,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithWatchlistAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', false, true, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			false,
+			true,
+			false,
+			null,
+			$now,
+		);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -767,7 +808,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponsePortfolioWithoutFairPrice(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -811,7 +860,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseInvalidJson(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, true, true, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			true,
+			true,
+			null,
+			$now,
+		);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -825,7 +882,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithMultiplePortfolioStocks(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -871,7 +936,17 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithSingleStockAnalysis(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', false, false, false, null, $now, 'AAPL', 'Apple Inc.');
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			false,
+			false,
+			false,
+			null,
+			$now,
+			'AAPL',
+			'Apple Inc.',
+		);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()
@@ -922,7 +997,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponsePortfolioWithDividendAnalysisNull(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 		$stockAssetId = Uuid::uuid4();
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
@@ -968,7 +1051,15 @@ class StockAiAnalysisFacadeTest extends TestCase
 	public function testProcessResponseWithPortfolioEvaluation7DaysSummary(): void
 	{
 		$now = new ImmutableDateTime();
-		$run = new StockAiAnalysisRun('prompt', true, false, false, null, $now);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'prompt',
+			true,
+			false,
+			false,
+			null,
+			$now,
+		);
 
 		$this->stockAiAnalysisRunRepository->shouldReceive('getById')
 			->once()

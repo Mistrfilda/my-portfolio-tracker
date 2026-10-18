@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\V2;
 
+use App\Admin\AppAdmin;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
@@ -37,10 +38,11 @@ class StockAiAnalysisV2SnapshotFactory
 		string|null $stockTicker,
 		string|null $stockName,
 		StockAsset|null $stockAsset,
+		AppAdmin $appAdmin,
 	): array
 	{
 		$allPortfolioData = $includesPortfolio || $includesWatchlist
-			? $this->legacyPromptGenerator->getAutomaticPortfolioData()
+			? $this->legacyPromptGenerator->getAutomaticPortfolioData($appAdmin)
 			: [];
 		$portfolioData = $includesPortfolio ? $allPortfolioData : [];
 		$watchlistData = $includesWatchlist
@@ -48,7 +50,7 @@ class StockAiAnalysisV2SnapshotFactory
 			: [];
 		$simpleWatchlistData = [];
 		if ($includesWatchlist) {
-			foreach ($this->stockAssetWatchlistRepository->findAll() as $stockAssetWatchlist) {
+			foreach ($this->stockAssetWatchlistRepository->findAllForAppAdmin($appAdmin) as $stockAssetWatchlist) {
 				$simpleWatchlistData[] = [
 					'stockAssetId' => $stockAssetWatchlist->getId()->toString(),
 					'stockAssetTicker' => $stockAssetWatchlist->getTicker(),
@@ -101,7 +103,7 @@ class StockAiAnalysisV2SnapshotFactory
 			'runId' => $runId->toString(),
 			'analysisAsOf' => $analysisAsOf->format(DATE_ATOM),
 			'timezone' => 'Europe/Prague',
-			'investorInstructions' => $this->settingsFacade->getInvestorInstructions(),
+			'investorInstructions' => $this->settingsFacade->getInvestorInstructions($appAdmin),
 			'scope' => [
 				'includesPortfolio' => $includesPortfolio,
 				'includesWatchlist' => $includesWatchlist,

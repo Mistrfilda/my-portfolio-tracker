@@ -62,7 +62,11 @@ class JobRequestProcessor
 				);
 				break;
 			case JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE:
-				$this->portfolioGoalUpdateFacade->updateAllActive();
+				$this->portfolioGoalUpdateFacade->updateAllActive(
+					array_key_exists('appAdminId', $additionalData)
+						? Uuid::fromString(TypeValidator::validateString($additionalData['appAdminId']))
+						: null,
+				);
 				break;
 			case JobRequestTypeEnum::STOCK_AI_ANALYSIS_GEMINI_PROCESS:
 				$this->stockAiAnalysisGeminiProcessorFacade->process(

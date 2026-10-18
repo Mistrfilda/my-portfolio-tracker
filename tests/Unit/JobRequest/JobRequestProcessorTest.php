@@ -41,6 +41,27 @@ class JobRequestProcessorTest extends UpdatedTestCase
 		);
 	}
 
+	#[TestWith([true])]
+	#[TestWith([false])]
+	public function testGoalRecalculationPreservesOwnerAndSupportsLegacyPayload(bool $withOwner): void
+	{
+		$id = Uuid::uuid4();
+		$forecasts = $this->createMock(PortfolioGoalUpdateFacade::class);
+		$forecasts->expects(self::once())->method('updateAllActive')->with($withOwner ? $id : null);
+		$processor = new JobRequestProcessor(
+			$this->createStub(ExpenseTagFacade::class),
+			$this->createStub(StockAssetDataDownloadFacade::class),
+			$this->createStub(StockAssetDividendForecastRecordFacade::class),
+			$forecasts,
+			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
+			$this->createStub(PortfolioPeriodStatisticFacade::class),
+		);
+		$processor->process(
+			JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE,
+			$withOwner ? ['appAdminId' => $id->toString()] : [],
+		);
+	}
+
 	public function testExpenseTagJobPreservesOwnerFromPayload(): void
 	{
 		$id = Uuid::uuid4();

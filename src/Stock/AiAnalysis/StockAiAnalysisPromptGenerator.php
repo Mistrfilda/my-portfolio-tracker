@@ -4,7 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
@@ -29,7 +30,7 @@ class StockAiAnalysisPromptGenerator
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
 		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
-		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
+		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -124,14 +125,17 @@ class StockAiAnalysisPromptGenerator
 		return implode("\n\n", $parts);
 	}
 
-	public function generateSystemInstruction(bool $includeInvestorInstructions = true): string
+	public function generateSystemInstruction(
+		bool $includeInvestorInstructions = true,
+		AppAdmin|null $appAdmin = null,
+	): string
 	{
 		$now = $this->datetimeFactory->createNow();
 
 		$instruction = sprintf($this->loadPrompt('common/system'), $now->format('d. m. Y'));
 		if ($includeInvestorInstructions) {
 			$instruction .= "\n\n" . StockAiAnalysisInvestorPrompt::generate(
-				$this->settingsFacade->getInvestorInstructions(),
+				$this->settingsFacade->getInvestorInstructions($appAdmin),
 			);
 		}
 
@@ -162,9 +166,9 @@ class StockAiAnalysisPromptGenerator
 	/**
 	 * @return array<mixed>
 	 */
-	public function getAutomaticPortfolioData(): array
+	public function getAutomaticPortfolioData(AppAdmin|null $appAdmin = null): array
 	{
-		return $this->getPortfolioData();
+		return $this->getPortfolioData($appAdmin);
 	}
 
 	public function generateManualOpenPositionsPrompt(): string
@@ -602,9 +606,9 @@ class StockAiAnalysisPromptGenerator
 	/**
 	 * @return array<mixed>
 	 */
-	private function getPortfolioData(): array
+	private function getPortfolioData(AppAdmin|null $appAdmin = null): array
 	{
-		$appAdmin = $this->legacyOwnerProvider->getOwner();
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$assets = $this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, true);
 
 		$data = [];

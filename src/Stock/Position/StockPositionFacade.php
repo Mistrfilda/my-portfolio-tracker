@@ -77,7 +77,10 @@ class StockPositionFacade implements AssetPriceFacade
 			),
 		);
 
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
+		$this->jobRequestFacade->addToQueue(
+			JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE,
+			['appAdminId' => $stockPosition->getAppAdmin()->getId()->toString()],
+		);
 
 		return $stockPosition;
 	}

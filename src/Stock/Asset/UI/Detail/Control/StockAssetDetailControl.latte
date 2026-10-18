@@ -107,7 +107,7 @@
                         <span x-show="currentTab === 'valuation'" aria-hidden="true"
                               class="bg-blue-500 absolute inset-x-0 bottom-0 h-0.5"></span>
                     </a>
-                    <a n:if="$showLegacyPortfolioData"
+                    <a
                             x-on:click="changeTab('aiAnalysis')"
                             :class="currentTab === 'aiAnalysis' ? '' : ''"
                             href="#"
@@ -296,10 +296,10 @@
                 x-transition:leave-end="opacity-0"
                 class="mt-6">
             {control stockValuationDetailControl}
-            {if $showLegacyPortfolioData}{control stockAiValuationComparisonControl}{/if}
+            {control stockAiValuationComparisonControl}
         </div>
 
-        <div n:if="$showLegacyPortfolioData"
+        <div
                 x-show="currentTab === 'aiAnalysis'"
                 x-transition:enter="transition-opacity ease-linear duration-300"
                 x-transition:enter-start="opacity-0"

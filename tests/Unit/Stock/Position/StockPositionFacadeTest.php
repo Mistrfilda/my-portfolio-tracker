@@ -120,7 +120,7 @@ class StockPositionFacadeTest extends TestCase
 			->once();
 
 		$this->jobRequestFacade->shouldReceive('addToQueue')
-			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE)
+			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $adminUuid->toString()])
 			->once();
 
 		$result = $this->facade->create(

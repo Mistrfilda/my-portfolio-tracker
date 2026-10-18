@@ -19,8 +19,8 @@ class StockAiInvestmentPlanRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockMode|null $lockMode = null): StockAiInvestmentPlan
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('investmentPlan');
-		$qb->where($qb->expr()->eq('investmentPlan.id', ':id'));
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->eq('investmentPlan.id', ':id'));
 		$qb->setParameter('id', $id);
 
 		try {
@@ -41,6 +41,8 @@ class StockAiInvestmentPlanRepository extends BaseRepository
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('investmentPlan');
+		$qb->innerJoin('investmentPlan.referenceAnalysisRun', 'run');
+		$this->addCurrentUserToQueryBuilder($qb, 'run');
 		$qb->orderBy('investmentPlan.createdAt', 'DESC');
 
 		return $qb;

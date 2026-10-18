@@ -55,7 +55,7 @@ class StockAiInvestmentPlanFacade
 
 		$now = $this->datetimeFactory->createNow();
 		$portfolioValueCzk = $this->stockPositionFacade
-			->getCurrentPortfolioValueSummaryPrice(CurrencyEnum::CZK)
+			->getCurrentPortfolioValueSummaryPrice(CurrencyEnum::CZK, $referenceAnalysisRun->getAppAdmin())
 			->getPrice();
 		$requestedAmountCzk = $requestedCurrency === CurrencyEnum::CZK
 			? $requestedAmount

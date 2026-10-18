@@ -33,7 +33,7 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 			$now,
 		);
 		$repository = $this->createStub(StockAssetWatchlistRepository::class);
-		$repository->method('findAll')->willReturn([$stockAssetWatchlist]);
+		$repository->method('findAllForAppAdmin')->willReturn([$stockAssetWatchlist]);
 		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);
 		$settings->method('getInvestorInstructions')->willReturn('Keep Czech holdings.');
 		$factory = new StockAiAnalysisV2SnapshotFactory($legacyPromptGenerator, $repository, $settings);
@@ -48,6 +48,7 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 			null,
 			null,
 			null,
+			$stockAssetWatchlist->getAppAdmin(),
 		);
 
 		self::assertSame('Keep Czech holdings.', $snapshot['investorInstructions']);

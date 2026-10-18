@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisActionSuggestionEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisConfidenceLevelEnum;
@@ -29,6 +30,7 @@ class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 		$settings->method('getInvestorInstructions')->willReturn('Keep Czech holdings.');
 		$snapshot = ['schemaVersion' => 2, 'investorInstructions' => $originalPreferences];
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Original prompt',
 			true,
 			false,
@@ -61,6 +63,7 @@ class StockAiAnalysisFollowUpPromptGeneratorTest extends TestCase
 	{
 		$now = new ImmutableDateTime('2026-05-24 10:00:00');
 		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
 			'Original generated prompt',
 			true,
 			true,

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\Entity;
 use App\Doctrine\UpdatedAt;
 use Doctrine\DBAL\Types\Types;
@@ -17,15 +18,21 @@ class StockAiAnalysisSettings implements Entity
 
 	use UpdatedAt;
 
+	#[ORM\OneToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
+
 	#[ORM\Id]
+	#[ORM\GeneratedValue]
 	#[ORM\Column(type: Types::INTEGER)]
-	private int $id = 1;
+	private int $id;
 
 	#[ORM\Column(type: Types::TEXT)]
 	private string $investorInstructions;
 
-	public function __construct(string $investorInstructions, ImmutableDateTime $now)
+	public function __construct(AppAdmin $appAdmin, string $investorInstructions, ImmutableDateTime $now)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->update($investorInstructions, $now);
 	}
 
@@ -33,6 +40,11 @@ class StockAiAnalysisSettings implements Entity
 	{
 		$this->investorInstructions = trim($investorInstructions);
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function getId(): int

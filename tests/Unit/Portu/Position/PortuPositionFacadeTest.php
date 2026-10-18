@@ -10,6 +10,7 @@ use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\SummaryPriceService;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
+use App\JobRequest\JobRequestTypeEnum;
 use App\Portu\Asset\PortuAsset;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Position\PortuPosition;
@@ -255,6 +256,11 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$appAdminMock = Mockery::mock(AppAdmin::class);
+		$ownerId = Uuid::uuid4();
+		$appAdminMock->shouldReceive('getId')->andReturn($ownerId);
+		$jobRequestFacadeMock->shouldReceive('addToQueue')
+			->once()
+			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $ownerId->toString()]);
 		$portuAssetMock = new PortuAsset($appAdminMock, 'Test Asset', CurrencyEnum::CZK, $now);
 		$portuPositionMock = new PortuPosition(
 			$portuAssetMock,
@@ -346,6 +352,11 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$now = new ImmutableDateTime('2026-01-01 10:00:00');
 
 		$appAdminMock = Mockery::mock(AppAdmin::class);
+		$ownerId = Uuid::uuid4();
+		$appAdminMock->shouldReceive('getId')->andReturn($ownerId);
+		$jobRequestFacadeMock->shouldReceive('addToQueue')
+			->once()
+			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $ownerId->toString()]);
 		$portuAssetMock = new PortuAsset($appAdminMock, 'Test Asset', CurrencyEnum::CZK, $now);
 		$portuPositionMock = new PortuPosition(
 			$portuAssetMock,

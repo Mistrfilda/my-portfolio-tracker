@@ -103,6 +103,7 @@ class StockClosedPositionFacadeTest extends TestCase
 		$stockPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
 		$appAdmin = UpdatedTestCase::createMockWithIgnoreMethods(AppAdmin::class);
 		$adminUuid = Uuid::uuid4();
+		$stockPosition->shouldReceive('getAppAdmin')->andReturn($appAdmin);
 
 		$this->stockPositionRepository->shouldReceive('getById')
 			->with($stockPositionId)
@@ -132,7 +133,7 @@ class StockClosedPositionFacadeTest extends TestCase
 			->once();
 
 		$this->jobRequestFacade->shouldReceive('addToQueue')
-			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE)
+			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $adminUuid->toString()])
 			->once();
 
 		$result = $this->facade->create(

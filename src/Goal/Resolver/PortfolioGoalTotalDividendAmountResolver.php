@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Goal\Resolver;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -18,7 +17,6 @@ class PortfolioGoalTotalDividendAmountResolver implements PortfolioGoalResolver
 	public function __construct(
 		private StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
-		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 
@@ -31,7 +29,7 @@ class PortfolioGoalTotalDividendAmountResolver implements PortfolioGoalResolver
 		foreach ($this->stockAssetDividendRecordRepository->findBetweenDates(
 			$portfolioGoal->getStartDate(),
 			$portfolioGoal->getEndDate(),
-			$this->legacyOwnerProvider->getOwner(),
+			$portfolioGoal->getAppAdmin(),
 		) as $stockAssetDividendRecord) {
 			$recordPrice = $stockAssetDividendRecord->getSummaryPrice();
 			if ($recordPrice->getCurrency() !== $totalDividendIncome->getCurrency()) {

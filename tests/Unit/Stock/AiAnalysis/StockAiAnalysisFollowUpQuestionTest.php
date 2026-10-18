@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpQuestion;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpStatusEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisRun;
@@ -17,7 +18,15 @@ class StockAiAnalysisFollowUpQuestionTest extends TestCase
 	{
 		$createdAt = new ImmutableDateTime('2026-05-24 10:00:00');
 		$responseAt = new ImmutableDateTime('2026-05-24 11:00:00');
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 
 		$question = new StockAiAnalysisFollowUpQuestion(
 			$run,
@@ -42,7 +51,15 @@ class StockAiAnalysisFollowUpQuestionTest extends TestCase
 		$queuedAt = new ImmutableDateTime('2026-05-24 10:01:00');
 		$processingAt = new ImmutableDateTime('2026-05-24 10:02:00');
 		$completedAt = new ImmutableDateTime('2026-05-24 10:03:00');
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 
 		self::assertTrue($question->canBeQueuedForGeminiProcessing());
@@ -73,7 +90,15 @@ class StockAiAnalysisFollowUpQuestionTest extends TestCase
 	{
 		$createdAt = new ImmutableDateTime('2026-05-24 10:00:00');
 		$failedAt = new ImmutableDateTime('2026-05-24 10:03:00');
-		$run = new StockAiAnalysisRun('Original prompt', true, false, false, null, $createdAt);
+		$run = new StockAiAnalysisRun(
+			$this->createStub(AppAdmin::class),
+			'Original prompt',
+			true,
+			false,
+			false,
+			null,
+			$createdAt,
+		);
 		$question = new StockAiAnalysisFollowUpQuestion($run, 'Question', 'Generated prompt', $createdAt);
 
 		$question->markGeminiFailed($failedAt, 'Gemini request failed');

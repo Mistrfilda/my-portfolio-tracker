@@ -199,7 +199,10 @@ class PortuPositionFacade implements AssetPriceFacade
 		$this->entityManager->flush();
 		$this->entityManager->refresh($portuAssetPriceRecord);
 
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE);
+		$this->jobRequestFacade->addToQueue(
+			JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE,
+			['appAdminId' => $portuPosition->getAppAdmin()->getId()->toString()],
+		);
 
 		return $portuAssetPriceRecord;
 	}

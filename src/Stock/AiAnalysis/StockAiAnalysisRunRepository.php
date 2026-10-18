@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\DBAL\LockMode;
@@ -19,8 +20,31 @@ class StockAiAnalysisRunRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockMode|null $lockMode = null): StockAiAnalysisRun
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');
-		$qb->where($qb->expr()->eq('stockAiAnalysisRun.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockMode|null $lockMode = null,
+	): StockAiAnalysisRun
+	{
+		return $this->getFromQueryBuilder($this->createQueryBuilder($appAdmin), $id, $lockMode);
+	}
+
+	// Workers derive the owner from the persisted run, independently of the web session.
+	public function getByIdForProcessing(UuidInterface $id): StockAiAnalysisRun
+	{
+		return $this->getFromQueryBuilder($this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun'), $id);
+	}
+
+	private function getFromQueryBuilder(
+		QueryBuilder $qb,
+		UuidInterface $id,
+		LockMode|null $lockMode = null,
+	): StockAiAnalysisRun
+	{
+		$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
@@ -42,7 +66,7 @@ class StockAiAnalysisRunRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findBy([], ['createdAt' => 'DESC']);
+		return $this->createQueryBuilder()->getQuery()->getResult();
 	}
 
 	/**
@@ -50,7 +74,7 @@ class StockAiAnalysisRunRepository extends BaseRepository
 	 */
 	public function findCompletedPortfolioEvaluations(): array
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');
+		$qb = $this->createQueryBuilder();
 		$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.analysisSchemaVersion', ':schemaVersion'));
 		$qb->andWhere($qb->expr()->isNotNull('stockAiAnalysisRun.processedAt'));
 		$qb->andWhere($qb->expr()->isNotNull('stockAiAnalysisRun.structuredData'));
@@ -67,9 +91,14 @@ class StockAiAnalysisRunRepository extends BaseRepository
 		return $results;
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAiAnalysisRun');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'stockAiAnalysisRun',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
 		$qb->orderBy('stockAiAnalysisRun.createdAt', 'DESC');
 		return $qb;
 	}

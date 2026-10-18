@@ -4,7 +4,6 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
-use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Goal\Resolver\PortfolioGoalResolver;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
@@ -26,21 +25,27 @@ class PortfolioGoalUpdateFacade
 		private DatetimeFactory $datetimeFactory,
 		private PortfolioGoalFacade $portfolioGoalFacade,
 		private NotificationFacade $notificationFacade,
-		private LegacyPortfolioOwnerProvider $legacyPortfolioOwnerProvider,
 	)
 	{
 	}
 
-	public function updateAllActive(): void
+	public function updateAllActive(UuidInterface|null $appAdminId = null): void
 	{
-		foreach ($this->portfolioGoalRepository->findActive($this->datetimeFactory->createNow()) as $portfolioGoal) {
-			$this->updateGoal($portfolioGoal->getId());
+		foreach ($this->portfolioGoalRepository->findActiveForProcessing(
+			$this->datetimeFactory->createNow(),
+			$appAdminId,
+		) as $portfolioGoal) {
+			$this->updateLoadedGoal($portfolioGoal);
 		}
 	}
 
 	public function updateGoal(UuidInterface $id): void
 	{
-		$portfolioGoal = $this->portfolioGoalRepository->getById($id);
+		$this->updateLoadedGoal($this->portfolioGoalRepository->getById($id));
+	}
+
+	private function updateLoadedGoal(PortfolioGoal $portfolioGoal): void
+	{
 		foreach ($this->resolvers as $resolver) {
 			if ($resolver->canResolveType($portfolioGoal)) {
 				$value = $resolver->resolve($portfolioGoal);
@@ -56,21 +61,21 @@ class PortfolioGoalUpdateFacade
 		}
 
 		$now = $this->datetimeFactory->createNow();
-		if ($portfolioGoal->getEndDate() < $now) {
+		if ($portfolioGoal->getEndDate() < $now && $portfolioGoal->isActive()) {
 			$portfolioGoal->endWithCurrentValue($now);
 			$this->entityManager->flush();
 
 			$newPortfolioGoal = null;
 			if ($portfolioGoal->getRepeatable() === PortfolioGoalRepeatableEnum::MONTHLY) {
-				$newPortfolioGoal = $this->portfolioGoalFacade->createNewMonthGoal($id);
+				$newPortfolioGoal = $this->portfolioGoalFacade->createNewMonthGoal($portfolioGoal);
 			}
 
 			if ($portfolioGoal->getRepeatable() === PortfolioGoalRepeatableEnum::WEEKLY) {
-				$newPortfolioGoal = $this->portfolioGoalFacade->createNewWeeklyGoal($id);
+				$newPortfolioGoal = $this->portfolioGoalFacade->createNewWeeklyGoal($portfolioGoal);
 			}
 
 			if ($newPortfolioGoal !== null) {
-				$this->updateGoal($newPortfolioGoal->getId());
+				$this->updateLoadedGoal($newPortfolioGoal);
 			}
 		}
 	}
@@ -125,7 +130,7 @@ class PortfolioGoalUpdateFacade
 
 		if ($currentStep > $lastStep) {
 			$this->notificationFacade->createForRecipient(
-				$this->legacyPortfolioOwnerProvider->getOwner(),
+				$portfolioGoal->getAppAdmin(),
 				NotificationTypeEnum::GOALS_UPDATES,
 				[NotificationChannelEnum::DISCORD],
 				sprintf(

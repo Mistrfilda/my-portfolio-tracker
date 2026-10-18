@@ -387,6 +387,9 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 	#[TestWith(['CryptoAssetPositionDetail', 'default', 'crypto'])]
 	#[TestWith(['CryptoAssetClosedPositionDetail', 'default', 'crypto'])]
 	#[TestWith(['Dashboard', 'default', 'stock'])]
+	#[TestWith(['PortfolioGoal', 'default', 'stock'])]
+	#[TestWith(['StockAiAnalysis', 'default', 'stock'])]
+	#[TestWith(['StockAiInvestmentPlan', 'default', 'stock'])]
 	public function testRegularUserCanRenderPersonalPages(string $name, string $action, string $asset): void
 	{
 		$this->currentAdmin->setApiAppAdmin($this->fixture->admins[1]);
@@ -406,7 +409,7 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		self::assertStringNotContainsString($this->fixture->stockPositions[0]->getId()->toString(), $html);
 		self::assertStringNotContainsString($this->fixture->cryptoPositions[0]->getId()->toString(), $html);
 		if ($name === 'StockAssetDetail') {
-			self::assertStringNotContainsString("changeTab('aiAnalysis')", $html);
+			self::assertStringContainsString("changeTab('aiAnalysis')", $html);
 			self::assertStringContainsString("changeTab('dividends')", $html);
 		}
 	}
@@ -420,10 +423,7 @@ class PortfolioSummaryOwnershipTest extends IntegrationTestCase
 		$this->presenter($name)->run(new Request('Admin:' . $name, 'GET', ['action' => 'default']));
 	}
 
-	#[TestWith(['Dashboard', 'portfolioGoalControl'])]
 	#[TestWith(['Dashboard', 'portfolioStatisticTotalControl'])]
-	#[TestWith(['StockAssetDetail', 'stockAssetDetailControl-stockAssetAiAnalysisControl'])]
-	#[TestWith(['StockAssetDetail', 'stockAssetDetailControl-stockAiValuationComparisonControl'])]
 	public function testLegacyWidgetsCannotBeRequestedDirectly(string $name, string $component): void
 	{
 		$this->currentAdmin->setApiAppAdmin($this->fixture->admins[1]);

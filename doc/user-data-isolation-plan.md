@@ -2,7 +2,7 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–6 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je dokončený a ověřený v pracovní větvi, včetně Filipem potvrzené migrace a průchodu webem; commit doplnit po vytvoření Filipem. Následuje krok 7a (cíle).
+Aktualizováno 18. 10. 2026. **Kroky 1–7 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je v commitu `a83912d`, včetně Filipem potvrzené migrace a průchodu webem. Krok 7a i 7b má dokončené automatické kontroly, potvrzenou migraci a ověření databáze i webu; commit provede Filip. Následuje krok 8: uložení a čtení statistik.
 
 ## Dohodnutý rozsah
 
@@ -40,9 +40,9 @@ Aktualizováno 18. 10. 2026. **Kroky 1–6 jsou hotové v popsaném rozsahu.** K
 - [x] **4. Souhrny portfolia a web** — výpočty a web podle vlastníka, přechodná ochrana nepřevedených widgetů, automatické kontroly a ověření webu dokončeny. Bez nové migrace.
 - [x] **5. Směrování notifikací** — uložený příjemce, osobní konfigurace Discordu, oddělené společné a osobní trendy, ověřený retry, automatické kontroly a potvrzená migrace s ověřením webové databáze a webu.
 - [x] **6. Dividendy a prognózy** — osobní záznamy, prognózy, výpočty a web podle vlastníka, ověřené opakování a přístupy, celý build a potvrzená migrace s kontrolou databáze a webu.
-- [ ] **7. Cíle a AI analýzy.**
-	- [ ] **7a. Cíle a jejich opakování.**
-	- [ ] **7b. AI zadání, snímky, výsledky, plány a exporty.**
+- [x] **7. Cíle a AI analýzy** — vlastnictví cílů a AI, výpočty i úlohy podle účtu, celý build, potvrzená migrace a ověření databáze i webu.
+	- [x] **7a. Cíle a jejich opakování.**
+	- [x] **7b. AI zadání, snímky, výsledky, plány a exporty.**
 - [ ] **8. Uložení a čtení statistik.**
 - [ ] **9. Crony a dokončení úloh na pozadí.**
 
@@ -101,6 +101,8 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 - V krocích 6–9 postupně nahradit přechodné podmínky skutečnými dotazy podle vlastníka konkrétního záznamu. Společné kolekce pozic na entitách se nemění; zbývající použití v dividendových výpočtech, `PortfolioPeriodStatisticBuilder` a API serializéru vyžadují navazující úpravy.
 - Krok 4 nepřidává databázovou migraci: mapování ani schéma se nemění. Nepouštěl se přepočet statistik, AI úloha ani odesílání notifikací na webové databázi.
 
+V kroku 6 byly odstraněny přechodné dividendové podmínky; v kroku 7 jsou odstraněny také podmínky pro cíle a AI. Statistická historie zůstává pro krok 8.
+
 ## Krok 5: směrování notifikací
 
 - [x] Osobní notifikace ukládá neměnného příjemce `AppAdmin`; `null` označuje společnou tržní zprávu. Vazba neumožňuje smazáním účtu převést osobní zprávu na společnou.
@@ -144,6 +146,39 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 - API serializéry zůstávají pro samostatný průchod API; tento krok neznamená jeho úplné oddělení podle účtů.
 - Při nasazení použít migrované schéma a restartovat job consumer. Existující zprávy zůstávají zpracovatelné; žádný skutečný consumer nebo Discord se při testech nespouští.
 
+## Krok 7: cíle a AI analýzy
+
+### 7a Cíle
+
+- [x] Cíl má neměnného vlastníka; seznamy, aktivní cíle, formuláře, editace, zahájení a ukončení respektují přihlášený účet.
+- [x] Výpočty investic, dividend a pracovních příjmů používají vlastníka cíle. Opakování měsíčního i týdenního cíle ho zachová; zpráva o milníku směřuje stejnému účtu.
+- [x] Nové zprávy přepočtu nesou `appAdminId`. Starší zprávy a CLI přepočet procházejí uložené aktivní cíle a odvozují účet z každého záznamu. Běžné webové načítání bez identity nevrací všechna data.
+- [x] Dashboard a karta cíle pracovního příjmu jsou dostupné pro vlastní cíle běžného účtu.
+
+### 7b AI
+
+- [x] Vlastníka má analýza a osobní investiční instrukce. Výsledky, otázky a investiční plány odvozují účet z rodičovské nebo referenční analýzy; vlastnictví se nikde neduplikuje.
+- [x] V2 snímek obsahuje pouze vlastní pozice, vlastní jednoduchý watchlist a vlastní instrukce. Pozdější změna nastavení nepřepíše uložený snímek. Společný katalog a jeho příznak plného watchlistu zůstávají společné podle dosavadní dohody.
+- [x] Detail, seznamy, importy, fronta, PDF i Codex ZIP a volba referenční analýzy respektují účet. Otázku nelze upravit nebo zařadit pod jinou analýzou. Poslední AI výsledek akcie se vybírá v rámci účtu před aplikací limitu.
+- [x] Gemini worker načítá vlastníka ze záznamu, včetně historických V1 analýz a doplňujících otázek. V2 odpověď stále používá uložený snímek a původní validátor; zámek pro dokončení má výslovného vlastníka. Zprávy ani formát souborů cache se nemění.
+- [x] Odstraněno přechodné omezení AI v detailu akcie pouze na Filipa; společné modelové valuace zůstávají společné.
+
+### Migrace a ověření kroku 7
+
+- [x] Vygenerovaná migrace [Version20261018120200](../migrations/Version20261018120200.php) a její převod historie, unikátnost osobního nastavení a ochrany jsou otestované na CLI databázi. Existující záznamy přiřazuje Filipovi bez změny promptů, odpovědí, statistik cílů nebo snímků.
+- [x] Chybějící Filip při existujících datech a více původních singleton nastavení zastaví migraci před DDL. Návrat se zastaví, pokud má osobní data jiný účet nebo nelze obnovit původní singleton nastavení s ID 1.
+- [x] Závěrečný `composer cs-fix && composer build-all`: 816 unit testů / 3 675 assertions a 263 integračních testů / 1 663 assertions; prošel lint, PHPStan, styl, mapování a synchronizace schématu, Latte i kontrola závislostí.
+- [x] PhpStorm zkontroloval všech 60 změněných PHP a Latte souborů bez chyb.
+- [x] Filip potvrdil spuštění migrace webové databáze; následné čtecí ověření převodu a webu prošlo.
+
+Na webové databázi byl po Filipově potvrzení ověřen záznam `Migrations\Version20261018120200` z 18. 10. 2026 14:15:35. Všech **20 cílů, 116 analýz, 2 066 výsledků, 8 otázek, 5 plánů a 1 nastavení** patří Filipovi, u potomků přes rodičovskou analýzu. Počty odpovídají stavu před migrací; chybějící, osiřelý ani cizí vlastník nebyl nalezen. PhpStorm vracel zastaralá metadata; přes `SHOW COLUMNS` a `SHOW INDEX` jsou ověřené všechny tři vlastnické sloupce `NOT NULL`, unikátnost vlastníka nastavení a jeho automaticky generované ID. Nový účet začíná s prázdnými osobními AI instrukcemi. Nastavení dividendové daně ani společného katalogu se nerozdělují.
+
+V izolovaném Playwrightu pod existujícím přihlášením Filipa prošly dashboard s cíli, seznam cílů, formuláře vytvoření a úpravy cíle, pracovní příjmy, přehled AI analýz s osobním nastavením, zpracované detaily V1 i V2, nezpracovaný V2 detail s importními formuláři a odkazem na Codex ZIP, seznam a formulář investičních plánů a existující detail plánu. Ověřeny byly také AI a valuační záložky 3M včetně srovnání AI s modely. Adresy a nadpisy odpovídaly, navigace vracely HTTP 200 a nebyly zaznamenány chyby JavaScriptu. Formuláře se neodesílaly, exporty ani skuteční workeři se nespouštěli. Oddělení dvou vlastníků, prázdný účet a odmítnutí cizích exportů pokrývají integrační testy.
+
+Ověření je v [GoalOwnershipTest](../tests/Integration/Goal/GoalOwnershipTest.php), [AiAnalysisOwnershipTest](../tests/Integration/Stock/AiAnalysisOwnershipTest.php), [GoalAiOwnershipMigrationTest](../tests/Integration/Migrations/GoalAiOwnershipMigrationTest.php) a upravených unit testech. Zahrnuje dva účty, výpočty a notifikace cílů, opakování, změnu účtu v procesu, immutable snímky, prázdný účet, cizí ID a exporty, worker bez přihlášení a osobní stránky běžného účtu. Vnější klienti a publikování do fronty jsou v testech nahrazené; skutečný Gemini, RabbitMQ ani Discord se nespouští.
+
+Při nasazení nejprve použít migrované schéma a restartovat job a Gemini consumery, aby načetly nový kód. Nastavení workerů ani formát čekajících zpráv není třeba měnit. API a osobní statistická historie navazují samostatně podle původního plánu.
+
 ## Doklady dokončených částí
 
 | Část | Implementace | Hlavní automatické ověření |
@@ -154,7 +189,8 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 | 3b–3d | `ed1d260` | [PersonalDataOwnershipTest](../tests/Integration/PersonalData/PersonalDataOwnershipTest.php), [PersonalIncomeImportOwnershipTest](../tests/Integration/PersonalData/PersonalIncomeImportOwnershipTest.php), [PersonalDataOwnershipMigrationTest](../tests/Integration/Migrations/PersonalDataOwnershipMigrationTest.php). |
 | 4 | `8aae230` | [PortfolioSummaryOwnershipTest](../tests/Integration/Asset/PortfolioSummaryOwnershipTest.php): společná akcie s 10 a 20 kusy, Stock/Crypto/Portu souhrny, otevřené a uzavřené pozice, řazení, A → B → A v jednom procesu, explicitní vlastník bez přihlášení, prázdný účet, vykreslené osobní stránky běžného účtu, ochrana katalogu a nepřevedených widgetů. |
 | 5 | `d02e1d1` | [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php), [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php), unit testy Discord směrování a rozdělení trendů. |
-| 6 | Pracovní větev; commit doplnit po vytvoření Filipem | [DividendOwnershipTest](../tests/Integration/Stock/DividendOwnershipTest.php), [DividendOwnershipMigrationTest](../tests/Integration/Migrations/DividendOwnershipMigrationTest.php), unit testy dividendových výpočtů, cashflow a přenosu vlastníka úlohou. |
+| 6 | `a83912d` | [DividendOwnershipTest](../tests/Integration/Stock/DividendOwnershipTest.php), [DividendOwnershipMigrationTest](../tests/Integration/Migrations/DividendOwnershipMigrationTest.php), unit testy dividendových výpočtů, cashflow a přenosu vlastníka úlohou. |
+| 7a–7b | Dokončeno, commit provede Filip | [GoalOwnershipTest](../tests/Integration/Goal/GoalOwnershipTest.php), [AiAnalysisOwnershipTest](../tests/Integration/Stock/AiAnalysisOwnershipTest.php), [GoalAiOwnershipMigrationTest](../tests/Integration/Migrations/GoalAiOwnershipMigrationTest.php), unit testy cílů, AI snímků, plánů a zpracování úloh. |
 
 Po implementaci 3a a Portu portfolií prošlo `composer cs-fix && composer build-all`: 793 unit testů a 176 integračních testů, včetně statické analýzy a validace schématu. Kontroly změněných PHP souborů v PhpStormu prošly. V izolovaném Playwrightu byly pod účtem `filip` ověřeny přehledy Portu a watchlistu, jejich editace a formuláře Portu pozic. Oddělení dvou uživatelů pokrývají integrační testy.
 
@@ -189,6 +225,8 @@ Po Filipově potvrzení byl na webové databázi ověřen záznam `Migrations\Ve
 V izolovaném Playwrightu pod existujícím přihlášením Filipa prošly dashboard, seznam prognóz, naplněné detaily prognóz 2025 a 2026 včetně 19 a 25 formulářů položek, formulář úpravy i vytvoření prognózy, přehled vyplacených dividend, obecný dividendový přehled, dividendová záložka AT&T a přehled uzavřených akciových pozic. Adresy a nadpisy odpovídaly; navigace vracely HTTP 200. Stránka grafů dokončila všech 11 datových požadavků s HTTP 200 a validními datasety, včetně pěti dividendových grafů. Nebyly zaznamenány chyby JavaScriptu. Formuláře se neodesílaly a přepočet ani skutečná fronta se nespouštěly. Dva vlastníky a prázdný účet ověřují integrační testy; webový dump byl kontrolován pouze pod existujícím přihlášením.
 
 ## Migrace a předávání jednotlivých změn
+
+Krok 7: [Version20261018120200](../migrations/Version20261018120200.php) je otestovaná v CLI databázi a byla spuštěna Filipem na webové databázi. Převod všech cílů, AI analýz, navázaných výsledků, otázek, plánů a nastavení pod Filipa i web jsou ověřené; podkroky 7a a 7b jsou dokončené. Spuštění v clusteru zde zatím potvrzené není.
 
 - CLI a integrační testy používají databázi `my-portfolio-app-tracker-tests`. PhpStorm a web používají `my-portfolio-tracker`. Integrační testy obnovují tabulky; nespouštět nad stejnou databází současně testy a migrace.
 - Připravit a otestovat Doctrine migraci. Migraci webové databáze spouští Filip a potvrdí výsledek; až poté následuje závislé ověření webu. Stejný migrační soubor slouží i pro nasazení do clusteru.

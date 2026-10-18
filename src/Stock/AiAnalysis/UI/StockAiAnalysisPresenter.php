@@ -160,7 +160,10 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 		}
 
 		try {
-			$this->stockAiAnalysisFollowUpQuestionFacade->enqueueGeminiProcessing($questionId);
+			$this->stockAiAnalysisFollowUpQuestionFacade->enqueueGeminiProcessing(
+				$questionId,
+				$this->run->getId()->toString(),
+			);
 			$this->flashMessage('Doplňující dotaz byl zařazen do fronty pro zpracování přes Gemini.', 'success');
 		} catch (Throwable $e) {
 			$this->flashMessage($e->getMessage(), 'danger');
@@ -449,6 +452,7 @@ class StockAiAnalysisPresenter extends BaseAdminPresenter
 			$this->stockAiAnalysisFollowUpQuestionFacade->processManualResponse(
 				TypeValidator::validateString($form->getValues()->questionId),
 				TypeValidator::validateString($form->getValues()->rawResponse),
+				$this->run->getId()->toString(),
 			);
 			$this->flashMessage('Odpověď na doplňující dotaz byla úspěšně uložena.', 'success');
 			$this->redirect('detail', ['id' => $this->run->getId()->toString()]);
