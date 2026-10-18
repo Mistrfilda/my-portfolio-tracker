@@ -307,6 +307,7 @@ services:
 	- App\Admin\AppAdminAuthenticator
 	- App\Admin\AppAdminFacade
 	- App\Admin\CurrentAppAdminGetter
+	- App\Admin\LegacyPortfolioOwnerProvider
 	- App\Admin\Command\CreateAppAdminCommand
 	- App\Admin\UI\AppAdminGridFactory
 	- App\Admin\UI\AppAdminFormFactory

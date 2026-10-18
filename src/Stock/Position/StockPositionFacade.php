@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Position;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\AssetPriceFacade;
@@ -120,76 +121,100 @@ class StockPositionFacade implements AssetPriceFacade
 
 	public function getCurrentPortfolioValueSummaryPrice(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpened(),
+			$this->stockPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueInCzechStocks(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::CZK),
+			$this->stockPositionRepository->findAllOpenedInCurrencyForAppAdmin(
+				CurrencyEnum::CZK,
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueInUsdStocks(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::USD),
+			$this->stockPositionRepository->findAllOpenedInCurrencyForAppAdmin(
+				CurrencyEnum::USD,
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueInGbpStocks(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::GBP),
+			$this->stockPositionRepository->findAllOpenedInCurrencyForAppAdmin(
+				CurrencyEnum::GBP,
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueInEurStocks(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpenedInCurrency(CurrencyEnum::EUR),
+			$this->stockPositionRepository->findAllOpenedInCurrencyForAppAdmin(
+				CurrencyEnum::EUR,
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
-	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
+	public function getTotalInvestedAmountSummaryPrice(
+		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
+	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$inCurrency,
-			$this->stockPositionRepository->findAllOpened(),
+			$this->stockPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getStockAssetDetailDTO(
 		UuidInterface $stockAssetId,
 		StockAssetListDetailControlEnum $stockAssetDetailControlEnum = StockAssetListDetailControlEnum::OPEN_POSITIONS,
+		AppAdmin|null $appAdmin = null,
 	): StockAssetDetailDTO
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
 
-		if (
-			$stockAsset->hasPositions() === false
-			|| (
-				$stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS
-				&& $stockAsset->hasOpenPositions() === false
-			)
-		) {
+		$positions = $this->stockPositionRepository->findByAssetForAppAdmin(
+			$stockAssetId,
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			$stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS,
+		);
+		if ($positions === []) {
 			return new StockAssetDetailDTO(
 				$stockAsset,
 				[],
@@ -197,10 +222,10 @@ class StockPositionFacade implements AssetPriceFacade
 				new SummaryPrice($stockAsset->getCurrency()),
 				new SummaryPrice($stockAsset->getCurrency()),
 				new SummaryPrice($stockAsset->getCurrency()),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
 				new SummaryPrice(CurrencyEnum::CZK),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
 				0,
 			);
 		}
@@ -209,12 +234,7 @@ class StockPositionFacade implements AssetPriceFacade
 		$brokerCurrency = CurrencyEnum::CZK;
 		$piecesCount = 0;
 
-		foreach ($stockAsset->getPositions() as $position) {
-			if ($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS) {
-				if ($position->isPositionClosed()) {
-					continue;
-				}
-			}
+		foreach ($positions as $position) {
 
 			$brokerCurrency = $position->getTotalInvestedAmountInBrokerCurrency()->getCurrency();
 
@@ -231,22 +251,22 @@ class StockPositionFacade implements AssetPriceFacade
 
 		$totalInvestedAmount = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmount(
 			$stockAsset->getCurrency(),
-			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
+			$positions,
 		);
 
 		$currentAmount = $this->summaryPriceService->getSummaryPriceForPositions(
 			$stockAsset->getCurrency(),
-			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
+			$positions,
 		);
 
 		$currentAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForPositions(
 			$brokerCurrency,
-			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
+			$positions,
 		);
 
 		$totalInvestedAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$brokerCurrency,
-			$stockAsset->getPositions($stockAssetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS),
+			$positions,
 		);
 
 		$currentPriceDiffInBrokerCurrency = $this->summaryPriceService->getSummaryPriceDiff(

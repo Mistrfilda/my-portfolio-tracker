@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Dashboard\DashboardValueGroupEnum;
 use Doctrine\ORM\EntityManagerInterface;
@@ -19,13 +20,17 @@ class PortfolioStatisticFacade
 		private readonly EntityManagerInterface $entityManager,
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
 
 	public function saveCurrentDashboardValues(bool $includePortfolioPerformance = true): PortfolioStatisticRecord
 	{
-		$dashboardValues = $this->dashboardValueBuilder->buildValues($includePortfolioPerformance);
+		$dashboardValues = $this->dashboardValueBuilder->buildValues(
+			$includePortfolioPerformance,
+			$this->legacyOwnerProvider->getOwner(),
+		);
 		$this->logger->info('Saving current dashboard values');
 
 		$this->entityManager->beginTransaction();

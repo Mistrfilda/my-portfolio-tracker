@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Asset;
 
+use App\Admin\AppAdmin;
 use App\Asset\Asset;
 use App\Asset\AssetRepository;
 use App\Doctrine\BaseRepository;
@@ -176,6 +177,26 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		$qb->andWhere($qb->expr()->isNotNull('stockAsset.stockAssetDividendSource'));
 
 		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<StockAsset> */
+	public function findWithPositionsForAppAdmin(AppAdmin $appAdmin, bool|null $onlyOpen = null): array
+	{
+		$qb = $this->createQueryBuilder()->distinct();
+		$qb->innerJoin('stockAsset.positions', 'ownedPosition');
+		$this->addAppAdminToQueryBuilder($qb, 'ownedPosition', $appAdmin);
+		if ($onlyOpen !== null) {
+			$qb->andWhere('ownedPosition.stockClosedPosition IS ' . ($onlyOpen ? '' : 'NOT ') . 'NULL');
+		}
+
+		$qb->orderBy('stockAsset.name', OrderBy::ASC->value);
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<StockAsset> */
+	public function findWithPositionsForCurrentAppAdmin(bool|null $onlyOpen = null): array
+	{
+		return $this->findWithPositionsForAppAdmin($this->currentAppAdminGetter->getAppAdmin(), $onlyOpen);
 	}
 
 	public function createQueryBuilder(): QueryBuilder

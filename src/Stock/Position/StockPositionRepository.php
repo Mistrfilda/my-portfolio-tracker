@@ -97,6 +97,43 @@ class StockPositionRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/** @return array<StockPosition> */
+	public function findAllOpenedForAppAdmin(AppAdmin $appAdmin): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere('stockPosition.stockClosedPosition IS NULL');
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<StockPosition> */
+	public function findAllOpenedInCurrencyForAppAdmin(CurrencyEnum $currency, AppAdmin $appAdmin): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->innerJoin('stockPosition.stockAsset', 'stockAsset');
+		$qb->andWhere('stockAsset.currency = :currency');
+		$qb->andWhere('stockPosition.stockClosedPosition IS NULL');
+		$qb->setParameter('currency', $currency);
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<StockPosition> */
+	public function findByAssetForAppAdmin(
+		UuidInterface $assetId,
+		AppAdmin $appAdmin,
+		bool|null $onlyOpen = null,
+	): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere('stockPosition.stockAsset = :assetId');
+		$qb->setParameter('assetId', $assetId);
+		$qb->orderBy('stockPosition.orderDate', 'ASC');
+		if ($onlyOpen !== null) {
+			$qb->andWhere('stockPosition.stockClosedPosition IS ' . ($onlyOpen ? '' : 'NOT ') . 'NULL');
+		}
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilderForDatagrid(): QueryBuilder
 	{
 		$qb = $this->createQueryBuilderForCurrentAppAdmin();

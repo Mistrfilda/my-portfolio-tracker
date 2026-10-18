@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis;
 
+use App\Admin\AppAdmin;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -41,6 +43,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$this->createStub(StockAssetPriceRecordRepository::class),
 			$datetimeFactory,
 			$settings,
+			$this->legacyOwnerProvider(),
 		);
 
 		self::assertStringNotContainsString(
@@ -61,9 +64,8 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 
 		$now = new ImmutableDateTime('2026-03-09 09:58:00');
 
-		$stockAssetRepository->shouldReceive('findAll')
-			->twice()
-			->andReturn([]);
+		$stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')->once()->andReturn([]);
+		$stockAssetRepository->shouldReceive('findAll')->once()->andReturn([]);
 
 		$prompt = $generator->generate(
 			true,
@@ -121,9 +123,8 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$stockValuationDataRepository,
 		);
 
-		$stockAssetRepository->shouldReceive('findAll')
-			->twice()
-			->andReturn([]);
+		$stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')->once()->andReturn([]);
+		$stockAssetRepository->shouldReceive('findAll')->once()->andReturn([]);
 
 		$prompt = $generator->generate(true, true, false);
 
@@ -224,8 +225,6 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		);
 
 		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
-		$stockAsset->shouldReceive('hasOpenPositions')
-			->andReturn(true);
 		$stockAsset->shouldReceive('getId')
 			->andReturn(Uuid::fromString('4f5874f6-782b-4d92-a8fe-efc3b1b0c8ef'));
 		$stockAsset->shouldReceive('getName')
@@ -262,7 +261,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			10,
 		);
 
-		$stockAssetRepository->shouldReceive('findAll')
+		$stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')
 			->once()
 			->andReturn([$stockAsset]);
 		$stockPositionFacade->shouldReceive('getStockAssetDetailDTO')
@@ -342,6 +341,14 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		);
 	}
 
+	private function legacyOwnerProvider(): LegacyPortfolioOwnerProvider
+	{
+		$provider = $this->createStub(LegacyPortfolioOwnerProvider::class);
+		$provider->method('getOwner')->willReturn($this->createStub(AppAdmin::class));
+
+		return $provider;
+	}
+
 	private function createGenerator(
 		mixed &$stockAssetRepository = null,
 		mixed &$stockValuationDataRepository = null,
@@ -367,6 +374,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 			$stockAssetPriceRecordRepository,
 			$datetimeFactory,
 			$this->createStub(StockAiAnalysisSettingsFacade::class),
+			$this->legacyOwnerProvider(),
 		);
 	}
 

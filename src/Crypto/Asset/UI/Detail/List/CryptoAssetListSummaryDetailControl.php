@@ -32,32 +32,29 @@ class CryptoAssetListSummaryDetailControl extends BaseControl
 	public function render(): void
 	{
 		$assets = count($this->cryptoAssetIds) === 0
-			? $this->cryptoAssetRepository->findAll()
+			? $this->cryptoAssetRepository->findWithPositionsForCurrentAppAdmin(
+				$this->assetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
+			)
 			: $this->cryptoAssetRepository->findByIds($this->cryptoAssetIds);
 
 		$cryptoAssetsPositionDTOs = [];
 		$totalInvestedAmountInCzk = 0;
 		foreach ($assets as $asset) {
-			if ($asset->hasOpenPositions()) {
-				if ($this->assetDetailControlEnum === CryptoAssetListDetailControlEnum::CLOSED_POSITIONS) {
-					continue;
-				}
-			} else {
-				if ($this->assetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS) {
-					continue;
-				}
-			}
-
 			$detailDTO = $this->cryptoPositionFacade->getCryptoAssetDetailDTO(
 				$asset->getId(),
 				$this->assetDetailControlEnum,
 			);
 
+			if ($detailDTO->getPositions() === []) {
+				continue;
+			}
+
 			$cryptoAssetsPositionDTOs[] = $detailDTO;
 			$totalInvestedAmountInCzk += $detailDTO->getCurrentPriceInCzk()->getPrice();
 		}
 
-		$template = $this->getTemplate();
+		$template = $this->createTemplate(CryptoAssetListSummaryDetailControlTemplate::class);
+		assert($template instanceof CryptoAssetListSummaryDetailControlTemplate);
 
 		$sortedCryptoAssetsPositionsDTOs = $cryptoAssetsPositionDTOs;
 		usort(

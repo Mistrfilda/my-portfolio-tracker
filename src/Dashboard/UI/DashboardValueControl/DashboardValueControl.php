@@ -18,7 +18,8 @@ class DashboardValueControl extends BaseControl
 
 	public function render(): void
 	{
-		$template = $this->getTemplate();
+		$template = $this->createTemplate(DashboardValueControlTemplate::class);
+		assert($template instanceof DashboardValueControlTemplate);
 		$template->dashboardValueGroups = $this->dashboardValueBuilder->buildValues();
 		$template->setFile(str_replace('.php', '.latte', __FILE__));
 		$template->render();

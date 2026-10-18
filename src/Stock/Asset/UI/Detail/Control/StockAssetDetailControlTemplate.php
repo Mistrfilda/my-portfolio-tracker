@@ -15,6 +15,8 @@ class StockAssetDetailControlTemplate extends BaseControlTemplate
 
 	use SmartObject;
 
+	public bool $showLegacyPortfolioData;
+
 	public StockAsset $stockAsset;
 
 	public StockAssetDetailDTO $openStockAssetDetailDTO;

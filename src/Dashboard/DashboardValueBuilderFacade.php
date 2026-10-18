@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Dashboard;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceEnum;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPriceService;
@@ -44,6 +47,8 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 		private readonly LinkGenerator $linkGenerator,
 		private readonly DatetimeFactory $datetimeFactory,
+		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -51,14 +56,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	/**
 	 * @return array<int, DashboardValueGroup>
 	 */
-	public function buildValues(bool $includePortfolioPerformance = true): array
+	public function buildValues(bool $includePortfolioPerformance = true, AppAdmin|null $appAdmin = null): array
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
+		$includeLegacyData = $this->legacyOwnerProvider->isOwner($appAdmin);
 		return [
-			$this->getTotalValues($includePortfolioPerformance),
-			$this->getStockValues(),
-			$this->getPortuValues(),
-			$this->dashboardDividendvalueBuilderFacade->buildDividendValues(),
-			$this->getCryptoValues(),
+			$this->getTotalValues($appAdmin, $includePortfolioPerformance && $includeLegacyData),
+			$this->getStockValues($appAdmin),
+			$this->getPortuValues($appAdmin),
+			...($includeLegacyData ? [$this->dashboardDividendvalueBuilderFacade->buildDividendValues()] : []),
+			$this->getCryptoValues($appAdmin),
 			$this->getCurrencyConversionValues(),
 		];
 	}
@@ -254,14 +261,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		);
 	}
 
-	private function getTotalValues(bool $includePortfolioPerformance = true): DashboardValueGroup
+	private function getTotalValues(AppAdmin $appAdmin, bool $includePortfolioPerformance): DashboardValueGroup
 	{
 		$totalInvestedAmount = $this->assetPriceSummaryFacade->getTotalInvestedAmount(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$currentValue = $this->assetPriceSummaryFacade->getCurrentValue(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$diff = $this->summaryPriceService->getSummaryPriceDiff(
@@ -411,36 +420,44 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		);
 	}
 
-	private function getStockValues(): DashboardValueGroup
+	private function getStockValues(AppAdmin $appAdmin): DashboardValueGroup
 	{
 		$stockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueSummaryPrice(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$czStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInCzechStocks(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$usdStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInUsdStocks(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$gbpStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInGbpStocks(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$eurStockPositionsSummaryPrice = $this->stockPositionFacade->getCurrentPortfolioValueInEurStocks(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
-		$totalInvestedAmount = $this->stockPositionFacade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK);
+		$totalInvestedAmount = $this->stockPositionFacade->getTotalInvestedAmountSummaryPrice(
+			CurrencyEnum::CZK,
+			$appAdmin,
+		);
 
 		$diff = $this->summaryPriceService->getSummaryPriceDiff(
 			$stockPositionsSummaryPrice,
 			$totalInvestedAmount,
 		);
 
-		$closedSummaryPrice = $this->stockClosedPositionFacade->getAllStockClosedPositionsSummaryPrice();
+		$closedSummaryPrice = $this->stockClosedPositionFacade->getAllStockClosedPositionsSummaryPrice($appAdmin);
 
 		return new DashboardValueGroup(
 			DashboardValueGroupEnum::STOCKS,
@@ -538,21 +555,21 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 					$closedSummaryPrice->getTrend()->getSvgIcon(),
 				),
 			],
-			tables: $this->buildStockDailyPerformanceTables(),
+			tables: $this->buildStockDailyPerformanceTables($appAdmin),
 		);
 	}
 
 	/**
 	 * @return array<DashboardValueTable>
 	 */
-	private function buildStockDailyPerformanceTables(): array
+	private function buildStockDailyPerformanceTables(AppAdmin $appAdmin): array
 	{
 		$comparisonDate = $this->datetimeFactory->createNow()->deductDaysFromDatetime(1);
 		$dailyPerformance = [];
 
-		foreach ($this->stockAssetRepository->getAllActiveAssets() as $asset) {
+		foreach ($this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, true) as $asset) {
 			assert($asset instanceof StockAsset);
-			if ($asset->hasOpenPositions() === false) {
+			if ($asset->shouldBeUpdated() === false) {
 				continue;
 			}
 
@@ -648,14 +665,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		return TailwindColorConstant::GRAY;
 	}
 
-	private function getPortuValues(): DashboardValueGroup
+	private function getPortuValues(AppAdmin $appAdmin): DashboardValueGroup
 	{
 		$totalInvestedAmount = $this->portuPositionFacade->getTotalInvestedAmountSummaryPrice(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$currentValue = $this->portuPositionFacade->getCurrentPortfolioValueSummaryPrice(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$diff = $this->summaryPriceService->getSummaryPriceDiff(
@@ -707,14 +726,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		);
 	}
 
-	private function getCryptoValues(): DashboardValueGroup
+	private function getCryptoValues(AppAdmin $appAdmin): DashboardValueGroup
 	{
 		$totalInvestedAmount = $this->cryptoPositionFacade->getTotalInvestedAmountSummaryPrice(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$currentValue = $this->cryptoPositionFacade->getCurrentPortfolioValueSummaryPrice(
 			CurrencyEnum::CZK,
+			$appAdmin,
 		);
 
 		$diff = $this->summaryPriceService->getSummaryPriceDiff(

@@ -104,6 +104,43 @@ class CryptoPositionRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/** @return array<CryptoPosition> */
+	public function findAllOpenedForAppAdmin(AppAdmin $appAdmin): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere('cryptoPosition.cryptoClosedPosition IS NULL');
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<CryptoPosition> */
+	public function findAllOpenedInCurrencyForAppAdmin(CurrencyEnum $currency, AppAdmin $appAdmin): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->innerJoin('cryptoPosition.cryptoAsset', 'cryptoAsset');
+		$qb->andWhere('cryptoAsset.mainConversionCurrency = :currency');
+		$qb->andWhere('cryptoPosition.cryptoClosedPosition IS NULL');
+		$qb->setParameter('currency', $currency);
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<CryptoPosition> */
+	public function findByAssetForAppAdmin(
+		UuidInterface $assetId,
+		AppAdmin $appAdmin,
+		bool|null $onlyOpen = null,
+	): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere('cryptoPosition.cryptoAsset = :assetId');
+		$qb->setParameter('assetId', $assetId);
+		$qb->orderBy('cryptoPosition.orderDate', 'ASC');
+		if ($onlyOpen !== null) {
+			$qb->andWhere('cryptoPosition.cryptoClosedPosition IS ' . ($onlyOpen ? '' : 'NOT ') . 'NULL');
+		}
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilderForDatagrid(): QueryBuilder
 	{
 		$qb = $this->createQueryBuilderForCurrentAppAdmin();

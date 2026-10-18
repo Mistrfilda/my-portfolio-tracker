@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\FinancialIndependence;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\SummaryPrice;
 use App\Cash\Expense\Bank\BankExpense;
@@ -86,6 +87,7 @@ class FinancialIndependenceDefaultsProviderTest extends TestCase
 			]),
 			$currencyConversionFacade,
 			$this->createDatetimeFactory($today),
+			$this->legacyOwnerProvider(),
 		);
 
 		$defaults = $provider->provide();
@@ -137,6 +139,7 @@ class FinancialIndependenceDefaultsProviderTest extends TestCase
 			$this->createWorkMonthlyIncomeRepository([]),
 			$currencyConversionFacade,
 			$this->createDatetimeFactory(new ImmutableDateTime('2026-08-28')),
+			$this->legacyOwnerProvider(),
 		);
 
 		$defaults = $provider->provide();
@@ -181,6 +184,7 @@ class FinancialIndependenceDefaultsProviderTest extends TestCase
 			$this->createWorkMonthlyIncomeRepository([]),
 			$this->createStub(CurrencyConversionFacade::class),
 			$this->createDatetimeFactory(new ImmutableDateTime('2026-08-28')),
+			$this->legacyOwnerProvider(),
 		);
 
 		$defaults = $provider->provide();
@@ -220,12 +224,48 @@ class FinancialIndependenceDefaultsProviderTest extends TestCase
 			$this->createWorkMonthlyIncomeRepository([]),
 			$this->createStub(CurrencyConversionFacade::class),
 			$this->createDatetimeFactory(new ImmutableDateTime('2026-08-28')),
+			$this->legacyOwnerProvider(),
 		);
 
 		$defaults = $provider->provide();
 
 		self::assertSame(0.0, $defaults->calculationInput->annualNominalReturnPercentage);
 		self::assertSame(0.0, $defaults->historicalAnnualizedTotalReturnPercentage);
+	}
+
+	private function legacyOwnerProvider(bool $isOwner = true): LegacyPortfolioOwnerProvider
+	{
+		$provider = $this->createStub(LegacyPortfolioOwnerProvider::class);
+		$provider->method('isCurrentUserOwner')->willReturn($isOwner);
+
+		return $provider;
+	}
+
+	public function testAnotherOwnerDoesNotUseLegacyPerformanceOrContributions(): void
+	{
+		$performance = $this->createMock(PortfolioPerformanceProvider::class);
+		$performance->expects(self::never())->method('getAllTimeSummary');
+		$months = $this->createMock(PortfolioPerformanceMonthRepository::class);
+		$months->expects(self::never())->method('findAllOrdered');
+		$assets = $this->createStub(AssetPriceSummaryFacade::class);
+		$assets->method('getCurrentValue')->willReturn(new SummaryPrice(CurrencyEnum::CZK, 10_000));
+		$provider = new FinancialIndependenceDefaultsProvider(
+			$assets,
+			$months,
+			$performance,
+			$this->createStub(BankExpenseRepository::class),
+			$this->createWorkMonthlyIncomeRepository([]),
+			$this->createStub(CurrencyConversionFacade::class),
+			$this->createDatetimeFactory(new ImmutableDateTime('2026-08-28')),
+			$this->legacyOwnerProvider(false),
+		);
+
+		$defaults = $provider->provide();
+		self::assertSame(10_000.0, $defaults->calculationInput->currentPortfolioValueCzk);
+		self::assertSame(0, $defaults->contributionRecordCount);
+		self::assertSame(0.0, $defaults->calculationInput->monthlyContributionCzk);
+		self::assertNull($defaults->historicalAnnualizedTotalReturnPercentage);
+		self::assertNull($defaults->historicalReturnPeriodStart);
 	}
 
 	private function createExpense(

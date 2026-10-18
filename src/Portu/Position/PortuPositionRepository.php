@@ -80,6 +80,12 @@ class PortuPositionRepository extends BaseRepository
 		return $this->findAll();
 	}
 
+	/** @return array<PortuPosition> */
+	public function findAllOpenedForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
 	public function createQueryBuilderForDatagrid(UuidInterface $portAssetId): QueryBuilder
 	{
 		$qb = $this->createQueryBuilderForCurrentAppAdmin();

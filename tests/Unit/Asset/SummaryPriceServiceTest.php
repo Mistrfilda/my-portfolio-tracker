@@ -22,6 +22,17 @@ class SummaryPriceServiceTest extends UpdatedTestCase
 
 	private SummaryPriceService $summaryPriceService;
 
+	public function testEmptyPortfolioHasZeroPercentageDifference(): void
+	{
+		$diff = $this->summaryPriceService->getSummaryPriceDiff(
+			new SummaryPrice(CurrencyEnum::CZK),
+			new SummaryPrice(CurrencyEnum::CZK),
+		);
+
+		self::assertSame(0.0, $diff->getPriceDifference());
+		self::assertSame(0.0, $diff->getPercentageDifference());
+	}
+
 	public function testGetSummaryPriceDiff(): void
 	{
 		$summaryPrice1 = new SummaryPrice(CurrencyEnum::CZK, 2000.50);

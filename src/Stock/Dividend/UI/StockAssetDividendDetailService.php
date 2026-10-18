@@ -21,6 +21,19 @@ class StockAssetDividendDetailService
 	{
 	}
 
+	public function getMarketDetailDTOFromDate(
+		StockAsset $stockAsset,
+		ImmutableDateTime $from,
+	): StockAssetDividendDetailDTO
+	{
+		return new StockAssetDividendDetailDTO(
+			$this->currencyConversionFacade,
+			$stockAsset,
+			[],
+			$this->stockAssetDividendRepository->findByStockAssetSinceDate($stockAsset, $from),
+		);
+	}
+
 	public function getDetailDTOFromDate(
 		StockAsset $stockAsset,
 		ImmutableDateTime $from,

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Portu\Position;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\AssetPriceFacade;
@@ -203,21 +204,29 @@ class PortuPositionFacade implements AssetPriceFacade
 		return $portuAssetPriceRecord;
 	}
 
-	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
+	public function getTotalInvestedAmountSummaryPrice(
+		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
+	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$inCurrency,
-			$this->portuPositionRepository->findAllOpened(),
+			$this->portuPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueSummaryPrice(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->portuPositionRepository->findAllOpened(),
+			$this->portuPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 

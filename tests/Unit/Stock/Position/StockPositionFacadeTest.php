@@ -33,6 +33,8 @@ class StockPositionFacadeTest extends TestCase
 
 	private StockPositionFacade $facade;
 
+	private AppAdmin $owner;
+
 	private StockPositionRepository $stockPositionRepository;
 
 	private StockAssetRepository $stockAssetRepository;
@@ -51,6 +53,7 @@ class StockPositionFacadeTest extends TestCase
 
 	public function setUp(): void
 	{
+		$this->owner = $this->createStub(AppAdmin::class);
 		$this->stockPositionRepository = UpdatedTestCase::createMockWithIgnoreMethods(
 			StockPositionRepository::class,
 		);
@@ -199,7 +202,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpened')
+		$this->stockPositionRepository->shouldReceive('findAllOpenedForAppAdmin')
+			->with($this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -208,7 +212,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getCurrentPortfolioValueSummaryPrice(CurrencyEnum::CZK);
+		$result = $this->facade->getCurrentPortfolioValueSummaryPrice(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -218,8 +222,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrency')
-			->with(CurrencyEnum::CZK)
+		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrencyForAppAdmin')
+			->with(CurrencyEnum::CZK, $this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -228,7 +232,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getCurrentPortfolioValueInCzechStocks(CurrencyEnum::CZK);
+		$result = $this->facade->getCurrentPortfolioValueInCzechStocks(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -238,8 +242,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::USD);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrency')
-			->with(CurrencyEnum::USD)
+		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrencyForAppAdmin')
+			->with(CurrencyEnum::USD, $this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -248,7 +252,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getCurrentPortfolioValueInUsdStocks(CurrencyEnum::CZK);
+		$result = $this->facade->getCurrentPortfolioValueInUsdStocks(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -258,8 +262,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::GBP);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrency')
-			->with(CurrencyEnum::GBP)
+		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrencyForAppAdmin')
+			->with(CurrencyEnum::GBP, $this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -268,7 +272,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getCurrentPortfolioValueInGbpStocks(CurrencyEnum::CZK);
+		$result = $this->facade->getCurrentPortfolioValueInGbpStocks(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -278,8 +282,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::EUR);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrency')
-			->with(CurrencyEnum::EUR)
+		$this->stockPositionRepository->shouldReceive('findAllOpenedInCurrencyForAppAdmin')
+			->with(CurrencyEnum::EUR, $this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -288,7 +292,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getCurrentPortfolioValueInEurStocks(CurrencyEnum::CZK);
+		$result = $this->facade->getCurrentPortfolioValueInEurStocks(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -298,7 +302,8 @@ class StockPositionFacadeTest extends TestCase
 		$positions = [];
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
-		$this->stockPositionRepository->shouldReceive('findAllOpened')
+		$this->stockPositionRepository->shouldReceive('findAllOpenedForAppAdmin')
+			->with($this->owner)
 			->once()
 			->andReturn($positions);
 
@@ -307,7 +312,7 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($summaryPrice);
 
-		$result = $this->facade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK);
+		$result = $this->facade->getTotalInvestedAmountSummaryPrice(CurrencyEnum::CZK, $this->owner);
 
 		$this->assertSame($summaryPrice, $result);
 	}
@@ -322,45 +327,16 @@ class StockPositionFacadeTest extends TestCase
 			->once()
 			->andReturn($stockAsset);
 
-		$stockAsset->shouldReceive('hasPositions')
-			->once()
-			->andReturn(false);
+		$this->stockPositionRepository->shouldReceive('findByAssetForAppAdmin')
+			->with($stockAssetId, $this->owner, true)->once()->andReturn([]);
 
 		$stockAsset->shouldReceive('getCurrency')
 			->andReturn(CurrencyEnum::USD);
 
-		$result = $this->facade->getStockAssetDetailDTO($stockAssetId);
+		$result = $this->facade->getStockAssetDetailDTO($stockAssetId, appAdmin: $this->owner);
 
 		$this->assertInstanceOf(StockAssetDetailDTO::class, $result);
 		$this->assertSame($stockAsset, $result->getStockAsset());
-		$this->assertSame([], $result->getPositions());
-		$this->assertSame(0, $result->getPiecesCount());
-	}
-
-	public function testGetStockAssetDetailDTOHasPositionsButNoOpenPositions(): void
-	{
-		$stockAssetId = Uuid::uuid4();
-		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
-
-		$this->stockAssetRepository->shouldReceive('getById')
-			->with($stockAssetId)
-			->once()
-			->andReturn($stockAsset);
-
-		$stockAsset->shouldReceive('hasPositions')
-			->once()
-			->andReturn(true);
-
-		$stockAsset->shouldReceive('hasOpenPositions')
-			->once()
-			->andReturn(false);
-
-		$stockAsset->shouldReceive('getCurrency')
-			->andReturn(CurrencyEnum::USD);
-
-		$result = $this->facade->getStockAssetDetailDTO($stockAssetId);
-
-		$this->assertInstanceOf(StockAssetDetailDTO::class, $result);
 		$this->assertSame([], $result->getPositions());
 		$this->assertSame(0, $result->getPiecesCount());
 	}

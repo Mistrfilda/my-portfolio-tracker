@@ -27,7 +27,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 5));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -56,7 +56,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock1
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 5));
 
 		$assetPriceFacadeMock2 = Mockery::mock(AssetPriceFacade::class);
@@ -67,7 +67,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock2
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 5000.0, 3));
 
 		$assetPriceFacadeMock3 = Mockery::mock(AssetPriceFacade::class);
@@ -78,7 +78,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock3
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 2500.0, 2));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -107,7 +107,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock1
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 5));
 
 		$assetPriceFacadeMock2 = Mockery::mock(AssetPriceFacade::class);
@@ -161,7 +161,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
 			->once()
-			->with(CurrencyEnum::EUR)
+			->with(CurrencyEnum::EUR, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::EUR, 5000.0, 10));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -190,7 +190,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock1
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
 			->once()
-			->with(CurrencyEnum::USD)
+			->with(CurrencyEnum::USD, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::USD, 15000.0, 8));
 
 		$assetPriceFacadeMock2 = Mockery::mock(AssetPriceFacade::class);
@@ -201,7 +201,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock2
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
 			->once()
-			->with(CurrencyEnum::USD)
+			->with(CurrencyEnum::USD, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::USD, 3000.0, 2));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -237,7 +237,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock2
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 25000.0, 15));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -264,11 +264,11 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 			->andReturn(true);
 		$assetPriceFacadeMock
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 15000.0, 5));
 		$assetPriceFacadeMock
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 5));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -296,11 +296,11 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 			->andReturn(true);
 		$assetPriceFacadeMock
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 8000.0, 5));
 		$assetPriceFacadeMock
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 5));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -328,11 +328,11 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 			->andReturn(true);
 		$assetPriceFacadeMock1
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 12000.0, 3));
 		$assetPriceFacadeMock1
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 10000.0, 3));
 
 		$assetPriceFacadeMock2 = Mockery::mock(AssetPriceFacade::class);
@@ -341,11 +341,11 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 			->andReturn(true);
 		$assetPriceFacadeMock2
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 4500.0, 2));
 		$assetPriceFacadeMock2
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 5000.0, 2));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -376,11 +376,11 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 			->andReturn(true);
 		$assetPriceFacadeMock
 			->shouldReceive('getCurrentPortfolioValueSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 5000.0, 5));
 		$assetPriceFacadeMock
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, null)
 			->andReturn(new SummaryPrice(CurrencyEnum::CZK, 0.0, 0));
 
 		$summaryPriceService = new SummaryPriceService(
@@ -411,7 +411,7 @@ class AssetPriceSummaryFacadeTest extends UpdatedTestCase
 		$assetPriceFacadeMock
 			->shouldReceive('getTotalInvestedAmountSummaryPrice')
 			->once()
-			->with($currency)
+			->with($currency, null)
 			->andReturn(new SummaryPrice($currency, 1000.0, 1));
 
 		$summaryPriceService = new SummaryPriceService(
