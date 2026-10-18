@@ -21,6 +21,7 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('bank_income')]
+#[ORM\UniqueConstraint(name: 'bank_income_account_identifier_unique', columns: ['bank_account_id', 'identifier'])]
 class BankIncome implements Entity, Income
 {
 
@@ -28,7 +29,7 @@ class BankIncome implements Entity, Income
 	use CreatedAt;
 	use UpdatedAt;
 
-	#[ORM\Column(type: Types::STRING, unique: true)]
+	#[ORM\Column(type: Types::STRING)]
 	private string $identifier;
 
 	#[ORM\Column(type: Types::STRING, enumType: BankSourceEnum::class)]

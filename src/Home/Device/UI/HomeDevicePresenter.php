@@ -8,10 +8,13 @@ use App\Home\Device\UI\Control\HomeDeviceOverviewControl;
 use App\Home\Device\UI\Control\HomeDeviceOverviewControlFactory;
 use App\Home\Home;
 use App\Home\HomeRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 
-class HomeDevicePresenter extends BaseSysadminPresenter
+/**
+ * @property-read HomeDevicePresenterTemplate $template
+ */
+class HomeDevicePresenter extends BaseAdminPresenter
 {
 
 	private Home $home;

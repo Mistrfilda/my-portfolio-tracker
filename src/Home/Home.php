@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Home;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
@@ -25,6 +26,10 @@ class Home implements Entity
 	use CreatedAt;
 	use UpdatedAt;
 
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
+
 	#[ORM\Column(type: Types::STRING)]
 	private string $name;
 
@@ -32,13 +37,19 @@ class Home implements Entity
 	#[ORM\OneToMany(targetEntity: HomeDevice::class, mappedBy: 'home')]
 	private Collection $devices;
 
-	public function __construct(string $name, ImmutableDateTime $now,)
+	public function __construct(AppAdmin $appAdmin, string $name, ImmutableDateTime $now,)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->id = RamseyUuid::uuid4();
 		$this->name = $name;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->devices = new ArrayCollection();
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(string $name, ImmutableDateTime $now,): void

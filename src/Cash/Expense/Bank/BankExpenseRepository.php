@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Bank;
 
+use App\Admin\AppAdmin;
+use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Expense\Category\ExpenseCategory;
 use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Doctrine\BaseRepository;
@@ -22,13 +24,22 @@ class BankExpenseRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): BankExpense
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
-		$qb->where($qb->expr()->eq('bankExpense.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): BankExpense
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('bankExpense.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -40,15 +51,21 @@ class BankExpenseRepository extends BaseRepository
 		}
 	}
 
-	public function findByIdentifier(string $identifier, LockModeEnum|null $lockMode = null): BankExpense|null
+	public function findByIdentifier(
+		string $identifier,
+		BankAccount $bankAccount,
+		LockModeEnum|null $lockMode = null,
+	): BankExpense|null
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
-		$qb->where($qb->expr()->eq('bankExpense.identifier', ':identifier'));
+		$qb = $this->createQueryBuilderForAppAdmin($bankAccount->getAppAdmin());
+		$qb->andWhere($qb->expr()->eq('bankExpense.identifier', ':identifier'));
 		$qb->setParameter('identifier', $identifier);
+		$qb->andWhere($qb->expr()->eq('bankExpense.bankAccount', ':bankAccount'));
+		$qb->setParameter('bankAccount', $bankAccount);
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -64,7 +81,7 @@ class BankExpenseRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findBy([]);
+		return $this->createQueryBuilderForCurrentAppAdmin()->getQuery()->getResult();
 	}
 
 	/**
@@ -77,8 +94,9 @@ class BankExpenseRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
-		$qb->andWhere($qb->expr()->in('bankExpense.id', $ids));
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
+		$qb->andWhere($qb->expr()->in('bankExpense.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface $id): string => $id->toString(), $ids));
 
 		return $qb->getQuery()->getResult();
 	}
@@ -93,10 +111,9 @@ class BankExpenseRepository extends BaseRepository
 	): array
 	{
 		$effectiveDate = 'COALESCE(bankExpense.transactionDate, bankExpense.settlementDate, bankExpense.createdAt)';
-		$qb = $this->doctrineRepository->createQueryBuilder('bankExpense');
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
 		$qb->addSelect('mainTag', 'expenseCategory');
 		$qb->addSelect($effectiveDate . ' AS HIDDEN effectiveDate');
-		$qb->leftJoin('bankExpense.mainTag', 'mainTag');
 		$qb->leftJoin('mainTag.expenseCategory', 'expenseCategory');
 		$qb->andWhere($qb->expr()->gte($effectiveDate, ':startInclusive'));
 		$qb->andWhere($qb->expr()->lt($effectiveDate, ':endExclusive'));
@@ -124,7 +141,7 @@ class BankExpenseRepository extends BaseRepository
 		int|null $month,
 	): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
 		$qb->innerJoin('bankExpense.mainTag', 'tag');
 
 		$qb->andWhere(
@@ -145,6 +162,26 @@ class BankExpenseRepository extends BaseRepository
 		$qb->orderBy('bankExpense.amount', 'ASC');
 
 		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<BankExpense> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('bankExpense.bankAccount', 'ownerBankAccount');
+		$this->addAppAdminToQueryBuilder($qb, 'ownerBankAccount', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder

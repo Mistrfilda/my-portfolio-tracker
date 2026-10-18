@@ -140,6 +140,20 @@ kubectl -n default exec deployment/php-deployment -c php-container -- \
 
 Keep existing keys when migrating from `var/oauth`; do not regenerate them on every deployment. See the [server provisioning instructions](.agents/skills/oauth2-server/references/client-setup.md#server-provisioning) for migration, permissions, and backup requirements.
 
+### Work income import ownership
+
+The existing Harvest integration imports work income for `parameters.workMonthlyIncome.ownerUsername`, which defaults to `filip` in the public configuration. Existing local configurations need no additional setting. The configured account must exist; otherwise the command stops before downloading or saving data. The web overview uses the logged-in account, independently of the import owner.
+
+This temporarily assigns the single Harvest configuration to one account. To assign that integration to another account, override only its owner alongside the existing Harvest settings:
+
+```neon
+parameters:
+	workMonthlyIncome:
+		ownerUsername: another-account
+```
+
+Existing income-goal calculations use the same configured owner until goals gain their own ownership in step 7 of the [isolation plan](doc/user-data-isolation-plan.md).
+
 ### Browser smoke tests
 
 Browser smoke tests use Playwright Test and are stored in `tests/Browser`. They are read-only checks against an already running local application; the test command does not start PHP, Docker, or the database.

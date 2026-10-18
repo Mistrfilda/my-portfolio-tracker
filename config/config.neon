@@ -48,6 +48,7 @@ parameters:
 		stockAssetIndustryUrl: https://example.com
 
 	workMonthlyIncome:
+		ownerUsername: filip
 		harvestAccountId: 50
 		harvestUserId: 50
 		harvestAccessToken: 50
@@ -539,6 +540,7 @@ services:
 			harvestAccessToken: %workMonthlyIncome.harvestAccessToken%
 
 	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository(App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncome)
+	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeOwnerProvider(ownerUsername: %workMonthlyIncome.ownerUsername%)
 	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
 	- App\Cash\Income\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
 

@@ -19,6 +19,23 @@ use Ramsey\Uuid\Uuid;
 class JobRequestProcessorTest extends UpdatedTestCase
 {
 
+	public function testExpenseTagJobPreservesOwnerFromPayload(): void
+	{
+		$id = Uuid::uuid4();
+		$facade = $this->createMock(ExpenseTagFacade::class);
+		$facade->expects(self::once())->method('processExpensesForAppAdminId')->with($id);
+		$facade->expects(self::never())->method('processExpenses');
+		$processor = new JobRequestProcessor(
+			$facade,
+			$this->createStub(StockAssetDataDownloadFacade::class),
+			$this->createStub(StockAssetDividendForecastRecordFacade::class),
+			$this->createStub(PortfolioGoalUpdateFacade::class),
+			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
+			$this->createStub(PortfolioPeriodStatisticFacade::class),
+		);
+		$processor->process(JobRequestTypeEnum::EXPENSE_TAG_PROCESS, ['appAdminId' => $id->toString()]);
+	}
+
 	public function testDownloadsOnlyTheStockFromTheJobPayload(): void
 	{
 		$id = Uuid::uuid4();

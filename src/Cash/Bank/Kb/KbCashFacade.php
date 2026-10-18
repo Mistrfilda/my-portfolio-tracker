@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Cash\Bank\Kb;
 
 use App\Cash\Bank\Account\BankAccount;
+use App\Cash\Bank\Account\BankAccountRepository;
 use App\Cash\Bank\BankSourceEnum;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseFacade;
@@ -27,6 +28,7 @@ class KbCashFacade implements BankExpenseFacade
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
+		private BankAccountRepository $bankAccountRepository,
 	)
 	{
 
@@ -41,6 +43,7 @@ class KbCashFacade implements BankExpenseFacade
 		BankAccount $bankAccount,
 	): bool
 	{
+		$bankAccount = $this->bankAccountRepository->getById($bankAccount->getId());
 		$parsedContents = null;
 		match ($kbSourceEnum) {
 			KbSourceEnum::CSV => $parsedContents = $this->kbCsvExpenseParser->parse($fileContents),
@@ -50,7 +53,7 @@ class KbCashFacade implements BankExpenseFacade
 		foreach ($parsedContents->getProcessedTransactions() as $transaction) {
 			$id = $this->computeIdForTransaction($transaction);
 
-			if ($this->bankExpenseRepository->findByIdentifier($id) !== null) {
+			if ($this->bankExpenseRepository->findByIdentifier($id, $bankAccount) !== null) {
 				continue;
 			}
 
@@ -74,7 +77,7 @@ class KbCashFacade implements BankExpenseFacade
 		foreach ($parsedContents->getIncomingTransactions() as $transaction) {
 			$id = $this->computeIdForTransaction($transaction);
 
-			if ($this->bankIncomeRepository->findByIdentifier($id) !== null) {
+			if ($this->bankIncomeRepository->findByIdentifier($id, $bankAccount) !== null) {
 				continue;
 			}
 

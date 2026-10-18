@@ -39,7 +39,15 @@ class JobRequestProcessor
 				);
 				break;
 			case JobRequestTypeEnum::EXPENSE_TAG_PROCESS:
-				$this->expenseTagFacade->processExpenses();
+				if (array_key_exists('appAdminId', $additionalData)) {
+					$this->expenseTagFacade->processExpensesForAppAdminId(
+						Uuid::fromString(TypeValidator::validateString($additionalData['appAdminId'])),
+					);
+				} else {
+					// Queued legacy jobs process each owner separately.
+					$this->expenseTagFacade->processExpenses();
+				}
+
 				break;
 			case JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE:
 				$this->stockAssetDividendForecastFacade->recalculate(

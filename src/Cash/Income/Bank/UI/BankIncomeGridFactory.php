@@ -23,7 +23,7 @@ class BankIncomeGridFactory
 
 	public function create(): Datagrid
 	{
-		$qb = $this->bankIncomeRepository->createQueryBuilder();
+		$qb = $this->bankIncomeRepository->createQueryBuilderForCurrentAppAdmin();
 		$grid = $this->datagridFactory->create(
 			new DoctrineDataSource($qb),
 		);

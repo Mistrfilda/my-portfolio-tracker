@@ -4,9 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI;
 
-use App\UI\Base\BaseAdminPresenterTemplate;
-
-class ExpenseOverviewTemplate extends BaseAdminPresenterTemplate
+class ExpenseOverviewTemplate extends ExpensePresenterTemplate
 {
 
 	/** @var array<int, int> */
@@ -18,7 +16,5 @@ class ExpenseOverviewTemplate extends BaseAdminPresenterTemplate
 	public int $selectedYear;
 
 	public int|null $selectedMonth;
-
-	public bool $showModal;
 
 }

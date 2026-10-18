@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Income\WorkMonthlyIncome;
 
+use App\Admin\CurrentAppAdminGetter;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 
@@ -19,6 +20,8 @@ class WorkMonthlyIncomeFacade
 		private HarvestTimeDownloader $harvestTimeDownloader,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private WorkMonthlyIncomeOwnerProvider $ownerProvider,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 
@@ -26,6 +29,7 @@ class WorkMonthlyIncomeFacade
 
 	public function download(): void
 	{
+		$appAdmin = $this->ownerProvider->getOwner();
 		$serializedTimeEntries = [];
 
 		/** @var array<HarvestTimeEntry> $timeEntries */
@@ -42,9 +46,10 @@ class WorkMonthlyIncomeFacade
 
 		foreach ($serializedTimeEntries as $key => $timeEntry) {
 			$keyParts = explode('-', $key);
-			$existingRow = $this->workMonthlyIncomeRepository->getByYearAndMonth(
+			$existingRow = $this->workMonthlyIncomeRepository->getByYearAndMonthForAppAdmin(
 				(int) $keyParts[0],
 				(int) $keyParts[1],
+				$appAdmin,
 			);
 
 			if ($existingRow !== null) {
@@ -58,6 +63,7 @@ class WorkMonthlyIncomeFacade
 			}
 
 			$this->entityManager->persist(new WorkMonthlyIncome(
+				$appAdmin,
 				(int) $keyParts[0],
 				(int) $keyParts[1],
 				$timeEntry,
@@ -71,6 +77,7 @@ class WorkMonthlyIncomeFacade
 	public function createBlank(int $year, int $month): WorkMonthlyIncome
 	{
 		$workMonthlyIncome = new WorkMonthlyIncome(
+			$this->currentAppAdminGetter->getAppAdmin(),
 			$year,
 			$month,
 			0,

@@ -6,11 +6,12 @@ namespace App\Cash\Income\WorkMonthlyIncome\UI;
 
 use App\Asset\Price\SummaryPrice;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade;
+use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeOwnerProvider;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyEnum;
 use App\Goal\PortfolioGoalRepository;
 use App\Goal\PortfolioGoalTypeEnum;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Filter\CurrencyFilter;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Holiday\CzechHolidayService;
@@ -19,7 +20,7 @@ use Nette\Application\Attributes\Persistent;
 /**
  * @property-read WorkMonthlyIncomeTemplate $template
  */
-class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
+class WorkMonthlyIncomePresenter extends BaseAdminPresenter
 {
 
 	public const DEFAULT_YEAR = 2026;
@@ -69,6 +70,7 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 		private CzechHolidayService $czechHolidayService,
 		private WorkMonthlyIncomeFacade $workMonthlyIncomeFacade,
 		private PortfolioGoalRepository $portfolioGoalRepository,
+		private WorkMonthlyIncomeOwnerProvider $ownerProvider,
 	)
 	{
 		parent::__construct();
@@ -175,9 +177,10 @@ class WorkMonthlyIncomePresenter extends BaseSysadminPresenter
 			];
 		}
 
-		$activeIncomeGoal = $this->portfolioGoalRepository->findFirstActiveByType(
-			PortfolioGoalTypeEnum::MONTHLY_INCOME,
-		);
+		// Legacy goals still belong to the configured income owner until step 7.
+		$activeIncomeGoal = $this->currentAppAdminGetter->getAppAdmin()->getUsername() === $this->ownerProvider->getOwnerUsername()
+			? $this->portfolioGoalRepository->findFirstActiveByType(PortfolioGoalTypeEnum::MONTHLY_INCOME)
+			: null;
 		$this->template->activeIncomeGoal = $activeIncomeGoal;
 		$this->template->activeGoalProgressPercentage = null;
 		$this->template->activeGoalProgressBarPercentage = null;

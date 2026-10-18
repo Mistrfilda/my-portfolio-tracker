@@ -8,6 +8,7 @@ use App\Home\Device\HomeDeviceFacade;
 use App\Home\Device\HomeDeviceRepository;
 use App\Home\Device\HomeDeviceType;
 use App\Home\Home;
+use App\Home\HomeRepository;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use Ramsey\Uuid\Uuid;
@@ -19,12 +20,14 @@ class HomeDeviceFormFactory
 		private AdminFormFactory $adminFormFactory,
 		private HomeDeviceFacade $homeDeviceFacade,
 		private HomeDeviceRepository $homeDeviceRepository,
+		private HomeRepository $homeRepository,
 	)
 	{
 	}
 
 	public function create(Home $home, string|null $id, callable $onSuccess): AdminForm
 	{
+		$home = $this->homeRepository->getById($home->getId());
 		$form = $this->adminFormFactory->create();
 
 		$form->addText('name', 'Název')
@@ -45,7 +48,7 @@ class HomeDeviceFormFactory
 
 		$homeDevice = null;
 		if ($id !== null) {
-			$homeDevice = $this->homeDeviceRepository->getById(Uuid::fromString($id));
+			$homeDevice = $this->homeDeviceRepository->getByIdForHome(Uuid::fromString($id), $home);
 			$form->setDefaults([
 				'name' => $homeDevice->getName(),
 				'internalId' => $homeDevice->getInternalId(),

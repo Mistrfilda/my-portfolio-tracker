@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Home\Device\Record;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\LockModeEnum;
 use App\Doctrine\NoEntityFoundException;
@@ -21,14 +22,23 @@ class HomeDeviceRecordRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, LockModeEnum|null $lockMode = null): HomeDeviceRecord
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('homeDeviceRecord');
-		$qb->where($qb->expr()->eq('homeDeviceRecord.id', ':id'));
+		return $this->getByIdForAppAdmin($id, $this->currentAppAdminGetter->getAppAdmin(), $lockMode);
+	}
+
+	public function getByIdForAppAdmin(
+		UuidInterface $id,
+		AppAdmin $appAdmin,
+		LockModeEnum|null $lockMode = null,
+	): HomeDeviceRecord
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('homeDeviceRecord.id', ':id'));
 		$qb->setParameter('id', $id);
 
 		try {
 			$query = $qb->getQuery();
 			if ($lockMode !== null) {
-				$query->setLockMode($lockMode->value);
+				$query->setLockMode($lockMode->toDoctrineLockMode());
 			}
 
 			$result = $query->getSingleResult();
@@ -45,7 +55,28 @@ class HomeDeviceRecordRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->createQueryBuilderForCurrentAppAdmin()->getQuery()->getResult();
+	}
+
+	/** @return array<HomeDeviceRecord> */
+	public function findAllForAppAdmin(AppAdmin $appAdmin): array
+	{
+		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();
+	}
+
+	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->innerJoin('homeDeviceRecord.homeDevice', 'ownerDevice');
+		$qb->innerJoin('ownerDevice.home', 'ownerHome');
+		$this->addAppAdminToQueryBuilder($qb, 'ownerHome', $appAdmin);
+
+		return $qb;
+	}
+
+	public function createQueryBuilderForCurrentAppAdmin(): QueryBuilder
+	{
+		return $this->createQueryBuilderForAppAdmin($this->currentAppAdminGetter->getAppAdmin());
 	}
 
 	public function createQueryBuilder(): QueryBuilder
@@ -55,8 +86,13 @@ class HomeDeviceRecordRepository extends BaseRepository
 
 	public function createQueryBuilderForDevice(HomeDevice $homeDevice): QueryBuilder
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('homeDeviceRecord');
-		$qb->where($qb->expr()->eq('homeDeviceRecord.homeDevice', ':homeDevice'));
+		return $this->createQueryBuilderForDeviceForAppAdmin($homeDevice, $this->currentAppAdminGetter->getAppAdmin());
+	}
+
+	public function createQueryBuilderForDeviceForAppAdmin(HomeDevice $homeDevice, AppAdmin $appAdmin): QueryBuilder
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->andWhere($qb->expr()->eq('homeDeviceRecord.homeDevice', ':homeDevice'));
 		$qb->setParameter('homeDevice', $homeDevice);
 		$qb->orderBy('homeDeviceRecord.createdAt', 'DESC');
 
@@ -68,7 +104,8 @@ class HomeDeviceRecordRepository extends BaseRepository
 	 */
 	public function findLatestForDevice(HomeDevice $homeDevice, int $limit): array
 	{
-		$qb = $this->createQueryBuilderForDevice($homeDevice);
+		// The sensor API supplies a selected device; web callers first load it through its owner's home.
+		$qb = $this->createQueryBuilderForDeviceForAppAdmin($homeDevice, $homeDevice->getHome()->getAppAdmin());
 		$qb->setMaxResults($limit);
 
 		return $qb->getQuery()->getResult();

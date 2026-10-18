@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Home;
 
+use App\Admin\CurrentAppAdminGetter;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Ramsey\Uuid\UuidInterface;
@@ -15,6 +16,7 @@ class HomeFacade
 		private HomeRepository $homeRepository,
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
+		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
 	}
@@ -22,6 +24,7 @@ class HomeFacade
 	public function create(string $name): Home
 	{
 		$home = new Home(
+			$this->currentAppAdminGetter->getAppAdmin(),
 			$name,
 			$this->datetimeFactory->createNow(),
 		);

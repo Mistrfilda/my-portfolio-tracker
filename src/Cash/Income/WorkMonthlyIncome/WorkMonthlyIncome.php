@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Income\WorkMonthlyIncome;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
@@ -18,12 +19,17 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('work_monthly_income')]
+#[ORM\UniqueConstraint(name: 'work_income_owner_period_unique', columns: ['app_admin_id', 'year', 'month'])]
 class WorkMonthlyIncome implements Entity
 {
 
 	use SimpleUuid;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::INTEGER)]
 	private int $year;
@@ -40,8 +46,16 @@ class WorkMonthlyIncome implements Entity
 	#[ORM\Column(type: Types::STRING, enumType: CurrencyEnum::class)]
 	private CurrencyEnum $currencyEnum;
 
-	public function __construct(int $year, int $month, float $hours, int $hourlyRate, ImmutableDateTime $now)
+	public function __construct(
+		AppAdmin $appAdmin,
+		int $year,
+		int $month,
+		float $hours,
+		int $hourlyRate,
+		ImmutableDateTime $now,
+	)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->id = Uuid::uuid4();
 		$this->year = $year;
 		$this->month = $month;
@@ -50,6 +64,11 @@ class WorkMonthlyIncome implements Entity
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
 		$this->currencyEnum = CurrencyEnum::CZK;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(float $hours, ImmutableDateTime $now, int|null $hourlyRate = null): void

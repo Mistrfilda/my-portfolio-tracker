@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Cash\Bank\Account;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Cash\Bank\Account\BankAccount;
 use App\Cash\Bank\Account\BankAccountFacade;
 use App\Cash\Bank\Account\BankAccountRepository;
@@ -30,6 +32,7 @@ class BankAccountFacadeTest extends UpdatedTestCase
 		$this->bankAccountFacade = new BankAccountFacade(
 			$this->entityManager,
 			$this->bankAccountRepository,
+			$this->createStub(CurrentAppAdminGetter::class),
 		);
 	}
 
@@ -79,7 +82,12 @@ class BankAccountFacadeTest extends UpdatedTestCase
 		$bank = 'Updated Bank';
 		$type = BankAccountTypeEnum::BUSINESS;
 
-		$bankAccount = new BankAccount('Original', 'Original Bank', BankAccountTypeEnum::PERSONAL);
+		$bankAccount = new BankAccount(
+			$this->createStub(AppAdmin::class),
+			'Original',
+			'Original Bank',
+			BankAccountTypeEnum::PERSONAL,
+		);
 
 		$this->bankAccountRepository
 			->shouldReceive('getById')

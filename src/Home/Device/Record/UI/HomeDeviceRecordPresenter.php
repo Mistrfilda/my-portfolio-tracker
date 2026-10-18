@@ -6,11 +6,14 @@ namespace App\Home\Device\Record\UI;
 
 use App\Home\Device\HomeDevice;
 use App\Home\Device\HomeDeviceRepository;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use App\UI\Control\Datagrid\Datagrid;
 use Ramsey\Uuid\Uuid;
 
-class HomeDeviceRecordPresenter extends BaseSysadminPresenter
+/**
+ * @property-read HomeDeviceRecordPresenterTemplate $template
+ */
+class HomeDeviceRecordPresenter extends BaseAdminPresenter
 {
 
 	private HomeDevice $homeDevice;

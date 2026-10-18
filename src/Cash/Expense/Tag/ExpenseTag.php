@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\Tag;
 
+use App\Admin\AppAdmin;
 use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Category\ExpenseCategory;
 use App\Doctrine\CreatedAt;
@@ -24,6 +25,10 @@ class ExpenseTag implements Entity
 	use Identifier;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\Column(type: Types::STRING)]
 	private string $name;
@@ -59,6 +64,7 @@ class ExpenseTag implements Entity
 	 * @param array<string> $regexes
 	 */
 	public function __construct(
+		AppAdmin $appAdmin,
 		string $name,
 		ExpenseCategory|null $expenseCategory,
 		ExpenseTag|null $parentTag,
@@ -67,6 +73,7 @@ class ExpenseTag implements Entity
 		bool $isTax,
 	)
 	{
+		$this->appAdmin = $appAdmin;
 		$this->name = $name;
 		$this->expenseCategory = $expenseCategory;
 		$this->parentTag = $parentTag;
@@ -78,6 +85,11 @@ class ExpenseTag implements Entity
 
 		$this->mainExpenses = new ArrayCollection();
 		$this->otherExpenses = new ArrayCollection();
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	/**

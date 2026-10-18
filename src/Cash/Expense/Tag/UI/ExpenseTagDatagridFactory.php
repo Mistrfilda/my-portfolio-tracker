@@ -27,7 +27,7 @@ class ExpenseTagDatagridFactory
 	public function create(): Datagrid
 	{
 		$grid = $this->datagridFactory->create(
-			new DoctrineDataSource($this->expenseTagRepository->createQueryBuilder()),
+			new DoctrineDataSource($this->expenseTagRepository->createQueryBuilderForCurrentAppAdmin()),
 		);
 
 		$grid->addColumnText('id', 'ID');
