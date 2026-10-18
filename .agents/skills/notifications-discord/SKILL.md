@@ -9,7 +9,7 @@ Centralized notification dispatch with pluggable channels. Currently only Discor
 
 ### Components (`src/Notification/`)
 
-- **`Notification`** entity + **`NotificationRepository`** — persisted notification (for history / retry).
+- **`Notification`** entity + **`NotificationRepository`** — persisted notification (for history / retry). Immutable `recipient` references `AppAdmin`; null means shared market content. Never use a missing personal owner as shared delivery. The repository's global ID accessor is used by the worker, not a personal web history.
 - **`NotificationTypeEnum`** — all supported types (dividend announcements, trend alerts, goal updates, etc.).
 - **`NotificationStateEnum`** — lifecycle state.
 - **`NotificationChannelEnum`** — which channel delivers it (Discord, …).
@@ -17,7 +17,7 @@ Centralized notification dispatch with pluggable channels. Currently only Discor
 
 ### Facades
 
-- **`NotificationFacade`** — creates and persists a `Notification`, then publishes its `NotificationMessage` through `NotificationProducer`. Call this from domain code (new dividend detected, goal achieved, …).
+- **`NotificationFacade`** — `create()` for shared market content, `createForRecipient(AppAdmin, ...)` for personal data. Persists the recipient and content before publishing the existing ID-only `NotificationMessage` through `NotificationProducer`. Goal notifications require a recipient.
 - **`NotificationSenderFacade::process($notificationId)`** — invoked by `NotificationConsumer`; sends through the notification's selected channels using services collected by `typed(NotificationChannelSenderFacade)`.
 - **`NotificationChannelSenderFacade`** (interface) — contract for a channel sender.
 
@@ -32,6 +32,8 @@ Centralized notification dispatch with pluggable channels. Currently only Discor
 ```
 notifications:
 	discord:
+		legacyRecipientUsername: filip
+		userWebhooks: []
 		webhooks:
 			new_dividend: null
 			trend_alert_default: null
@@ -44,13 +46,18 @@ notifications:
 
 Webhook URLs come from the existing secret-injection configuration. Keep public defaults nullable; never read local secret configuration or commit webhook URLs.
 
+- `webhooks` handles shared messages and personal messages for `legacyRecipientUsername` only. Other accounts require `userWebhooks.<username>` with the same channel keys. A user map replaces the shared map completely; an empty map disables personal messages, and missing keys never fall back to another account.
+- `goals_updates` takes precedence over the legacy `goals_update` alias, including explicit null. A missing trend-period key may fall back to that account's `trend_alert_default`; explicit null disables it.
+- Stock/Crypto trend prices are shared; Portu values are personal and grouped by portfolio owner. Until goals gain ownership, their notifications explicitly use `LegacyPortfolioOwnerProvider`; follow [the isolation plan](../../../doc/user-data-isolation-plan.md).
+- Retry loads the stored recipient, never the current web user. `SENT` is skipped; disabled channels retain the existing completed-state behavior. This does not guarantee exactly-once delivery across a crash after HTTP delivery.
+
 ### Adding a new notification type
 
 1. Add case to `NotificationTypeEnum`.
 2. Extend `NotificationParameters` / `NotificationParameterEnum` if the payload is new.
 3. Register a webhook slot under `notifications.discord.webhooks` (nullable default so it works without a real webhook).
 4. Map it in `DiscordChannelService` / `DiscordMessageService` so the right embed + webhook is used.
-5. Trigger it from domain code via `NotificationFacade::create(...)`. Delivery runs through the RabbitMQ notification consumer; do not call the sender directly from the web request.
+5. Trigger it via `NotificationFacade::create(...)` for shared content or `createForRecipient(...)` for personal content. Delivery runs through the RabbitMQ notification consumer; do not call the sender directly from the web request.
 
 ### Adding a new channel
 

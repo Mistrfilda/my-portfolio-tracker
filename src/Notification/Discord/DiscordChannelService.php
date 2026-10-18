@@ -15,15 +15,36 @@ class DiscordChannelService
 
 	/**
 	 * @param array<string, string|null> $discordWebhooksMapping
+	 * @param array<string, array<string, string|null>> $userWebhooks
 	 */
-	public function __construct(private array $discordWebhooksMapping)
+	public function __construct(
+		private array $discordWebhooksMapping,
+		private array $userWebhooks = [],
+		private string $legacyRecipientUsername = 'filip',
+	)
 	{
 	}
 
 	public function getWebhookUrl(Notification $notification): string|null
 	{
-		if (array_key_exists($notification->getNotificationTypeEnum()->value, $this->discordWebhooksMapping)) {
-			return $this->discordWebhooksMapping[$notification->getNotificationTypeEnum()->value];
+		$mapping = $this->discordWebhooksMapping;
+		$recipient = $notification->getRecipient();
+		if ($recipient !== null) {
+			$username = $recipient->getUsername();
+			if (array_key_exists($username, $this->userWebhooks)) {
+				$mapping = $this->userWebhooks[$username];
+			} elseif ($username !== $this->legacyRecipientUsername) {
+				return null;
+			}
+		}
+
+		if (array_key_exists($notification->getNotificationTypeEnum()->value, $mapping)) {
+			return $mapping[$notification->getNotificationTypeEnum()->value];
+		}
+
+		// Preserve the singular key used by the original configuration.
+		if ($notification->getNotificationTypeEnum() === NotificationTypeEnum::GOALS_UPDATES) {
+			return $mapping['goals_update'] ?? null;
 		}
 
 		if (in_array(
@@ -37,11 +58,11 @@ class DiscordChannelService
 			}
 
 			$channel = sprintf(self::TREND_ALERT_MASK, $threshold);
-			if (array_key_exists($channel, $this->discordWebhooksMapping)) {
-				return $this->discordWebhooksMapping[$channel];
+			if (array_key_exists($channel, $mapping)) {
+				return $mapping[$channel];
 			}
 
-			return $this->discordWebhooksMapping[DiscordChannelEnum::TREND_ALERT_DEFAULT->value];
+			return $mapping[DiscordChannelEnum::TREND_ALERT_DEFAULT->value] ?? null;
 		}
 
 		return null;

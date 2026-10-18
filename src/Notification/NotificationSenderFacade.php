@@ -24,6 +24,10 @@ class NotificationSenderFacade
 	public function process(string $notificationId): void
 	{
 		$notification = $this->notificationRepository->getById(Uuid::fromString($notificationId));
+		if ($notification->getNotificationStateEnum() === NotificationStateEnum::SENT) {
+			return;
+		}
+
 		$notification->sendInProgress();
 		$this->entityManager->flush();
 

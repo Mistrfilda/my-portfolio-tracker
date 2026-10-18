@@ -9,6 +9,7 @@ use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationChannelSenderFacade;
 use App\Notification\NotificationRepository;
 use App\Notification\NotificationSenderFacade;
+use App\Notification\NotificationStateEnum;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -45,6 +46,7 @@ class NotificationSenderFacadeTest extends TestCase
 	{
 		$notificationId = Uuid::uuid4()->toString();
 		$notification = $this->createMock(Notification::class);
+		$notification->method('getNotificationStateEnum')->willReturn(NotificationStateEnum::CREATED);
 
 		$notification->method('getNotificationChannels')
 			->willReturn([NotificationChannelEnum::DISCORD]);
@@ -69,6 +71,7 @@ class NotificationSenderFacadeTest extends TestCase
 	{
 		$notificationId = Uuid::uuid4()->toString();
 		$notification = $this->createMock(Notification::class);
+		$notification->method('getNotificationStateEnum')->willReturn(NotificationStateEnum::CREATED);
 
 		$notification->method('getNotificationChannels')
 			->willReturn([]);

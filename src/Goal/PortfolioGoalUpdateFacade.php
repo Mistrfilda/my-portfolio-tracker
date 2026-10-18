@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Goal;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Goal\Resolver\PortfolioGoalResolver;
 use App\Notification\NotificationChannelEnum;
 use App\Notification\NotificationFacade;
@@ -25,6 +26,7 @@ class PortfolioGoalUpdateFacade
 		private DatetimeFactory $datetimeFactory,
 		private PortfolioGoalFacade $portfolioGoalFacade,
 		private NotificationFacade $notificationFacade,
+		private LegacyPortfolioOwnerProvider $legacyPortfolioOwnerProvider,
 	)
 	{
 	}
@@ -122,7 +124,8 @@ class PortfolioGoalUpdateFacade
 		$lastStep = floor($lastNotifiedPercentage / $threshold);
 
 		if ($currentStep > $lastStep) {
-			$this->notificationFacade->create(
+			$this->notificationFacade->createForRecipient(
+				$this->legacyPortfolioOwnerProvider->getOwner(),
 				NotificationTypeEnum::GOALS_UPDATES,
 				[NotificationChannelEnum::DISCORD],
 				sprintf(
