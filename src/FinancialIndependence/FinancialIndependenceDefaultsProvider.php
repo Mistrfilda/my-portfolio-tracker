@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\FinancialIndependence;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryEnum;
@@ -41,6 +42,7 @@ final readonly class FinancialIndependenceDefaultsProvider
 		private WorkMonthlyIncomeRepository $workMonthlyIncomeRepository,
 		private CurrencyConversionFacade $currencyConversionFacade,
 		private DatetimeFactory $datetimeFactory,
+		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -49,7 +51,10 @@ final readonly class FinancialIndependenceDefaultsProvider
 	{
 		$periodEndExclusive = $this->datetimeFactory->createToday()->modify('first day of this month');
 		$periodStart = $periodEndExclusive->deductMonthsFromDatetime(self::AVERAGE_MONTH_COUNT);
-		$historicalPerformanceSummary = $this->portfolioPerformanceProvider->getAllTimeSummary();
+		$includeLegacyHistory = $this->legacyOwnerProvider->isCurrentUserOwner();
+		$historicalPerformanceSummary = $includeLegacyHistory
+			? $this->portfolioPerformanceProvider->getAllTimeSummary()
+			: null;
 		$historicalAnnualizedTotalReturnPercentage = $historicalPerformanceSummary
 			?->getAnnualizedTimeWeightedReturn();
 
@@ -82,7 +87,8 @@ final readonly class FinancialIndependenceDefaultsProvider
 
 		$contributionTotalCzk = 0.0;
 		$contributionRecordCount = 0;
-		foreach ($this->portfolioPerformanceMonthRepository->findAllOrdered() as $performanceMonth) {
+		$performanceMonths = $includeLegacyHistory ? $this->portfolioPerformanceMonthRepository->findAllOrdered() : [];
+		foreach ($performanceMonths as $performanceMonth) {
 			if (!$this->isInPeriod($performanceMonth->getPeriodMonth(), $periodStart, $periodEndExclusive)) {
 				continue;
 			}

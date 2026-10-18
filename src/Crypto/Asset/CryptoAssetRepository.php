@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Crypto\Asset;
 
+use App\Admin\AppAdmin;
 use App\Asset\Asset;
 use App\Asset\AssetRepository;
 use App\Doctrine\BaseRepository;
@@ -92,6 +93,26 @@ class CryptoAssetRepository extends BaseRepository implements AssetRepository
 		}
 
 		return $pairs;
+	}
+
+	/** @return array<CryptoAsset> */
+	public function findWithPositionsForAppAdmin(AppAdmin $appAdmin, bool|null $onlyOpen = null): array
+	{
+		$qb = $this->createQueryBuilder()->distinct();
+		$qb->innerJoin('cryptoAsset.positions', 'ownedPosition');
+		$this->addAppAdminToQueryBuilder($qb, 'ownedPosition', $appAdmin);
+		if ($onlyOpen !== null) {
+			$qb->andWhere('ownedPosition.cryptoClosedPosition IS ' . ($onlyOpen ? '' : 'NOT ') . 'NULL');
+		}
+
+		$qb->orderBy('cryptoAsset.name', OrderBy::ASC->value);
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<CryptoAsset> */
+	public function findWithPositionsForCurrentAppAdmin(bool|null $onlyOpen = null): array
+	{
+		return $this->findWithPositionsForAppAdmin($this->currentAppAdminGetter->getAppAdmin(), $onlyOpen);
 	}
 
 	public function createQueryBuilder(): QueryBuilder

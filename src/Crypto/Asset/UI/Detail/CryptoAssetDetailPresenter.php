@@ -7,10 +7,13 @@ namespace App\Crypto\Asset\UI\Detail;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Asset\UI\Detail\Control\CryptoAssetDetailControl;
 use App\Crypto\Asset\UI\Detail\Control\CryptoAssetDetailControlFactory;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use Nette\Application\Attributes\Persistent;
 
-class CryptoAssetDetailPresenter extends BaseSysadminPresenter
+/**
+ * @property-read CryptoAssetDetailTemplate $template
+ */
+class CryptoAssetDetailPresenter extends BaseAdminPresenter
 {
 
 	#[Persistent]

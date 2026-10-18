@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Crypto\Position;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\AssetPriceFacade;
@@ -115,46 +116,58 @@ class CryptoPositionFacade implements AssetPriceFacade
 
 	public function getCurrentPortfolioValueSummaryPrice(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->cryptoPositionRepository->findAllOpened(),
+			$this->cryptoPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCurrentPortfolioValueInUsdCryptos(
 		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
 	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForPositions(
 			$inCurrency,
-			$this->cryptoPositionRepository->findAllOpenedInCurrency(CurrencyEnum::USD),
+			$this->cryptoPositionRepository->findAllOpenedInCurrencyForAppAdmin(
+				CurrencyEnum::USD,
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
-	public function getTotalInvestedAmountSummaryPrice(CurrencyEnum $inCurrency): SummaryPrice
+	public function getTotalInvestedAmountSummaryPrice(
+		CurrencyEnum $inCurrency,
+		AppAdmin|null $appAdmin = null,
+	): SummaryPrice
 	{
 		return $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$inCurrency,
-			$this->cryptoPositionRepository->findAllOpened(),
+			$this->cryptoPositionRepository->findAllOpenedForAppAdmin(
+				$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			),
 		);
 	}
 
 	public function getCryptoAssetDetailDTO(
 		UuidInterface $cryptoAssetId,
 		CryptoAssetListDetailControlEnum $cryptoAssetDetailControlEnum = CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
+		AppAdmin|null $appAdmin = null,
 	): CryptoAssetDetailDTO
 	{
 		$cryptoAsset = $this->cryptoAssetRepository->getById($cryptoAssetId);
 
-		if (
-			$cryptoAsset->hasPositions() === false
-			|| (
-				$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS
-				&& $cryptoAsset->hasOpenPositions() === false
-			)
-		) {
+		$positions = $this->cryptoPositionRepository->findByAssetForAppAdmin(
+			$cryptoAssetId,
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+			$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
+		);
+		if ($positions === []) {
 			return new CryptoAssetDetailDTO(
 				$cryptoAsset,
 				[],
@@ -162,10 +175,10 @@ class CryptoPositionFacade implements AssetPriceFacade
 				new SummaryPrice($cryptoAsset->getCurrency()),
 				new SummaryPrice($cryptoAsset->getCurrency()),
 				new SummaryPrice($cryptoAsset->getCurrency()),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
 				new SummaryPrice(CurrencyEnum::CZK),
-				new PriceDiff(0, 0, CurrencyEnum::CZK),
+				new PriceDiff(0, 100, CurrencyEnum::CZK),
 				0,
 			);
 		}
@@ -174,12 +187,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 		$brokerCurrency = CurrencyEnum::USD;
 		$piecesCount = 0;
 
-		foreach ($cryptoAsset->getPositions() as $position) {
-			if ($cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS) {
-				if ($position->isPositionClosed()) {
-					continue;
-				}
-			}
+		foreach ($positions as $position) {
 
 			$positionDetailDTOs[] = new CryptoAssetPositionDetailDTO(
 				$position,
@@ -194,30 +202,22 @@ class CryptoPositionFacade implements AssetPriceFacade
 
 		$totalInvestedAmount = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmount(
 			$cryptoAsset->getCurrency(),
-			$cryptoAsset->getPositions(
-				$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
-			),
+			$positions,
 		);
 
 		$currentAmount = $this->summaryPriceService->getSummaryPriceForPositions(
 			$cryptoAsset->getCurrency(),
-			$cryptoAsset->getPositions(
-				$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
-			),
+			$positions,
 		);
 
 		$currentAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForPositions(
 			$brokerCurrency,
-			$cryptoAsset->getPositions(
-				$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
-			),
+			$positions,
 		);
 
 		$totalInvestedAmountInBrokerCurrency = $this->summaryPriceService->getSummaryPriceForTotalInvestedAmountInBrokerCurrency(
 			$brokerCurrency,
-			$cryptoAsset->getPositions(
-				$cryptoAssetDetailControlEnum === CryptoAssetListDetailControlEnum::OPEN_POSITIONS,
-			),
+			$positions,
 		);
 
 		$currentPriceDiffInBrokerCurrency = $this->summaryPriceService->getSummaryPriceDiff(

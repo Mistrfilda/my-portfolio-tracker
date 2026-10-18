@@ -7,10 +7,13 @@ namespace App\Stock\Asset\UI\Detail;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\Control\StockAssetDetailControl;
 use App\Stock\Asset\UI\Detail\Control\StockAssetDetailControlFactory;
-use App\UI\Base\BaseSysadminPresenter;
+use App\UI\Base\BaseAdminPresenter;
 use Nette\Application\Attributes\Persistent;
 
-class StockAssetDetailPresenter extends BaseSysadminPresenter
+/**
+ * @property-read StockAssetDetailTemplate $template
+ */
+class StockAssetDetailPresenter extends BaseAdminPresenter
 {
 
 	#[Persistent]

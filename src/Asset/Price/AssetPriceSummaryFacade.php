@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Asset\Price;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyEnum;
 
 class AssetPriceSummaryFacade
@@ -23,7 +24,7 @@ class AssetPriceSummaryFacade
 		$this->assetPriceFacades = $assetPriceFacades;
 	}
 
-	public function getTotalInvestedAmount(CurrencyEnum $inCurrency): SummaryPrice
+	public function getTotalInvestedAmount(CurrencyEnum $inCurrency, AppAdmin|null $appAdmin = null): SummaryPrice
 	{
 		$summaryPrice = new SummaryPrice($inCurrency);
 		foreach ($this->assetPriceFacades as $assetPriceFacade) {
@@ -33,13 +34,14 @@ class AssetPriceSummaryFacade
 
 			$summaryPrice->addSummaryPrice($assetPriceFacade->getTotalInvestedAmountSummaryPrice(
 				$inCurrency,
+				$appAdmin,
 			));
 		}
 
 		return $summaryPrice;
 	}
 
-	public function getCurrentValue(CurrencyEnum $inCurrency): SummaryPrice
+	public function getCurrentValue(CurrencyEnum $inCurrency, AppAdmin|null $appAdmin = null): SummaryPrice
 	{
 		$summaryPrice = new SummaryPrice($inCurrency);
 		foreach ($this->assetPriceFacades as $assetPriceFacade) {
@@ -49,17 +51,18 @@ class AssetPriceSummaryFacade
 
 			$summaryPrice->addSummaryPrice($assetPriceFacade->getCurrentPortfolioValueSummaryPrice(
 				$inCurrency,
+				$appAdmin,
 			));
 		}
 
 		return $summaryPrice;
 	}
 
-	public function getTotalPriceDiff(CurrencyEnum $inCurrency): PriceDiff
+	public function getTotalPriceDiff(CurrencyEnum $inCurrency, AppAdmin|null $appAdmin = null): PriceDiff
 	{
 		return $this->summaryPriceService->getSummaryPriceDiff(
-			$this->getCurrentValue($inCurrency),
-			$this->getTotalInvestedAmount($inCurrency),
+			$this->getCurrentValue($inCurrency, $appAdmin),
+			$this->getTotalInvestedAmount($inCurrency, $appAdmin),
 		);
 	}
 

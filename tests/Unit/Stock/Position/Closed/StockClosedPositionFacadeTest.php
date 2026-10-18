@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock\Position\Closed;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
@@ -75,6 +76,9 @@ class StockClosedPositionFacadeTest extends TestCase
 		);
 		$this->summaryPriceService = UpdatedTestCase::createMockWithIgnoreMethods(SummaryPriceService::class);
 
+		$legacyOwner = $this->createStub(LegacyPortfolioOwnerProvider::class);
+		$legacyOwner->method('isOwner')->willReturn(true);
+
 		$this->facade = new StockClosedPositionFacade(
 			$this->stockPositionRepository,
 			$this->stockClosedPositionRepository,
@@ -87,6 +91,7 @@ class StockClosedPositionFacadeTest extends TestCase
 			$this->summaryPriceService,
 			$this->stockAssetDividendRecordFacade,
 			$this->jobRequestFacade,
+			$legacyOwner,
 		);
 	}
 
@@ -199,25 +204,9 @@ class StockClosedPositionFacadeTest extends TestCase
 
 	public function testGetAllStockClosedPositionsEmptyResult(): void
 	{
-		$this->stockAssetRepository->shouldReceive('findAll')
+		$this->stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')
 			->once()
 			->andReturn([]);
-
-		$result = $this->facade->getAllStockClosedPositions();
-
-		$this->assertSame([], $result);
-	}
-
-	public function testGetAllStockClosedPositionsSkipsAssetsWithoutClosedPositions(): void
-	{
-		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
-		$stockAsset->shouldReceive('hasClosedPositions')
-			->once()
-			->andReturn(false);
-
-		$this->stockAssetRepository->shouldReceive('findAll')
-			->once()
-			->andReturn([$stockAsset]);
 
 		$result = $this->facade->getAllStockClosedPositions();
 
@@ -229,18 +218,16 @@ class StockClosedPositionFacadeTest extends TestCase
 		$firstCloseDate = new ImmutableDateTime('2026-04-01');
 		$secondCloseDate = new ImmutableDateTime('2026-04-10');
 		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
+		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
 		$firstPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
 		$secondPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockPosition::class);
 		$firstClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockClosedPosition::class);
 		$secondClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockClosedPosition::class);
 
-		$this->stockAssetRepository->shouldReceive('findAll')
+		$this->stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')
 			->once()
 			->andReturn([$stockAsset]);
-		$stockAsset->shouldReceive('hasClosedPositions')
-			->once()
-			->andReturn(true);
-		$stockAsset->shouldReceive('getClosedPositions')
+		$this->stockPositionRepository->shouldReceive('findByAssetForAppAdmin')
 			->once()
 			->andReturn([$firstPosition, $secondPosition]);
 

@@ -55,7 +55,7 @@ class CryptoPosition implements AssetPosition, Entity
 	private AssetPriceEmbeddable $totalInvestedAmountInBrokerCurrency;
 
 	#[ORM\OneToOne(targetEntity: CryptoClosedPosition::class, inversedBy: 'cryptoPosition')]
-	private CryptoClosedPosition|null $cryptoClosedPosition;
+	private CryptoClosedPosition|null $cryptoClosedPosition = null;
 
 	public function __construct(
 		AppAdmin $appAdmin,

@@ -39,6 +39,9 @@ paths:
     /dashboard/values:
         get:
             summary: Get dashboard value groups
+            description: >-
+                Temporarily returns the original portfolio owner's data (filip)
+                for both user and client tokens. Per-account API isolation is a separate migration.
             tags:
                 - Dashboard
             security:

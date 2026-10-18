@@ -2,7 +2,7 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–3 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou dokončené společně v pracovní větvi, včetně automatických kontrol, migrace webové databáze a ověření webu. Následuje krok 4; commit 3b–3d doplnit po jeho vytvoření Filipem.
+Aktualizováno 18. 10. 2026. **Kroky 1–4 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je dokončený a ověřený v pracovní větvi; commit doplnit po vytvoření Filipem. Následuje krok 5.
 
 ## Dohodnutý rozsah
 
@@ -37,7 +37,7 @@ Aktualizováno 18. 10. 2026. **Kroky 1–3 jsou hotové v popsaném rozsahu.** K
 	- [x] **3c. Pracovní příjmy** — osobní přehled a období, import podle `workMonthlyIncome.ownerUsername` s výchozím `filip`.
 	- [x] **3d. Domácnosti, zařízení a jejich záznamy** — vlastník domácnosti, navázané přístupy a kontrola vztahů ve formulářích.
 	- [x] **Předání 3b–3d** — celý build prošel; Filip potvrdil migraci webové databáze, následně ověřena data a web v izolovaném Playwrightu.
-- [ ] **4. Souhrny portfolia a web.**
+- [x] **4. Souhrny portfolia a web** — výpočty a web podle vlastníka, přechodná ochrana nepřevedených widgetů, automatické kontroly a ověření webu dokončeny. Bez nové migrace.
 - [ ] **5. Směrování notifikací.**
 - [ ] **6. Dividendy a prognózy.**
 - [ ] **7. Cíle a AI analýzy.**
@@ -81,6 +81,26 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 - Dosavadní výběr zařízení přes interní ID a seznam zařízení pro API se v této fázi nemění. Web načítá zařízení přes vlastní domácnost. Samostatný průchod API a omezení servisních klientů zůstávají mimo tuto fázi.
 - Bankovní a pracovní část přehledů používá data vlastníka. Dividendová část přehledu navazuje na krok 6; obecné portfolio souhrny na krok 4.
 
+## Krok 4: souhrny portfolia a web
+
+- [x] Stock, Crypto a Portu souhrny načítají pozice přes vlastníka. Výslovný `AppAdmin` slouží úlohám na pozadí; vynechaný parametr znamená přihlášeného uživatele a bez přihlášení skončí chybou.
+- [x] Detaily a seznamy společných akcií a kryptoměn počítají počet kusů, hodnotu, průměrnou nákupní cenu a zisk pouze z vybraných pozic vlastníka. Otevřené a uzavřené pozice se zpracují samostatně, i když stejné aktivum obsahuje oba typy. Zachované je řazení podle data nákupu.
+- [x] Dashboard a jeho denní akciové tabulky respektují vlastníka. Prázdné portfolio má nulové hodnoty i procentní zisk.
+- [x] Detaily akcií a kryptoměn jsou dostupné běžnému přihlášenému účtu; správa společného katalogu zůstává pro sysadmina a odpovídá tomu menu.
+- [x] Webové grafy a widgety nečtou nepřevedenou osobní historii pro jiný účet. Finanční nezávislost používá vlastní aktuální portfolio, příjmy a výdaje; historické výnosy a příspěvky jsou do kroku 8 pouze pro původního vlastníka.
+- [x] Opravené dvě chyby odhalené naplněným kryptoměnovým scénářem: inicializace neuzavřené pozice a neexistující dividendové metody v šabloně uzavřených kryptopozic.
+- [x] Závěrečný build, kontrola PhpStormu a průchod webovým dumpem.
+
+### Přechodné vazby a návaznosti kroku 4
+
+- `LegacyPortfolioOwnerProvider` výslovně určuje původního vlastníka `filip`, bez změny lokální konfigurace. Chybějící účet není nahrazen přihlášeným uživatelem. Jde o přechodnou pomůcku pro data čekající na kroky 6–9.
+- Na dashboardu jsou nepřevedené dividendové hodnoty, cíle a historická výkonnost pouze pro Filipa. V detailu akcie totéž platí pro osobní dividendy, AI analýzu a AI srovnání valuace; zablokované jsou i přímé požadavky na tyto komponenty. Běžnému účtu zůstávají společné tržní ceny a valuace. Seznam pozic používá pouze společnou dividendu na akcii a vlastní nákupní cenu.
+- Historické a dividendové grafy vracejí ostatním účtům prázdná data i při samostatném AJAX požadavku. Koláč investovaných peněz používá vlastní investice; nepřevedené dividendové záznamy připojuje jen Filipovi.
+- Ukládání dosavadního statistického snímku, resolver investičního cíle a sestavení dosavadního AI portfolia předávají Filipa výslovně, aby fungovaly i bez webového přihlášení. Plné vlastnictví cílů, AI, dividend a historických statistik tím dokončeno není; další samostatné stránky těchto modulů i jejich výpočty patří do kroků 6–9.
+- API dashboardu sdílí změněný builder. Do samostatného průchodu API předává původního vlastníka výslovně pro uživatelské i klientské OAuth tokeny, aby dosavadní klientský token bez účtu nepřestal fungovat. Tento přechod je popsaný v OpenAPI. API zatím **nelze používat jako oddělené portfolio jiného uživatele**; ostatní API serializéry čekají na vlastní průchod.
+- V krocích 6–9 postupně nahradit přechodné podmínky skutečnými dotazy podle vlastníka konkrétního záznamu. Společné kolekce pozic na entitách se nemění; zbývající použití v dividendových výpočtech, `PortfolioPeriodStatisticBuilder` a API serializéru vyžadují navazující úpravy.
+- Krok 4 nepřidává databázovou migraci: mapování ani schéma se nemění. Nepouštěl se přepočet statistik, AI úloha ani odesílání notifikací na webové databázi.
+
 ## Doklady dokončených částí
 
 | Část | Implementace | Hlavní automatické ověření |
@@ -88,6 +108,8 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 | 1 | `1a8f237` | [StockPositionRepositoryOwnershipTest](../tests/Integration/Stock/StockPositionRepositoryOwnershipTest.php): dva vlastníci, cizí ID, nepřihlášený uživatel, explicitní vlastník a změna účtu v jednom procesu. |
 | 2 | `0fdb398` | [PositionOwnershipTest](../tests/Integration/Asset/PositionOwnershipTest.php) a [PositionWebAccessTest](../tests/Integration/Asset/PositionWebAccessTest.php): seznamy, ID, editace, uzavření, historie, zachování vlastníka a odmítnutí cizích URL. |
 | 3a a Portu portfolia | `e8aad85` | [PersonalAssetOwnershipTest](../tests/Integration/Asset/PersonalAssetOwnershipTest.php): přístupy a vazby podle vlastníka, unikátnost tickeru, mazání watchlistu a přístup běžného účtu. [PersonalAssetOwnershipMigrationTest](../tests/Integration/Migrations/PersonalAssetOwnershipMigrationTest.php): převod historie a ochrany migrace. |
+| 3b–3d | `ed1d260` | [PersonalDataOwnershipTest](../tests/Integration/PersonalData/PersonalDataOwnershipTest.php), [PersonalIncomeImportOwnershipTest](../tests/Integration/PersonalData/PersonalIncomeImportOwnershipTest.php), [PersonalDataOwnershipMigrationTest](../tests/Integration/Migrations/PersonalDataOwnershipMigrationTest.php). |
+| 4 | Pracovní větev; commit doplnit po vytvoření Filipem | [PortfolioSummaryOwnershipTest](../tests/Integration/Asset/PortfolioSummaryOwnershipTest.php): společná akcie s 10 a 20 kusy, Stock/Crypto/Portu souhrny, otevřené a uzavřené pozice, řazení, A → B → A v jednom procesu, explicitní vlastník bez přihlášení, prázdný účet, vykreslené osobní stránky běžného účtu, ochrana katalogu a nepřevedených widgetů. |
 
 Po implementaci 3a a Portu portfolií prošlo `composer cs-fix && composer build-all`: 793 unit testů a 176 integračních testů, včetně statické analýzy a validace schématu. Kontroly změněných PHP souborů v PhpStormu prošly. V izolovaném Playwrightu byly pod účtem `filip` ověřeny přehledy Portu a watchlistu, jejich editace a formuláře Portu pozic. Oddělení dvou uživatelů pokrývají integrační testy.
 
@@ -101,12 +123,17 @@ Při průchodu webem nalezen starší nesouvisející problém: `BankAccountGrid
 
 Samotné dokončení těchto částí ještě neznamená oddělení všech dat aplikace. Například globální metody `StockPositionRepository::findAll()` a `PortuAssetRepository::findAll()` ještě používají další výpočty; jejich spotřebitele je potřeba projít v dalších krocích. Filtrování watchlistu v novém AI snímku rovněž neznamená dokončené oddělení AI analýz z kroku 7.
 
+Po kroku 4 prošlo `composer cs-fix && composer build-all`: **800 unit testů (3607 assertions), 230 integračních testů (1110 assertions)**, statická analýza, styl, PHP/Latte kontrola, validace mapování a schématu a kontrola závislostí. Nový integrační soubor obsahuje 20 scénářů; unit testy doplňují nulové procentní zhodnocení, přechodného vlastníka a nepoužití cizí historie ve finanční nezávislosti. Regresní test API potvrzuje funkčnost dosavadního klientského OAuth tokenu bez uživatelské identity. PhpStorm nenašel chyby v 55 změněných či nových PHP souborech.
+
+V izolovaném Playwrightu byly po kroku 4 pod existujícím přihlášením Filipa ověřeny dashboard, přehledy otevřených a uzavřených pozic Stock i Crypto, detail 3M a Bitcoinu včetně přepnutí na pozice, Portu portfolio a jeho pozice, finanční nezávislost a stránka grafů. Grafy dokončily všech 11 datových AJAX požadavků s HTTP 200; nebyly zaznamenány chyby konzole. Webový dump nemá uzavřené kryptopozice, jejich naplněný přehled pokrývá integrační test. Oddělení dvou vlastníků a prázdného účtu i přístup běžného uživatele ověřují automatické testy; na webu se nezakládala nová data ani druhé přihlášení.
+
 ## Migrace a předávání jednotlivých změn
 
 - CLI a integrační testy používají databázi `my-portfolio-app-tracker-tests`. PhpStorm a web používají `my-portfolio-tracker`. Integrační testy obnovují tabulky; nespouštět nad stejnou databází současně testy a migrace.
 - Připravit a otestovat Doctrine migraci. Migraci webové databáze spouští Filip a potvrdí výsledek; až poté následuje závislé ověření webu. Stejný migrační soubor slouží i pro nasazení do clusteru.
 - [Version20261018102336](../migrations/Version20261018102336.php) byla 18. 10. 2026 uživatelem spuštěna na webové databázi a následně ověřena: 1 Portu portfolio a 20 položek watchlistu patří účtu `filip`, nesoulad vlastníka Portu pozice a portfolia je 0. Spuštění v clusteru zde zatím potvrzené není.
 - [Version20261018104607](../migrations/Version20261018104607.php) pro 3b–3d byla 18. 10. 2026 spuštěna Filipem na webové databázi a následně ověřena v `doctrine_migrations`. Všechna převáděná data patří `filip`: 2 bankovní účty, 2307 výdajů, 137 příjmů, 71 štítků, 34 měsíčních příjmů, 1 domácnost a 2 zařízení. Počty odpovídají stavu před migrací, nesoulad vlastníků výdaje a hlavního štítku i rodičovského a potomkovského štítku je 0. Test převodu historie, ochran a návratu migrace prošel. Spuštění v clusteru zde zatím potvrzené není.
+- Krok 4 nevyžaduje migraci webové databáze ani databáze v clusteru.
 - Před každou další změnou přečíst tento plán. Po dokončení aktualizovat příslušný podkrok, důkazy ověření a stav migrace; commit doplnit, jakmile je známý.
 - Celý krok odškrtnout až po splnění všech jeho podkroků a hlavního ověření. U kroku 3 jsou podmínky splněné: všechny podkroky, potvrzená migrace, automatické kontroly i ověření webu.
 - Na konci každé předávané změny uvést její přesné číslo a rozsah, zbývající práci a commit příkaz pro Filipa. Commity provádí Filip.

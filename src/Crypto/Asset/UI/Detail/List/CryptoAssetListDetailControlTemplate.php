@@ -16,6 +16,8 @@ class CryptoAssetListDetailControlTemplate extends BaseControlTemplate
 	/** @var array<CryptoAssetDetailDTO> */
 	public array $sortedCryptoAssetsPositionsDTOs;
 
+	public CryptoAssetListDetailControlEnum $assetDetailControlEnum;
+
 	public float $totalInvestedAmountInCzk;
 
 }

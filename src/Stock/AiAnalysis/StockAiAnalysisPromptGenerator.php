@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
@@ -28,6 +29,7 @@ class StockAiAnalysisPromptGenerator
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
 		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -602,19 +604,17 @@ class StockAiAnalysisPromptGenerator
 	 */
 	private function getPortfolioData(): array
 	{
-		$assets = $this->stockAssetRepository->findAll();
+		$appAdmin = $this->legacyOwnerProvider->getOwner();
+		$assets = $this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, true);
 
 		$data = [];
 		$currentPricesInCzk = [];
 		$totalPortfolioValue = 0.0;
 		foreach ($assets as $asset) {
-			if (!$asset->hasOpenPositions()) {
-				continue;
-			}
-
 			$dto = $this->stockPositionFacade->getStockAssetDetailDTO(
 				$asset->getId(),
 				StockAssetListDetailControlEnum::OPEN_POSITIONS,
+				$appAdmin,
 			);
 			$currentPriceInCzk = $dto->getCurrentPriceInCzk()->getPrice();
 			$currentPricesInCzk[] = $currentPriceInCzk;

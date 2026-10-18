@@ -1,11 +1,11 @@
 {templateType App\Dashboard\UI\DashboardTemplate}
 
 {block #content}
-    {control portfolioGoalControl}
+    {if $showLegacyPortfolioData}{control portfolioGoalControl}{/if}
 
     <div>
         {control dashboardValueControl}
     </div>
 
-    {control portfolioStatisticTotalControl}
+    {if $showLegacyPortfolioData}{control portfolioStatisticTotalControl}{/if}
 {/block}

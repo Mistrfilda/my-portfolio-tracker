@@ -37,7 +37,9 @@ class StockAssetListSummaryDetailControl extends BaseControl
 	public function render(): void
 	{
 		$assets = count($this->stockAssetIds) === 0
-			? $this->stockAssetRepository->findAll()
+			? $this->stockAssetRepository->findWithPositionsForCurrentAppAdmin(
+				$this->assetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS,
+			)
 			: $this->stockAssetRepository->findByIds($this->stockAssetIds);
 
 		$stockAssetsPositionDTOs = [];
@@ -47,23 +49,17 @@ class StockAssetListSummaryDetailControl extends BaseControl
 			StockDividendDetailControl::DAYS_SINCE,
 		);
 		foreach ($assets as $asset) {
-			if ($asset->hasOpenPositions()) {
-				if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::CLOSED_POSITIONS) {
-					continue;
-				}
-			} else {
-				if ($this->assetDetailControlEnum === StockAssetListDetailControlEnum::OPEN_POSITIONS) {
-					continue;
-				}
-			}
-
 			$detailDTO = $this->stockPositionFacade->getStockAssetDetailDTO(
 				$asset->getId(),
 				$this->assetDetailControlEnum,
 			);
 
+			if ($detailDTO->getPositions() === []) {
+				continue;
+			}
+
 			$stockAssetsPositionDTOs[] = $detailDTO;
-			$lastDaysDividendDetailDTOs[$asset->getId()->toString()] = $this->stockAssetDividendDetailService->getDetailDTOFromDate(
+			$lastDaysDividendDetailDTOs[$asset->getId()->toString()] = $this->stockAssetDividendDetailService->getMarketDetailDTOFromDate(
 				$asset,
 				$lastDaysDividendFrom,
 			);

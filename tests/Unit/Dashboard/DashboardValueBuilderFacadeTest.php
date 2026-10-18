@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Dashboard;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceSummaryFacade;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -66,8 +69,11 @@ class DashboardValueBuilderFacadeTest extends TestCase
 
 	private DashboardValueBuilderFacade $dashboardValueBuilderFacade;
 
+	private AppAdmin $appAdmin;
+
 	protected function setUp(): void
 	{
+		$this->appAdmin = $this->createStub(AppAdmin::class);
 		$this->currencyConversionRepository = Mockery::mock(CurrencyConversionRepository::class);
 		$this->stockPositionFacade = Mockery::mock(StockPositionFacade::class);
 		$this->summaryPriceService = Mockery::mock(SummaryPriceService::class);
@@ -96,6 +102,8 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->portfolioStatisticTotalValueProvider,
 			$this->linkGenerator,
 			$this->datetimeFactory,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 	}
 
@@ -123,11 +131,11 @@ class DashboardValueBuilderFacadeTest extends TestCase
 
 		$this->assetPriceSummaryFacade->shouldReceive('getTotalInvestedAmount')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, $this->appAdmin)
 			->andReturn($totalInvestedAmount);
 		$this->assetPriceSummaryFacade->shouldReceive('getCurrentValue')
 			->once()
-			->with(CurrencyEnum::CZK)
+			->with(CurrencyEnum::CZK, $this->appAdmin)
 			->andReturn($currentValue);
 		$this->summaryPriceService->shouldReceive('getSummaryPriceDiff')
 			->once()
@@ -138,11 +146,11 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			->andReturn($performance);
 
 		$getTotalValues = Closure::bind(
-			fn () => $this->getTotalValues(),
+			fn (AppAdmin $owner) => $this->getTotalValues($owner, true),
 			$this->dashboardValueBuilderFacade,
 			DashboardValueBuilderFacade::class,
 		);
-		$group = $getTotalValues();
+		$group = $getTotalValues($this->appAdmin);
 		$values = $group->getPositions();
 
 		self::assertCount(8, $values);
@@ -179,29 +187,35 @@ class DashboardValueBuilderFacadeTest extends TestCase
 
 		$this->stockPositionFacade->shouldReceive('getCurrentPortfolioValueSummaryPrice')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($stockPositionsSummaryPrice);
 		$this->stockPositionFacade->shouldReceive('getCurrentPortfolioValueInCzechStocks')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($czStockPositionsSummaryPrice);
 		$this->stockPositionFacade->shouldReceive('getCurrentPortfolioValueInUsdStocks')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($usdStockPositionsSummaryPrice);
 		$this->stockPositionFacade->shouldReceive('getCurrentPortfolioValueInGbpStocks')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($gbpStockPositionsSummaryPrice);
 		$this->stockPositionFacade->shouldReceive('getCurrentPortfolioValueInEurStocks')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($eurStockPositionsSummaryPrice);
 		$this->stockPositionFacade->shouldReceive('getTotalInvestedAmountSummaryPrice')->with(
 			CurrencyEnum::CZK,
+			$this->appAdmin,
 		)->once()->andReturn($totalInvestedAmount);
 		$this->summaryPriceService->shouldReceive('getSummaryPriceDiff')->with(
 			$stockPositionsSummaryPrice,
 			$totalInvestedAmount,
 		)->once()->andReturn($openDiff);
-		$this->stockClosedPositionFacade->shouldReceive('getAllStockClosedPositionsSummaryPrice')->once()->andReturn(
-			$closedDiff,
-		);
+		$this->stockClosedPositionFacade->shouldReceive('getAllStockClosedPositionsSummaryPrice')->with(
+			$this->appAdmin,
+		)->once()->andReturn($closedDiff);
 		$this->datetimeFactory->shouldReceive('createNow')->once()->andReturn($now);
 
 		$assets = [
@@ -215,14 +229,17 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->createStockAssetMock('Tesla', 'TSLA', -6.50),
 		];
 
-		$this->stockAssetRepository->shouldReceive('getAllActiveAssets')->once()->andReturn($assets);
+		$this->stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')->with(
+			$this->appAdmin,
+			true,
+		)->once()->andReturn($assets);
 
 		$getStockValues = Closure::bind(
-			fn () => $this->getStockValues(),
+			fn (AppAdmin $owner) => $this->getStockValues($owner),
 			$this->dashboardValueBuilderFacade,
 			DashboardValueBuilderFacade::class,
 		);
-		$group = $getStockValues();
+		$group = $getStockValues($this->appAdmin);
 
 		$this->assertCount(2, $group->getTables());
 		$this->assertSame('Top 4 akcie dne', $group->getTables()[0]->getLabel());
@@ -286,7 +303,7 @@ class DashboardValueBuilderFacadeTest extends TestCase
 	private function createStockAssetMock(string $name, string $ticker, float $trend): StockAsset|MockInterface
 	{
 		$stockAsset = Mockery::mock(StockAsset::class);
-		$stockAsset->shouldReceive('hasOpenPositions')->once()->andReturn(true);
+		$stockAsset->shouldReceive('shouldBeUpdated')->once()->andReturn(true);
 		$stockAsset->shouldReceive('getTrend')
 			->once()
 			->with(Mockery::on(static fn (ImmutableDateTime $date): bool => $date->format('Y-m-d') === '2026-04-26'))

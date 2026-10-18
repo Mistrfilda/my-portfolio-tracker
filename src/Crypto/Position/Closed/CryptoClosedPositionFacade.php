@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Crypto\Position\Closed;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
@@ -104,11 +105,11 @@ class CryptoClosedPositionFacade
 		return $cryptoPosition;
 	}
 
-	public function getAllCryptoClosedPositionsSummaryPrice(): PriceDiff
+	public function getAllCryptoClosedPositionsSummaryPrice(AppAdmin|null $appAdmin = null): PriceDiff
 	{
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 		$investedAmount = new SummaryPrice(CurrencyEnum::CZK);
-		foreach ($this->getAllCryptoClosedPositions() as $closedPosition) {
+		foreach ($this->getAllCryptoClosedPositions($appAdmin) as $closedPosition) {
 			$summaryPrice->addSummaryPrice(
 				$closedPosition->getTotalAmountInBrokerCurrencyInCzk(),
 			);
@@ -124,14 +125,11 @@ class CryptoClosedPositionFacade
 	/**
 	 * @return array<CryptoAssetClossedPositionDTO>
 	 */
-	public function getAllCryptoClosedPositions(): array
+	public function getAllCryptoClosedPositions(AppAdmin|null $appAdmin = null): array
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$closedPositionDTOS = [];
-		foreach ($this->cryptoAssetRepository->findAll() as $cryptoAsset) {
-			if ($cryptoAsset->hasClosedPositions() === false) {
-				continue;
-			}
-
+		foreach ($this->cryptoAssetRepository->findWithPositionsForAppAdmin($appAdmin, false) as $cryptoAsset) {
 			$totalInvestedAmount = null;
 			$totalAmount = null;
 			$totalInvestedAmountInBrokerCurrency = null;
@@ -139,7 +137,11 @@ class CryptoClosedPositionFacade
 			$totalInvestedAmountInBrokerCurrencyInCzk = null;
 			$totalAmountInBrokerCurrencyInCzk = null;
 			$positions = [];
-			foreach ($cryptoAsset->getClosedPositions() as $closedPosition) {
+			foreach ($this->cryptoPositionRepository->findByAssetForAppAdmin(
+				$cryptoAsset->getId(),
+				$appAdmin,
+				false,
+			) as $closedPosition) {
 				$positions[] = $closedPosition;
 				assert($closedPosition->getCryptoClosedPosition() !== null);
 				if (

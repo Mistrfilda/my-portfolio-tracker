@@ -44,9 +44,16 @@ class MenuBuilder
 					SvgIcon::COLLECTION,
 					'Akcie',
 					['StockAssetEdit', 'StockAssetDividend'],
+					onlySysadmin: true,
 				),
 				new MenuItem('StockAssetWatchlist', 'default', SvgIcon::EYE, 'Jednoduchý watchlist'),
-				new MenuItem('StockAssetIndustry', 'default', SvgIcon::BUILDING_STOREFRONT, 'Odvětví'),
+				new MenuItem(
+					'StockAssetIndustry',
+					'default',
+					SvgIcon::BUILDING_STOREFRONT,
+					'Odvětví',
+					onlySysadmin: true,
+				),
 				new MenuItem(
 					'StockValuationOverview',
 					'default',
@@ -102,7 +109,14 @@ class MenuBuilder
 			]),
 			new MenuItem('PortfolioGoal', 'default', SvgIcon::PRESENTATION_CHART_UP, 'Cíle'),
 			new MenuGroup('Kryptoměny', SvgIcon::CRYPTO_BITCOIN, [
-				new MenuItem('CryptoAsset', 'default', SvgIcon::CRYPTO_BITCOIN, 'Kryptoměny', ['CryptoAssetEdit']),
+				new MenuItem(
+					'CryptoAsset',
+					'default',
+					SvgIcon::CRYPTO_BITCOIN,
+					'Kryptoměny',
+					['CryptoAssetEdit'],
+					onlySysadmin: true,
+				),
 				new MenuItem('CryptoPosition', 'default', SvgIcon::CRYPTO_BITCOIN, 'Pozice', ['CryptoPositionEdit']),
 				new MenuItem('CryptoAssetPositionDetail', 'default', SvgIcon::CRYPTO_BITCOIN, 'Přehled pozic'),
 			]),

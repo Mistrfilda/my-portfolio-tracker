@@ -4,7 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Stock\Position\Closed;
 
+use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
@@ -37,6 +39,7 @@ class StockClosedPositionFacade
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private readonly JobRequestFacade $jobRequestFacade,
+		private readonly LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -112,11 +115,11 @@ class StockClosedPositionFacade
 		return $stockPosition;
 	}
 
-	public function getAllStockClosedPositionsSummaryPrice(): PriceDiff
+	public function getAllStockClosedPositionsSummaryPrice(AppAdmin|null $appAdmin = null): PriceDiff
 	{
 		$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 		$investedAmount = new SummaryPrice(CurrencyEnum::CZK);
-		foreach ($this->getAllStockClosedPositions() as $closedPosition) {
+		foreach ($this->getAllStockClosedPositions($appAdmin) as $closedPosition) {
 			$summaryPrice->addSummaryPrice(
 				$closedPosition->getTotalAmountInBrokerCurrencyWithDividendsInCzk() ?? $closedPosition->getTotalAmountInBrokerCurrencyInCzk(),
 			);
@@ -132,14 +135,11 @@ class StockClosedPositionFacade
 	/**
 	 * @return array<StockAssetClossedPositionDTO>
 	 */
-	public function getAllStockClosedPositions(): array
+	public function getAllStockClosedPositions(AppAdmin|null $appAdmin = null): array
 	{
+		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$closedPositionDTOS = [];
-		foreach ($this->stockAssetRepository->findAll() as $stockAsset) {
-			if ($stockAsset->hasClosedPositions() === false) {
-				continue;
-			}
-
+		foreach ($this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, false) as $stockAsset) {
 			$totalInvestedAmount = null;
 			$totalAmount = null;
 			$totalInvestedAmountInBrokerCurrency = null;
@@ -147,7 +147,11 @@ class StockClosedPositionFacade
 			$totalInvestedAmountInBrokerCurrencyInCzk = null;
 			$totalAmountInBrokerCurrencyInCzk = null;
 			$positions = [];
-			foreach ($stockAsset->getClosedPositions() as $closedPosition) {
+			foreach ($this->stockPositionRepository->findByAssetForAppAdmin(
+				$stockAsset->getId(),
+				$appAdmin,
+				false,
+			) as $closedPosition) {
 				$positions[] = $closedPosition;
 				assert($closedPosition->getStockClosedPosition() !== null);
 				if (
@@ -216,9 +220,10 @@ class StockClosedPositionFacade
 				return [];
 			}
 
-			$dividendsSummaryPrice = $this->stockAssetDividendRecordFacade->getTotalSummaryPriceForStockAsset(
-				$stockAsset,
-			);
+			// Personal dividend records gain ownership in step 6.
+			$dividendsSummaryPrice = $this->legacyOwnerProvider->isOwner($appAdmin)
+				? $this->stockAssetDividendRecordFacade->getTotalSummaryPriceForStockAsset($stockAsset)
+				: null;
 
 			$totalAmountWithDividends = null;
 			$totalAmountInBrokerCurrencyWithDividends = null;

@@ -8,6 +8,7 @@ use App\Crypto\Position\Closed\CryptoAssetClossedPositionDTO;
 use App\Crypto\Position\Closed\CryptoClosedPositionFacade;
 use App\UI\Base\BaseControl;
 
+/** @property-read CryptoAssetClosedPositionListControlTemplate $template */
 class CryptoAssetClosedPositionListControl extends BaseControl
 {
 
@@ -28,9 +29,11 @@ class CryptoAssetClosedPositionListControl extends BaseControl
 			return $bPriceDiff <=> $aPriceDiff;
 		});
 
-		$this->template->positions = $positions;
-		$this->getTemplate()->setFile(__DIR__ . '/CryptoAssetClosedPositionListControl.latte');
-		$this->getTemplate()->render();
+		$template = $this->createTemplate(CryptoAssetClosedPositionListControlTemplate::class);
+		assert($template instanceof CryptoAssetClosedPositionListControlTemplate);
+		$template->positions = $positions;
+		$template->setFile(__DIR__ . '/CryptoAssetClosedPositionListControl.latte');
+		$template->render();
 	}
 
 }
