@@ -15,6 +15,7 @@ The project exposes a REST API backed by Slim Framework, registered as Nette DI 
 - **`ApiKeyMiddleware`** (`apiKeyMiddleware`) — preserves sensor authentication against `%api.apiKeys%`. Never enable it for additional endpoints implicitly.
 - **`src/OAuth2/`** — League OAuth server, database storage, sessionless browser authorization, token/revocation endpoints, and client CLI commands. Use [oauth2-server](../oauth2-server/SKILL.md) when changing these behaviors or integrating clients.
 - **`RequestValidationMiddleware`** — validates requests and responses against `doc/openapi.yaml`; currently skips response validation when the response status is not declared. Keep expected response schemas in the spec.
+- Invalid requests return JSON 400 `invalid_request`. Required missing rates on the numeric dashboard/rates endpoints return JSON 503 `data_unavailable`; do not substitute zero or a different historical rate.
 - **Controllers** — plain classes with `__invoke(Request, Response): Response` or named action methods.
 - **`Slim\CallableResolver`** (from `@psr11.container`) and **`ErrorMiddleware`** for error handling.
 - PSR-7/18 helpers: `App\Http\Psr7\Psr7RequestFactory`, `App\Http\Psr18\Psr18ClientFactory`.
@@ -34,6 +35,9 @@ Real API keys live in `config/config.local.neon`.
 - `App\Api\Controller\PingController` — health check.
 - `App\Stock\Asset\Api\StockAssetController` + `StockAssetSerializer` — stock asset endpoints.
 - `App\Dashboard\Api\DashboardValueController` — dashboard value endpoint.
+- `App\Dashboard\Api\DashboardSummaryController` + `DashboardSummaryProvider` — numeric personal dashboard (`portfolio:read`). Reuses domain calculations and shared forecast/mover providers with the web dashboard.
+- `App\Currency\Api\ExchangeRateController` — twelve dashboard currency pairs (`market:read`).
+- `App\Stock\Dividend\Api\StockDividendController` + `StockDividendSerializer` — personal records (`portfolio:read`) and shared company events (`market:read`). Lists use `items`, limit 1–50, default 8.
 - `App\Home\Device\Record\Api\HomeDeviceRecordController` — home device ingest endpoint.
 
 ### Adding a new endpoint

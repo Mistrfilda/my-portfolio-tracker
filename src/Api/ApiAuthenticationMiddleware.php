@@ -24,6 +24,7 @@ use Slim\Psr7\Response;
 class ApiAuthenticationMiddleware implements MiddlewareInterface
 {
 
+	/** @param list<OAuthScope> $alternativeScopes */
 	public function __construct(
 		private OAuthScope $scope,
 		private bool $allowLegacy,
@@ -35,6 +36,7 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 		private CurrentAppAdminGetter $currentUser,
 		private OAuthResponses $responses,
 		private bool $requireUser = false,
+		private array $alternativeScopes = [],
 	)
 	{
 	}
@@ -82,10 +84,11 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 				return $this->unauthorized();
 			}
 
-			if (
-				!in_array($this->scope->value, $record->getScopes(), true)
-				|| !in_array($this->scope->value, $client->getScopes(), true)
-			) {
+			$acceptedScopes = array_map(
+				static fn (OAuthScope $scope): string => $scope->value,
+				[$this->scope, ...$this->alternativeScopes],
+			);
+			if (array_intersect($acceptedScopes, $record->getScopes(), $client->getScopes()) === []) {
 				return $this->responses->error(
 					new Response(),
 					'insufficient_scope',

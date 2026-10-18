@@ -14,6 +14,7 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecord;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
+use App\Stock\Dividend\Forecast\StockAssetDividendRemainingForecastProvider;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Dividend\StockAssetDividendFacade;
 use App\Test\Unit\Dashboard\Support\DashboardLinkGeneratorPresenter;
@@ -59,8 +60,10 @@ class DashboardDividendvalueBuilderFacadeTest extends TestCase
 			$this->linkGenerator,
 			$this->datetimeFactory,
 			$this->stockAssetDividendRecordFacade,
-			$this->stockAssetDividendForecastRepository,
-			$this->currencyConversionFacade,
+			new StockAssetDividendRemainingForecastProvider(
+				$this->stockAssetDividendForecastRepository,
+				$this->currencyConversionFacade,
+			),
 			$this->createStub(CurrentAppAdminGetter::class),
 			$this->createStub(StockAssetRepository::class),
 		);

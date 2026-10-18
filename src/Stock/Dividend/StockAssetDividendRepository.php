@@ -210,6 +210,30 @@ class StockAssetDividendRepository extends BaseRepository
 		}
 	}
 
+	/** @return array<StockAssetDividend> */
+	public function findForApi(
+		int $limit,
+		ImmutableDateTime|null $exDateFrom = null,
+		ImmutableDateTime|null $exDateTo = null,
+		bool $ascending = false,
+	): array
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->addSelect('stockAsset');
+		if ($exDateFrom !== null) {
+			$qb->andWhere('stockAssetDividend.exDate >= :from')->setParameter('from', $exDateFrom);
+		}
+
+		if ($exDateTo !== null) {
+			$qb->andWhere('stockAssetDividend.exDate <= :to')->setParameter('to', $exDateTo);
+		}
+
+		$qb->orderBy('stockAssetDividend.exDate', $ascending ? 'ASC' : 'DESC');
+		$qb->addOrderBy('stockAssetDividend.id', 'ASC');
+		$qb->setMaxResults($limit);
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilder(): QueryBuilder
 	{
 		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividend');

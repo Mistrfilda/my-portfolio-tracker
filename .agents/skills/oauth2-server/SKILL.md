@@ -33,12 +33,16 @@ OAuth lives in `src/OAuth2/`, uses `league/oauth2-server`, and persists protocol
 | Scope | Current access |
 | --- | --- |
 | `api:read` | Shared ping and stock catalog; user authorization required for dashboard, stock detail and `/me` |
+| `portfolio:read` | Numeric `/dashboard/summary`, `/portfolio/dividends` and `/me`; requires user authorization |
+| `market:read` | Shared `/exchange-rates` and `/stock-dividends`; user or client-only tokens |
 | `home:read` | Read the user's own devices and measurements |
 | `home:write` | Create measurements for the user's own devices |
 
 Keep `src/OAuth2/OAuthScope.php`, route middleware, OpenAPI, and tests aligned when extending scopes. Enforce the client allowlist, granted token scopes, and endpoint requirements separately. Refresh can preserve or reduce permission; new scopes are not silently granted to existing clients or tokens.
 
-- Client-only tokens can use ping and the shared stock catalog; its `aiAnalysisPrice` is null without a user. Personal routes reject client-only tokens with 403 even when their scope matches.
+`api:read` does not imply the new scopes. `/me` accepts either `portfolio:read` or `api:read`, with the same scope present in both token and client allowlist. `oauth:client:scopes` replaces the complete allowlist under the client lock and revokes all tokens on a real change; identical permissions preserve tokens.
+
+- Client-only tokens can use ping and the shared stock catalog with `api:read`, or rates/company dividends with `market:read`; catalog `aiAnalysisPrice` is null without a user. Personal routes reject client-only tokens with 403 even when their scope matches.
 - Set `requireUser: true` through `ApiAuthenticationMiddlewareFactory` for personal routes. Ownership comes from the validated API identity, never request parameters or a default account. The temporary legacy portfolio owner has been removed.
 - Stock metadata, prices, valuation models and company dividend events remain shared. Positions, dividend records/paid amounts and AI analysis prices belong only to the token's user. Empty accounts receive empty personal lists and zero dashboard totals.
 - Preserve per-account filters and caches through aggregates and nested serialization. Cover two owners of the same asset, an empty account, alternating requests, client-only tokens, and legacy sensor ownership in `tests/Integration/Api/ApiDataIsolationTest.php`.

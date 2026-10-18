@@ -15,6 +15,7 @@ use App\Crypto\Position\CryptoPositionFacade;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Dashboard\DashboardDividendvalueBuilderFacade;
+use App\Dashboard\DashboardStockPerformanceProvider;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\Total\PortfolioStatisticTotalValue;
@@ -97,10 +98,9 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->stockClosedPositionFacade,
 			$this->cryptoPositionFacade,
 			$this->cryptoAssetRepository,
-			$this->stockAssetRepository,
+			new DashboardStockPerformanceProvider($this->stockAssetRepository, $this->datetimeFactory),
 			$this->portfolioStatisticTotalValueProvider,
 			$this->linkGenerator,
-			$this->datetimeFactory,
 			$this->createStub(CurrentAppAdminGetter::class),
 		);
 	}

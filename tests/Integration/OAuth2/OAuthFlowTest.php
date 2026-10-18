@@ -75,6 +75,76 @@ class OAuthFlowTest extends ApiTestCase
 		self::assertSame(400, $this->app->handle($request)->getStatusCode());
 	}
 
+	public function testDesktopDashboardScopesSurvivePkceAndCanOnlyBeReducedOnRefresh(): void
+	{
+		$client = $this->client(false, ['api:read', 'portfolio:read', 'market:read']);
+		$verifier = bin2hex(random_bytes(32));
+		[, , $form] = $this->authorizationForm($client, $verifier, ['scope' => 'portfolio:read market:read']);
+		self::assertStringContainsString(
+			'Čtení vlastního portfolia, dividend a identity uživatele',
+			(string) $form->getBody(),
+		);
+		self::assertStringContainsString(
+			'Čtení měnových kurzů a dividend společností',
+			(string) $form->getBody(),
+		);
+		[$code, $user] = $this->code($client, $verifier, ['scope' => 'portfolio:read market:read']);
+		$response = $this->exchange($client, $code, $verifier);
+		self::assertSame(200, $response->getStatusCode());
+		$data = $this->data($response);
+		$access = TypeValidator::validateString($data['access_token']);
+		self::assertSame($user->getId()->toString(), $this->data($this->api('/me', $access))['id']);
+		self::assertSame(200, $this->api('/dashboard/summary', $access)->getStatusCode());
+		self::assertSame(200, $this->api('/portfolio/dividends', $access)->getStatusCode());
+		self::assertSame(200, $this->api('/stock-dividends', $access)->getStatusCode());
+		self::assertSame(403, $this->api('/ping', $access)->getStatusCode());
+
+		$refresh = TypeValidator::validateString($data['refresh_token']);
+		self::assertSame(400, $this->refresh($client, $refresh, ['scope' => 'api:read'])->getStatusCode());
+		$reduced = $this->refresh($client, $refresh, ['scope' => 'portfolio:read']);
+		self::assertSame(200, $reduced->getStatusCode());
+		$reducedData = $this->data($reduced);
+		$reducedAccess = TypeValidator::validateString($reducedData['access_token']);
+		self::assertSame(200, $this->api('/me', $reducedAccess)->getStatusCode());
+		self::assertSame(403, $this->api('/stock-dividends', $reducedAccess)->getStatusCode());
+		self::assertSame(400, $this->refresh(
+			$client,
+			TypeValidator::validateString($reducedData['refresh_token']),
+			['scope' => 'portfolio:read market:read'],
+		)->getStatusCode());
+	}
+
+	public function testChangingClientScopesRevokesOldAccessAndRefreshAndRequiresNewConsent(): void
+	{
+		$client = $this->client(false);
+		$verifier = bin2hex(random_bytes(32));
+		[$code] = $this->code($client, $verifier);
+		$data = $this->data($this->exchange($client, $code, $verifier));
+		$access = TypeValidator::validateString($data['access_token']);
+		$refresh = TypeValidator::validateString($data['refresh_token']);
+		$clients = $this->getService(OAuthClientFacade::class);
+
+		$clients->updateScopes($client->client->getIdentifier(), ['api:read', 'api:read']);
+		self::assertSame(200, $this->api('/me', $access)->getStatusCode());
+		self::assertSame(403, $this->api('/dashboard/summary', $access)->getStatusCode());
+
+		$clients->updateScopes($client->client->getIdentifier(), ['portfolio:read', 'market:read']);
+		self::assertSame(401, $this->api('/me', $access)->getStatusCode());
+		self::assertSame(400, $this->refresh($client, $refresh)->getStatusCode());
+		self::assertSame(400, $this->app->handle($this->request(
+			'GET',
+			'/api/oauth/authorize',
+			$this->authorizeParameters($client, $verifier),
+		))->getStatusCode());
+
+		[$newCode] = $this->code($client, $verifier, ['scope' => 'portfolio:read market:read']);
+		$new = $this->data($this->exchange($client, $newCode, $verifier));
+		$newAccess = TypeValidator::validateString($new['access_token']);
+		self::assertSame(200, $this->api('/me', $newAccess)->getStatusCode());
+		self::assertSame(200, $this->api('/stock-dividends', $newAccess)->getStatusCode());
+		self::assertSame(403, $this->api('/ping', $newAccess)->getStatusCode());
+	}
+
 	public function testRejectsInvalidSecretAndUnregisteredScope(): void
 	{
 		$client = $this->client(true);

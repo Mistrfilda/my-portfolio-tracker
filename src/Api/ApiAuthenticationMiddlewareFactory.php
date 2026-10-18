@@ -28,10 +28,12 @@ class ApiAuthenticationMiddlewareFactory
 	{
 	}
 
+	/** @param list<OAuthScope> $alternativeScopes */
 	public function create(
 		OAuthScope $scope,
 		bool $allowLegacy = false,
 		bool $requireUser = false,
+		array $alternativeScopes = [],
 	): ApiAuthenticationMiddleware
 	{
 		return new ApiAuthenticationMiddleware(
@@ -45,6 +47,7 @@ class ApiAuthenticationMiddlewareFactory
 			$this->currentUser,
 			$this->responses,
 			$requireUser,
+			$alternativeScopes,
 		);
 	}
 

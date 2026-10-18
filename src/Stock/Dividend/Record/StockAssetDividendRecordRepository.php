@@ -267,8 +267,10 @@ class StockAssetDividendRecordRepository extends BaseRepository
 	public function findLastDividendRecords(int $limit = 8, AppAdmin|null $appAdmin = null): array
 	{
 		$qb = $this->createQueryBuilder($appAdmin);
+		$qb->addSelect('stockAssetDividend', 'stockAsset');
 		$qb->setMaxResults($limit);
 		$qb->orderBy('stockAssetDividend.exDate', 'DESC');
+		$qb->addOrderBy('stockAssetDividendRecord.id', 'ASC');
 		return $qb->getQuery()->getResult();
 	}
 

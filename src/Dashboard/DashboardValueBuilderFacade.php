@@ -18,7 +18,6 @@ use App\Statistic\PortolioStatisticType;
 use App\Statistic\Total\PortfolioStatisticTotalValue;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use App\Stock\Asset\StockAsset;
-use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\Closed\StockClosedPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
@@ -26,7 +25,6 @@ use App\UI\Filter\PercentageFilter;
 use App\UI\Icon\SvgIcon;
 use App\UI\Tailwind\TailwindColorConstant;
 use App\Utils\Datetime\DatetimeConst;
-use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Application\LinkGenerator;
 
 class DashboardValueBuilderFacade implements DashboardValueBuilder
@@ -42,10 +40,9 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		private readonly StockClosedPositionFacade $stockClosedPositionFacade,
 		private readonly CryptoPositionFacade $cryptoPositionFacade,
 		private readonly CryptoAssetRepository $cryptoAssetRepository,
-		private readonly StockAssetRepository $stockAssetRepository,
+		private readonly DashboardStockPerformanceProvider $stockPerformanceProvider,
 		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 		private readonly LinkGenerator $linkGenerator,
-		private readonly DatetimeFactory $datetimeFactory,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
@@ -563,29 +560,11 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	 */
 	private function buildStockDailyPerformanceTables(AppAdmin $appAdmin): array
 	{
-		$comparisonDate = $this->datetimeFactory->createNow()->deductDaysFromDatetime(1);
-		$dailyPerformance = [];
-
-		foreach ($this->stockAssetRepository->findWithPositionsForAppAdmin($appAdmin, true) as $asset) {
-			assert($asset instanceof StockAsset);
-			if ($asset->shouldBeUpdated() === false) {
-				continue;
-			}
-
-			$dailyPerformance[] = [
-				'stockAsset' => $asset,
-				'trend' => $asset->getTrend($comparisonDate),
-			];
-		}
+		$dailyPerformance = $this->stockPerformanceProvider->getDailyPerformance($appAdmin);
 
 		if (count($dailyPerformance) === 0) {
 			return [];
 		}
-
-		usort(
-			$dailyPerformance,
-			static fn (array $left, array $right): int => $right['trend'] <=> $left['trend'],
-		);
 
 		return [
 			$this->createStockDailyPerformanceTable(

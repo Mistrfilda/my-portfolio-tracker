@@ -18,7 +18,6 @@ use Nette\Utils\Json;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Psr\Http\Message\ServerRequestInterface;
 use Ramsey\Uuid\Uuid;
-use Slim\Exception\HttpBadRequestException;
 use Slim\Psr7\Factory\ServerRequestFactory;
 use Slim\Psr7\Factory\StreamFactory;
 
@@ -83,9 +82,12 @@ class HomeDeviceRecordApiTest extends ApiTestCase
 
 	public function testCreateRejectsRequestWithoutInternalId(): void
 	{
-		$this->expectException(HttpBadRequestException::class);
-
-		$this->app->handle($this->createJsonRequest(['value' => 20.0]));
+		$response = $this->app->handle($this->createJsonRequest(['value' => 20.0]));
+		self::assertSame(400, $response->getStatusCode());
+		self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+		self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));
+		$data = Json::decode((string) $response->getBody(), forceArrays: true);
+		self::assertSame('invalid_request', $data['error']);
 	}
 
 	public function testLegacyKeyCannotListAnotherUsersDevice(): void

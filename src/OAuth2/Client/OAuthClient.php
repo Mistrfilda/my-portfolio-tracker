@@ -118,6 +118,12 @@ class OAuthClient implements ClientEntityInterface
 		$this->secretHash = $hash;
 	}
 
+	/** @param list<string> $scopes */
+	public function changeScopes(array $scopes): void
+	{
+		$this->scopes = $scopes;
+	}
+
 	public function supportsGrantType(string $grantType): bool
 	{
 		return $this->active && match ($grantType) {

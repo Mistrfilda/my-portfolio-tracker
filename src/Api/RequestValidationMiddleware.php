@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Api;
 
+use App\OAuth2\Http\OAuthResponses;
 use League\OpenAPIValidation\PSR7\Exception\NoResponseCode;
 use League\OpenAPIValidation\PSR7\Exception\ValidationFailed;
 use League\OpenAPIValidation\PSR7\OperationAddress;
@@ -13,7 +14,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use RuntimeException;
-use Slim\Exception\HttpBadRequestException;
+use Slim\Psr7\Response;
 use Slim\Routing\RouteContext;
 
 class RequestValidationMiddleware implements MiddlewareInterface
@@ -32,8 +33,13 @@ class RequestValidationMiddleware implements MiddlewareInterface
 		try {
 			$requestValidator = $this->validatorBuilder->getServerRequestValidator();
 			$requestValidator->validate($request);
-		} catch (ValidationFailed $e) {
-			throw new HttpBadRequestException($request, $e->getMessage(), $e);
+		} catch (ValidationFailed) {
+			return (new OAuthResponses())->error(
+				new Response(),
+				'invalid_request',
+				'The request does not match the API specification.',
+				400,
+			);
 		}
 
 		$response = $handler->handle($request);

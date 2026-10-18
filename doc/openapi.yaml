@@ -13,11 +13,151 @@ tags:
       description: Stock asset endpoints.
     - name: Home Devices
       description: Home device measurement endpoints.
+    - name: Market
+      description: Shared exchange rates and company dividend events.
+    - name: Portfolio
+      description: The authenticated user's portfolio data.
 
 security:
     - OAuth2: [api:read]
 
 paths:
+    /dashboard/summary:
+        get:
+            summary: Get the authenticated user's numeric dashboard summary
+            description: >-
+                Requires user authorization and portfolio:read. Amounts are unformatted numbers
+                in CZK; percentages use percentage points (12.5 means 12.5%). Open-position
+                totals use the same historical broker-cost and current-value calculations as
+                the web dashboard. Annual dividends include all recorded entitlements, including
+                announced future events, grouped by ex-date year. No forecast or insufficient
+                performance history is represented by null. Empty portfolios have zero totals.
+                generatedAt is the response assembly time, not the freshness of every price.
+            tags: [Dashboard]
+            security:
+                - OAuth2: [portfolio:read]
+            responses:
+                '200':
+                    description: Personal portfolio summary
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/DashboardSummary'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '503':
+                    $ref: '#/components/responses/DataUnavailable'
+    /exchange-rates:
+        get:
+            summary: Get the twelve exchange-rate pairs used by the dashboard
+            description: >-
+                Shared data, available to user and client-only tokens. Returns the latest stored
+                rate for each pair, with its own effective date and update timestamp. A rate is
+                the amount of toCurrency for one unit of fromCurrency. Missing required rates
+                return 503; rates are never silently replaced by zero.
+            tags: [Market]
+            security:
+                - OAuth2: [market:read]
+            responses:
+                '200':
+                    description: Latest stored exchange rates
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required: [items]
+                                properties:
+                                    items:
+                                        type: array
+                                        minItems: 12
+                                        maxItems: 12
+                                        items:
+                                            $ref: '#/components/schemas/ExchangeRate'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '503':
+                    $ref: '#/components/responses/DataUnavailable'
+    /portfolio/dividends:
+        get:
+            summary: Get the authenticated user's latest dividend records
+            description: >-
+                Includes announced future entitlements as on the web dashboard. Ordered by
+                exDate descending, then record ID ascending. Gross and net amounts are totals
+                for the user's pieces, in the record currency. Both regular and special dividends
+                are included. Shared dividend events contain no other users' records.
+            tags: [Portfolio]
+            security:
+                - OAuth2: [portfolio:read]
+            parameters:
+                - $ref: '#/components/parameters/DividendLimit'
+            responses:
+                '200':
+                    description: Personal dividend records
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required: [items]
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/PortfolioDividend'
+                '400':
+                    $ref: '#/components/responses/InvalidRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+    /stock-dividends:
+        get:
+            summary: Get shared company dividend events
+            description: >-
+                Available to user and client-only tokens. Amounts are per share, in the event
+                currency. Includes both regular and special dividends. Date bounds are inclusive;
+                exDateFrom must not exceed exDateTo. Sorts by exDate and then event ID ascending.
+                For the web dashboard's last-year window use exDateFrom = today minus 380 days,
+                sort = exDateAsc, and limit = 8. Contains no personal holdings or paid amounts.
+            tags: [Market]
+            security:
+                - OAuth2: [market:read]
+            parameters:
+                - $ref: '#/components/parameters/DividendLimit'
+                - name: exDateFrom
+                  in: query
+                  schema: {type: string, format: date}
+                - name: exDateTo
+                  in: query
+                  schema: {type: string, format: date}
+                - name: sort
+                  in: query
+                  schema: {type: string, enum: [exDateDesc, exDateAsc], default: exDateDesc}
+            responses:
+                '200':
+                    description: Shared dividend events
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required: [items]
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/CompanyDividend'
+                '400':
+                    $ref: '#/components/responses/InvalidRequest'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
     /ping:
         get:
             summary: Ping the API
@@ -192,6 +332,7 @@ paths:
             summary: Get the user represented by an OAuth access token
             security:
                 - OAuth2: [api:read]
+                - OAuth2: [portfolio:read]
             responses:
                 '200':
                     description: Authenticated user
@@ -418,7 +559,25 @@ paths:
                     description: OAuth signing keys are not configured
 
 components:
+    parameters:
+        DividendLimit:
+            name: limit
+            in: query
+            description: Maximum number of items to return.
+            schema: {type: integer, minimum: 1, maximum: 50, default: 8}
     responses:
+        InvalidRequest:
+            description: Invalid query parameters
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/OAuthErrorResponse'
+        DataUnavailable:
+            description: Required exchange rate data or OAuth configuration is unavailable
+            content:
+                application/json:
+                    schema:
+                        $ref: '#/components/schemas/OAuthErrorResponse'
         Unauthorized:
             description: Missing or invalid authentication
             content:
@@ -439,6 +598,8 @@ components:
                     tokenUrl: /api/oauth/token
                     scopes:
                         api:read: Read shared stock catalog; personal endpoints require user authorization
+                        market:read: Read shared exchange rates and company dividend events
+                        portfolio:read: Read personal dashboard and dividends; requires user authorization
                         home:read: Read own home devices and records; requires user authorization
                         home:write: Create records for own home devices; requires user authorization
                 authorizationCode:
@@ -447,6 +608,8 @@ components:
                     refreshUrl: /api/oauth/token
                     scopes:
                         api:read: Read own portfolio and shared stock data
+                        portfolio:read: Read own dashboard, dividend records and user identity
+                        market:read: Read shared exchange rates and company dividend events
                         home:read: Read own home devices and records
                         home:write: Create records for own home devices
         ApiKey:
@@ -454,6 +617,174 @@ components:
             in: header
             name: X-Api-Key
     schemas:
+        DashboardSummary:
+            type: object
+            additionalProperties: false
+            required: [generatedAt, currency, total, stocks, crypto, portu, dividends, performance, stockMovers]
+            properties:
+                generatedAt: {type: string, format: date-time}
+                currency: {type: string, enum: [CZK]}
+                total:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                stocks:
+                    type: object
+                    additionalProperties: false
+                    required: [amounts, closedPositionsProfitIncludingDividends, byTradingCurrency]
+                    properties:
+                        amounts:
+                            $ref: '#/components/schemas/PortfolioAmounts'
+                        closedPositionsProfitIncludingDividends:
+                            type: number
+                            description: Realized stock profit including dividends, using historical CZK conversion.
+                        byTradingCurrency:
+                            type: array
+                            description: Current value in CZK grouped by the stock's trading currency, not country.
+                            items:
+                                type: object
+                                additionalProperties: false
+                                required: [currency, currentValue]
+                                properties:
+                                    currency:
+                                        $ref: '#/components/schemas/ApiCurrency'
+                                    currentValue: {type: number}
+                crypto:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                portu:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                dividends:
+                    type: object
+                    additionalProperties: false
+                    required: [byYear, remainingForecast]
+                    properties:
+                        byYear:
+                            type: array
+                            description: Ex-date years descending; net uses the configured stock dividend tax.
+                            items:
+                                $ref: '#/components/schemas/DividendYearAmounts'
+                        remainingForecast:
+                            type: object
+                            nullable: true
+                            additionalProperties: false
+                            description: Remaining net and gross amounts of the current year's default forecast, at current exchange rates.
+                            required: [year, grossAmount, netAmount]
+                            properties:
+                                year: {type: integer}
+                                grossAmount: {type: number}
+                                netAmount: {type: number}
+                performance:
+                    type: object
+                    nullable: true
+                    additionalProperties: false
+                    description: Stored historical portfolio performance, as on the web dashboard; GET never rebuilds statistics.
+                    required: [from, to, timeWeightedReturnPercent, annualizedTimeWeightedReturnPercent, moneyWeightedReturnPercent, xirrPercent]
+                    properties:
+                        from: {type: string, format: date, nullable: true}
+                        to: {type: string, format: date, nullable: true}
+                        timeWeightedReturnPercent: {type: number}
+                        annualizedTimeWeightedReturnPercent: {type: number, nullable: true}
+                        moneyWeightedReturnPercent: {type: number, nullable: true}
+                        xirrPercent: {type: number, nullable: true}
+                stockMovers:
+                    type: object
+                    additionalProperties: false
+                    description: Best and worst four owned open stocks versus the previous trading day. Lists can overlap; missing price history follows the web's zero-change behavior.
+                    required: [best, worst]
+                    properties:
+                        best:
+                            type: array
+                            maxItems: 4
+                            items:
+                                $ref: '#/components/schemas/StockMover'
+                        worst:
+                            type: array
+                            maxItems: 4
+                            items:
+                                $ref: '#/components/schemas/StockMover'
+        PortfolioAmounts:
+            type: object
+            additionalProperties: false
+            required: [investedAmount, currentValue, profit, profitPercent]
+            properties:
+                investedAmount: {type: number}
+                currentValue: {type: number}
+                profit: {type: number}
+                profitPercent:
+                    type: number
+                    description: Relative to invested amount; follows web semantics (0 for an empty portfolio, 100 when cost is zero but value is nonzero).
+        DividendYearAmounts:
+            type: object
+            additionalProperties: false
+            required: [year, grossAmount, netAmount]
+            properties:
+                year: {type: integer}
+                grossAmount: {type: number}
+                netAmount: {type: number}
+        StockMover:
+            type: object
+            additionalProperties: false
+            required: [stock, changePercent]
+            properties:
+                stock:
+                    $ref: '#/components/schemas/StockReference'
+                changePercent: {type: number}
+        StockReference:
+            type: object
+            additionalProperties: false
+            required: [id, name, ticker]
+            properties:
+                id: {type: string, format: uuid}
+                name: {type: string}
+                ticker: {type: string}
+        ApiCurrency:
+            type: string
+            enum: [USD, EUR, CZK, GBP, PLN, NOK]
+        ExchangeRate:
+            type: object
+            additionalProperties: false
+            required: [fromCurrency, toCurrency, rate, forDate, updatedAt, source]
+            properties:
+                fromCurrency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                toCurrency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                rate: {type: number}
+                forDate: {type: string, format: date}
+                updatedAt: {type: string, format: date-time}
+                source: {type: string, enum: [CNB, ECB]}
+        CompanyDividend:
+            type: object
+            additionalProperties: false
+            required: [id, stock, type, exDate, paymentDate, declarationDate, currency, grossAmountPerShare, netAmountPerShare, taxPercent]
+            properties:
+                id: {type: string, format: uuid}
+                stock:
+                    $ref: '#/components/schemas/StockReference'
+                type: {type: string, enum: [regular, special]}
+                exDate: {type: string, format: date}
+                paymentDate: {type: string, format: date, nullable: true}
+                declarationDate: {type: string, format: date, nullable: true}
+                currency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                grossAmountPerShare: {type: number}
+                netAmountPerShare:
+                    type: number
+                    description: Per-share amount after the shared stock's configured dividend tax.
+                taxPercent: {type: number, nullable: true}
+        PortfolioDividend:
+            type: object
+            additionalProperties: false
+            required: [id, dividend, piecesHeldAtExDate, currency, grossAmount, netAmount, reinvested, updatedAt]
+            properties:
+                id: {type: string, format: uuid}
+                dividend:
+                    $ref: '#/components/schemas/CompanyDividend'
+                piecesHeldAtExDate: {type: integer}
+                currency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                grossAmount: {type: number}
+                netAmount: {type: number}
+                reinvested: {type: boolean}
+                updatedAt: {type: string, format: date-time}
         OAuthErrorResponse:
             type: object
             required: [error, error_description]

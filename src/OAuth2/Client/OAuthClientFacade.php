@@ -31,11 +31,7 @@ class OAuthClientFacade
 			throw new InvalidArgumentException('A client name and at least one scope are required.');
 		}
 
-		foreach ($scopes as $scope) {
-			if (OAuthScope::tryFrom($scope) === null) {
-				throw new InvalidArgumentException('Unknown OAuth scope: ' . $scope);
-			}
-		}
+		$this->validateScopes($scopes);
 
 		if (!$confidential && $redirectUris === []) {
 			throw new InvalidArgumentException('Public clients require a registered redirect URI.');
@@ -89,6 +85,42 @@ class OAuthClientFacade
 			$this->clients->save($client);
 			$this->tokens->revokeClient($id);
 		});
+	}
+
+	/** @param list<string> $scopes */
+	public function updateScopes(string $id, array $scopes): void
+	{
+		$this->validateScopes($scopes);
+		$scopes = array_values(array_unique($scopes));
+		$this->tokens->transaction(function () use ($id, $scopes): void {
+			$this->tokens->lockClient($id);
+			$client = $this->clients->getClientEntity($id);
+			if ($client === null) {
+				throw new InvalidArgumentException('An active OAuth client is required.');
+			}
+
+			if (array_diff($scopes, $client->getScopes()) === [] && array_diff($client->getScopes(), $scopes) === []) {
+				return;
+			}
+
+			$client->changeScopes($scopes);
+			$this->clients->save($client);
+			$this->tokens->revokeClient($id);
+		});
+	}
+
+	/** @param list<string> $scopes */
+	private function validateScopes(array $scopes): void
+	{
+		if ($scopes === []) {
+			throw new InvalidArgumentException('At least one OAuth scope is required.');
+		}
+
+		foreach ($scopes as $scope) {
+			if (OAuthScope::tryFrom($scope) === null) {
+				throw new InvalidArgumentException('Unknown OAuth scope: ' . $scope);
+			}
+		}
 	}
 
 	private function validateRedirectUri(string $uri): void

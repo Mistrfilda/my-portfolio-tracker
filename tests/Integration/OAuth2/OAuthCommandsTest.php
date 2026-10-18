@@ -8,6 +8,7 @@ use App\OAuth2\Client\OAuthClientRepository;
 use App\OAuth2\Command\CreateOAuthClientCommand;
 use App\OAuth2\Command\DisableOAuthClientCommand;
 use App\OAuth2\Command\RotateOAuthClientSecretCommand;
+use App\OAuth2\Command\UpdateOAuthClientScopesCommand;
 use App\Test\Integration\IntegrationTestCase;
 use App\Utils\TypeValidator;
 use Nette\Utils\Json;
@@ -65,6 +66,34 @@ class OAuthCommandsTest extends IntegrationTestCase
 		self::assertFalse($client->supportsGrantType('client_credentials'));
 		$rotate = new CommandTester($this->getService(RotateOAuthClientSecretCommand::class));
 		self::assertSame(2, $rotate->execute(['client-id' => $id]));
+	}
+
+	public function testReplaceClientScopesValidatesCompleteAllowlist(): void
+	{
+		$create = new CommandTester($this->getService(CreateOAuthClientCommand::class));
+		self::assertSame(0, $create->execute([
+			'name' => 'Dashboard desktop', '--public' => true, '--json' => true,
+			'--redirect-uri' => ['com.example.portfolio:/callback'],
+			'--scope' => ['portfolio:read', 'market:read'],
+		]));
+		$data = TypeValidator::validateArray(Json::decode($create->getDisplay(), true));
+		$id = TypeValidator::validateString($data['client_id']);
+		$repository = $this->getService(OAuthClientRepository::class);
+		$client = $repository->getClientEntity($id);
+		self::assertNotNull($client);
+		self::assertSame(['portfolio:read', 'market:read'], $client->getScopes());
+		$update = new CommandTester($this->getService(UpdateOAuthClientScopesCommand::class));
+		foreach ([[], ['unknown:scope']] as $invalid) {
+			self::assertSame(2, $update->execute(['client-id' => $id, '--scope' => $invalid]));
+			self::assertSame(['portfolio:read', 'market:read'], $client->getScopes());
+		}
+
+		self::assertSame(0, $update->execute(['client-id' => $id, '--scope' => ['market:read', 'market:read']]));
+		self::assertSame(['market:read'], $client->getScopes());
+		self::assertSame(2, $update->execute(['client-id' => 'missing-client', '--scope' => ['market:read']]));
+		$disable = new CommandTester($this->getService(DisableOAuthClientCommand::class));
+		self::assertSame(0, $disable->execute(['client-id' => $id]));
+		self::assertSame(2, $update->execute(['client-id' => $id, '--scope' => ['portfolio:read']]));
 	}
 
 }

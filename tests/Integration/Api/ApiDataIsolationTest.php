@@ -22,8 +22,10 @@ use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisStockResult;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
+use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecord;
 use App\Stock\Dividend\StockAssetDividend;
+use App\Stock\Dividend\StockAssetDividendTypeEnum;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
@@ -268,6 +270,177 @@ class ApiDataIsolationTest extends ApiTestCase
 		);
 		self::assertSame('access_denied', $this->data($response, 403)['error']);
 		self::assertSame(200, $this->api('GET', '/ping', $token)->getStatusCode());
+	}
+
+	public function testNumericDashboardAndDividendsFollowOwnerIncludingEmptyAccount(): void
+	{
+		$tokens = array_map(
+			fn (AppAdmin $owner): string => $this->getUserOAuthAccessToken($owner, ['portfolio:read']),
+			$this->owners,
+		);
+		foreach ([0, 1, 2, 1, 0] as $index) {
+			$factor = $index === 2 ? 0 : $index + 1;
+			$data = $this->data($this->api(
+				'GET',
+				'/dashboard/summary?userId=' . $this->owners[1]->getId(),
+				$tokens[$index],
+			));
+			self::assertSame('CZK', $data['currency']);
+			self::assertSame([
+				'investedAmount' => $factor * 1000.0,
+				'currentValue' => $factor * 1500.0,
+				'profit' => $factor * 500.0,
+				'profitPercent' => $factor === 0 ? 0.0 : 50.0,
+			], $data['total']);
+			self::assertSame($data['total'], $data['stocks']['amounts']);
+			self::assertSame(0.0, $data['stocks']['closedPositionsProfitIncludingDividends']);
+			self::assertSame(0.0, $data['crypto']['currentValue']);
+			self::assertSame(0.0, $data['portu']['currentValue']);
+			self::assertNull($data['performance']);
+			self::assertNull($data['dividends']['remainingForecast']);
+			self::assertCount($factor === 0 ? 0 : 1, $data['dividends']['byYear']);
+			self::assertCount($factor === 0 ? 0 : 1, $data['stockMovers']['best']);
+			if ($factor > 0) {
+				self::assertSame($factor * 20.0, $data['dividends']['byYear'][0]['grossAmount']);
+				self::assertSame($factor * 17.0, $data['dividends']['byYear'][0]['netAmount']);
+				self::assertSame($this->stock->getId()->toString(), $data['stockMovers']['best'][0]['stock']['id']);
+			}
+
+			$dividends = $this->data($this->api('GET', '/portfolio/dividends', $tokens[$index]))['items'];
+			self::assertCount($factor === 0 ? 0 : 1, $dividends);
+			if ($factor > 0) {
+				self::assertSame($this->dividendRecords[$index]->getId()->toString(), $dividends[0]['id']);
+				self::assertSame($factor * 10, $dividends[0]['piecesHeldAtExDate']);
+				self::assertSame($factor * 20.0, $dividends[0]['grossAmount']);
+				self::assertSame($factor * 17.0, $dividends[0]['netAmount']);
+				self::assertSame(2.0, $dividends[0]['dividend']['grossAmountPerShare']);
+				self::assertArrayNotHasKey('records', $dividends[0]['dividend']);
+			}
+
+			$me = $this->data($this->api('GET', '/me', $tokens[$index]));
+			self::assertSame($this->owners[$index]->getId()->toString(), $me['id']);
+		}
+	}
+
+	public function testDashboardScopesDoNotImplyEachOtherOrLegacyApiRead(): void
+	{
+		$market = $this->getOAuthAccessToken(['market:read']);
+		$portfolio = $this->getUserOAuthAccessToken($this->owners[0], ['portfolio:read']);
+		$clientOnly = $this->getOAuthAccessToken(['portfolio:read', 'market:read']);
+		foreach (['/dashboard/summary', '/portfolio/dividends'] as $path) {
+			self::assertSame('insufficient_scope', $this->data($this->api('GET', $path, $market), 403)['error']);
+			self::assertSame(
+				'insufficient_scope',
+				$this->data($this->api('GET', $path, $this->tokens[0]), 403)['error'],
+			);
+			self::assertSame('access_denied', $this->data($this->api('GET', $path, $clientOnly), 403)['error']);
+		}
+
+		self::assertSame('access_denied', $this->data($this->api('GET', '/me', $clientOnly), 403)['error']);
+		foreach (['/exchange-rates', '/stock-dividends'] as $path) {
+			self::assertSame('insufficient_scope', $this->data($this->api('GET', $path, $portfolio), 403)['error']);
+			self::assertSame(
+				'insufficient_scope',
+				$this->data($this->api('GET', $path, $this->tokens[0]), 403)['error'],
+			);
+			$user = $this->getUserOAuthAccessToken($this->owners[2], ['market:read']);
+			self::assertSame(
+				$this->data($this->api('GET', $path, $market)),
+				$this->data($this->api('GET', $path, $user)),
+			);
+		}
+
+		self::assertSame('insufficient_scope', $this->data($this->api('GET', '/stocks', $portfolio), 403)['error']);
+		foreach (['/dashboard/summary', '/portfolio/dividends', '/exchange-rates', '/stock-dividends'] as $path) {
+			$request = new ServerRequestFactory()->createServerRequest('GET', '/api/v1' . $path);
+			self::assertSame(401, $this->app->handle($request)->getStatusCode());
+			self::assertSame(
+				401,
+				$this->app->handle($request->withHeader('X-Api-Key', 'test-api-key'))->getStatusCode(),
+			);
+		}
+	}
+
+	public function testCompanyDividendFiltersLimitsAndFuturePersonalRecords(): void
+	{
+		$stock = $this->getService(StockAssetRepository::class)->getById($this->stock->getId());
+		$events = [];
+		foreach (['2180-01-01', '2180-02-01', '2180-03-01'] as $date) {
+			$event = new StockAssetDividend(
+				$stock,
+				$this->createDatetime($date),
+				null,
+				null,
+				CurrencyEnum::USD,
+				1.25,
+				$this->createDatetime(),
+				StockAssetDividendTypeEnum::SPECIAL,
+			);
+			$this->em->persist($event);
+			$events[] = $event;
+		}
+
+		$owner = $this->em->find(AppAdmin::class, $this->owners[0]->getId());
+		self::assertNotNull($owner);
+		$record = new StockAssetDividendRecord(
+			$events[2],
+			10,
+			12.5,
+			CurrencyEnum::USD,
+			null,
+			null,
+			$this->createDatetime(),
+			$owner,
+		);
+		$this->em->persist($record);
+		$this->em->flush();
+
+		$market = $this->getOAuthAccessToken(['market:read']);
+		$path = '/stock-dividends?exDateFrom=2180-01-01&exDateTo=2180-03-01';
+		$ascending = $this->data($this->api('GET', $path . '&sort=exDateAsc&limit=2', $market))['items'];
+		self::assertSame(['2180-01-01', '2180-02-01'], array_column($ascending, 'exDate'));
+		$descending = $this->data($this->api('GET', $path, $market))['items'];
+		self::assertSame(['2180-03-01', '2180-02-01', '2180-01-01'], array_column($descending, 'exDate'));
+		self::assertSame('special', $descending[0]['type']);
+		self::assertSame('USD', $descending[0]['currency']);
+		self::assertSame(1.25, $descending[0]['grossAmountPerShare']);
+		self::assertSame(1.0625, $descending[0]['netAmountPerShare']);
+		self::assertNull($descending[0]['paymentDate']);
+		self::assertNull($descending[0]['declarationDate']);
+
+		$token = $this->getUserOAuthAccessToken($owner, ['portfolio:read']);
+		$personal = $this->data($this->api('GET', '/portfolio/dividends?limit=1', $token))['items'];
+		self::assertCount(1, $personal);
+		self::assertSame($record->getId()->toString(), $personal[0]['id']);
+		self::assertSame('2180-03-01', $personal[0]['dividend']['exDate']);
+		self::assertSame(12.5, $personal[0]['grossAmount']);
+	}
+
+	public function testDividendQueryValidationReturnsJsonErrors(): void
+	{
+		$token = $this->getUserOAuthAccessToken($this->owners[0], ['portfolio:read', 'market:read']);
+		foreach (['/portfolio/dividends', '/stock-dividends'] as $path) {
+			foreach (['0', '-1', '51', '1.5', 'text'] as $limit) {
+				$response = $this->api('GET', $path . '?limit=' . $limit, $token);
+				self::assertSame('application/json', $response->getHeaderLine('Content-Type'));
+				self::assertSame('invalid_request', $this->data($response, 400)['error']);
+			}
+
+			self::assertSame(200, $this->api('GET', $path . '?limit=50', $token)->getStatusCode());
+			self::assertSame(400, $this->api('GET', $path . '?limit[]=1', $token)->getStatusCode());
+		}
+
+		foreach ([
+			'exDateFrom=2026-02-30',
+			'exDateTo=not-a-date',
+			'exDateFrom=2026-01-02&exDateTo=2026-01-01',
+			'sort=wrong',
+		] as $query) {
+			self::assertSame(
+				'invalid_request',
+				$this->data($this->api('GET', '/stock-dividends?' . $query, $token), 400)['error'],
+			);
+		}
 	}
 
 	public function testHomeListsFollowUserAndLegacyKeyOwner(): void

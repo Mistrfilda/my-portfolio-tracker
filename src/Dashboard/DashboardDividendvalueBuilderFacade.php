@@ -6,11 +6,9 @@ namespace App\Dashboard;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
-use App\Asset\Price\SummaryPrice;
-use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAssetRepository;
-use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
+use App\Stock\Dividend\Forecast\StockAssetDividendRemainingForecastProvider;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Dividend\StockAssetDividendFacade;
 use App\UI\Filter\CurrencyFilter;
@@ -30,8 +28,7 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 		private LinkGenerator $linkGenerator,
 		private DatetimeFactory $datetimeFactory,
 		private StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
-		private StockAssetDividendForecastRepository $stockAssetDividendForecastRepository,
-		private CurrencyConversionFacade $currencyConversionFacade,
+		private StockAssetDividendRemainingForecastProvider $remainingForecastProvider,
 		private CurrentAppAdminGetter $currentAppAdminGetter,
 		private StockAssetRepository $stockAssetRepository,
 	)
@@ -164,52 +161,21 @@ class DashboardDividendvalueBuilderFacade implements DashboardValueBuilder
 
 	private function buildRemainingForecastValue(int $year, AppAdmin $appAdmin): DashboardValue|null
 	{
-		$defaultForecast = $this->stockAssetDividendForecastRepository->findByDefaultForYear($year, $appAdmin);
-		if ($defaultForecast === null) {
+		$forecast = $this->remainingForecastProvider->getForYear($year, $appAdmin);
+		if ($forecast === null) {
 			return null;
-		}
-
-		$remainingDividend = new SummaryPrice(CurrencyEnum::CZK);
-		$remainingDividendBeforeTax = new SummaryPrice(CurrencyEnum::CZK);
-
-		foreach ($defaultForecast->getRecords() as $record) {
-			$remainingTotal = $record->getRemainingDividendTotal();
-			if ($remainingTotal > 0) {
-				$remainingDividend->addSummaryPrice(
-					$this->convertSummaryPriceToCzk($record->getCurrency(), $remainingTotal),
-				);
-			}
-
-			$remainingTotalBeforeTax = $record->getRemainingDividendTotalBeforeTax();
-			if ($remainingTotalBeforeTax > 0) {
-				$remainingDividendBeforeTax->addSummaryPrice(
-					$this->convertSummaryPriceToCzk($record->getCurrency(), $remainingTotalBeforeTax),
-				);
-			}
 		}
 
 		return new DashboardValue(
 			'Očekávaná dividenda do konce roku',
-			CurrencyFilter::format($remainingDividend->getRoundedPrice(), CurrencyEnum::CZK),
+			CurrencyFilter::format($forecast->getSummaryPriceWithoutTax()->getRoundedPrice(), CurrencyEnum::CZK),
 			TailwindColorConstant::EMERALD,
 			SvgIcon::ARROW_TRENDING_UP,
 			sprintf(
 				'Defaultní forecast %d, před zdaněním %s',
 				$year,
-				CurrencyFilter::format($remainingDividendBeforeTax->getRoundedPrice(), CurrencyEnum::CZK),
+				CurrencyFilter::format($forecast->getSummaryPriceWithTax()->getRoundedPrice(), CurrencyEnum::CZK),
 			),
-		);
-	}
-
-	private function convertSummaryPriceToCzk(CurrencyEnum $currency, float $price): SummaryPrice
-	{
-		if ($currency === CurrencyEnum::CZK) {
-			return new SummaryPrice(CurrencyEnum::CZK, $price);
-		}
-
-		return $this->currencyConversionFacade->getConvertedSummaryPrice(
-			new SummaryPrice($currency, $price),
-			CurrencyEnum::CZK,
 		);
 	}
 

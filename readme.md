@@ -114,15 +114,42 @@ Create public clients for mobile and desktop applications:
 
 ```bash
 bin/console oauth:client:create "Portfolio mobile" --public \
-	--redirect-uri=com.example.portfolio:/oauth/callback --scope=api:read
+	--redirect-uri=com.example.portfolio:/oauth/callback \
+	--scope=portfolio:read --scope=market:read
 
 bin/console oauth:client:create "Portfolio desktop" --public \
-	--redirect-uri=http://127.0.0.1:8000/oauth/callback --scope=api:read
+	--redirect-uri=http://127.0.0.1:8000/oauth/callback \
+	--scope=portfolio:read --scope=market:read
 ```
 
-Public clients receive a `client_id` without a secret and use Authorization Code with S256 PKCE. Replace the example callback with the application's actual redirect URI. Repeat `--redirect-uri` or `--scope` for multiple values; the default scope is `api:read`, with `home:read` and `home:write` also available.
+Public clients receive a `client_id` without a secret and use Authorization Code with S256 PKCE. Replace the example callback with the application's actual redirect URI. Repeat `--redirect-uri` or `--scope` for multiple values. Desktop/mobile authorization must explicitly request `scope=portfolio:read market:read`. The omitted-scope default remains `api:read` for existing integrations; `home:read` and `home:write` remain separate permissions.
 
-Personal endpoints require a user token and return only that user's data. Client-credentials tokens can access ping and the shared stock catalog, but receive 403 on dashboard, stock detail, `/me` and home endpoints. Existing sensor API keys continue to work only with devices owned by their configured user. See [resource ownership](.agents/skills/oauth2-server/references/client-setup.md#resource-ownership) for migration details.
+Personal endpoints require a user token and return only that user's data. Client-credentials tokens can access ping and the shared stock catalog with `api:read`, and exchange rates/company dividends with `market:read`. They receive 403 on personal dashboard, portfolio, stock detail, `/me` and home endpoints. Existing sensor API keys continue to work only with devices owned by their configured user. See [resource ownership](.agents/skills/oauth2-server/references/client-setup.md#resource-ownership) for details.
+
+To enable the dashboard scopes on an existing client:
+
+```bash
+bin/console oauth:client:scopes CLIENT_ID --scope=portfolio:read --scope=market:read
+```
+
+This replaces the entire allowlist. Include `--scope=api:read` too if the application still calls the older endpoints. A changed allowlist revokes all existing client tokens and requires new browser authorization; unchanged permissions leave tokens valid. Existing clients and tokens never acquire new scopes automatically, and refresh cannot add permissions.
+
+### Desktop dashboard API
+
+The [OpenAPI contract](doc/openapi.yaml) defines the numeric responses and query validation. The initial dashboard uses four independent GET requests:
+
+| Endpoint | Required scope | Data |
+| --- | --- | --- |
+| `/api/v1/dashboard/summary` | `portfolio:read`, user token | CZK totals, stocks/crypto/Portu, annual dividends, remaining forecast, historical performance, best/worst owned stocks |
+| `/api/v1/portfolio/dividends?limit=8` | `portfolio:read`, user token | Latest personal dividend entitlements, including announced future events |
+| `/api/v1/exchange-rates` | `market:read` | Twelve shared pairs, each with its effective date, update timestamp and source |
+| `/api/v1/stock-dividends?limit=8` | `market:read` | Shared company events and per-share amounts, with inclusive `exDateFrom`/`exDateTo` filters and `sort=exDateDesc` or `exDateAsc` |
+
+`/api/v1/me` accepts either `portfolio:read` or the existing `api:read`, always with a user token. Older endpoints retain `api:read`; it does not grant access to the new endpoints. List limits default to 8 and accept 1–50. To reproduce the web dashboard's last-year company-dividend window, request `exDateFrom` equal to today minus 380 days and `sort=exDateAsc`.
+
+Amounts are unformatted numbers, percentages use percentage points, and dates use ISO formats. Summary amounts use CZK; dividend lists retain their original currency. Annual dividends are grouped by ex-date year and include all recorded entitlements. No forecast or insufficient performance history returns `null`; an empty portfolio has zero totals and empty personal lists. `generatedAt` records response assembly, not price freshness. Missing required exchange rates return JSON 503 `data_unavailable`; invalid request parameters return JSON 400 `invalid_request`.
+
+### OAuth client lifecycle
 
 To replace a server client's secret or disable a client:
 

@@ -212,6 +212,11 @@ services:
 	- App\Api\Controller\PingController
 	- App\Api\Controller\MeController
 	- App\Dashboard\Api\DashboardValueController
+	- App\Dashboard\Api\DashboardSummaryController
+	- App\Dashboard\Api\DashboardSummaryProvider
+	- App\Currency\Api\ExchangeRateController
+	- App\Stock\Dividend\Api\StockDividendController
+	- App\Stock\Dividend\Api\StockDividendSerializer
 	- App\Stock\Asset\Api\StockAssetSerializer
 	- App\Stock\Asset\Api\StockAssetController
 	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)
@@ -241,6 +246,7 @@ services:
 	- App\OAuth2\Http\RevocationController
 	- App\OAuth2\Http\AuthorizationController
 	- App\OAuth2\Command\CreateOAuthClientCommand
+	- App\OAuth2\Command\UpdateOAuthClientScopesCommand
 	- App\OAuth2\Command\RotateOAuthClientSecretCommand
 	- App\OAuth2\Command\DisableOAuthClientCommand
 	- App\OAuth2\Command\GenerateOAuthKeysCommand
@@ -323,6 +329,8 @@ services:
 	- App\Dashboard\DashboardValueBuilderFacade
 	- App\Dashboard\UI\DashboardValueControl\DashboardValueControlFactory
 	- App\Dashboard\DashboardDividendvalueBuilderFacade
+	- App\Dashboard\DashboardStockPerformanceProvider
+	- App\Stock\Dividend\Forecast\StockAssetDividendRemainingForecastProvider
 
 	#HTTP
 	- App\Http\Psr7\Psr7RequestFactory
