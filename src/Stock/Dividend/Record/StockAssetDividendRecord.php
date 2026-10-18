@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
@@ -18,12 +19,20 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('stock_asset_dividend_record')]
+#[ORM\UniqueConstraint(
+	name: 'dividend_record_owner_event_unique',
+	columns: ['app_admin_id', 'stock_asset_dividend_id'],
+)]
 class StockAssetDividendRecord implements Entity
 {
 
 	use SimpleUuid;
 	use CreatedAt;
 	use UpdatedAt;
+
+	#[ORM\ManyToOne(targetEntity: AppAdmin::class)]
+	#[ORM\JoinColumn(nullable: false)]
+	private AppAdmin $appAdmin;
 
 	#[ORM\ManyToOne(targetEntity: StockAssetDividend::class, inversedBy: 'records')]
 	#[ORM\JoinColumn(nullable: false)]
@@ -55,9 +64,11 @@ class StockAssetDividendRecord implements Entity
 		float|null $totalAmountInBrokerCurrency,
 		CurrencyEnum|null $brokerCurrency,
 		ImmutableDateTime $now,
+		AppAdmin $appAdmin,
 	)
 	{
 		$this->id = Uuid::uuid4();
+		$this->appAdmin = $appAdmin;
 
 		$this->stockAssetDividend = $stockAssetDividend;
 		$this->totalPiecesHeldAtExDate = $totalPiecesHeldAtExDate;
@@ -69,6 +80,11 @@ class StockAssetDividendRecord implements Entity
 
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
+	}
+
+	public function getAppAdmin(): AppAdmin
+	{
+		return $this->appAdmin;
 	}
 
 	public function update(

@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Forecast\UI\Control;
 
+use App\Doctrine\NoEntityFoundException;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordRepository;
 use App\UI\Control\Form\AdminFormFactory;
@@ -23,9 +24,13 @@ class StockAssetDividendForecastItemValuesFormFactory
 	{
 	}
 
-	public function create(UuidInterface $id, callable $onSuccess): Form
+	public function create(UuidInterface $id, callable $onSuccess, UuidInterface|null $forecastId = null): Form
 	{
 		$record = $this->stockAssetDividendForecastRecordRepository->getById($id);
+		if ($forecastId !== null && !$record->getStockAssetDividendForecast()->getId()->equals($forecastId)) {
+			throw new NoEntityFoundException();
+		}
+
 		$form = $this->formFactory->create();
 		$form->addFloat(
 			'customDividendUsedForCalculation',

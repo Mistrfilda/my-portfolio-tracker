@@ -14,10 +14,32 @@ use App\Stock\Asset\Download\StockAssetDataDownloadFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
 use App\Test\UpdatedTestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\TestWith;
 use Ramsey\Uuid\Uuid;
 
 class JobRequestProcessorTest extends UpdatedTestCase
 {
+
+	#[TestWith([true])]
+	#[TestWith([false])]
+	public function testForecastRecalculationPreservesOwnerAndSupportsLegacyPayload(bool $withOwner): void
+	{
+		$id = Uuid::uuid4();
+		$forecasts = $this->createMock(StockAssetDividendForecastRecordFacade::class);
+		$forecasts->expects(self::once())->method('recalculateAll')->with($withOwner ? $id : null);
+		$processor = new JobRequestProcessor(
+			$this->createStub(ExpenseTagFacade::class),
+			$this->createStub(StockAssetDataDownloadFacade::class),
+			$forecasts,
+			$this->createStub(PortfolioGoalUpdateFacade::class),
+			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
+			$this->createStub(PortfolioPeriodStatisticFacade::class),
+		);
+		$processor->process(
+			JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL,
+			$withOwner ? ['appAdminId' => $id->toString()] : [],
+		);
+	}
 
 	public function testExpenseTagJobPreservesOwnerFromPayload(): void
 	{

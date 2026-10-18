@@ -166,7 +166,7 @@ class StockAssetDividendForecastCashflowProvider
 				continue;
 			}
 
-			if (count($dividend->getRecords()) > 0) {
+			if (count($dividend->getRecordsForAppAdmin($record->getStockAssetDividendForecast()->getAppAdmin())) > 0) {
 				continue;
 			}
 

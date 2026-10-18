@@ -87,10 +87,6 @@ class StockAssetDetailControl extends BaseControl
 
 	protected function createComponentStockDividendDetailControl(): StockDividendDetailControl
 	{
-		if (!$this->legacyOwnerProvider->isCurrentUserOwner()) {
-			$this->getPresenter()->error('Not found.');
-		}
-
 		return $this->stockDividendDetailControlFactory->create($this->id);
 	}
 

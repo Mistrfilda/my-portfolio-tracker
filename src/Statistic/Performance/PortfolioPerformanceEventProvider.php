@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Statistic\Performance;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Crypto\Position\Closed\CryptoClosedPositionRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -22,6 +23,7 @@ class PortfolioPerformanceEventProvider
 		private readonly CryptoClosedPositionRepository $cryptoClosedPositionRepository,
 		private readonly StockAssetDividendRecordRepository $stockAssetDividendRecordRepository,
 		private readonly CurrencyConversionFacade $currencyConversionFacade,
+		private LegacyPortfolioOwnerProvider $legacyOwnerProvider,
 	)
 	{
 	}
@@ -81,7 +83,9 @@ class PortfolioPerformanceEventProvider
 			);
 		}
 
-		foreach ($this->stockAssetDividendRecordRepository->findAll() as $dividendRecord) {
+		foreach ($this->stockAssetDividendRecordRepository->findAll(
+			$this->legacyOwnerProvider->getOwner(),
+		) as $dividendRecord) {
 			$dividend = $dividendRecord->getStockAssetDividend();
 			$paymentDate = $dividend->getPaymentDate() ?? $dividend->getExDate();
 			$netDividend = $this->currencyConversionFacade->getConvertedSummaryPrice(

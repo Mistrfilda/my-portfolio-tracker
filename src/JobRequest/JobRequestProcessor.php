@@ -55,7 +55,11 @@ class JobRequestProcessor
 				);
 				break;
 			case JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL:
-				$this->stockAssetDividendForecastFacade->recalculateAll();
+				$this->stockAssetDividendForecastFacade->recalculateAll(
+					array_key_exists('appAdminId', $additionalData)
+						? Uuid::fromString(TypeValidator::validateString($additionalData['appAdminId']))
+						: null,
+				);
 				break;
 			case JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE:
 				$this->portfolioGoalUpdateFacade->updateAllActive();

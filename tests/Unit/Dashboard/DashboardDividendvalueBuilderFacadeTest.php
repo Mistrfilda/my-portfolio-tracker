@@ -4,10 +4,13 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Dashboard;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Dashboard\DashboardDividendvalueBuilderFacade;
+use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecast;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecord;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
@@ -58,6 +61,8 @@ class DashboardDividendvalueBuilderFacadeTest extends TestCase
 			$this->stockAssetDividendRecordFacade,
 			$this->stockAssetDividendForecastRepository,
 			$this->currencyConversionFacade,
+			$this->createStub(CurrentAppAdminGetter::class),
+			$this->createStub(StockAssetRepository::class),
 		);
 	}
 
@@ -70,10 +75,16 @@ class DashboardDividendvalueBuilderFacadeTest extends TestCase
 
 		$this->datetimeFactory->shouldReceive('createNow')->once()->andReturn($now);
 		$this->stockAssetDividendFacade->shouldReceive('getLastYearDividendRecordsForDashboard')->once()->andReturn([]);
-		$this->stockAssetDividendRecordFacade->shouldReceive('getLastDividends')->with(8)->once()->andReturn([]);
+		$this->stockAssetDividendRecordFacade->shouldReceive('getLastDividends')->with(
+			8,
+			Mockery::type(AppAdmin::class),
+		)->once()->andReturn(
+			[],
+		);
 		$this->stockAssetDividendRecordFacade->shouldReceive('getDividendsByYears')->once()->andReturn([]);
 		$this->stockAssetDividendForecastRepository->shouldReceive('findByDefaultForYear')->with(
 			2026,
+			Mockery::type(AppAdmin::class),
 		)->once()->andReturn($forecast);
 		$forecast->shouldReceive('getRecords')->once()->andReturn([$usdRecord, $czkRecord]);
 

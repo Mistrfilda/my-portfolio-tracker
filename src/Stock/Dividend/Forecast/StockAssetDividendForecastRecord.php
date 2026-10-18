@@ -16,6 +16,10 @@ use Ramsey\Uuid\Uuid;
 
 #[ORM\Entity]
 #[ORM\Table('stock_asset_dividend_forecast_record')]
+#[ORM\UniqueConstraint(
+	name: 'dividend_forecast_asset_unique',
+	columns: ['stock_asset_dividend_forecast_id', 'stock_asset_id'],
+)]
 class StockAssetDividendForecastRecord implements Entity
 {
 
@@ -42,7 +46,7 @@ class StockAssetDividendForecastRecord implements Entity
 	private array $receivedDividendMonths;
 
 	#[ORM\Column(type: Types::STRING, enumType: StockAssetDividendTrendEnum::class, nullable: true)]
-	private StockAssetDividendTrendEnum|null $specificTrend;
+	private StockAssetDividendTrendEnum|null $specificTrend = null;
 
 	#[ORM\Column(type: Types::FLOAT)]
 	private float $alreadyReceivedDividendPerStock;
@@ -84,10 +88,10 @@ class StockAssetDividendForecastRecord implements Entity
 	private float|null $specialDividendsLastYearPerStockBeforeTax;
 
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
-	private float|null $expectedSpecialDividendThisYearPerStock;
+	private float|null $expectedSpecialDividendThisYearPerStock = null;
 
 	#[ORM\Column(type: Types::FLOAT, nullable: true)]
-	private float|null $expectedSpecialDividendThisYearPerStockBeforeTax;
+	private float|null $expectedSpecialDividendThisYearPerStockBeforeTax = null;
 
 	/**
 	 * @param array<int> $dividendUsuallyPaidAtMonths
@@ -348,7 +352,7 @@ class StockAssetDividendForecastRecord implements Entity
 				continue;
 			}
 
-			foreach ($dividend->getRecords() as $record) {
+			foreach ($dividend->getRecordsForAppAdmin($this->stockAssetDividendForecast->getAppAdmin()) as $record) {
 				if (
 					$record->getBrokerCurrency() === $this->currency
 					&& $record->getTotalAmountInBrokerCurrency() !== null
@@ -378,7 +382,7 @@ class StockAssetDividendForecastRecord implements Entity
 				continue;
 			}
 
-			foreach ($dividend->getRecords() as $record) {
+			foreach ($dividend->getRecordsForAppAdmin($this->stockAssetDividendForecast->getAppAdmin()) as $record) {
 				if (
 					$record->getBrokerCurrency() === $this->currency
 					&& $record->getTotalAmountInBrokerCurrency() !== null

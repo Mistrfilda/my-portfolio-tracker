@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
 use App\Doctrine\BaseRepository;
 use App\Doctrine\NoEntityFoundException;
 use Doctrine\ORM\NoResultException;
@@ -18,8 +19,25 @@ class StockAssetDividendForecastRepository extends BaseRepository
 
 	public function getById(UuidInterface $id, int|null $lockMode = null): StockAssetDividendForecast
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast');
-		$qb->where($qb->expr()->eq('stockAssetDividendForecast.id', ':id'));
+		return $this->getFromQueryBuilder($this->createQueryBuilder(), $id, $lockMode);
+	}
+
+	// Background jobs derive the owner from this persisted forecast.
+	public function getByIdForProcessing(UuidInterface $id): StockAssetDividendForecast
+	{
+		return $this->getFromQueryBuilder(
+			$this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast'),
+			$id,
+		);
+	}
+
+	private function getFromQueryBuilder(
+		QueryBuilder $qb,
+		UuidInterface $id,
+		int|null $lockMode = null,
+	): StockAssetDividendForecast
+	{
+		$qb->andWhere($qb->expr()->eq('stockAssetDividendForecast.id', ':id'));
 		$qb->setParameter('id', $id);
 		try {
 			$query = $qb->getQuery();
@@ -36,9 +54,9 @@ class StockAssetDividendForecastRepository extends BaseRepository
 		}
 	}
 
-	public function findByDefaultForYear(int $year): StockAssetDividendForecast|null
+	public function findByDefaultForYear(int $year, AppAdmin|null $appAdmin = null): StockAssetDividendForecast|null
 	{
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast');
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere($qb->expr()->eq('stockAssetDividendForecast.defaultForYear', ':defaultForYear'));
 		$qb->setParameter('defaultForYear', true);
 		$qb->andWhere($qb->expr()->eq('stockAssetDividendForecast.forYear', ':year'));
@@ -58,15 +76,15 @@ class StockAssetDividendForecastRepository extends BaseRepository
 	 */
 	public function findAll(): array
 	{
-		return $this->doctrineRepository->findAll();
+		return $this->createQueryBuilder()->getQuery()->getResult();
 	}
 
 	/**
 	 * @return array<StockAssetDividendForecast>
 	 */
-	public function findAllActive(int $year): array
+	public function findAllActive(int $year, AppAdmin $appAdmin): array
 	{
-		$qb = $this->createQueryBuilder();
+		$qb = $this->createQueryBuilder($appAdmin);
 		$qb->andWhere($qb->expr()->gte('stockAssetDividendForecast.forYear', ':year'));
 		$qb->setParameter('year', $year);
 		return $qb->getQuery()->getResult();
@@ -82,8 +100,9 @@ class StockAssetDividendForecastRepository extends BaseRepository
 			return [];
 		}
 
-		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast');
-		$qb->andWhere($qb->expr()->in('stockAssetDividendForecast.id', $ids));
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere($qb->expr()->in('stockAssetDividendForecast.id', ':ids'));
+		$qb->setParameter('ids', array_map(static fn (UuidInterface $id): string => $id->toString(), $ids));
 
 		$result = $qb->getQuery()->getResult();
 		assert(is_array($result));
@@ -91,9 +110,15 @@ class StockAssetDividendForecastRepository extends BaseRepository
 		return $result;
 	}
 
-	public function createQueryBuilder(): QueryBuilder
+	public function createQueryBuilder(AppAdmin|null $appAdmin = null): QueryBuilder
 	{
-		return $this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast');
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAssetDividendForecast');
+		$this->addAppAdminToQueryBuilder(
+			$qb,
+			'stockAssetDividendForecast',
+			$appAdmin ?? $this->currentAppAdminGetter->getAppAdmin(),
+		);
+		return $qb;
 	}
 
 }

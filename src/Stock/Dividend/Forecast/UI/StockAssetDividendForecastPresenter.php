@@ -74,7 +74,10 @@ class StockAssetDividendForecastPresenter extends BaseAdminPresenter
 
 	public function handleRecalculateAll(): void
 	{
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL);
+		$this->jobRequestFacade->addToQueue(
+			JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL,
+			['appAdminId' => $this->currentAppAdminGetter->getAppAdmin()->getId()->toString()],
+		);
 		$this->flashMessage('Přepočtení bylo zařazeno do fronty', FlashMessageType::SUCCESS);
 	}
 

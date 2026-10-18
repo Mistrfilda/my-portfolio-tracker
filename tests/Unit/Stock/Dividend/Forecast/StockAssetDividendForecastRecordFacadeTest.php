@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
@@ -17,6 +19,7 @@ use App\Stock\Dividend\Forecast\StockAssetDividendTrendEnum;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
+use App\Stock\Position\StockPositionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -46,6 +49,10 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 
 	private StockAssetDividendForecastRecordFacade $facade;
 
+	private AppAdmin $appAdmin;
+
+	private StockPositionRepository $positions;
+
 	private UuidInterface $forecastId;
 
 	private ImmutableDateTime $now;
@@ -64,6 +71,11 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$this->logger = Mockery::mock(LoggerInterface::class);
 
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->positions = Mockery::mock(StockPositionRepository::class);
+		$this->positions->shouldReceive('findByAssetForAppAdmin')->byDefault()->andReturn([]);
+		$admins = $this->createStub(AppAdminRepository::class);
+		$admins->method('findAll')->willReturn([$this->appAdmin]);
 		$this->facade = new StockAssetDividendForecastRecordFacade(
 			$this->stockAssetRepository,
 			$this->stockAssetDividendRepository,
@@ -72,6 +84,8 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 			$this->entityManager,
 			$this->datetimeFactory,
 			$this->logger,
+			$this->positions,
+			$admins,
 		);
 
 		$this->forecastId = Uuid::uuid4();
@@ -87,20 +101,21 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	public function testRecalculateWithNoStockAssets(): void
 	{
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
 		$forecast->shouldReceive('recalculated')->once()->with($this->now);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([]);
 
@@ -119,6 +134,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	public function testRecalculateWithStockAssetWithoutOpenPositions(): void
 	{
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -129,14 +145,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([]);
 
@@ -161,6 +177,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	public function testRecalculateWithStockAssetThatDoesNotPayDividends(): void
 	{
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -172,14 +189,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getId')->andReturn(Uuid::uuid4());
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([]);
 
@@ -206,6 +223,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -243,14 +261,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -291,6 +309,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -329,14 +348,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -382,6 +401,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -420,14 +440,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -469,11 +489,13 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	public function testRecalculateAll(): void
 	{
 		$forecast1 = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast1->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast1->shouldReceive('getId')->andReturn(Uuid::uuid4());
 		$forecast1->shouldReceive('getForYear')->andReturn(2024);
 		$forecast1->shouldReceive('recalculated')->once();
 
 		$forecast2 = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast2->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast2->shouldReceive('getId')->andReturn(Uuid::uuid4());
 		$forecast2->shouldReceive('getForYear')->andReturn(2024);
 		$forecast2->shouldReceive('recalculated')->once();
@@ -483,12 +505,12 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 
 		$this->stockAssetDividendForecastRepository
 			->shouldReceive('findAllActive')
-			->with(2024)
+			->with(2024, $this->appAdmin)
 			->once()
 			->andReturn([$forecast1, $forecast2]);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->twice()
 			->andReturn($forecast1, $forecast2);
 
@@ -512,6 +534,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 	public function testRecalculateSkipsStockAssetWhenGetLastDividendReturnsNull(): void
 	{
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -527,14 +550,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([]);
 
@@ -568,6 +591,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -610,14 +634,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -659,6 +683,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -700,14 +725,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -747,6 +772,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -791,14 +817,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -842,6 +868,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$specialDividend = 2.0;
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('recalculatingPending')->once();
 
 		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
@@ -889,6 +916,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getDividendTax')->andReturn(15.0);
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('recalculatingPending')->once();
 
 		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
@@ -924,6 +952,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$recordId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('recalculatingPending')->once();
 
 		$record = Mockery::mock(StockAssetDividendForecastRecord::class);
@@ -970,7 +999,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$dividend->shouldReceive('getExDate')->andReturn($exDate);
 		$dividend->shouldReceive('getPaymentDate')->andReturn($exDate);
 		$dividend->shouldReceive('getDividendType')->andReturn($type);
-		$dividend->shouldReceive('getRecords')->andReturn($records);
+		$dividend->shouldReceive('getRecordsForAppAdmin')->with($this->appAdmin)->andReturn($records);
 		$dividend->shouldReceive('getSummaryPrice')->with()->andReturn($summaryPrice);
 		$dividend->shouldReceive('getSummaryPrice')->with(true)->andReturn($summaryPrice);
 		$dividend->shouldReceive('getSummaryPrice')->with(false)->andReturn($grossSummaryPrice);
@@ -987,7 +1016,11 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 			$positions[] = $position;
 		}
 
-		$stockAsset->shouldReceive('getPositions')->with(true)->andReturn($positions);
+		$this->positions->shouldReceive('findByAssetForAppAdmin')->with(
+			$stockAsset->getId(),
+			$this->appAdmin,
+			true,
+		)->andReturn($positions);
 	}
 
 	public function testRecalculateWhenReceivedSpecialDividendExceedsExpected(): void
@@ -995,6 +1028,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -1038,14 +1072,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -1086,6 +1120,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -1101,7 +1136,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAsset->shouldReceive('getDividendTax')->andReturn(null);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
@@ -1109,7 +1144,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		// Žádný existující záznam
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([]);
 
@@ -1153,6 +1188,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::NEUTRAL);
@@ -1168,14 +1204,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$existingRecord->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -1207,6 +1243,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		$forecast->shouldReceive('getTrend')->andReturn(StockAssetDividendTrendEnum::OPTIMISTIC_15);
@@ -1248,14 +1285,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 
@@ -1295,6 +1332,7 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		$stockAssetId = Uuid::uuid4();
 
 		$forecast = Mockery::mock(StockAssetDividendForecast::class);
+		$forecast->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$forecast->shouldReceive('getId')->andReturn($this->forecastId);
 		$forecast->shouldReceive('getForYear')->andReturn(2024);
 		// Trend -15%
@@ -1337,14 +1375,14 @@ class StockAssetDividendForecastRecordFacadeTest extends TestCase
 		);
 
 		$this->stockAssetDividendForecastRepository
-			->shouldReceive('getById')
+			->shouldReceive('getByIdForProcessing')
 			->with($this->forecastId)
 			->once()
 			->andReturn($forecast);
 
 		$this->stockAssetDividendForecastRecordRepository
 			->shouldReceive('findByStockAssetDividendForecast')
-			->with($this->forecastId)
+			->with($this->forecastId, $this->appAdmin)
 			->once()
 			->andReturn([$existingRecord]);
 

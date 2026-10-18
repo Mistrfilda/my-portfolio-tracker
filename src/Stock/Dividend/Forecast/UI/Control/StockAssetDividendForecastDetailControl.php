@@ -14,6 +14,7 @@ use App\Stock\Dividend\Forecast\StockAssetDividendForecastCashflowProvider;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRepository;
 use App\UI\Base\BaseControl;
 use App\UI\FlashMessage\FlashMessageType;
+use Nette\Application\BadRequestException;
 use Nette\Application\UI\Form;
 use Nette\Application\UI\Multiplier;
 use Ramsey\Uuid\Uuid;
@@ -41,6 +42,10 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 
 	public function handleRecalculate(string $id): void
 	{
+		if (!$this->stockAssetDividendForecast->getId()->equals(Uuid::fromString($id))) {
+			throw new BadRequestException('Forecast does not match the current detail.');
+		}
+
 		$this->jobRequestFacade->addToQueue(
 			JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE,
 			['id' => $id],
@@ -90,7 +95,9 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 					continue;
 				}
 
-				foreach ($dividend->getRecords() as $dividendRecord) {
+				foreach ($dividend->getRecordsForAppAdmin(
+					$this->stockAssetDividendForecast->getAppAdmin(),
+				) as $dividendRecord) {
 					$actualReceivedForStock += $dividendRecord->getSummaryPrice()->getPrice();
 					$actualReceivedForStockBeforeTax += $dividendRecord->getSummaryPrice(false)->getPrice();
 
@@ -189,7 +196,11 @@ class StockAssetDividendForecastDetailControl extends BaseControl
 
 		return new Multiplier(function (string $id) use ($onSuccess): Form {
 			$id = Uuid::fromString(str_replace('_', '-', $id));
-			return $this->stockAssetDividendForecastItemValuesFormFactory->create($id, $onSuccess);
+			return $this->stockAssetDividendForecastItemValuesFormFactory->create(
+				$id,
+				$onSuccess,
+				$this->stockAssetDividendForecast->getId(),
+			);
 		});
 	}
 

@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Test\Integration\Stock;
 
+use App\Admin\AppAdmin;
+use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetExchange;
@@ -31,6 +33,8 @@ class StockAssetDividendRecordFacadeTest extends IntegrationTestCase
 
 	private StockAsset $stockAsset;
 
+	private AppAdmin $appAdmin;
+
 	protected function setUp(): void
 	{
 		parent::setUp();
@@ -40,6 +44,17 @@ class StockAssetDividendRecordFacadeTest extends IntegrationTestCase
 		$this->entityManager = $this->getService(EntityManagerInterface::class);
 
 		$suffix = bin2hex(random_bytes(4));
+		$this->appAdmin = new AppAdmin(
+			'Dividend owner',
+			'dividend-' . $suffix,
+			$suffix . '@example.test',
+			'unused',
+			new ImmutableDateTime(),
+			false,
+			false,
+		);
+		$this->entityManager->persist($this->appAdmin);
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($this->appAdmin);
 		$this->stockAsset = new StockAsset(
 			'Record Test Company',
 			StockAssetPriceDownloaderEnum::TWELVE_DATA,
@@ -157,6 +172,7 @@ class StockAssetDividendRecordFacadeTest extends IntegrationTestCase
 				null,
 				null,
 				new ImmutableDateTime(),
+				$this->appAdmin,
 			));
 		}
 
@@ -204,6 +220,7 @@ class StockAssetDividendRecordFacadeTest extends IntegrationTestCase
 				null,
 				null,
 				new ImmutableDateTime(),
+				$this->appAdmin,
 			);
 			$this->entityManager->persist($record);
 		}

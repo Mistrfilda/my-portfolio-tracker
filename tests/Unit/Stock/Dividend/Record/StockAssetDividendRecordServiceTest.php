@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -18,11 +19,14 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Mockery;
+use Ramsey\Uuid\Uuid;
 
 class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 {
 
 	private StockAssetDividendRecordService $service;
+
+	private AppAdmin $appAdmin;
 
 	private DatetimeFactory $datetimeFactory;
 
@@ -31,6 +35,8 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 	protected function setUp(): void
 	{
 		parent::setUp();
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
 
 		$this->datetimeFactory = Mockery::mock(DatetimeFactory::class);
 		$this->currencyConversionFacade = Mockery::mock(CurrencyConversionFacade::class);
@@ -46,7 +52,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividends = new ArrayCollection();
 		$positions = new ArrayCollection();
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(0, $result);
 	}
@@ -65,7 +71,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection();
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(0, $result);
 	}
@@ -85,6 +91,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividend->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$position = Mockery::mock(StockPosition::class);
+		$position->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position->shouldReceive('getStockClosedPosition')->andReturn(null);
 		$position->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-01-01'));
 		$position->shouldReceive('getOrderPiecesCount')->andReturn(10);
@@ -92,7 +99,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection([$position]);
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(1, $result);
 		$this->assertInstanceOf(StockAssetDividendRecord::class, $result->first());
@@ -110,13 +117,14 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividend->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$position = Mockery::mock(StockPosition::class);
+		$position->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position->shouldReceive('getStockClosedPosition')->andReturn(null);
 		$position->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-02-01'));
 
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection([$position]);
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(0, $result);
 	}
@@ -135,13 +143,14 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividend->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$position = Mockery::mock(StockPosition::class);
+		$position->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position->shouldReceive('getStockClosedPosition')->andReturn($closedPosition);
 		$position->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-01-01'));
 
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection([$position]);
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(0, $result);
 	}
@@ -161,6 +170,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividend->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$position = Mockery::mock(StockPosition::class);
+		$position->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position->shouldReceive('getStockClosedPosition')->andReturn(null);
 		$position->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-01-01'));
 		$position->shouldReceive('getOrderPiecesCount')->andReturn(10);
@@ -173,7 +183,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection([$position]);
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(1, $result);
 	}
@@ -193,11 +203,13 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividend->shouldReceive('getStockAsset')->andReturn($stockAsset);
 
 		$position1 = Mockery::mock(StockPosition::class);
+		$position1->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position1->shouldReceive('getStockClosedPosition')->andReturn(null);
 		$position1->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-01-01'));
 		$position1->shouldReceive('getOrderPiecesCount')->andReturn(5);
 
 		$position2 = Mockery::mock(StockPosition::class);
+		$position2->shouldReceive('getAppAdmin')->andReturn($this->appAdmin);
 		$position2->shouldReceive('getStockClosedPosition')->andReturn(null);
 		$position2->shouldReceive('getOrderDate')->andReturn(new ImmutableDateTime('2024-01-05'));
 		$position2->shouldReceive('getOrderPiecesCount')->andReturn(10);
@@ -205,7 +217,7 @@ class StockAssetDividendRecordServiceTest extends UpdatedTestCase
 		$dividends = new ArrayCollection([$dividend]);
 		$positions = new ArrayCollection([$position1, $position2]);
 
-		$result = $this->service->processDividendRecords($dividends, $positions);
+		$result = $this->service->processDividendRecords($dividends, $positions, $this->appAdmin);
 
 		$this->assertCount(1, $result);
 		$record = $result->first();

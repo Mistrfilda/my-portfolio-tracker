@@ -4,6 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
+use App\Admin\AppAdminRepository;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
@@ -12,6 +14,7 @@ use App\JobRequest\JobRequestTypeEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
+use App\Stock\Position\StockPositionRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -30,6 +33,8 @@ class StockAssetDividendRecordFacade
 		private CurrencyConversionFacade $currencyConversionFacade,
 		private LoggerInterface $logger,
 		private JobRequestFacade $jobRequestFacade,
+		private AppAdminRepository $appAdminRepository,
+		private StockPositionRepository $stockPositionRepository,
 	)
 	{
 	}
@@ -38,6 +43,17 @@ class StockAssetDividendRecordFacade
 	 * @return array<StockAssetDividendRecord>
 	 */
 	public function processAllDividends(): array
+	{
+		$records = [];
+		foreach ($this->appAdminRepository->findAll() as $appAdmin) {
+			$records = array_merge($records, $this->processForAppAdmin($appAdmin));
+		}
+
+		return $records;
+	}
+
+	/** @return array<StockAssetDividendRecord> */
+	public function processForAppAdmin(AppAdmin $appAdmin): array
 	{
 		$dividendPayers = $this->stockAssetRepository->findDividendPayers();
 
@@ -51,7 +67,10 @@ class StockAssetDividendRecordFacade
 				new ArrayCollection($this->stockAssetDividendRepository->findByStockAsset(
 					$dividendPayer,
 				)),
-				new ArrayCollection($dividendPayer->getPositions()),
+				new ArrayCollection(
+					$this->stockPositionRepository->findByAssetForAppAdmin($dividendPayer->getId(), $appAdmin),
+				),
+				$appAdmin,
 			);
 
 			$processedDividendRecords = array_merge($processedDividendRecords, $dividendRecords->toArray());
@@ -59,6 +78,7 @@ class StockAssetDividendRecordFacade
 			foreach ($dividendRecords as $dividendRecord) {
 				$existingRow = $this->stockAssetDividendRecordRepository->findOneByStockDividend(
 					$dividendRecord->getStockAssetDividend(),
+					$appAdmin,
 				);
 
 				if ($existingRow !== null) {
@@ -75,40 +95,45 @@ class StockAssetDividendRecordFacade
 				}
 
 				$this->entityManager->persist($dividendRecord);
+				$dividendRecord->getStockAssetDividend()->addRecord($dividendRecord);
 			}
 
 			$this->entityManager->flush();
 		}
 
-		$this->jobRequestFacade->addToQueue(JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL);
+		$this->jobRequestFacade->addToQueue(
+			JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL,
+			['appAdminId' => $appAdmin->getId()->toString()],
+		);
 		return $processedDividendRecords;
 	}
 
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function getLastYearDividendRecordsForDashboard(): array
+	public function getLastYearDividendRecordsForDashboard(AppAdmin|null $appAdmin = null): array
 	{
 		return $this->stockAssetDividendRecordRepository->findGreaterThan(
 			$this->datetimeFactory->createNow()->deductYearsFromDatetime(1),
 			15,
+			$appAdmin,
 		);
 	}
 
 	/**
 	 * @return array<StockAssetDividendRecord>
 	 */
-	public function getLastDividends(int $limit): array
+	public function getLastDividends(int $limit, AppAdmin|null $appAdmin = null): array
 	{
-		return $this->stockAssetDividendRecordRepository->findLastDividendRecords($limit);
+		return $this->stockAssetDividendRecordRepository->findLastDividendRecords($limit, $appAdmin);
 	}
 
 	/**
 	 * @return array<StockAssetDividendYearSummaryDTO>
 	 */
-	public function getDividendsByYears(): array
+	public function getDividendsByYears(AppAdmin|null $appAdmin = null): array
 	{
-		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart();
+		$records = $this->stockAssetDividendRecordRepository->findAllForMonthChart($appAdmin);
 		/** @var array<int, StockAssetDividendYearSummaryDTO> $preparedData */
 		$preparedData = [];
 
@@ -149,11 +174,11 @@ class StockAssetDividendRecordFacade
 		return $preparedData;
 	}
 
-	public function getTotalSummaryPrice(bool $reinvestedOnly = true): SummaryPrice
+	public function getTotalSummaryPrice(bool $reinvestedOnly = true, AppAdmin|null $appAdmin = null): SummaryPrice
 	{
 		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 
-		foreach ($this->stockAssetDividendRecordRepository->findAll() as $stockAssetDividendRecord) {
+		foreach ($this->stockAssetDividendRecordRepository->findAll($appAdmin) as $stockAssetDividendRecord) {
 			if ($reinvestedOnly && $stockAssetDividendRecord->isReinvested() === false) {
 				continue;
 			}
@@ -173,9 +198,12 @@ class StockAssetDividendRecordFacade
 		return $totalSummaryPrice;
 	}
 
-	public function getTotalSummaryPriceForStockAsset(StockAsset $stockAsset): SummaryPrice|null
+	public function getTotalSummaryPriceForStockAsset(
+		StockAsset $stockAsset,
+		AppAdmin|null $appAdmin = null,
+	): SummaryPrice|null
 	{
-		$dividendRecords = $this->stockAssetDividendRecordRepository->findByStockAsset($stockAsset);
+		$dividendRecords = $this->stockAssetDividendRecordRepository->findByStockAsset($stockAsset, $appAdmin);
 		if (count($dividendRecords) === 0) {
 			return null;
 		}

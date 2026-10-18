@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Dividend\Forecast;
 
+use App\Admin\AppAdmin;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Currency\MissingCurrencyPairException;
@@ -21,24 +22,51 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\TestCase;
+use Ramsey\Uuid\Uuid;
 use ReflectionProperty;
 
 #[AllowMockObjectsWithoutExpectations]
 class StockAssetDividendForecastCashflowProviderTest extends TestCase
 {
 
+	private AppAdmin $appAdmin;
+
+	protected function setUp(): void
+	{
+		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
+	}
+
 	public function testBuildsMonthlyCashflowFromConfirmedAndEstimatedForecastRecords(): void
 	{
 		$now = new ImmutableDateTime('2026-01-01');
 		$stockAsset = $this->createStockAsset('Microsoft', 'MSFT', CurrencyEnum::CZK, dividendTax: 50.0);
-		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now);
+		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now, $this->appAdmin);
 		$confirmedDividendMarch = $this->createDividend($stockAsset, 2026, 3, 20.0);
 		$confirmedDividendJune = $this->createDividend($stockAsset, 2026, 6, 20.0);
 		$this->setDividendRecords($confirmedDividendMarch, [
-			new StockAssetDividendRecord($confirmedDividendMarch, 4, 20.0, CurrencyEnum::CZK, null, null, $now),
+			new StockAssetDividendRecord(
+				$confirmedDividendMarch,
+				4,
+				20.0,
+				CurrencyEnum::CZK,
+				null,
+				null,
+				$now,
+				$this->appAdmin,
+			),
 		]);
 		$this->setDividendRecords($confirmedDividendJune, [
-			new StockAssetDividendRecord($confirmedDividendJune, 4, 20.0, CurrencyEnum::CZK, null, null, $now),
+			new StockAssetDividendRecord(
+				$confirmedDividendJune,
+				4,
+				20.0,
+				CurrencyEnum::CZK,
+				null,
+				null,
+				$now,
+				$this->appAdmin,
+			),
 		]);
 		$this->setDividends($stockAsset, [$confirmedDividendMarch, $confirmedDividendJune]);
 		$record = $this->createRecord(
@@ -70,7 +98,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 	{
 		$now = new ImmutableDateTime('2026-01-01');
 		$stockAsset = $this->createStockAsset('Apple', 'AAPL', CurrencyEnum::USD);
-		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now);
+		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now, $this->appAdmin);
 		$record = $this->createRecord(
 			$forecast,
 			$stockAsset,
@@ -100,7 +128,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 		$stockAsset = $this->createStockAsset('Microsoft', 'MSFT', CurrencyEnum::CZK);
 		$missedDividend = $this->createDividend($stockAsset, 2026, 1, 1.0);
 		$this->setDividends($stockAsset, [$missedDividend]);
-		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now);
+		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now, $this->appAdmin);
 		$record = $this->createRecord(
 			$forecast,
 			$stockAsset,
@@ -130,7 +158,7 @@ class StockAssetDividendForecastCashflowProviderTest extends TestCase
 		$stockAsset = $this->createStockAsset('Kofola', 'KOFOLA.PR', CurrencyEnum::CZK);
 		$plannedDividend = $this->createDividend($stockAsset, 2026, 7, 21.0);
 		$this->setDividends($stockAsset, [$plannedDividend]);
-		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now);
+		$forecast = new StockAssetDividendForecast(2026, StockAssetDividendTrendEnum::NEUTRAL, $now, $this->appAdmin);
 		$record = $this->createRecord(
 			$forecast,
 			$stockAsset,

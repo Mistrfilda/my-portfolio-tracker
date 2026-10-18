@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Dividend\Record;
 
+use App\Admin\AppAdmin;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyConversionFacade;
 use App\Stock\Dividend\StockAssetDividend;
@@ -30,12 +31,17 @@ class StockAssetDividendRecordService
 	public function processDividendRecords(
 		ArrayCollection $stockAssetDividends,
 		ArrayCollection $stockAssetPositions,
+		AppAdmin $appAdmin,
 	): ArrayCollection
 	{
 		$dividendRecords = new ArrayCollection();
 		foreach ($stockAssetDividends as $stockAssetDividend) {
 			$dividendSummaryPrice = new SummaryPrice($stockAssetDividend->getCurrency());
 			foreach ($stockAssetPositions as $position) {
+				if (!$position->getAppAdmin()->getId()->equals($appAdmin->getId())) {
+					continue;
+				}
+
 				if (
 					$position->getStockClosedPosition() !== null
 					&& $position->getStockClosedPosition()->getDate()->getTimestamp() <= $stockAssetDividend->getExDate()->getTimestamp()
@@ -69,6 +75,7 @@ class StockAssetDividendRecordService
 						$brokerCurrencySummaryPrice?->getPrice(),
 						$stockAssetDividend->getStockAsset()->getBrokerDividendCurrency(),
 						$this->datetimeFactory->createNow(),
+						$appAdmin,
 					),
 				);
 			}

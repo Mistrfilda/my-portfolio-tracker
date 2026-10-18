@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Statistic\Performance;
 
+use App\Admin\LegacyPortfolioOwnerProvider;
 use App\Asset\Asset;
 use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
@@ -97,6 +98,7 @@ class PortfolioPerformanceEventProviderTest extends TestCase
 			$cryptoClosedPositionRepository,
 			$dividendRecordRepository,
 			$currencyConversionFacade,
+			$this->createStub(LegacyPortfolioOwnerProvider::class),
 		);
 
 		$income = $provider->getIncomeBetween($start, $end);

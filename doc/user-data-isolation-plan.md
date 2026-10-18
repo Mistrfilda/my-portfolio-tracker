@@ -2,7 +2,7 @@
 
 Plán oddělení osobních dat podle účtu `AppAdmin`. Číslování a rozsah vycházejí z dohodnuté tabulky níže. Menší změny jsou podkroky, nikoli náhrada celého kroku.
 
-Aktualizováno 18. 10. 2026. **Kroky 1–5 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je dokončený a ověřený v pracovní větvi, včetně Filipem potvrzené migrace webové databáze; commit doplnit po vytvoření Filipem. Následuje krok 6.
+Aktualizováno 18. 10. 2026. **Kroky 1–6 jsou hotové v popsaném rozsahu.** Krok 3a a Portu portfolia jsou v commitu `e8aad85`; podkroky 3b–3d jsou v commitu `ed1d260`, včetně automatických kontrol, migrace webové databáze a ověření webu. Krok 4 je v commitu `8aae230`. Krok 5 je v commitu `d02e1d1`, včetně Filipem potvrzené migrace webové databáze. Krok 6 je dokončený a ověřený v pracovní větvi, včetně Filipem potvrzené migrace a průchodu webem; commit doplnit po vytvoření Filipem. Následuje krok 7a (cíle).
 
 ## Dohodnutý rozsah
 
@@ -39,7 +39,7 @@ Aktualizováno 18. 10. 2026. **Kroky 1–5 jsou hotové v popsaném rozsahu.** K
 	- [x] **Předání 3b–3d** — celý build prošel; Filip potvrdil migraci webové databáze, následně ověřena data a web v izolovaném Playwrightu.
 - [x] **4. Souhrny portfolia a web** — výpočty a web podle vlastníka, přechodná ochrana nepřevedených widgetů, automatické kontroly a ověření webu dokončeny. Bez nové migrace.
 - [x] **5. Směrování notifikací** — uložený příjemce, osobní konfigurace Discordu, oddělené společné a osobní trendy, ověřený retry, automatické kontroly a potvrzená migrace s ověřením webové databáze a webu.
-- [ ] **6. Dividendy a prognózy.**
+- [x] **6. Dividendy a prognózy** — osobní záznamy, prognózy, výpočty a web podle vlastníka, ověřené opakování a přístupy, celý build a potvrzená migrace s kontrolou databáze a webu.
 - [ ] **7. Cíle a AI analýzy.**
 	- [ ] **7a. Cíle a jejich opakování.**
 	- [ ] **7b. AI zadání, snímky, výsledky, plány a exporty.**
@@ -123,6 +123,27 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 - Stav `SENT` zůstává dle stávajícího chování dokončením zpracování i při vypnutém webhooku. Pozdější doplnění konfigurace tak samo neodešle přeskočenou historii. Kontrola `SENT` chrání před opětovným zpracováním dokončené zprávy, nezaručuje přesně jedno doručení při pádu mezi HTTP požadavkem a zápisem stavu nebo při souběžných consumerech.
 - Změna nemění Discord logger, transport RabbitMQ ani plánování cronů. Při nasazení použít migrované schéma a restartovat běžící notification consumer, aby načetl nový kód i konfiguraci.
 
+## Krok 6: dividendy a prognózy
+
+- [x] Osobní dividendový záznam má neměnného vlastníka; unikátní klíč je uživatel + dividendová událost. Událost, daň a nastavení akcie zůstávají společné.
+- [x] Výpočet vybírá vlastní otevřené i historicky způsobilé uzavřené pozice. CLI prochází účty výslovně; opakované zpracování aktualizuje jen záznamy daného vlastníka.
+- [x] Prognózy mají vlastníka; položky ho odvozují z prognózy a mají unikátní klíč prognóza + akcie. Výchozí prognóza se vybírá v rámci účtu a roku.
+- [x] Přístup přes ID, editace, nastavení výchozí prognózy, vlastní hodnoty položky i vnořené formuláře kontrolují vlastníka. Signál přepočtu nemůže podstrčit ID jiné prognózy.
+- [x] Přijaté částky, výhled, cashflow, dashboard, detail akcie, dividendové grafy, souhrn uzavřených pozic a dividendová část přehledu výdajů používají vlastní data.
+- [x] Nové zprávy pro přepočet všech prognóz nesou `appAdminId`. Staré zprávy bez něj procházejí účty odděleně; přepočet jedné prognózy odvozuje vlastníka z uloženého záznamu.
+- [x] Připravit a otestovat migraci historie, chybějícího Filipa, duplicit, unikátních klíčů a ochrany návratu.
+- [x] Dokončit závěrečný build a kontroly PhpStormu.
+- [x] Filip potvrdil migraci webové databáze; převod dat a web ověřeny přes PhpStorm a izolovaný Playwright.
+
+### Migrace a návaznosti kroku 6
+
+- `Version20261018113749` přiřadí existující osobní záznamy a prognózy Filipovi. Položky prognóz patří stejnému účtu přes rodiče. ID, částky, reinvestování, stavy, výchozí prognózy a vlastní hodnoty se zachovají; migrace nic nepřepočítává a nepublikuje úlohy.
+- Kontrola před migrací webové databáze našla 217 osobních dividendových záznamů, 4 prognózy a 94 položek. Duplicitní události ani dvojice prognóza + akcie nenalezeny.
+- Chybějící Filip při existující historii nebo duplicity zastaví migraci před DDL. Návrat je zakázán, pokud má osobní záznam či prognózu jiný uživatel.
+- Přechodné omezení dividend na Filipa z kroku 4 je odstraněné. Statistické výpočty a dividendový resolver dosavadních cílů zatím předávají Filipa výslovně; jejich plné vlastnictví patří do kroků 7–9. AI a nepřevedená statistická historie zůstávají chráněné dosavadní podmínkou.
+- API serializéry zůstávají pro samostatný průchod API; tento krok neznamená jeho úplné oddělení podle účtů.
+- Při nasazení použít migrované schéma a restartovat job consumer. Existující zprávy zůstávají zpracovatelné; žádný skutečný consumer nebo Discord se při testech nespouští.
+
 ## Doklady dokončených částí
 
 | Část | Implementace | Hlavní automatické ověření |
@@ -132,7 +153,8 @@ Krok 2 pokrývá existující operace nad jednotlivými pozicemi. Jejich fasády
 | 3a a Portu portfolia | `e8aad85` | [PersonalAssetOwnershipTest](../tests/Integration/Asset/PersonalAssetOwnershipTest.php): přístupy a vazby podle vlastníka, unikátnost tickeru, mazání watchlistu a přístup běžného účtu. [PersonalAssetOwnershipMigrationTest](../tests/Integration/Migrations/PersonalAssetOwnershipMigrationTest.php): převod historie a ochrany migrace. |
 | 3b–3d | `ed1d260` | [PersonalDataOwnershipTest](../tests/Integration/PersonalData/PersonalDataOwnershipTest.php), [PersonalIncomeImportOwnershipTest](../tests/Integration/PersonalData/PersonalIncomeImportOwnershipTest.php), [PersonalDataOwnershipMigrationTest](../tests/Integration/Migrations/PersonalDataOwnershipMigrationTest.php). |
 | 4 | `8aae230` | [PortfolioSummaryOwnershipTest](../tests/Integration/Asset/PortfolioSummaryOwnershipTest.php): společná akcie s 10 a 20 kusy, Stock/Crypto/Portu souhrny, otevřené a uzavřené pozice, řazení, A → B → A v jednom procesu, explicitní vlastník bez přihlášení, prázdný účet, vykreslené osobní stránky běžného účtu, ochrana katalogu a nepřevedených widgetů. |
-| 5 | Pracovní větev; commit doplnit po vytvoření Filipem | [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php), [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php), unit testy Discord směrování a rozdělení trendů. |
+| 5 | `d02e1d1` | [NotificationDeliveryOwnershipTest](../tests/Integration/Notification/NotificationDeliveryOwnershipTest.php), [NotificationRecipientMigrationTest](../tests/Integration/Migrations/NotificationRecipientMigrationTest.php), unit testy Discord směrování a rozdělení trendů. |
+| 6 | Pracovní větev; commit doplnit po vytvoření Filipem | [DividendOwnershipTest](../tests/Integration/Stock/DividendOwnershipTest.php), [DividendOwnershipMigrationTest](../tests/Integration/Migrations/DividendOwnershipMigrationTest.php), unit testy dividendových výpočtů, cashflow a přenosu vlastníka úlohou. |
 
 Po implementaci 3a a Portu portfolií prošlo `composer cs-fix && composer build-all`: 793 unit testů a 176 integračních testů, včetně statické analýzy a validace schématu. Kontroly změněných PHP souborů v PhpStormu prošly. V izolovaném Playwrightu byly pod účtem `filip` ověřeny přehledy Portu a watchlistu, jejich editace a formuláře Portu pozic. Oddělení dvou uživatelů pokrývají integrační testy.
 
@@ -156,6 +178,16 @@ Po implementaci kroku 5 prošlo `composer cs-fix && composer build-all`: **812 u
 
 Po Filipově potvrzení migrace byl na webové databázi ověřen záznam `Migrations\Version20261018112629` z 18. 10. 2026 13:30:59. Všech **9 979** notifikací patří `filip`; počet chybějících, osiřelých nebo cizích příjemců je 0. Počty podle typu a stavu odpovídají stavu před migrací. PhpStorm vracel starý popis tabulky i po introspekci, proto byl nový sloupec ověřen přímo přes `SHOW COLUMNS` a výsledek přes čtecí SQL dotazy. V izolovaném Playwrightu prošel dashboard a přehledy Portu a cílů pod stávajícím přihlášením; adresy i nadpisy odpovídaly a přehledy vracely HTTP 200 bez nových chyb JavaScriptu. Historické chyby konzole z dřívějšího testu neexistujícího ID a faviconu se na kontrolovaných stránkách neopakovaly. Žádný formulář, cron ani skutečný notification consumer nebyl spuštěn.
 
+Krok 6 pokrývají [DividendOwnershipTest](../tests/Integration/Stock/DividendOwnershipTest.php) a [DividendOwnershipMigrationTest](../tests/Integration/Migrations/DividendOwnershipMigrationTest.php). Ověřují dva účty nad stejnou akcií (10 a 20 kusů), vlastní hrubé a čisté částky, prognózy a cashflow, pořadí A → B → B → A v jednom procesu, stabilní ID při opakování, změnu pouze vlastní částky, prázdný účet, historii uzavřené pozice, souhrny, defaulty pro stejný rok, cizí ID a formuláře, vnořený cizí rodič, podstrčené ID přepočtu a chybějící přihlášení. Migrační test kontroluje zachování všech hodnot, ochrany před DDL, vlastnictví přes rodiče a oba unikátní klíče. Unit testy doplňují přenos vlastníka frontou a zpracování starého payloadu.
+
+Po implementaci kroku 6 prošlo `composer cs-fix && composer build-all`: **814 unit testů (3671 assertions), 249 integračních testů (1425 assertions)**, statická analýza, styl, PHP/Latte kontrola, validace mapování a schématu, kontrola závislostí i agent dokumentace. PhpStorm nenašel chyby ve 46 změněných nebo nových PHP souborech a změněné Latte šabloně. Syntaxe migrace i `git diff --check` jsou v pořádku. Odesílač úloh je v nových testech nahrazený; žádný skutečný consumer, HTTP služba ani Discord nebyl spuštěn.
+
+Přepočet v jednom procesu odhalil neaktualizovanou inverzní kolekci záznamů společné dividendy a neinicializované nullable hodnoty nově vytvořené prognózy. Obě chyby jsou opravené a pokryté opakovaným scénářem. Načtení přes pole UUID nyní používá parametrizovaný dotaz. Migrační změny byly vygenerované pomocí `migrations:diff` a doplněné o převod historie a ochrany; webová migrace byla následně potvrzena Filipem a ověřena.
+
+Po Filipově potvrzení byl na webové databázi ověřen záznam `Migrations\Version20261018113749` z 18. 10. 2026 13:53:12. Všech **217 dividendových záznamů, 4 prognózy a 94 položek prognóz** patří `filip`; chybějící nebo cizí vlastník nebyl nalezen. Počty odpovídají kontrole před migrací. Oba vlastnické sloupce jsou `NOT NULL` a unikátní indexy odpovídají mapování. PhpStorm nadále vracel starý popis tabulek, proto byly změny ověřeny přímo přes `SHOW COLUMNS`, `SHOW INDEX` a čtecí SQL agregace.
+
+V izolovaném Playwrightu pod existujícím přihlášením Filipa prošly dashboard, seznam prognóz, naplněné detaily prognóz 2025 a 2026 včetně 19 a 25 formulářů položek, formulář úpravy i vytvoření prognózy, přehled vyplacených dividend, obecný dividendový přehled, dividendová záložka AT&T a přehled uzavřených akciových pozic. Adresy a nadpisy odpovídaly; navigace vracely HTTP 200. Stránka grafů dokončila všech 11 datových požadavků s HTTP 200 a validními datasety, včetně pěti dividendových grafů. Nebyly zaznamenány chyby JavaScriptu. Formuláře se neodesílaly a přepočet ani skutečná fronta se nespouštěly. Dva vlastníky a prázdný účet ověřují integrační testy; webový dump byl kontrolován pouze pod existujícím přihlášením.
+
 ## Migrace a předávání jednotlivých změn
 
 - CLI a integrační testy používají databázi `my-portfolio-app-tracker-tests`. PhpStorm a web používají `my-portfolio-tracker`. Integrační testy obnovují tabulky; nespouštět nad stejnou databází současně testy a migrace.
@@ -164,6 +196,7 @@ Po Filipově potvrzení migrace byl na webové databázi ověřen záznam `Migra
 - [Version20261018104607](../migrations/Version20261018104607.php) pro 3b–3d byla 18. 10. 2026 spuštěna Filipem na webové databázi a následně ověřena v `doctrine_migrations`. Všechna převáděná data patří `filip`: 2 bankovní účty, 2307 výdajů, 137 příjmů, 71 štítků, 34 měsíčních příjmů, 1 domácnost a 2 zařízení. Počty odpovídají stavu před migrací, nesoulad vlastníků výdaje a hlavního štítku i rodičovského a potomkovského štítku je 0. Test převodu historie, ochran a návratu migrace prošel. Spuštění v clusteru zde zatím potvrzené není.
 - Krok 4 nevyžaduje migraci webové databáze ani databáze v clusteru.
 - [Version20261018112629](../migrations/Version20261018112629.php) pro krok 5 je ověřená na CLI testovací databázi a byla spuštěna Filipem na webové databázi. Všech 9 979 notifikací nyní patří `filip`; počty zůstaly stejné (9 685 `sent`, 294 `created`). Spuštění v clusteru zatím potvrzené není.
+- [Version20261018113749](../migrations/Version20261018113749.php) pro krok 6 je ověřená na CLI testovací databázi a byla spuštěna Filipem na webové databázi. Převod 217 dividendových záznamů a 4 prognóz s 94 položkami pod Filipa je ověřený. Spuštění v clusteru zde zatím potvrzené není.
 - Před každou další změnou přečíst tento plán. Po dokončení aktualizovat příslušný podkrok, důkazy ověření a stav migrace; commit doplnit, jakmile je známý.
 - Celý krok odškrtnout až po splnění všech jeho podkroků a hlavního ověření. U kroku 3 jsou podmínky splněné: všechny podkroky, potvrzená migrace, automatické kontroly i ověření webu.
 - Na konci každé předávané změny uvést její přesné číslo a rozsah, zbývající práci a commit příkaz pro Filipa. Commity provádí Filip.

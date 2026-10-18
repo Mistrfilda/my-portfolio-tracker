@@ -64,7 +64,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 			$this->getTotalValues($appAdmin, $includePortfolioPerformance && $includeLegacyData),
 			$this->getStockValues($appAdmin),
 			$this->getPortuValues($appAdmin),
-			...($includeLegacyData ? [$this->dashboardDividendvalueBuilderFacade->buildDividendValues()] : []),
+			$this->dashboardDividendvalueBuilderFacade->buildDividendValues($appAdmin),
 			$this->getCryptoValues($appAdmin),
 			$this->getCurrencyConversionValues(),
 		];
