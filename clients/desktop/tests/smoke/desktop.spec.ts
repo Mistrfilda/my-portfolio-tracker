@@ -1,6 +1,7 @@
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { defaultConnection } from '../../src/main/auth/config';
 import {
 	_electron as electron,
 	expect,
@@ -8,7 +9,7 @@ import {
 	type ElectronApplication,
 } from '@playwright/test';
 
-test('opens the desktop, keeps Node isolated, and saves appearance', async () => {
+test('isolates Node, saves appearance, and starts and cancels PKCE login', async () => {
 	const userData = await mkdtemp(join(tmpdir(), 'portfolio-desktop-test-'));
 	const executablePath = process.env.DESKTOP_EXECUTABLE;
 	let application: ElectronApplication | undefined;
@@ -41,7 +42,7 @@ test('opens the desktop, keeps Node isolated, and saves appearance', async () =>
 		});
 		expect(info.app.version).toMatch(/^\d+\.\d+\.\d+/);
 		expect(info.hasNode).toBe(false);
-		expect(info.bridgeKeys).toEqual(['getAppInfo']);
+		expect(info.bridgeKeys).toEqual(['getAppInfo', 'session']);
 
 		const rendererProcesses = await application.evaluate(({ app }) =>
 			app
@@ -66,6 +67,59 @@ test('opens the desktop, keeps Node isolated, and saves appearance', async () =>
 			page.getByRole('heading', { name: 'Vítejte v My Portfolio.' }),
 		).toBeVisible();
 		await expect(page.locator('html')).toHaveClass('dark');
+		expect(errors).toEqual([]);
+
+		// Intercept only the OS browser opener in this isolated test process.
+		// No real account, browser profile or Keychain credential is used.
+		await application.evaluate(({ shell }) => {
+			shell.openExternal = async (url) => {
+				Reflect.set(globalThis, 'testAuthorizationUrl', url);
+			};
+		});
+		await page
+			.getByRole('button', { name: 'Přihlásit se', exact: true })
+			.click();
+		await expect(
+			page.getByRole('button', { name: 'Zrušit přihlášení' }),
+		).toBeVisible();
+		await expect
+			.poll(() =>
+				application!.evaluate(() =>
+					Reflect.has(globalThis, 'testAuthorizationUrl'),
+				),
+			)
+			.toBe(true);
+		const authorization = await application.evaluate(() => {
+			const url = new URL(
+				String(Reflect.get(globalThis, 'testAuthorizationUrl')),
+			);
+			return {
+				origin: url.origin,
+				path: url.pathname,
+				pkce: url.searchParams.get('code_challenge_method'),
+				hasSecret: url.searchParams.has('client_secret'),
+				callbackHost: new URL(url.searchParams.get('redirect_uri')!).hostname,
+			};
+		});
+		expect(authorization).toEqual({
+			origin: new URL(defaultConnection.authorizationUrl).origin,
+			path: new URL(defaultConnection.authorizationUrl).pathname,
+			pkce: 'S256',
+			hasSecret: false,
+			callbackHost: '127.0.0.1',
+		});
+		await page.getByRole('button', { name: 'Zrušit přihlášení' }).click();
+		await expect(
+			page.getByRole('button', { name: 'Přihlásit se', exact: true }),
+		).toBeVisible();
+		expect(
+			await page.evaluate(
+				async () => (await window.desktop!.session.getState()).status,
+			),
+		).toBe('signed-out');
+		await page.screenshot({
+			path: test.info().outputPath('desktop-account.png'),
+		});
 		expect(errors).toEqual([]);
 	} finally {
 		try {

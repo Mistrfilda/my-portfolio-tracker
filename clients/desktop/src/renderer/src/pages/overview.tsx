@@ -1,14 +1,11 @@
-import {
-	ArrowRight,
-	ChartNoAxesCombined,
-	SlidersHorizontal,
-} from 'lucide-react';
+import { SlidersHorizontal } from 'lucide-react';
 import { Link } from 'react-router';
-import { Badge } from '@/components/ui/badge';
+import { AccountCard } from '@/components/account-card';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useSession } from '@/lib/session';
 
 export function OverviewPage() {
+	const { state } = useSession();
 	return (
 		<div className="mx-auto max-w-4xl">
 			<p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
@@ -18,37 +15,19 @@ export function OverviewPage() {
 				Vítejte v My Portfolio.
 			</h1>
 			<p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">
-				Nový prostor pro vaše investice. Přehledně, v samostatné aplikaci pro
-				Mac.
+				{state?.status === 'signed-in'
+					? 'Účet je propojený. Přehled portfolia přidáme v dalším kroku.'
+					: 'Vaše investice v samostatné aplikaci pro Mac. Začněte připojením účtu.'}
 			</p>
-			<Card className="mt-10 overflow-hidden shadow-none">
-				<CardContent className="flex flex-col items-center px-8 py-16 text-center">
-					<div className="mb-7 flex size-20 items-center justify-center rounded-3xl bg-primary/10 text-primary ring-8 ring-primary/5">
-						<ChartNoAxesCombined
-							className="size-9"
-							strokeWidth={1.5}
-							aria-hidden="true"
-						/>
-					</div>
-					<Badge variant="secondary" className="mb-5">
-						Připravujeme připojení účtu
-					</Badge>
-					<h2 className="text-xl font-semibold tracking-tight">
-						Tady bude vaše portfolio.
-					</h2>
-					<p className="mt-3 max-w-sm text-sm leading-6 text-muted-foreground">
-						Přihlášení ke stávajícímu účtu přidáme v další verzi. Zatím si
-						můžete přizpůsobit vzhled aplikace.
-					</p>
-					<Button asChild className="mt-7">
-						<Link to="/settings">
-							<SlidersHorizontal aria-hidden="true" />
-							Upravit vzhled
-							<ArrowRight aria-hidden="true" />
-						</Link>
-					</Button>
-				</CardContent>
-			</Card>
+			<div className="mt-10">
+				<AccountCard />
+			</div>
+			<Button asChild variant="ghost" className="mt-6">
+				<Link to="/settings">
+					<SlidersHorizontal aria-hidden="true" />
+					Upravit vzhled
+				</Link>
+			</Button>
 		</div>
 	);
 }

@@ -1,3 +1,5 @@
+import type { SessionBridge } from './session';
+
 export const APP_INFO_CHANNEL = 'app:get-info';
 
 export interface AppInfo {
@@ -7,4 +9,5 @@ export interface AppInfo {
 
 export interface DesktopBridge {
 	getAppInfo: () => Promise<AppInfo>;
+	session: SessionBridge;
 }

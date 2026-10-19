@@ -7,9 +7,19 @@ import {
 	Menu,
 	net,
 	protocol,
+	safeStorage,
 	session,
+	shell,
+	powerMonitor,
+	type IpcMainInvokeEvent,
 } from 'electron';
 import { APP_INFO_CHANNEL, type AppInfo } from '../shared/desktop';
+import { SESSION_CHANNELS } from '../shared/session';
+import { authorize } from './auth/authorize';
+import { OAuthClient } from './auth/client';
+import { defaultConnection } from './auth/config';
+import { SessionService } from './auth/session-service';
+import { EncryptedTokenStore } from './auth/token-store';
 import {
 	APP_URL,
 	isTrustedRendererUrl,
@@ -35,6 +45,27 @@ const developmentUrl =
 		? validateDevelopmentUrl(process.env.ELECTRON_RENDERER_URL)
 		: undefined;
 let mainWindow: BrowserWindow | null = null;
+let auth: SessionService | undefined;
+const hasInstanceLock = app.requestSingleInstanceLock();
+if (!hasInstanceLock) app.quit();
+
+app.on('second-instance', () => {
+	if (mainWindow?.isMinimized()) mainWindow.restore();
+	mainWindow?.show();
+	mainWindow?.focus();
+});
+app.on('before-quit', () => auth?.dispose());
+
+function assertTrustedSender(event: IpcMainInvokeEvent, args: unknown[]): void {
+	if (
+		!mainWindow ||
+		event.sender !== mainWindow.webContents ||
+		event.senderFrame !== mainWindow.webContents.mainFrame ||
+		!isTrustedRendererUrl(event.senderFrame.url, developmentUrl) ||
+		args.length !== 0
+	)
+		throw new Error('Untrusted desktop message sender or arguments.');
+}
 
 function createWindow(): void {
 	mainWindow = new BrowserWindow({
@@ -64,49 +95,83 @@ function createWindow(): void {
 	void mainWindow.loadURL(developmentUrl ?? APP_URL);
 }
 
-void app.whenReady().then(() => {
-	const rendererRoot = join(directory, '../renderer');
-	protocol.handle('app', (request) => {
-		const file = resolveRendererFile(request.url, rendererRoot);
-		if (request.method !== 'GET' || file === null) {
-			return new Response('Not found', { status: 404 });
+if (hasInstanceLock)
+	void app.whenReady().then(() => {
+		const rendererRoot = join(directory, '../renderer');
+		protocol.handle('app', (request) => {
+			const file = resolveRendererFile(request.url, rendererRoot);
+			if (request.method !== 'GET' || file === null) {
+				return new Response('Not found', { status: 404 });
+			}
+			return net.fetch(pathToFileURL(file).toString());
+		});
+
+		session.defaultSession.setPermissionRequestHandler(
+			(_contents, _permission, callback) => callback(false),
+		);
+		session.defaultSession.setPermissionCheckHandler(() => false);
+
+		ipcMain.handle(APP_INFO_CHANNEL, (event, ...args: unknown[]): AppInfo => {
+			assertTrustedSender(event, args);
+			return { name: app.getName(), version: app.getVersion() };
+		});
+
+		auth = new SessionService(
+			defaultConnection,
+			new OAuthClient(defaultConnection),
+			new EncryptedTokenStore(
+				app.getPath('userData'),
+				defaultConnection.storageKey,
+				safeStorage,
+			),
+			(signal) =>
+				authorize(defaultConnection, (url) => shell.openExternal(url), signal),
+			(state) => {
+				if (mainWindow && !mainWindow.isDestroyed()) {
+					mainWindow.webContents.send(SESSION_CHANNELS.changed, state);
+				}
+			},
+		);
+		const handlers: Record<string, () => unknown> = {
+			[SESSION_CHANNELS.get]: () => auth!.getState(),
+			[SESSION_CHANNELS.signIn]: async () => {
+				await auth!.signIn();
+				if (auth!.getState().status === 'signed-in') {
+					mainWindow?.show();
+					mainWindow?.focus();
+				}
+			},
+			[SESSION_CHANNELS.cancel]: () => auth!.cancelSignIn(),
+			[SESSION_CHANNELS.signOut]: () => auth!.signOut(),
+			[SESSION_CHANNELS.retry]: () => auth!.retry(),
+		};
+		for (const [channel, handler] of Object.entries(handlers)) {
+			ipcMain.handle(channel, (event, ...args: unknown[]) => {
+				assertTrustedSender(event, args);
+				return handler();
+			});
 		}
-		return net.fetch(pathToFileURL(file).toString());
+		powerMonitor.on('resume', () => {
+			void auth?.retry();
+		});
+		void auth.initialize();
+
+		Menu.setApplicationMenu(
+			Menu.buildFromTemplate([
+				{ role: 'appMenu' },
+				{ role: 'editMenu' },
+				{ role: 'viewMenu' },
+				{ role: 'windowMenu' },
+			]),
+		);
+
+		createWindow();
+		app.on('activate', () => {
+			if (BrowserWindow.getAllWindows().length === 0) {
+				createWindow();
+			}
+		});
 	});
-
-	session.defaultSession.setPermissionRequestHandler(
-		(_contents, _permission, callback) => callback(false),
-	);
-	session.defaultSession.setPermissionCheckHandler(() => false);
-
-	ipcMain.handle(APP_INFO_CHANNEL, (event): AppInfo => {
-		if (
-			!mainWindow ||
-			event.sender !== mainWindow.webContents ||
-			event.senderFrame !== mainWindow.webContents.mainFrame ||
-			!isTrustedRendererUrl(event.senderFrame.url, developmentUrl)
-		) {
-			throw new Error('Untrusted desktop message sender.');
-		}
-		return { name: app.getName(), version: app.getVersion() };
-	});
-
-	Menu.setApplicationMenu(
-		Menu.buildFromTemplate([
-			{ role: 'appMenu' },
-			{ role: 'editMenu' },
-			{ role: 'viewMenu' },
-			{ role: 'windowMenu' },
-		]),
-	);
-
-	createWindow();
-	app.on('activate', () => {
-		if (BrowserWindow.getAllWindows().length === 0) {
-			createWindow();
-		}
-	});
-});
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {

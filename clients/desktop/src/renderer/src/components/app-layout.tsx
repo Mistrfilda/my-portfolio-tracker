@@ -7,6 +7,7 @@ import {
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useSession } from '@/lib/session';
 
 const navigation = [
 	{ to: '/', label: 'Přehled', icon: LayoutDashboard },
@@ -14,6 +15,7 @@ const navigation = [
 ];
 
 export function AppLayout() {
+	const { state } = useSession();
 	const location = useLocation();
 	const title =
 		navigation.find((item) => item.to === location.pathname)?.label ??
@@ -59,10 +61,16 @@ export function AppLayout() {
 						<div className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
 							<UserRound className="size-4" aria-hidden="true" />
 						</div>
-						<div>
-							<p className="text-xs font-medium">Účet není připojený</p>
+						<div className="min-w-0">
+							<p className="truncate text-xs font-medium">
+								{state?.user?.name ||
+									state?.user?.username ||
+									'Účet není připojený'}
+							</p>
 							<p className="mt-1 text-xs text-muted-foreground">
-								Vaše data zůstávají na serveru
+								{state?.user
+									? 'Přihlášeno k vašemu účtu'
+									: 'Vaše data zůstávají na serveru'}
 							</p>
 						</div>
 					</div>
