@@ -12,7 +12,7 @@ The PHP application stays in place. There is no root npm workspace: installing o
 
 ## Current scope
 
-The desktop skeleton includes a macOS window, sidebar navigation, an empty overview, appearance settings with system/light/dark modes, and an application-version bridge. It has no login, API requests, portfolio data, or automatic updates yet.
+The desktop includes a macOS window, sidebar navigation, appearance settings, and public-client OAuth login. It opens the server's login/consent page in the system browser, restores and refreshes the saved session, displays the user returned by `/api/v1/me`, and supports logout. Portfolio screens and automatic updates are still future work.
 
 The initial target is Apple Silicon (arm64), matching the development machine. Intel macOS, Windows, and Linux packages are not configured. The application identifier is `com.mistrfilda.portfolio.desktop`.
 
@@ -93,7 +93,7 @@ Useful individual commands:
 | `npm --prefix clients/desktop run test:smoke` | Test the compiled app in Electron; run build first |
 | `npm --prefix clients/desktop run package:mac` | Package existing compiled output |
 
-The smoke test checks rendering, navigation, the restricted preload bridge, Node isolation, and persistence of appearance. Its npm pre-test hook installs the Electron runtime before the timed test begins, so the first download does not consume the test timeout. It creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to run the same test against that package.
+The smoke test checks rendering, navigation, the restricted preload bridge, Node isolation, appearance persistence, and starting/cancelling a PKCE login. It intercepts the OS browser opener only inside its isolated test process; it never logs into the deployed server or uses a real account or Keychain credential. Its npm pre-test hook installs Electron before the timed test begins. It creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to test that package.
 
 Native tests need a graphical macOS session. Use the PhpStorm execution route described above when working through Codex on this machine. Browser preview cannot verify native IPC or Electron's process isolation.
 
@@ -105,6 +105,7 @@ The initial dependency audit (2026-10-18) reports eight moderate entries from on
 clients/desktop/
 ├── src/
 │   ├── main/                  Electron lifecycle, native operations, asset protocol
+│   │   └── auth/             Connection, PKCE callback, HTTP client, session and storage
 │   ├── preload/               Small, typed bridge exposed to the renderer
 │   ├── shared/                Serializable bridge contracts and channel names
 │   └── renderer/
@@ -125,7 +126,7 @@ clients/desktop/
 └── electron-builder.yml       macOS packaging
 ```
 
-Main owns operating-system capabilities. Preload exposes explicit methods, currently only `getAppInfo()`. The renderer is ordinary React with no Node access. It is sandboxed with context isolation enabled, and cannot choose arbitrary IPC channels.
+Main owns operating-system capabilities. Preload exposes `getAppInfo()` and a `session` API: get state, sign in, cancel, retry, sign out, and subscribe to state changes. The renderer is ordinary React with no Node access. It cannot choose IPC channels, authentication URLs, HTTP headers or token values. Main validates every IPC sender and rejects unexpected arguments.
 
 Compiled assets load from the internal `app://portfolio/index.html` URL. File resolution is confined to the renderer output directory. IPC validates the window, top-level frame, and exact renderer URL. New windows, page navigation, and unrequested browser permissions are denied. Development permits only the fixed loopback Vite URL; packaged apps ignore it. The production CSP allows bundled resources and contains no external API origins.
 
@@ -154,15 +155,30 @@ Review generated source, dependency changes, imports, and accessibility before u
 - `.github/workflows/app-check.yaml` ignores client-only changes.
 - `.github/workflows/desktop-check.yaml` runs desktop checks, compilation, native smoke testing, and local packaging on macOS arm64. Changes to the OpenAPI contract also trigger it. It does not publish a release.
 
-## Next task: OAuth2 and API configuration
+## OAuth2 connection and login
 
-Authentication is deliberately a separate implementation step. Follow the project's [OAuth2 client setup](../.agents/skills/oauth2-server/references/client-setup.md) and [OpenAPI contract](openapi.yaml).
+Public connection settings live in [connection.json](../clients/desktop/src/main/auth/connection.json) and are validated and bundled into main. The configured server is `http://my-new-portfolio-tracker.internal`, with public client ID `16ed2d5cc4b880ca0d45a3262e02c61d71a194b9` and scopes `portfolio:read market:read`. That client is already registered as “My Portfolio Desktop (internal)”.
 
-The intended desktop flow is Authorization Code with S256 PKCE in the system browser, returning to a loopback callback handled by main. Desktop and iOS are public clients: they have a `client_id` and **no client secret**. Server credentials and signing credentials never belong in an installed client.
+`allowInsecureHttp: true` explicitly enables the requested LAN deployment. HTTPS remains the normal configuration requirement when that option is false. HTTP does not encrypt traffic, even within a LAN; it is an explicit choice for this installation. No global certificate validation or Electron security settings are disabled.
 
-The authentication task will add validated configuration for the API base URL, authorization/token endpoints, public client ID, scopes, and callback. These are public settings, not secrets. Select the environment explicitly, require HTTPS outside documented loopback development, and associate saved sessions with that environment. Do not reuse the web's local secret configuration or place tokens in `VITE_*` variables.
+To target another environment, edit the public connection file, register a separate public client there, and restart development or rebuild the application. The server URL may include a deployment subdirectory. Endpoint paths are derived from it; the renderer cannot override them. No client secret, password, signing key or token belongs in this file or a `VITE_*` variable. Follow the [server registration instructions](../.agents/skills/oauth2-server/references/client-setup.md) and [OpenAPI contract](openapi.yaml).
 
-Main will own token exchange, refresh, and API requests. Persistent tokens need OS-protected storage; renderer state should contain only the account/session information needed to render the UI. Logout, cancellation, expired sessions, and concurrent refresh behavior need tests as part of that task.
+Click **Přihlásit se** in the overview or settings. The default browser opens the server's login and consent page. Enter the existing account credentials there. Main generates independent random `state` and PKCE verifier values, opens a temporary listener on `127.0.0.1` with a free port, and exchanges the returned code using S256 PKCE. The registered callback is `http://127.0.0.1:8000/oauth/callback`; the server allows a different loopback port while requiring the same host and path. The callback checks host, path, method, state and duplicate parameters, then closes after completion, cancellation or five minutes.
+
+After exchanging the code, main calls `GET /api/v1/me` and shares only the account ID, name, username and session status with React. This server uses OAuth2, not OpenID Connect. Browser login remains separate from the existing web application's session.
+
+### Session storage and refresh
+
+- The token pair is encrypted using Electron's asynchronous `safeStorage` API. On macOS its encryption key is protected by Keychain. Ciphertext lives under `app.getPath('userData')/sessions/<connection-hash>.bin` with mode `0600`, using atomic replacement and filesystem synchronization. There is no plaintext fallback.
+- The connection hash includes the normalized server URL, client ID and scopes, so switching environments cannot reuse another environment's tokens. A single-instance lock prevents two processes sharing the same profile from rotating its refresh token concurrently.
+- Startup restores the session and verifies the user. Main serializes session operations, refreshes shortly before expiry and revalidates after macOS resumes from sleep. A rejected access token gets at most one refresh and retry.
+- Refresh tokens rotate. Before making the refresh request, main durably removes the previous saved token. If the process stops or the response is uncertain, the next attempt requires browser login instead of replaying an already consumed token and revoking its authorization family. A successfully returned replacement is saved atomically.
+- An offline user lookup can be retried while keeping an unexpired session. An uncertain refresh requires a new login. The server's fixed 30-day authorization-family limit still applies.
+- Logout first removes local credentials, then revokes the server authorization family. If the server is unreachable, the UI explicitly reports that local logout succeeded but remote revocation could not be confirmed. A local deletion failure is shown as an error.
+
+macOS may request Keychain access on first use. A consistently signed distribution build is needed to avoid repeated permission prompts across application updates; the current local ad-hoc package is still intended for development. See [Electron safeStorage](https://www.electronjs.org/docs/latest/api/safe-storage).
+
+Unit tests cover configuration isolation, PKCE/callback validation, token HTTP contracts, encrypted storage, cancellation races, refresh serialization, replay prevention and logout failures. Native smoke testing through PhpStorm passes without production credentials. The deployed server's login form was verified with this registered client and a varying callback port; a complete real-account login and Keychain persistence check still requires entering the user's credentials in the browser.
 
 iOS will use Swift/SwiftUI, system web authentication, and Keychain with a separate OAuth client registration. Its actual Xcode project and Codex skill should be introduced with the first iOS implementation task.
 

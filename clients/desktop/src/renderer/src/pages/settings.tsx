@@ -9,6 +9,7 @@ import {
 	CardTitle,
 } from '@/components/ui/card';
 import { useTheme, type Theme } from '@/lib/theme';
+import { AccountCard } from '@/components/account-card';
 
 const themes = [
 	{ value: 'light', label: 'Světlý', icon: Sun },
@@ -45,7 +46,10 @@ export function SettingsPage() {
 				Malé detaily pro pohodlnější práci.
 			</p>
 
-			<Card className="mt-10 shadow-none">
+			<div className="mt-10">
+				<AccountCard />
+			</div>
+			<Card className="mt-6 shadow-none">
 				<CardHeader>
 					<CardTitle>Vzhled aplikace</CardTitle>
 					<CardDescription>

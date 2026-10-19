@@ -110,14 +110,14 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 
 ### Desktop development and build
 
-The desktop does not require the PHP application or Docker to run its current shell:
+The desktop starts independently of a local PHP application or Docker. Account login connects to the server configured in `clients/desktop/src/main/auth/connection.json`:
 
 ```bash
 npm --prefix clients/desktop ci
 npm --prefix clients/desktop run dev
 ```
 
-Build and verify the local macOS arm64 application and ZIP with `./build-desktop.sh`. Artifacts are written to `clients/desktop/artifacts/`, with a local ad-hoc signature and no notarization. Login and API integration are the next implementation step. See the [desktop guide](doc/desktop.md) for architecture, checks, UI conventions, and the OAuth configuration plan.
+Build and verify the local macOS arm64 application and ZIP with `./build-desktop.sh`. Artifacts are written to `clients/desktop/artifacts/`, with a local ad-hoc signature and no notarization. OAuth login, encrypted session storage, refresh and logout are implemented; portfolio screens come next. See the [desktop guide](doc/desktop.md) for architecture, checks, UI conventions and connection configuration.
 
 ### OAuth client registration
 
