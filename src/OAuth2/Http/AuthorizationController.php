@@ -187,7 +187,10 @@ class AuthorizationController
 	{
 		// form-action is omitted because browsers can apply it to the OAuth callback redirect.
 		return $this->responses->noStore($response)
-			->withHeader('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'; base-uri 'none'")
+			->withHeader(
+				'Content-Security-Policy',
+				"default-src 'none'; style-src 'self'; frame-ancestors 'none'; base-uri 'none'",
+			)
 			->withHeader('Referrer-Policy', 'no-referrer')
 			->withHeader('X-Frame-Options', 'DENY')
 			->withHeader('X-Content-Type-Options', 'nosniff');
