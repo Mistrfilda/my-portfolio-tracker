@@ -1,0 +1,13 @@
+{
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"lib": ["ES2022"],
+		"types": ["node"]
+	},
+	"include": [
+		"*.config.ts",
+		"src/main/**/*.ts",
+		"src/preload/**/*.ts",
+		"src/shared/**/*.ts"
+	]
+}

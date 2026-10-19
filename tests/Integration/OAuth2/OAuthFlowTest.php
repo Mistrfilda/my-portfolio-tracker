@@ -10,6 +10,7 @@ use App\OAuth2\Client\OAuthClientCredentials;
 use App\OAuth2\Client\OAuthClientFacade;
 use App\OAuth2\Token\OAuthTokenStore;
 use App\Test\Integration\Api\ApiTestCase;
+use App\UI\Extension\Webpack\WebpackAssetsFactory;
 use App\Utils\TypeValidator;
 use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManagerInterface;
@@ -36,6 +37,12 @@ class OAuthFlowTest extends ApiTestCase
 	{
 		parent::setUp();
 		$this->remoteAddress = bin2hex(random_bytes(12));
+		$assets = $this->createStub(WebpackAssetsFactory::class);
+		$assets->method('getCssAssets')->willReturn('<link rel="stylesheet" href="/build/admin/test.css">');
+		foreach ($this->container->findByType(WebpackAssetsFactory::class) as $name) {
+			$this->container->removeService($name);
+			$this->container->addService($name, $assets);
+		}
 	}
 
 	public function testClientCredentialsAndScopeEnforcement(): void
@@ -447,7 +454,10 @@ class OAuthFlowTest extends ApiTestCase
 		self::assertStringContainsString('HttpOnly', $page->getHeaderLine('Set-Cookie'));
 		self::assertStringContainsString('Secure', $page->getHeaderLine('Set-Cookie'));
 		self::assertCount(1, $page->getHeader('Set-Cookie'));
+		self::assertStringContainsString("default-src 'none'", $page->getHeaderLine('Content-Security-Policy'));
+		self::assertStringContainsString("style-src 'self'", $page->getHeaderLine('Content-Security-Policy'));
 		self::assertStringContainsString("frame-ancestors 'none'", $page->getHeaderLine('Content-Security-Policy'));
+		self::assertStringContainsString('rel="stylesheet"', (string) $page->getBody());
 		self::assertSame('same-origin', $page->getHeaderLine('Referrer-Policy'));
 		$request = $this->request(
 			'POST',

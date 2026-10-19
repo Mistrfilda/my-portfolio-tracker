@@ -1,0 +1,7 @@
+{
+	"name": "Interní síť",
+	"serverUrl": "http://my-new-portfolio-tracker.internal",
+	"clientId": "16ed2d5cc4b880ca0d45a3262e02c61d71a194b9",
+	"scopes": ["portfolio:read", "market:read"],
+	"allowInsecureHttp": true
+}

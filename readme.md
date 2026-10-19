@@ -4,6 +4,8 @@ Personal finance and investment portfolio management application focused on long
 
 This repository contains the application code for my personal portfolio tracker. The app runs best in a Kubernetes environment, and the full infrastructure setup is available in the [kubedev repository](https://github.com/Mistrfilda/kubedev).
 
+It is a monorepo: the web application and API stay at the root, the macOS desktop client lives in `clients/desktop/`, and `clients/ios/` reserves the future Swift/SwiftUI app. Each client has an independent build. See [desktop development and architecture](doc/desktop.md).
+
 ## What the application covers
 
 - Tracking of stocks, dividends, cryptocurrencies, and Portu portfolios
@@ -22,12 +24,18 @@ This repository contains the application code for my personal portfolio tracker.
 - **RabbitMQ**
 - **Monolog**
 
-### Frontend
+### Web frontend
 - **Tailwind CSS 4**
 - **TypeScript**
 - **AlpineJS**
 - **Chart.js**
 - **Naja**
+
+### Desktop
+- **Electron** for macOS arm64
+- **React** and **TypeScript**
+- **shadcn/ui**, **Radix UI**, and **Tailwind CSS 4**
+- **electron-vite** and **electron-builder**
 
 ### Infrastructure
 - **Docker**
@@ -80,6 +88,8 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 - `docker/` - Docker-related configuration
 - `migrations/` - database migrations
 - `puppeter/` - Node.js scripts for scraping and data downloads
+- `clients/desktop/` - macOS client with its own npm manifest, lockfile, and tests
+- `clients/ios/` - reserved for the native Swift/SwiftUI application
 
 ## Local development
 
@@ -97,6 +107,17 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 - Integration tests: `composer test-integration`
 - Structural checks for `AGENTS.md`, skills and their reference links, and Codex TOML syntax: `composer agent-docs`. This does not assess instruction quality or validate every Codex setting against its runtime schema.
 - Full project verification: `composer build-all`
+
+### Desktop development and build
+
+The desktop starts independently of a local PHP application or Docker. Account login connects to the server configured in `clients/desktop/src/main/auth/connection.json`:
+
+```bash
+npm --prefix clients/desktop ci
+npm --prefix clients/desktop run dev
+```
+
+Build and verify the local macOS arm64 application and ZIP with `./build-desktop.sh`. Artifacts are written to `clients/desktop/artifacts/`, with a local ad-hoc signature and no notarization. OAuth login, encrypted session storage, refresh and logout are implemented; portfolio screens come next. See the [desktop guide](doc/desktop.md) for architecture, checks, UI conventions and connection configuration.
 
 ### OAuth client registration
 

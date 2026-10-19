@@ -4,6 +4,7 @@
 @import 'tailwindcss';
 @config '../../tailwind.config.js';
 @source not "../../www";
+@source not "../../clients";
 @plugin "@tailwindcss/forms";
 @plugin "@tailwindcss/typography";
 
