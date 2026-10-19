@@ -30,7 +30,7 @@ class PortuPositionPricePresenter extends BaseAdminPresenter
 		$this->template->id = $portuPositionId;
 	}
 
-	public function actionEditPrice(): void
+	public function actionEditPrice(string $portuPositionId, int|null $previousPortuPositionId = null): void
 	{
 		$this->getComponent('portuPositionPriceForm');
 	}
