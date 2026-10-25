@@ -18,6 +18,7 @@ export class SessionService {
 	private loginTask?: Promise<void>;
 	private timer?: ReturnType<typeof setTimeout>;
 	private disposed = false;
+	private requestGeneration = 0;
 
 	constructor(
 		connection: Connection,
@@ -139,11 +140,12 @@ export class SessionService {
 
 	signOut(): Promise<void> {
 		this.cancelSignIn();
+		this.requestGeneration++;
+		const couldNotRead = this.state.issue === 'storage' && !this.tokens;
+		this.update('signing-out');
 		return this.run(async () => {
 			this.stopTimer();
 			const previous = this.tokens;
-			const couldNotRead = this.state.issue === 'storage' && !previous;
-			this.update('signing-out');
 			// If deleting fails, keep the session recoverable and report the failure.
 			await this.store.clear();
 			this.tokens = null;
@@ -152,6 +154,78 @@ export class SessionService {
 				: !couldNotRead;
 			this.update('signed-out', null, revoked ? null : 'logout-incomplete');
 		});
+	}
+
+	// Main-only operation: serialize authenticated reads with refresh and logout.
+	// The callback and token must never cross the preload boundary.
+	readAuthenticated<T>(read: (accessToken: string) => Promise<T>): Promise<T> {
+		const generation = this.requestGeneration;
+		const owner = this.state.user?.id;
+		const valid = () => !this.disposed && generation === this.requestGeneration;
+		const result = this.queue.then(async () => {
+			if (
+				!valid() ||
+				!owner ||
+				this.state.status !== 'signed-in' ||
+				this.state.user?.id !== owner ||
+				!this.tokens
+			)
+				throw new AuthError('expired');
+			let refreshed = false;
+			try {
+				if (this.tokens.expiresAt <= this.now() + 30_000) {
+					await this.refresh();
+					refreshed = true;
+				}
+				if (!valid()) throw new AuthError('cancelled');
+				let data: T;
+				try {
+					data = await read(this.tokens!.accessToken);
+				} catch (error) {
+					if (
+						!(error instanceof AuthError) ||
+						error.issue !== 'expired' ||
+						refreshed ||
+						!valid()
+					)
+						throw error;
+					await this.refresh();
+					if (!valid()) throw new AuthError('cancelled');
+					data = await read(this.tokens!.accessToken);
+				}
+				if (!valid()) throw new AuthError('cancelled');
+				this.scheduleRefresh();
+				return data;
+			} catch (error) {
+				if (valid() && error instanceof AuthError) {
+					this.stopTimer();
+					try {
+						if (error.issue === 'expired') {
+							const previous = this.tokens;
+							await this.store.clear();
+							this.tokens = null;
+							if (previous) await this.revokeQuietly(previous);
+						}
+					} catch {
+						this.update('unavailable', null, 'storage');
+						throw new AuthError('storage');
+					}
+					this.update(
+						this.tokens || error.issue === 'storage'
+							? 'unavailable'
+							: 'signed-out',
+						null,
+						sessionIssue(error),
+					);
+				}
+				throw error;
+			}
+		});
+		this.queue = result.then(
+			() => undefined,
+			() => undefined,
+		);
+		return result;
 	}
 
 	private async refresh(): Promise<void> {
@@ -179,6 +253,8 @@ export class SessionService {
 		forceRefresh = false,
 		signal?: AbortSignal,
 	): Promise<void> {
+		if (this.state.status === 'signing-out') return;
+		const generation = this.requestGeneration;
 		if (!this.tokens) {
 			this.update('signed-out');
 			return;
@@ -203,6 +279,7 @@ export class SessionService {
 				user = await this.client.user(this.tokens!.accessToken);
 			}
 			if (signal?.aborted) throw new AuthError('cancelled');
+			if (generation !== this.requestGeneration) return;
 			this.update('signed-in', user);
 			this.scheduleRefresh();
 		} catch (error) {
@@ -248,6 +325,7 @@ export class SessionService {
 
 	dispose(): void {
 		this.disposed = true;
+		this.requestGeneration++;
 		this.cancelSignIn();
 		this.stopTimer();
 	}

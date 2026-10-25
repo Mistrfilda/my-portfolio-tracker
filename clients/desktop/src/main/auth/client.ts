@@ -38,7 +38,9 @@ export function parseStoredTokens(value: unknown): Tokens {
 	};
 }
 
-async function readJson(response: Response): Promise<Record<string, unknown>> {
+export async function readJson(
+	response: Response,
+): Promise<Record<string, unknown>> {
 	if (
 		!response.headers.get('content-type')?.includes('application/json') ||
 		!response.body

@@ -23,10 +23,10 @@ export function AppLayout() {
 
 	return (
 		<div className="flex h-screen min-h-0 overflow-hidden">
-			<aside className="flex w-60 shrink-0 flex-col border-r bg-card">
+			<aside className="flex w-52 shrink-0 flex-col border-r bg-card xl:w-56">
 				<div className="window-drag h-12 shrink-0" aria-hidden="true" />
 				<div className="flex items-center gap-3 px-6 pb-9 pt-4">
-					<div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+					<div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground">
 						<ChartNoAxesCombined className="size-5" aria-hidden="true" />
 					</div>
 					<div>
@@ -81,7 +81,7 @@ export function AppLayout() {
 					<p className="text-sm font-medium">{title}</p>
 					<p className="text-xs text-muted-foreground">My Portfolio pro Mac</p>
 				</header>
-				<main className="flex-1 overflow-y-auto px-8 py-10 lg:px-12">
+				<main className="flex-1 overflow-y-auto px-6 py-8 lg:px-8">
 					<Outlet />
 				</main>
 			</div>

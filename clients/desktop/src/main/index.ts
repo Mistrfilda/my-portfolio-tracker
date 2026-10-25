@@ -15,6 +15,8 @@ import {
 } from 'electron';
 import { APP_INFO_CHANNEL, type AppInfo } from '../shared/desktop';
 import { SESSION_CHANNELS } from '../shared/session';
+import { DASHBOARD_CHANNEL } from '../shared/dashboard';
+import { DashboardClient, DashboardService } from './dashboard/client';
 import { authorize } from './auth/authorize';
 import { OAuthClient } from './auth/client';
 import { defaultConnection } from './auth/config';
@@ -132,7 +134,12 @@ if (hasInstanceLock)
 				}
 			},
 		);
+		const dashboard = new DashboardService(
+			auth,
+			new DashboardClient(defaultConnection),
+		);
 		const handlers: Record<string, () => unknown> = {
+			[DASHBOARD_CHANNEL]: () => dashboard.get(),
 			[SESSION_CHANNELS.get]: () => auth!.getState(),
 			[SESSION_CHANNELS.signIn]: async () => {
 				await auth!.signIn();

@@ -70,6 +70,100 @@ function fixture(saved: Tokens | null = null) {
 	};
 }
 
+describe('authenticated dashboard reads', () => {
+	it('rejects reads without a signed-in user', async () => {
+		const f = fixture();
+		await f.service.initialize();
+		const read = vi.fn(async () => 'private-data');
+		await expect(f.service.readAuthenticated(read)).rejects.toMatchObject({
+			issue: 'expired',
+		});
+		expect(read).not.toHaveBeenCalled();
+	});
+	it('refreshes an expired token only once across concurrent reads', async () => {
+		vi.useFakeTimers();
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		vi.setSystemTime(Date.now() + 600_000);
+		const read = vi.fn(async () => 'private-data');
+		expect(
+			await Promise.all([
+				f.service.readAuthenticated(read),
+				f.service.readAuthenticated(read),
+			]),
+		).toEqual(['private-data', 'private-data']);
+		expect(f.client.refresh).toHaveBeenCalledTimes(1);
+	});
+	it('retries a rejected read once and clears a session rejected again', async () => {
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		const read = vi.fn(async () => {
+			throw new AuthError('expired');
+		});
+		await expect(f.service.readAuthenticated(read)).rejects.toMatchObject({
+			issue: 'expired',
+		});
+		expect(read).toHaveBeenCalledTimes(2);
+		expect(f.client.refresh).toHaveBeenCalledTimes(1);
+		expect(f.persisted()).toBeNull();
+		expect(f.service.getState().status).toBe('signed-out');
+	});
+	it('recovers a single 401 and keeps resource failures separate from login', async () => {
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		const read = vi
+			.fn(async () => 'private-data')
+			.mockRejectedValueOnce(new AuthError('expired'));
+		expect(await f.service.readAuthenticated(read)).toBe('private-data');
+		expect(f.service.getState().status).toBe('signed-in');
+		await expect(
+			f.service.readAuthenticated(async () => {
+				throw new Error('resource failure');
+			}),
+		).rejects.toThrow('resource failure');
+		expect(f.service.getState().status).toBe('signed-in');
+	});
+	it('never delivers an in-flight portfolio after logout is requested', async () => {
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		const pending = deferred<string>();
+		const read = vi.fn(() => pending.promise);
+		const result = f.service.readAuthenticated(read);
+		await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(1));
+		const rejected = expect(result).rejects.toMatchObject({
+			issue: 'cancelled',
+		});
+		const logout = f.service.signOut();
+		expect(f.service.getState().status).toBe('signing-out');
+		pending.resolve('private-data');
+		await rejected;
+		await logout;
+		expect(f.service.getState().status).toBe('signed-out');
+	});
+	it('does not replay a refresh after an uncertain failure during data loading', async () => {
+		vi.useFakeTimers();
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		vi.setSystemTime(Date.now() + 600_000);
+		f.client.refresh.mockRejectedValue(new AuthError('network'));
+		const read = vi.fn(async () => 'private-data');
+		await expect(f.service.readAuthenticated(read)).rejects.toMatchObject({
+			issue: 'expired',
+		});
+		await expect(f.service.readAuthenticated(read)).rejects.toMatchObject({
+			issue: 'expired',
+		});
+		expect(read).not.toHaveBeenCalled();
+		expect(f.client.refresh).toHaveBeenCalledTimes(1);
+		expect(f.persisted()).toBeNull();
+	});
+});
+
 afterEach(() => {
 	for (const service of services.splice(0)) service.dispose();
 	vi.useRealTimers();
