@@ -6,12 +6,6 @@ on:
             - 'build-desktop.sh'
             - 'doc/desktop.md'
             - '.github/workflows/desktop-check.yaml'
-    pull_request:
-        paths-ignore:
-            - 'clients/**'
-            - 'build-desktop.sh'
-            - 'doc/desktop.md'
-            - '.github/workflows/desktop-check.yaml'
 jobs:
     app_build:
         name: My portfolio tracker pipeline
