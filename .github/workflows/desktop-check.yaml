@@ -7,12 +7,6 @@ on:
       - 'build-desktop.sh'
       - 'doc/openapi.yaml'
       - '.github/workflows/desktop-check.yaml'
-  pull_request:
-    paths:
-      - 'clients/desktop/**'
-      - 'build-desktop.sh'
-      - 'doc/openapi.yaml'
-      - '.github/workflows/desktop-check.yaml'
 
 permissions:
   contents: read
@@ -32,6 +26,6 @@ jobs:
           cache-dependency-path: clients/desktop/package-lock.json
       - run: npm ci
       - run: npm run check
-      - run: npm run build
+      - name: Compile for Electron smoke tests
+        run: npm run build
       - run: npm run test:smoke
-      - run: npm run package:mac

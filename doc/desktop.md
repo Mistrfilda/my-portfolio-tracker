@@ -191,8 +191,11 @@ Review generated source, dependency changes, imports, and accessibility before u
 - `.dockerignore` excludes the entire `clients/` tree and the desktop build script from web production images.
 - The root TypeScript configuration selects only `assets/`. Web Tailwind explicitly excludes `clients/`.
 - Existing web build/deploy commands keep their current meaning.
+- Both GitHub Actions workflows run only on pushes to any branch, with their existing path filters. Opening or updating a pull request does not start an additional run; merging into `master` triggers checks through the resulting push.
 - `.github/workflows/app-check.yaml` ignores client-only changes.
-- `.github/workflows/desktop-check.yaml` runs desktop checks, compilation, native smoke testing, and local packaging on macOS arm64. Changes to the OpenAPI contract also trigger it. It does not publish a release.
+- `.github/workflows/desktop-check.yaml` runs desktop lint, formatting, type checks, unit tests, and native smoke tests on macOS arm64. It compiles the application only to prepare it for the smoke tests. Changes to the OpenAPI contract also trigger it.
+- Compiled desktop output and smoke-test files stay on the temporary runner disk. Only the npm download cache is persisted between runs; the workflow uploads no build or test artifacts.
+- Application and ZIP packaging runs locally through `./build-desktop.sh` for personal macOS use. GitHub Actions does not package or publish the application.
 
 ## OAuth2 connection and login
 
