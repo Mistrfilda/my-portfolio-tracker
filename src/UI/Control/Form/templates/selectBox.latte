@@ -1,53 +1,12 @@
 {parameters Nette\Forms\Controls\SelectBox $component, string $errorClass = ''}
 
-<div x-data="searchableSelect" class="mt-2 w-full sm:max-w-xl">
-	<el-autocomplete x-ref="autocomplete" x-cloak class="relative block" @input.stop="search($event)">
-		<input
-			id="{$component->getHtmlId()}-search"
-			x-ref="input"
-			type="text"
-			:disabled="disabled"
-			:aria-required="required.toString()"
-			:aria-invalid="invalid.toString()"
-			:aria-describedby="description"
-			:placeholder="label"
-			@focus="startSearch()"
-			@pointerdown.capture="startSearch()"
-			@keydown.enter.capture="chooseActive()"
-			@keydown.escape="restore()"
-			@blur="restore()"
-			@change.stop
-			readonly="{$component->getOption('searchable') === false}"
-			class="block w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-base text-gray-900 outline-solid outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-900 focus:outline-solid focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 aria-invalid:text-red-900 aria-invalid:outline-red-300 aria-invalid:focus:outline-red-500 sm:text-sm/6"
-		>
-		<button type="button" :disabled="disabled" aria-label="Zobrazit možnosti" @pointerdown.capture="startSearch()"
-			class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 disabled:cursor-not-allowed">
-			{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'size-5 text-gray-500 sm:size-4', 'aria-hidden' => 'true']}
-		</button>
-
-		<el-options x-ref="options" anchor="bottom start" popover
-			@toggle="if ($event.newState === 'closed') restore()"
-			class="m-0 max-h-60 w-(--input-width) overflow-auto rounded-md bg-white p-0 py-1 text-base shadow-lg ring-1 ring-gray-300/5 [--anchor-gap:--spacing(1)] focus:outline-hidden data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in data-leave:transition-discrete sm:text-sm">
-			<template x-for="option in options" :key="option.value">
-				<el-option x-effect="$el.setAttribute('value', option.label)" :data-value="option.value"
-					@mousedown.capture="if ($event.button === 0) choose(option.value)"
-					class="group/option relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 aria-selected:bg-blue-600 aria-selected:text-white [&:not([hidden])]:block">
-					<span x-text="option.label" :class="{ 'font-semibold': option.value === value }" class="block truncate"></span>
-					<span x-show="option.value === value" class="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600 group-aria-selected/option:text-white">
-						{renderSvg App\UI\Icon\SvgIcon::CHECK_CIRCLE->value, ['class' => 'size-4', 'aria-hidden' => 'true']}
-					</span>
-				</el-option>
-			</template>
-			<div x-show="empty" role="status" class="px-3 py-2 text-gray-500">Nebyl nalezen žádný výsledek</div>
-		</el-options>
-	</el-autocomplete>
-	{$component->getControl()->addAttributes([
-		'class' => 'sr-only form-control show-hidden-error' . $errorClass,
-		'x-ref' => 'control',
-		'tabindex' => -1,
-		'aria-hidden' => 'true',
-		'x-on:change' => 'syncValue()',
-		'x-on:focus' => '$refs.input.focus()',
-		'x-on:invalid.prevent' => 'invalid = true; $refs.input.focus()',
-	])}
-</div>
+{embed './searchableSelect.latte', id: (string) $component->getHtmlId(), searchable: $component->getOption('searchable') !== false}
+	{block control}
+		{$component->getControl()->addAttributes([
+			'class' => 'sr-only form-control show-hidden-error' . $errorClass,
+			'x-ref' => 'control',
+			'tabindex' => -1,
+			'aria-hidden' => 'true',
+		])}
+	{/block}
+{/embed}

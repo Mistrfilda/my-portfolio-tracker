@@ -12,6 +12,7 @@ import {CompleteEvent} from "naja/dist/Naja";
 import dragScroll from "./DragScroll";
 import datagrid from "./Datagrid";
 import searchableSelect from "./SearchableSelect";
+import expenseTagAction from "./ExpenseTagAction";
 
 naja.initialize();
 registerExtensions(naja);
@@ -146,81 +147,9 @@ Alpine.data('loadChart', (changeFromStartEnabled: number = 0) => ({
     }
 }));
 
-Alpine.data('expenseMainTag', (expenseId: string, handleLink: string) => ({
-    mainTagId: '',
-
-    init() {
-      console.log(expenseId);
-    },
-    click() {
-        if (this.mainTagId === '') {
-            return;
-        }
-
-        handleLink = handleLink.replace("replaceTagId", this.mainTagId);
-        handleLink = handleLink.replace("replaceExpenseId", expenseId);
-
-        naja.makeRequest(
-            'GET',
-            handleLink,
-            null,
-            {
-                history: false,
-                responseType: 'json',
-                unique: false
-            },
-        );
-    }
-}));
-
-Alpine.data('addExpenseOtherTag', (expenseId: string, handleLink: string) => ({
-    mainTagId: '',
-
-    init() {
-        console.log(expenseId);
-    },
-    click() {
-        if (this.mainTagId === '') {
-            return;
-        }
-
-        handleLink = handleLink.replace("replaceTagId", this.mainTagId);
-        handleLink = handleLink.replace("replaceExpenseId", expenseId);
-
-        naja.makeRequest(
-            'GET',
-            handleLink,
-            null,
-            {
-                history: false,
-                responseType: 'json',
-                unique: false
-            },
-        );
-    }
-}));
-
-Alpine.data('removeOtherTag', (expenseId: string, handleLink: string) => ({
-    click(tagId: string) {
-        if (tagId === '') {
-            return;
-        }
-
-        handleLink = handleLink.replace("replaceTagId", tagId);
-        handleLink = handleLink.replace("replaceExpenseId", expenseId);
-
-        naja.makeRequest(
-            'GET',
-            handleLink,
-            null,
-            {
-                history: false,
-                responseType: 'json',
-                unique: false
-            },
-        );
-    }
-}));
+Alpine.data('expenseMainTag', expenseTagAction);
+Alpine.data('addExpenseOtherTag', expenseTagAction);
+Alpine.data('removeOtherTag', expenseTagAction);
 
 Alpine.data('currencyConvert', (handleLink: string, amount: string, fromCurrency: string) => ({
     fromCurrency: fromCurrency,

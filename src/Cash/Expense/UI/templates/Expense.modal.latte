@@ -4,7 +4,7 @@
 
 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg" n:snippet="modalContent">
     <div class="px-4 py-6 sm:px-6">
-        <h3 class="text-base font-semibold leading-7 text-gray-900">Výdaj</h3>
+        <h3 id="modal-headline" class="text-base font-semibold leading-7 text-gray-900">Výdaj</h3>
         <p class="mt-1 max-w-2xl text-sm leading-6 text-gray-500">{$expense->getId()}</p>
     </div>
     <div class="border-t border-gray-100">
@@ -49,23 +49,26 @@
                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
                     x-data="expenseMainTag('{$expense->getId()->toString()}', '{$changeMainTagHandleLink}')"
             >
-                <dt class="text-sm font-medium text-gray-900">Změnit hlavní tag</dt>
+                <dt class="text-sm font-medium text-gray-900"><label for="expense-main-tag-search">Změnit hlavní tag</label></dt>
                 <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    <div class="mt-2 sm:col-span-2 sm:mt-0 flex">
-                        <select x-model="mainTagId" id="mainTag" name="mainTag" autocomplete="country-name"
-                                class="block max-w-xs rounded-md border-0 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:max-w-xs sm:text-sm mr-4">
-                            <option disabled value="" selected>Vyberte tag</option>
-                            {foreach $mainTags as $tag}
-                                <option value="{$tag->getId()}">
-                                    {$tag->getName()}
-                                </option>
-                            {/foreach}
-                        </select>
-                        <button x-on:click="click()"
-                                class="inline-flex items-center px-2 py-1 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <div class="flex items-start gap-3">
+                        {embed '../../../../UI/Control/Form/templates/searchableSelect.latte', id: 'expense-main-tag', wrapperClass: ''}
+                            {block control}
+                                <select x-model="mainTagId" x-ref="control" :disabled="saving" id="expense-main-tag" name="mainTag"
+                                        class="sr-only" tabindex="-1" aria-hidden="true">
+                                    <option disabled value="" selected>Vyberte tag</option>
+                                    {foreach $mainTags as $tag}
+                                        <option value="{$tag->getId()}">{$tag->getName()}</option>
+                                    {/foreach}
+                                </select>
+                            {/block}
+                        {/embed}
+                        <button type="button" x-on:click="click()" :disabled="mainTagId === '' || saving"
+                                class="inline-flex shrink-0 items-center px-3 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
                             Uložit
                         </button>
                     </div>
+                    <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert" class="mt-2 text-sm text-red-600"></p>
                 </dd>
             </div>
             <div
@@ -81,41 +84,42 @@
                         <span class="inline-flex items-center gap-x-0.5 rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700">
                           {$otherTag->getName()}
                           <button
-                                  x-on:click="click('{$otherTag->getId()}')"
+                                  x-on:click="click('{$otherTag->getId()}')" :disabled="saving"
                                   type="button"
-                                  class="group relative -mr-1 h-3.5 w-3.5 rounded-xs hover:bg-blue-600/20">
-                            <span class="sr-only">Remove</span>
-                            <svg viewBox="0 0 14 14"
-                                 class="h-3.5 w-3.5 stroke-blue-800/50 group-hover:stroke-blue-800/75">
-                              <path d="M4 4l6 6m0-6l-6 6"/>
-                            </svg>
+                                  class="group relative -mr-1 h-3.5 w-3.5 rounded-xs hover:bg-blue-600/20 disabled:cursor-not-allowed disabled:opacity-50">
+                            <span class="sr-only">Odebrat tag {$otherTag->getName()}</span>
+                            {renderSvg App\UI\Icon\SvgIcon::X->value, ['class' => 'h-3.5 w-3.5 text-blue-800/50 group-hover:text-blue-800/75', 'aria-hidden' => 'true']}
                             <span class="absolute -inset-1"></span>
                           </button>
                         </span>
                     {/foreach}
+                    <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert" class="mt-2 text-sm text-red-600"></p>
                 </dd>
             </div>
             <div
                     class="px-4 py-6 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6"
                     x-data="addExpenseOtherTag('{$expense->getId()->toString()}', '{$changeOtherTagHandleLink}')"
             >
-                <dt class="text-sm font-medium text-gray-900">Přidat ostatní tag</dt>
+                <dt class="text-sm font-medium text-gray-900"><label for="expense-other-tag-search">Přidat ostatní tag</label></dt>
                 <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    <div class="mt-2 sm:col-span-2 sm:mt-0 flex">
-                        <select x-model="mainTagId" id="mainTag" name="mainTag" autocomplete="country-name"
-                                class="block max-w-xs rounded-md border-0 text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-blue-600 sm:max-w-xs sm:text-sm mr-4">
-                            <option disabled value="" selected>Vyberte tag</option>
-                            {foreach $otherTags as $tag}
-                                <option value="{$tag->getId()}">
-                                    {$tag->getName()}
-                                </option>
-                            {/foreach}
-                        </select>
-                        <button x-on:click="click()"
-                                class="inline-flex items-center px-2 py-1 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    <div class="flex items-start gap-3">
+                        {embed '../../../../UI/Control/Form/templates/searchableSelect.latte', id: 'expense-other-tag', wrapperClass: ''}
+                            {block control}
+                                <select x-model="mainTagId" x-ref="control" :disabled="saving" id="expense-other-tag" name="otherTag"
+                                        class="sr-only" tabindex="-1" aria-hidden="true">
+                                    <option disabled value="" selected>Vyberte tag</option>
+                                    {foreach $otherTags as $tag}
+                                        <option value="{$tag->getId()}">{$tag->getName()}</option>
+                                    {/foreach}
+                                </select>
+                            {/block}
+                        {/embed}
+                        <button type="button" x-on:click="click()" :disabled="mainTagId === '' || saving"
+                                class="inline-flex shrink-0 items-center px-3 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50">
                             Uložit
                         </button>
                     </div>
+                    <p x-show="errorMessage" x-text="errorMessage" x-cloak role="alert" class="mt-2 text-sm text-red-600"></p>
                 </dd>
             </div>
         </dl>
