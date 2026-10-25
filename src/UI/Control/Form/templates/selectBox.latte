@@ -1,108 +1,53 @@
-{parameters
-    Nette\Forms\Controls\SelectBox $component,
-    App\UI\Control\Form\AdminForm $form
-}
+{parameters Nette\Forms\Controls\SelectBox $component, string $errorClass = ''}
 
-{varType Nette\Forms\Controls\SelectBox $component}
-{varType App\UI\Control\Form\AdminForm $form}
+<div x-data="searchableSelect" class="mt-2 w-full sm:max-w-xl">
+	<el-autocomplete x-ref="autocomplete" x-cloak class="relative block" @input.stop="search($event)">
+		<input
+			id="{$component->getHtmlId()}-search"
+			x-ref="input"
+			type="text"
+			:disabled="disabled"
+			:aria-required="required.toString()"
+			:aria-invalid="invalid.toString()"
+			:aria-describedby="description"
+			:placeholder="label"
+			@focus="startSearch()"
+			@pointerdown.capture="startSearch()"
+			@keydown.enter.capture="chooseActive()"
+			@keydown.escape="restore()"
+			@blur="restore()"
+			@change.stop
+			readonly="{$component->getOption('searchable') === false}"
+			class="block w-full rounded-md border-0 bg-white py-1.5 pl-3 pr-10 text-base text-gray-900 outline-solid outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-900 focus:outline-solid focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500 aria-invalid:text-red-900 aria-invalid:outline-red-300 aria-invalid:focus:outline-red-500 sm:text-sm/6"
+		>
+		<button type="button" :disabled="disabled" aria-label="Zobrazit možnosti" @pointerdown.capture="startSearch()"
+			class="absolute inset-y-0 right-0 flex items-center rounded-r-md px-2 disabled:cursor-not-allowed">
+			{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'size-5 text-gray-500 sm:size-4', 'aria-hidden' => 'true']}
+		</button>
 
-<div class="max-w-xl" n:syntax="double">
-    <div
-            x-data="select( {{$form->formatSelectData($component)}} )"
-            x-init="init()"
-            @click.away="closeListbox()"
-            @keydown.escape="closeListbox()"
-            class="relative"
-    >
-                <span class="inline-block w-full rounded-md shadow-xs">
-                      <button
-                              x-ref="button"
-                              @click="toggleListboxVisibility()"
-                              :aria-expanded="open"
-                              aria-haspopup="listbox"
-                              class="relative z-0 w-full py-2 pl-3 pr-10 text-left transition duration-150 ease-in-out bg-white border border-gray-300 rounded-md cursor-default focus:outline-hidden focus:shadow-outline-blue focus:border-blue-300 sm:text-sm sm:leading-5"
-                      >
-                            <span
-                                    x-show="! open"
-                                    x-text="value in options ? options[value] : placeholder"
-                                    :class="{ 'text-gray-500': ! (value in options) }"
-                                    class="block truncate"
-                            ></span>
-
-                            <input
-                                    x-ref="search"
-                                    x-show="open"
-                                    x-model="search"
-                                    @keydown.enter.stop.prevent="selectOption()"
-                                    @keydown.arrow-up.prevent="focusPreviousOption()"
-                                    @keydown.arrow-down.prevent="focusNextOption()"
-                                    type="search"
-                                    class="w-full h-full form-control focus:outline-hidden"
-                            />
-
-                            <span class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                                <svg class="w-5 h-5 text-gray-400" viewBox="0 0 20 20" fill="none" stroke="currentColor">
-                                    <path d="M7 7l3-3 3 3m0 6l-3 3-3-3" stroke-width="1.5" stroke-linecap="round"
-                                          stroke-linejoin="round"></path>
-                                </svg>
-                            </span>
-                      </button>
-                </span>
-
-        <div
-                x-show="open"
-                x-transition:leave="transition ease-in duration-100"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"
-                x-cloak
-                class="absolute z-10 w-full mt-1 bg-white rounded-md shadow-lg"
-        >
-            <ul
-                    x-ref="listbox"
-                    @keydown.enter.stop.prevent="selectOption()"
-                    @keydown.arrow-up.prevent="focusPreviousOption()"
-                    @keydown.arrow-down.prevent="focusNextOption()"
-                    role="listbox"
-                    :aria-activedescendant="focusedOptionIndex ? name + 'Option' + focusedOptionIndex : null"
-                    tabindex="-1"
-                    class="py-1 overflow-auto text-base leading-6 rounded-md shadow-2xs max-h-60 focus:outline-hidden sm:text-sm sm:leading-5"
-            >
-                <template x-for="(key, index) in Object.keys(options)" :key="index">
-                    <li
-                            :id="name + 'Option' + focusedOptionIndex"
-                            @click="selectOption()"
-                            @mouseenter="focusedOptionIndex = index"
-                            @mouseleave="focusedOptionIndex = null"
-                            role="option"
-                            :aria-selected="focusedOptionIndex === index"
-                            :class="{ 'text-white bg-blue-600': index === focusedOptionIndex, 'text-gray-900': index !== focusedOptionIndex }"
-                            class="relative py-2 pl-3 text-gray-900 cursor-default select-none pr-9"
-                    >
-                                <span x-text="Object.values(options)[index]"
-                                      :class="{ 'font-semibold': index === focusedOptionIndex, 'font-normal': index !== focusedOptionIndex }"
-                                      class="block font-normal truncate"
-                                ></span>
-
-                        <span
-                                x-show="key === value"
-                                :class="{ 'text-white': index === focusedOptionIndex, 'text-blue-600': index !== focusedOptionIndex }"
-                                class="absolute inset-y-0 right-0 flex items-center pr-4 text-blue-600"
-                        >
-                                    <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
-                                        <path fill-rule="evenodd"
-                                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                              clip-rule="evenodd"/>
-                                    </svg>
-                                </span>
-                    </li>
-                </template>
-
-                <div
-                        x-show="! Object.keys(options).length"
-                        x-text="emptyOptionsMessage"
-                        class="px-3 py-2 text-gray-900 cursor-default select-none"></div>
-            </ul>
-        </div>
-        <input n:name="$component->getName()" x-bind:value="value" class="hidden">
-    </div>
+		<el-options x-ref="options" anchor="bottom start" popover
+			@toggle="if ($event.newState === 'closed') restore()"
+			class="m-0 max-h-60 w-(--input-width) overflow-auto rounded-md bg-white p-0 py-1 text-base shadow-lg ring-1 ring-gray-300/5 [--anchor-gap:--spacing(1)] focus:outline-hidden data-closed:data-leave:opacity-0 data-leave:transition data-leave:duration-100 data-leave:ease-in data-leave:transition-discrete sm:text-sm">
+			<template x-for="option in options" :key="option.value">
+				<el-option x-effect="$el.setAttribute('value', option.label)" :data-value="option.value"
+					@mousedown.capture="if ($event.button === 0) choose(option.value)"
+					class="group/option relative cursor-default select-none py-2 pl-3 pr-9 text-gray-900 aria-selected:bg-blue-600 aria-selected:text-white [&:not([hidden])]:block">
+					<span x-text="option.label" :class="{ 'font-semibold': option.value === value }" class="block truncate"></span>
+					<span x-show="option.value === value" class="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600 group-aria-selected/option:text-white">
+						{renderSvg App\UI\Icon\SvgIcon::CHECK_CIRCLE->value, ['class' => 'size-4', 'aria-hidden' => 'true']}
+					</span>
+				</el-option>
+			</template>
+			<div x-show="empty" role="status" class="px-3 py-2 text-gray-500">Nebyl nalezen žádný výsledek</div>
+		</el-options>
+	</el-autocomplete>
+	{$component->getControl()->addAttributes([
+		'class' => 'sr-only form-control show-hidden-error' . $errorClass,
+		'x-ref' => 'control',
+		'tabindex' => -1,
+		'aria-hidden' => 'true',
+		'x-on:change' => 'syncValue()',
+		'x-on:focus' => '$refs.input.focus()',
+		'x-on:invalid.prevent' => 'invalid = true; $refs.input.focus()',
+	])}
 </div>

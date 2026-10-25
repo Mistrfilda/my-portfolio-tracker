@@ -109,23 +109,16 @@
             </div>
         {elseif $component instanceof Nette\Forms\Controls\SelectBox}
             <div class="sm:grid sm:grid-cols-3 sm:gap-4 sm:items-start border-none sm:border-solid sm:border-t sm:border-gray-200 sm:pt-5">
-                <label for="{$component->getName()}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
+                <label for="{$component->getHtmlId()}{if $component->getOption('tomSelect') !== true}-search{/if}" class="block text-base font-medium text-gray-700 sm:mt-px sm:pt-2">
                     {$component->getLabel()}
                 </label>
                 <div class="mt-1 sm:mt-0 sm:col-span-2">
-                    {if $component->getOption('full') === true}
-                        {include './selectBox.latte', $component}
-                    {elseif $component->getOption('tailwind-selectbox') === true}
-                        {include './tailwindAdvancedSelect.latte', $component}
-                    {elseif $component->getOption('tomSelect') === true}
+                    {if $component->getOption('tomSelect') === true}
                         {$component->getControl()->addAttributes([
                         'class' => 'tom-select-selector w-full shadow-xs focus:ring-blue-500 focus:border-blue-500 sm:max-w-xl sm:text-sm border-gray-300 rounded-md form-control mt-2' . $errorClass
                         ])}
                     {else}
-{*                        {$component->getControlPart()->addAttributes([*}
-{*                        'class' => 'sm:max-w-xl mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-hidden focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md',*}
-{*                        ])}*}
-                        {include './tailwindAdvancedSelect.latte', $component}
+                        {include './selectBox.latte', $component, $errorClass}
                     {/if}
 
                     {if $componentError !== null}

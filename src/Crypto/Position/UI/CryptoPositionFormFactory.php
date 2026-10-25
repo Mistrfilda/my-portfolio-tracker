@@ -38,8 +38,7 @@ class CryptoPositionFormFactory
 
 		$form->addSelect('cryptoAsset', 'Kryptoměna', $this->cryptoAssetRepository->findPairs())
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
-			->setRequired()
-			->setOption('tomSelect', true);
+			->setRequired();
 
 		$form->addText('paidAmount', 'Zaplacená částka')
 			->addRule(Form::Float)

@@ -9,8 +9,6 @@ use App\UI\Control\Form\Input\CustomFileUpload;
 use App\UI\Control\Form\Input\DatePickerInput;
 use App\UI\Control\Form\Input\Multiplier;
 use Nette\Application\UI\Form;
-use Nette\Forms\Controls\SelectBox;
-use Nette\Utils\Json;
 use Stringable;
 
 class AdminForm extends Form
@@ -98,29 +96,6 @@ class AdminForm extends Form
 		$this[$name] = $control;
 
 		return $control;
-	}
-
-	public function formatSelectData(SelectBox $selectBox): string
-	{
-		$items = $selectBox->getItems();
-		if ($selectBox->getPrompt() !== false) {
-			$items[] = $selectBox->getPrompt();
-		}
-
-		$defaultValue = $selectBox->getValue();
-		if ($defaultValue === null) {
-			$defaultValue = $selectBox->getPrompt() !== false ? $selectBox->getPrompt() : '';
-		}
-
-		$data = [
-			'data' => $items,
-			'emptyOptionsMessage' => 'Nebyl nalezen žádný výsledek',
-			'name' => $selectBox->getName(),
-			'placeholder' => $defaultValue,
-			'value' => $selectBox->getValue() === null ? null : (string) $selectBox->getValue(),
-		];
-
-		return Json::encode($data);
 	}
 
 }

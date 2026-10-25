@@ -37,8 +37,7 @@ class StockPositionFormFactory
 
 		$form->addSelect('stockAsset', 'Akcie', $this->stockAssetRepository->findPairs())
 			->setPrompt(AdminForm::SELECT_PLACEHOLDER)
-			->setRequired()
-			->setOption('tomSelect', true);
+			->setRequired();
 
 		$form->addText('orderPiecesCount', 'Počet kusů')
 			->addRule(Form::Integer)

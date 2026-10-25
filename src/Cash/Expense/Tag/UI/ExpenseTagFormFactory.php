@@ -37,12 +37,10 @@ class ExpenseTagFormFactory
 			'Kategorie',
 			$this->expenseCategoryRepository->findPairs(),
 		)
-			->setPrompt('Vyberte')
-			->setOption('tomSelect', true);
+			->setPrompt('Vyberte');
 
 		$parentTag = $form->addSelect('parentTag', 'Parent Tag', $this->expenseTagRepository->findPairs())
-			->setPrompt('Vyberte')
-			->setOption('tomSelect', true);
+			->setPrompt('Vyberte');
 
 		$form->addCheckbox('isTax', 'Je tag daň?');
 
