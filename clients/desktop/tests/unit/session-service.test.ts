@@ -71,6 +71,31 @@ function fixture(saved: Tokens | null = null) {
 }
 
 describe('authenticated dashboard reads', () => {
+	it('does not run a queued resume retry after logout has started', async () => {
+		const f = fixture();
+		await f.service.initialize();
+		await f.service.signIn();
+		const pending = deferred<string>();
+		const read = vi.fn(() => pending.promise);
+		const loading = f.service.readAuthenticated(read).catch(() => undefined);
+		await vi.waitFor(() => expect(read).toHaveBeenCalledTimes(1));
+		const retry = f.service.retry();
+		const logout = f.service.signOut();
+		const afterLogout = f.states.length;
+		pending.resolve('private-data');
+		await Promise.all([loading, retry, logout]);
+		expect(
+			f.states
+				.slice(afterLogout)
+				.some(
+					(state) =>
+						state.status === 'signed-in' || state.status === 'restoring',
+				),
+		).toBe(false);
+		expect(f.client.user).toHaveBeenCalledTimes(1);
+		expect(f.service.getState().status).toBe('signed-out');
+	});
+
 	it('rejects reads without a signed-in user', async () => {
 		const f = fixture();
 		await f.service.initialize();

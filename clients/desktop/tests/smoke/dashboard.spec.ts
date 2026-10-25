@@ -117,9 +117,8 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 		await application.evaluate(({ BrowserWindow }) => {
 			BrowserWindow.getAllWindows()[0]!.setSize(920, 640);
 		});
-		await expect
-			.poll(() => page.evaluate(() => document.documentElement.clientWidth))
-			.toBe(920);
+		// clientWidth excludes classic scrollbars, whose presence depends on macOS settings.
+		await expect.poll(() => page.evaluate(() => window.innerWidth)).toBe(920);
 		expect(
 			await page
 				.locator('main')

@@ -10,7 +10,7 @@ The renderer lives in [clients/desktop/src/renderer/src](../../../clients/deskto
 ## Locate the change
 
 - `app.tsx` wires providers and the memory router; `components/app-layout.tsx` owns the window layout and navigation.
-- `pages/` contains route-level screens. Add feature folders when a real feature needs them.
+- `pages/` contains route-level screens. `clients/desktop/src/renderer/src/features/dashboard/` owns portfolio panels, refresh/loading/error states and Czech numeric/date formatting.
 - `components/ui/` contains shadcn component source owned by this repository. Prefer its existing variants before making a new wrapper.
 - `styles.css` defines shared semantic colors, radii, and light/dark themes. Use these tokens instead of copying styles between screens.
 - `lib/theme.ts` and `components/theme-provider.tsx` own appearance. Local storage is for appearance only, never tokens.

@@ -59,11 +59,13 @@ export class SessionService {
 	}
 
 	private run(work: () => Promise<void>): Promise<void> {
+		const generation = this.requestGeneration;
 		const result = this.queue.then(async () => {
-			if (this.disposed) return;
+			if (this.disposed || generation !== this.requestGeneration) return;
 			try {
 				await work();
 			} catch (error) {
+				if (this.disposed || generation !== this.requestGeneration) return;
 				this.stopTimer();
 				const issue = sessionIssue(error);
 				this.update(

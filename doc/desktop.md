@@ -62,6 +62,24 @@ npm --prefix clients/desktop run dev:renderer
 
 It uses the same port and renderer configuration. It has no Electron bridge, so the application version is only displayed in Electron. Use standalone Playwright MCP for browser inspection; the native smoke test verifies the actual bridge and Electron window.
 
+### Switching branches
+
+Stop desktop development before switching branches. Git leaves ignored dependencies and generated files on disk. A branch predating the desktop has no `clients/desktop/.gitignore`, so those remaining files can appear as untracked even though nothing new was created.
+
+For this checkout, the following local patterns in `.git/info/exclude` keep those files ignored across branches. They are not committed. Use `git rev-parse --git-path info/exclude` to locate the appropriate file in another checkout or worktree:
+
+```gitignore
+/clients/desktop/node_modules/
+/clients/desktop/out/
+/clients/desktop/artifacts/
+/clients/desktop/coverage/
+/clients/desktop/test-results/
+/clients/desktop/playwright-report/
+/clients/desktop/*.tsbuildinfo
+```
+
+New source files remain visible to Git. Branches containing the monorepo setup already have the equivalent generated-file rules in the committed desktop ignore file. Run `npm --prefix clients/desktop ci` when switching to a different desktop lockfile.
+
 ## One-command build
 
 From the repository root:
@@ -97,7 +115,9 @@ The smoke tests check rendering, navigation, the restricted preload bridge, Node
 
 Native tests need a graphical macOS session. Use the PhpStorm execution route described above when working through Codex on this machine. Browser preview cannot verify native IPC or Electron's process isolation.
 
-The initial dependency audit (2026-10-18) reports eight moderate entries from one transitive build-tool issue: [sprintf-js format-string denial of service](https://github.com/advisories/GHSA-hp3w-g68c-fv3c), via electron-builder's download/proxy logger. The advisory has no patched sprintf-js release. Keep this visible when upgrading the builder; do not apply npm's suggested downgrade or a major dependency override without testing. This chain is a development dependency and is excluded from the packaged application.
+The dependency audit was refreshed on 2026-10-25. Electron was updated to 44.9.1 (including its [certificate-trust mitigation](https://github.com/electron/electron/security/advisories/GHSA-jr5w-w6x2-84p9)), Vitest to 4.1.12, and compatible transitive Undici/fast-uri fixes were incorporated without overrides or major upgrades. All selected releases met the five-day release-age policy. `npm --prefix clients/desktop audit` reported zero known vulnerabilities for this lockfile on that date; rerun it when reviewing dependency updates.
+
+Electron and renderer libraries are listed under `devDependencies` for packaging, but their binary/bundled code still ships in the application. An audit with `--omit=dev` therefore does not assess the desktop runtime.
 
 ## Source boundaries
 
@@ -197,7 +217,7 @@ After exchanging the code, main calls `GET /api/v1/me` and shares only the accou
 
 macOS may request Keychain access on first use. A consistently signed distribution build is needed to avoid repeated permission prompts across application updates; the current local ad-hoc package is still intended for development. See [Electron safeStorage](https://www.electronjs.org/docs/latest/api/safe-storage).
 
-Unit tests cover configuration isolation, PKCE/callback validation, token HTTP contracts, encrypted storage, cancellation races, refresh serialization, replay prevention and logout failures. Native smoke testing through PhpStorm passes without production credentials. The deployed server's login form was verified with this registered client and a varying callback port; a complete real-account login and Keychain persistence check still requires entering the user's credentials in the browser.
+Unit tests cover configuration isolation, PKCE/callback validation, token HTTP contracts, encrypted storage, cancellation races, refresh serialization, replay prevention, queued retries after logout and logout failures. Native smoke testing through PhpStorm uses isolated profiles without production credentials. For manual verification, sign in through the browser, confirm the account and dashboard, restart the application to verify session restoration, and sign out. Real account and Keychain persistence checks are deliberately outside the automated suite.
 
 iOS will use Swift/SwiftUI, system web authentication, and Keychain with a separate OAuth client registration. Its actual Xcode project and Codex skill should be introduced with the first iOS implementation task.
 
