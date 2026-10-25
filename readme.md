@@ -108,6 +108,51 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 - Structural checks for `AGENTS.md`, skills and their reference links, and Codex TOML syntax: `composer agent-docs`. This does not assess instruction quality or validate every Codex setting against its runtime schema.
 - Full project verification: `composer build-all`
 
+### AI clients
+
+`App\Ai\AiClient` defines `generateContent($prompt, $systemInstruction = null, $responseSchema = null, AiModel $model = DefaultAiModelEnum::DEFAULT): string`. Both `GeminiClient` and `OpenAiClient` implement it. Catch `App\Ai\AiClientException` for either provider, or their provider-specific exception types when needed.
+
+The OpenAI client uses the [Responses API](https://developers.openai.com/api/docs/guides/text) with `store: false`. Set `openAi.apiKey` and `gemini.apiKey` through the deployment's local configuration overrides. The public configuration contains only placeholder keys. Models are now selected per request using enums, not constructor or DI parameters; old `openAi.model` and `gemini.model` overrides are no longer used. Stock AI Analysis continues to use Gemini.
+
+PHP enums cannot inherit from one another, so the model enums implement the common `App\Ai\AiModel` interface. `DefaultAiModelEnum::DEFAULT` selects the client's default. Each provider enum also exposes `DEFAULT` as an alias of its default case:
+
+| Provider enum | Case | API model | Default |
+| --- | --- | --- | --- |
+| `GeminiModelEnum` | `FLASH` | `gemini-3.8-flash` | Yes |
+| `OpenAiModelEnum` | `LUNA` | `gpt-6-luna` | Yes |
+| `OpenAiModelEnum` | `SOL` | `gpt-6.1-sol` | No |
+| `OpenAiModelEnum` | `ASTRA` | `gpt-6-astra` | No |
+
+The IDs follow the [Gemini Flash documentation](https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash) and [OpenAI model guide](https://developers.openai.com/api/docs/guides/latest-model). Gemini Flash requests omit deprecated sampling parameters such as `temperature`, as required by the [migration guide](https://ai.google.dev/gemini-api/docs/whats-new-gemini-3.8#migration-checklist).
+
+For a service whose constructor accepts `AiClient $aiClient`, select the provider explicitly in Nette DI because both implementations are registered:
+
+```neon
+- App\Example\SummaryService(aiClient: @App\Ai\OpenAi\OpenAiClient)
+```
+
+Use the same method for either provider:
+
+```php
+$text = $aiClient->generateContent(
+	'Summarize the following text: ...',
+	systemInstruction: 'Answer concisely.',
+);
+```
+
+Choose a different model for a single call with a named argument:
+
+```php
+$text = $openAiClient->generateContent('Summarize this text: ...', model: OpenAiModelEnum::SOL);
+$text = $geminiClient->generateContent('Summarize this text: ...', model: GeminiModelEnum::FLASH);
+```
+
+A per-request choice does not change subsequent calls' default. Passing another provider's model throws a provider-specific `AiClientException` before any HTTP request is sent.
+
+The optional output schema is provider-specific. Gemini retains its existing `generationConfig.responseSchema` format. OpenAI passes a JSON Schema to `text.format` with `strict: true`; object schemas need `additionalProperties: false` and all properties listed in `required`, following [Structured Outputs requirements](https://developers.openai.com/api/docs/guides/structured-outputs#supported-schemas). The clients return the generated text; callers remain responsible for decoding and validating domain data.
+
+OpenAI rejects HTTP errors, invalid response data, unfinished responses, refusals, and missing text with `OpenAiClientException`. Client tests use mocked HTTP responses and never call either provider.
+
 ### Desktop development and build
 
 The desktop starts independently of a local PHP application or Docker. Account login connects to the server configured in `clients/desktop/src/main/auth/connection.json`:

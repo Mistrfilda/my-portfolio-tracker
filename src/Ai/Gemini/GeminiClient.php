@@ -4,6 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Ai\Gemini;
 
+use App\Ai\AiClient;
+use App\Ai\AiModel;
+use App\Ai\DefaultAiModelEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
 use App\Utils\TypeValidator;
@@ -13,14 +16,13 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Log\LoggerInterface;
 use Throwable;
 
-class GeminiClient
+class GeminiClient implements AiClient
 {
 
 	private const API_URL_TEMPLATE = 'https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent';
 
 	public function __construct(
 		private readonly string $apiKey,
-		private readonly string $model,
 		private readonly Psr18ClientFactory $psr18ClientFactory,
 		private readonly Psr7RequestFactory $psr7RequestFactory,
 		private readonly LoggerInterface $logger,
@@ -35,17 +37,26 @@ class GeminiClient
 		string $prompt,
 		string|null $systemInstruction = null,
 		array|null $responseSchema = null,
+		AiModel $model = DefaultAiModelEnum::DEFAULT,
 	): string
 	{
+		if ($model === DefaultAiModelEnum::DEFAULT) {
+			$model = GeminiModelEnum::DEFAULT;
+		}
+
+		if (!$model instanceof GeminiModelEnum) {
+			throw new GeminiClientException('Gemini client requires a Gemini model.');
+		}
+
 		$this->logger->info('Sending Gemini generateContent request', [
-			'model' => $this->model,
+			'model' => $model->value,
 			'promptLength' => strlen($prompt),
 		]);
 
 		try {
 			$response = $this->psr18ClientFactory->getClient()->sendRequest(
 				$this->psr7RequestFactory->createPOSTRequest(
-					sprintf(self::API_URL_TEMPLATE, rawurlencode($this->model)),
+					sprintf(self::API_URL_TEMPLATE, rawurlencode($model->value)),
 					$this->createPayload($prompt, $systemInstruction, $responseSchema),
 					[
 						'Content-Type' => 'application/json',
@@ -55,7 +66,7 @@ class GeminiClient
 			);
 		} catch (ClientExceptionInterface $exception) {
 			$this->logger->error('Gemini generateContent HTTP request failed', [
-				'model' => $this->model,
+				'model' => $model->value,
 				'exception' => $exception,
 			]);
 
@@ -64,7 +75,7 @@ class GeminiClient
 
 		if ($response->getStatusCode() < 200 || $response->getStatusCode() >= 300) {
 			$this->logger->error('Gemini generateContent returned non-success status code', [
-				'model' => $this->model,
+				'model' => $model->value,
 				'statusCode' => $response->getStatusCode(),
 				'message' => $response->getBody()->getContents(),
 			]);
@@ -80,21 +91,21 @@ class GeminiClient
 			$text = $this->extractText($responseData);
 		} catch (GeminiClientException $exception) {
 			$this->logger->error('Gemini generateContent response has invalid shape', [
-				'model' => $this->model,
+				'model' => $model->value,
 				'exception' => $exception,
 			]);
 
 			throw $exception;
 		} catch (JsonException $exception) {
 			$this->logger->error('Gemini generateContent response is not valid JSON', [
-				'model' => $this->model,
+				'model' => $model->value,
 				'exception' => $exception,
 			]);
 
 			throw new GeminiClientException('Gemini generateContent response is not valid JSON.', previous: $exception);
 		} catch (Throwable $exception) {
 			$this->logger->error('Gemini generateContent response has invalid shape', [
-				'model' => $this->model,
+				'model' => $model->value,
 				'exception' => $exception,
 			]);
 
@@ -102,7 +113,7 @@ class GeminiClient
 		}
 
 		$this->logger->info('Gemini generateContent request finished', [
-			'model' => $this->model,
+			'model' => $model->value,
 			'responseLength' => strlen($text),
 		]);
 
@@ -125,9 +136,6 @@ class GeminiClient
 					],
 				],
 			],
-			'generationConfig' => [
-				'temperature' => 0.2,
-			],
 			'tools' => [
 				[
 					'google_search' => (object) [],
@@ -136,8 +144,10 @@ class GeminiClient
 		];
 
 		if ($responseSchema !== null) {
-			$payload['generationConfig']['responseMimeType'] = 'application/json';
-			$payload['generationConfig']['responseSchema'] = $responseSchema;
+			$payload['generationConfig'] = [
+				'responseMimeType' => 'application/json',
+				'responseSchema' => $responseSchema,
+			];
 		}
 
 		if ($systemInstruction !== null) {

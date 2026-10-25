@@ -16,7 +16,7 @@ Keep provider-specific HTTP, cache, and orchestration concerns separate from the
 
 ## Client rules
 
-- Configure API key and model through `gemini.*` DI parameters in `config/config.neon`; never hardcode them.
+- Configure the API key through `gemini.apiKey` in `config/config.neon`; never hardcode it. Select models per request with `GeminiModelEnum`; the shared `DefaultAiModelEnum::DEFAULT` resolves to `GeminiModelEnum::DEFAULT` (Flash).
 - Keep HTTP request construction and response text extraction inside `GeminiClient`.
 - Throw `GeminiClientException` with English context for non-success responses, invalid JSON, invalid shapes, or missing text.
 - Do not log full prompts, portfolio input, raw responses, API keys, or cached response contents.

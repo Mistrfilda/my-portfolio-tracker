@@ -19,8 +19,10 @@ parameters:
 
 	gemini:
 		apiKey: __FILL_API_KEY__
-		model: gemini-3.5-flash
 		geminiFolder: %appDir%/../resources/gemini
+
+	openAi:
+		apiKey: __FILL_API_KEY__
 
 	pse:
 		updateStockAssetHoursThreshold: 1
@@ -391,11 +393,14 @@ services:
 	- App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlFactory
 	- App\Stock\Asset\UI\Detail\List\StockAssetListSummaryDetailControlFactory
 
+	#AI clients
+	- App\Ai\Gemini\GeminiClient(apiKey: %gemini.apiKey%)
+	- App\Ai\OpenAi\OpenAiClient(apiKey: %openAi.apiKey%)
+
 	#Stock AI analysis
 	- App\Stock\AiAnalysis\StockAiAnalysisSettingsRepository(App\Stock\AiAnalysis\StockAiAnalysisSettings)
 	- App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisSettingsFormFactory
-	- App\Ai\Gemini\GeminiClient(apiKey: %gemini.apiKey%, model: %gemini.model%)
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SnapshotFactory

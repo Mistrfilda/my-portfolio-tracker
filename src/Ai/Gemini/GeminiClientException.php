@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Ai\Gemini;
 
-use RuntimeException;
+use App\Ai\AiClientException;
 
-class GeminiClientException extends RuntimeException
+class GeminiClientException extends AiClientException
 {
 
 }
