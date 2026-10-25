@@ -379,6 +379,7 @@ services:
 	- App\Stock\Asset\Industry\StockAssetIndustryRepository(App\Stock\Asset\Industry\StockAssetIndustry)
 	- App\Stock\Asset\Industry\UI\StockAssetIndustryGridFactory
 	- App\Stock\Asset\Industry\UI\StockAssetIndustryFormFactory
+	- App\Stock\Asset\Industry\UI\StockAssetIndustryImportFormFactory
 	- App\Stock\Asset\Industry\StockAssetIndustryDownloadFacade
 	- App\Stock\Asset\Industry\StockAssetIndustryDownloadCommand
 

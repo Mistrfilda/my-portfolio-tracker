@@ -10,12 +10,16 @@ use App\UI\Control\Datagrid\Datagrid;
 use App\UI\Control\Form\AdminForm;
 use App\UI\FlashMessage\FlashMessageType;
 
+/**
+ * @property-read StockAssetIndustryTemplate $template
+ */
 class StockAssetIndustryPresenter extends BaseSysadminPresenter
 {
 
 	public function __construct(
 		private readonly StockAssetIndustryGridFactory $stockAssetIndustryGridFactory,
 		private readonly StockAssetIndustryFormFactory $stockAssetIndustryFormFactory,
+		private readonly StockAssetIndustryImportFormFactory $stockAssetIndustryImportFormFactory,
 		private readonly StockAssetIndustryRepository $stockAssetIndustryRepository,
 	)
 	{
@@ -40,6 +44,17 @@ class StockAssetIndustryPresenter extends BaseSysadminPresenter
 	protected function createComponentStockAssetIndustryGrid(): Datagrid
 	{
 		return $this->stockAssetIndustryGridFactory->create();
+	}
+
+	protected function createComponentStockAssetIndustryImportForm(): AdminForm
+	{
+		return $this->stockAssetIndustryImportFormFactory->create(function (int $updatedCount): void {
+			$this->flashMessage(
+				sprintf('Import dokončen. Počet aktualizovaných odvětví: %d.', $updatedCount),
+				FlashMessageType::SUCCESS,
+			);
+			$this->redirect('StockAssetIndustry:default');
+		});
 	}
 
 	protected function createComponentStockAssetIndustryForm(): AdminForm

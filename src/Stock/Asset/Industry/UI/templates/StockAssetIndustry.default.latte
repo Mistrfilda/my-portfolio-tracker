@@ -1,3 +1,5 @@
+{templateType App\Stock\Asset\Industry\UI\StockAssetIndustryTemplate}
+
 {block #headingButtons}
     <a n:href="StockAssetIndustry:edit" class="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
         Přidat akciové odvětví
@@ -5,5 +7,13 @@
 {/block}
 
 {block #content}
+	<section class="mb-8 border-b border-gray-900/10 pb-8" aria-labelledby="industry-import-heading">
+		<h2 id="industry-import-heading" class="text-base/7 font-semibold text-gray-900">Ruční import valuací odvětví</h2>
+		<p class="mt-1 text-sm/6 text-gray-600">
+			Uložte stránku s načtenou tabulkou valuací odvětví jako HTML nebo zkopírujte její HTML do souboru, například data.html.
+			Nahrajte jej zde. Import aktualizuje valuace existujících odvětví podle názvu pro mapování.
+		</p>
+		{control stockAssetIndustryImportForm}
+	</section>
     {control stockAssetIndustryGrid}
 {/block}

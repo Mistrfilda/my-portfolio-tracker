@@ -10,16 +10,19 @@ use App\Stock\Valuation\Data\StockValuationDataNumericHelper;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use DOMDocument;
-use DOMNode;
+use DOMElement;
 use DOMXPath;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Nette\Utils\Strings;
 use Psr\Log\LoggerInterface;
+use const LIBXML_NONET;
 
 class StockAssetIndustryDownloadFacade
 {
+
+	private const array VALUE_COLUMNS = ['Name', 'Market Cap', 'P/E', 'Fwd P/E', 'PEG', 'P/S', 'P/B', 'P/C', 'P/FCF'];
 
 	public function __construct(
 		private JsonDataFolderService $jsonDataFolderService,
@@ -47,26 +50,13 @@ class StockAssetIndustryDownloadFacade
 			return;
 		}
 
+		$this->processHtml($parsedJson[0]['html']);
+	}
+
+	public function processHtml(string $html): int
+	{
+		$industries = $this->parseHtml($html);
 		$this->logger->debug('Processing stock asset industries');
-
-		$now = $this->datetimeFactory->createNow();
-
-		$domDocument = new DOMDocument();
-		@$domDocument->loadHTML($parsedJson[0]['html']);
-		$domXpath = new DOMXPath($domDocument);
-
-		$tableNodes = $domXpath->query('//div[7]/div/table[3]');
-		if ($tableNodes === false || $tableNodes->length === 0) {
-			return;
-		}
-
-		$table = $tableNodes->item(0);
-		assert($table instanceof DOMNode);
-		$rows = $domXpath->query('.//tbody/tr', $table);
-
-		if ($rows === false || $rows->length === 0) {
-			return;
-		}
 
 		$allIndustries = $this->stockAssetIndustryRepository->findAll();
 		$indexedIndustries = [];
@@ -74,53 +64,28 @@ class StockAssetIndustryDownloadFacade
 			$indexedIndustries[$existingAssetIndustry->getMappingName()] = $existingAssetIndustry;
 		}
 
+		$matchingIndustries = array_intersect_key($industries, $indexedIndustries);
+		if ($matchingIndustries === []) {
+			throw new StockAssetIndustryImportException('No imported industry names match the configured mappings.');
+		}
+
+		$now = $this->datetimeFactory->createNow();
 		$updatedCount = 0;
-		foreach ($rows as $row) {
-			assert($row instanceof DOMNode);
-			$cells = $domXpath->query('.//td', $row);
-
-			if ($cells === false || $cells->length === 0) {
-				continue;
-			}
-
-			$cellValues = [];
-			foreach ($cells as $cell) {
-				assert($cell instanceof DOMNode);
-				$cellValues[] = Strings::trim($cell->textContent);
-			}
-
-			if (($cellValues[0] ?? null) === null) {
-				continue;
-			}
-
-			$data = [
-				'name' => $cellValues[1],
-				'marketCap' => $cellValues[2] ?? 0,
-				'pe' => $cellValues[3] ?? null,
-				'fwdPe' => $cellValues[4] ?? null,
-				'peg' => $cellValues[5] ?? null,
-				'ps' => $cellValues[6] ?? null,
-				'pb' => $cellValues[7] ?? null,
-				'pc' => $cellValues[8] ?? null,
-				'pfcf' => $cellValues[9] ?? null,
-			];
-
-			if (array_key_exists($data['name'], $indexedIndustries)) {
-				$this->logger->debug('Updating industry', ['industry' => $data['name']]);
-				$indexedIndustries[$data['name']]->updateValues(
-					$now,
-					$this->parseFloat($data['pe']),
-					StockValuationDataNumericHelper::parseNumericValue((string) $data['marketCap']),
-					$this->parseFloat($data['pfcf']),
-					$this->parseFloat($data['pc']),
-					$this->parseFloat($data['pb']),
-					$this->parseFloat($data['ps']),
-					$this->parseFloat($data['peg']),
-					$this->parseFloat($data['fwdPe']),
-				);
-				unset($indexedIndustries[$data['name']]);
-				$updatedCount++;
-			}
+		foreach ($matchingIndustries as $name => $data) {
+			$this->logger->debug('Updating industry', ['industry' => $name]);
+			$indexedIndustries[$name]->updateValues(
+				$now,
+				$this->parseFloat($data['P/E']),
+				StockValuationDataNumericHelper::parseNumericValue($data['Market Cap']),
+				$this->parseFloat($data['P/FCF']),
+				$this->parseFloat($data['P/C']),
+				$this->parseFloat($data['P/B']),
+				$this->parseFloat($data['P/S']),
+				$this->parseFloat($data['PEG']),
+				$this->parseFloat($data['Fwd P/E']),
+			);
+			unset($indexedIndustries[$name]);
+			$updatedCount++;
 		}
 
 		$this->logger->debug(sprintf('Processed %d industries', $updatedCount));
@@ -135,6 +100,97 @@ class StockAssetIndustryDownloadFacade
 			SystemValueEnum::STOCK_VALUATION_UPDATED_STOCK_ASSET_INDUSTRIES_COUNT,
 			intValue: $updatedCount,
 		);
+
+		return $updatedCount;
+	}
+
+	/**
+	 * @return array<string, array<string, string>>
+	 */
+	private function parseHtml(string $html): array
+	{
+		$domDocument = new DOMDocument();
+		if (Strings::trim($html) === '' || @$domDocument->loadHTML($html, LIBXML_NONET) === false) {
+			throw new StockAssetIndustryImportException('The imported HTML is empty or invalid.');
+		}
+
+		$domXpath = new DOMXPath($domDocument);
+		$headerNodes = $domXpath->query('//tr[./*[self::td or self::th][normalize-space(.) = "P/FCF"]]');
+		if ($headerNodes === false) {
+			throw new StockAssetIndustryImportException('The industry valuation table could not be found.');
+		}
+
+		foreach ($headerNodes as $header) {
+			if ($header instanceof DOMElement === false) {
+				continue;
+			}
+
+			$columns = array_flip($this->getCellValues($header));
+			if (array_diff(['No.', ...self::VALUE_COLUMNS], array_keys($columns)) !== []) {
+				continue;
+			}
+
+			$table = $header->parentNode;
+			while ($table !== null && !($table instanceof DOMElement && $table->tagName === 'table')) {
+				$table = $table->parentNode;
+			}
+
+			if ($table === null) {
+				continue;
+			}
+
+			$rows = $domXpath->query('.//tr', $table);
+			assert($rows !== false);
+			$industries = [];
+			foreach ($rows as $row) {
+				if ($row instanceof DOMElement === false) {
+					continue;
+				}
+
+				$cellValues = $this->getCellValues($row);
+				if (Strings::match($cellValues[$columns['No.']] ?? '', '~^[0-9]+$~D') === null) {
+					continue;
+				}
+
+				$data = [];
+				foreach (self::VALUE_COLUMNS as $column) {
+					if (array_key_exists($columns[$column], $cellValues) === false) {
+						throw new StockAssetIndustryImportException('An imported valuation row is incomplete.');
+					}
+
+					$data[$column] = $cellValues[$columns[$column]];
+				}
+
+				if ($data['Name'] === '' || array_key_exists($data['Name'], $industries)) {
+					throw new StockAssetIndustryImportException('An imported industry name is empty or duplicated.');
+				}
+
+				$industries[$data['Name']] = $data;
+			}
+
+			if ($industries !== []) {
+				return $industries;
+			}
+		}
+
+		throw new StockAssetIndustryImportException(
+			'The HTML does not contain an industry valuation table with data.',
+		);
+	}
+
+	/**
+	 * @return list<string>
+	 */
+	private function getCellValues(DOMElement $row): array
+	{
+		$values = [];
+		foreach ($row->childNodes as $cell) {
+			if ($cell instanceof DOMElement && in_array($cell->tagName, ['td', 'th'], true)) {
+				$values[] = Strings::trim(Strings::replace($cell->textContent, '~\s+~u', ' '));
+			}
+		}
+
+		return $values;
 	}
 
 	private function parseFloat(mixed $value): float|null
