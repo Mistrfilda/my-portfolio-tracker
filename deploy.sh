@@ -27,7 +27,7 @@ NGINX_IMAGE="my-portfolio-tracker-nginx"
 npm run build-docker
 
 # Sestavení Docker obrazů
-docker-compose build
+docker-compose build --pull
 if [ $? -ne 0 ]; then
     echo "Error: Docker Compose build failed. Deployment aborted."
     exit 1
