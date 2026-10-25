@@ -117,7 +117,7 @@ npm --prefix clients/desktop ci
 npm --prefix clients/desktop run dev
 ```
 
-Build and verify the local macOS arm64 application and ZIP with `./build-desktop.sh`. Artifacts are written to `clients/desktop/artifacts/`, with a local ad-hoc signature and no notarization. OAuth login, encrypted session storage, refresh and logout are implemented; portfolio screens come next. See the [desktop guide](doc/desktop.md) for architecture, checks, UI conventions and connection configuration.
+Build and verify the local macOS arm64 application and ZIP with `./build-desktop.sh`. Artifacts are written to `clients/desktop/artifacts/`, with a local ad-hoc signature and no notarization. OAuth login, encrypted session storage, refresh, logout and the personal portfolio dashboard are implemented. The dashboard displays valuation, allocation, performance, dividends, stock movers and exchange rates. See the [desktop guide](doc/desktop.md) for architecture, checks, UI conventions and connection configuration.
 
 ### OAuth client registration
 
@@ -157,7 +157,7 @@ This replaces the entire allowlist. Include `--scope=api:read` too if the applic
 
 ### Desktop dashboard API
 
-The [OpenAPI contract](doc/openapi.yaml) defines the numeric responses and query validation. The initial dashboard uses four independent GET requests:
+The [OpenAPI contract](doc/openapi.yaml) defines the numeric responses and query validation. These four read endpoints are available; the desktop dashboard currently uses the first three:
 
 | Endpoint | Required scope | Data |
 | --- | --- | --- |

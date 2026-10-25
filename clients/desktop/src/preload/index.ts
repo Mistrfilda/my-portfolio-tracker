@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { SESSION_CHANNELS, type SessionState } from '../shared/session';
+import { DASHBOARD_CHANNEL, type DashboardSnapshot } from '../shared/dashboard';
 import {
 	APP_INFO_CHANNEL,
 	type AppInfo,
@@ -9,6 +10,10 @@ import {
 const desktop: DesktopBridge = {
 	getAppInfo: (): Promise<AppInfo> =>
 		ipcRenderer.invoke(APP_INFO_CHANNEL) as Promise<AppInfo>,
+	dashboard: {
+		get: () =>
+			ipcRenderer.invoke(DASHBOARD_CHANNEL) as Promise<DashboardSnapshot>,
+	},
 	session: {
 		getState: () =>
 			ipcRenderer.invoke(SESSION_CHANNELS.get) as Promise<SessionState>,

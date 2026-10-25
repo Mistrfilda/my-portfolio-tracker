@@ -12,7 +12,7 @@ The PHP application stays in place. There is no root npm workspace: installing o
 
 ## Current scope
 
-The desktop includes a macOS window, sidebar navigation, appearance settings, and public-client OAuth login. It opens the server's login/consent page in the system browser, restores and refreshes the saved session, displays the user returned by `/api/v1/me`, and supports logout. Portfolio screens and automatic updates are still future work.
+The desktop includes a macOS window, sidebar navigation, appearance settings, public-client OAuth login, and a personal portfolio dashboard. It opens the server's login/consent page in the system browser, restores and refreshes the saved session, displays the user returned by `/api/v1/me`, and supports logout. Position detail/editing and automatic updates are still future work.
 
 The initial target is Apple Silicon (arm64), matching the development machine. Intel macOS, Windows, and Linux packages are not configured. The application identifier is `com.mistrfilda.portfolio.desktop`.
 
@@ -93,7 +93,7 @@ Useful individual commands:
 | `npm --prefix clients/desktop run test:smoke` | Test the compiled app in Electron; run build first |
 | `npm --prefix clients/desktop run package:mac` | Package existing compiled output |
 
-The smoke test checks rendering, navigation, the restricted preload bridge, Node isolation, appearance persistence, and starting/cancelling a PKCE login. It intercepts the OS browser opener only inside its isolated test process; it never logs into the deployed server or uses a real account or Keychain credential. Its npm pre-test hook installs Electron before the timed test begins. It creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to test that package.
+The smoke tests check rendering, navigation, the restricted preload bridge, Node isolation, appearance persistence, and starting/cancelling a PKCE login. Dashboard coverage includes loading, refresh failures/recovery, empty portfolios, null statistics, logout, both themes, and the minimum window size. Tests intercept the OS browser opener and install synthetic IPC responses only inside isolated test processes; they never log into the deployed server or use a real account or Keychain credential. The npm pre-test hook installs Electron before the timed tests begin. Each test creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to test that package.
 
 Native tests need a graphical macOS session. Use the PhpStorm execution route described above when working through Codex on this machine. Browser preview cannot verify native IPC or Electron's process isolation.
 
@@ -105,7 +105,8 @@ The initial dependency audit (2026-10-18) reports eight moderate entries from on
 clients/desktop/
 ├── src/
 │   ├── main/                  Electron lifecycle, native operations, asset protocol
-│   │   └── auth/             Connection, PKCE callback, HTTP client, session and storage
+│   │   ├── auth/             Connection, PKCE callback, HTTP client, session and storage
+│   │   └── dashboard/        Authenticated reads and runtime API validation
 │   ├── preload/               Small, typed bridge exposed to the renderer
 │   ├── shared/                Serializable bridge contracts and channel names
 │   └── renderer/
@@ -115,6 +116,8 @@ clients/desktop/
 │           ├── components/    Application layout and theme provider
 │           │   └── ui/        Owned shadcn component source
 │           ├── pages/         Overview and appearance settings
+│           ├── features/
+│           │   └── dashboard/ Portfolio panels, loading and formatting
 │           ├── lib/           Theme and class-name helpers
 │           └── styles.css     Tailwind and semantic theme tokens
 ├── tests/
@@ -126,11 +129,27 @@ clients/desktop/
 └── electron-builder.yml       macOS packaging
 ```
 
-Main owns operating-system capabilities. Preload exposes `getAppInfo()` and a `session` API: get state, sign in, cancel, retry, sign out, and subscribe to state changes. The renderer is ordinary React with no Node access. It cannot choose IPC channels, authentication URLs, HTTP headers or token values. Main validates every IPC sender and rejects unexpected arguments.
+Main owns operating-system capabilities. Preload exposes `getAppInfo()`, a `session` API (get state, sign in, cancel, retry, sign out, and subscribe to state changes), and the argument-free `dashboard.get()` operation. The renderer is ordinary React with no Node access. It cannot choose IPC channels, authentication URLs, API paths, HTTP headers or token values. Main validates every IPC sender and rejects unexpected arguments.
 
 Compiled assets load from the internal `app://portfolio/index.html` URL. File resolution is confined to the renderer output directory. IPC validates the window, top-level frame, and exact renderer URL. New windows, page navigation, and unrequested browser permissions are denied. Development permits only the fixed loopback Vite URL; packaged apps ignore it. The production CSP allows bundled resources and contains no external API origins.
 
 React Router uses in-memory navigation so application routes do not change the document URL. Appearance is the only state stored in renderer local storage.
+
+## Portfolio dashboard
+
+After login, the overview loads three fixed GET endpoints from the existing server:
+
+- `/api/v1/dashboard/summary`: open-position value, cost and profit in CZK, stocks/crypto/Portu allocation, stock trading currencies, historical performance, annual dividend entitlements, remaining dividend forecast and daily owned-stock movers.
+- `/api/v1/portfolio/dividends?limit=8`: latest personal entitlements, preserving each record's original currency and announced payment date.
+- `/api/v1/exchange-rates`: twelve shared currency pairs with their effective dates and sources.
+
+The existing `portfolio:read market:read` authorization is sufficient; no new client or scope change is needed. `src/main/dashboard/` validates numeric responses against the selected shapes in [OpenAPI](openapi.yaml) and returns only explicitly selected fields. HTTP stays in main with bounded response size, timeouts, no redirects/cookies/cache and token-free errors. `SessionService.readAuthenticated` serializes reads with rotating refresh and logout, permits at most one 401 retry and discards responses when logout starts. Overlapping dashboard loads share one in-flight request.
+
+The React feature lives in `src/renderer/src/features/dashboard/`. Data loads on entry and through **Obnovit**. Sections fail independently. A failed manual refresh preserves that section's last successful data in memory with an explicit stale-data warning; initial failure shows an error without fabricated totals. Leaving the screen or losing the signed-in state discards the view, including after account changes. There is no disk cache of portfolio data.
+
+Amounts and percentage points are formatted for Czech locale. Missing performance/forecasts remain unavailable, while real zero amounts remain zero. Annual dividends include future recorded entitlements and are not labelled as settled payments. The summary timestamp is its assembly time, not the freshness of every price. Historical portfolio value charts need a future API time-series contract; the current composition and dividend bars use real summary values.
+
+Native tests use synthetic fixtures; verify the deployed account manually by starting the app, signing in if necessary, and opening **Přehled**. No test reads real credentials or production portfolios.
 
 ## React and shadcn conventions
 
