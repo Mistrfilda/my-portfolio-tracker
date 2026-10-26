@@ -13,6 +13,7 @@ use App\Crypto\Price\CryptoAssetPriceRecord;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
+use App\Doctrine\OrderBy;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\UI\Filter\RuleOfThreeFilter;
@@ -45,7 +46,7 @@ class CryptoAsset implements Entity, Asset
 
 	/** @var ArrayCollection<int, CryptoPosition> */
 	#[ORM\OneToMany(targetEntity: CryptoPosition::class, mappedBy: 'cryptoAsset')]
-	#[ORM\OrderBy(['orderDate' => 'asc'])]
+	#[ORM\OrderBy(['orderDate' => OrderBy::ASC->value])]
 	private Collection $positions;
 
 	/** @var ArrayCollection<int, CryptoAssetPriceRecord> */

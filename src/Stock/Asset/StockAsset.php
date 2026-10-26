@@ -11,6 +11,7 @@ use App\Asset\Price\AssetPriceEmbeddable;
 use App\Currency\CurrencyEnum;
 use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
+use App\Doctrine\OrderBy;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
 use App\Stock\Asset\Industry\StockAssetIndustry;
@@ -75,7 +76,7 @@ class StockAsset implements Entity, Asset
 
 	/** @var ArrayCollection<int, StockPosition> */
 	#[ORM\OneToMany(targetEntity: StockPosition::class, mappedBy: 'stockAsset')]
-	#[ORM\OrderBy(['orderDate' => 'asc'])]
+	#[ORM\OrderBy(['orderDate' => OrderBy::ASC->value])]
 	private Collection $positions;
 
 	/** @var ArrayCollection<int, StockAssetPriceRecord> */
