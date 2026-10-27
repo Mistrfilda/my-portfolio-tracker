@@ -1,0 +1,113 @@
+{templateType App\Work\Report\UI\WorkReportTemplate}
+
+<style>
+	.work-report { font-size: 10pt; line-height: 1.5; }
+	.pdf-document-title { color: #1e3a8a; }
+	.work-report .muted { color: #64748b; }
+	.work-report .meta { margin: 0 0 16px; }
+	.work-report .totals { display: flex; gap: 32px; padding: 14px 18px; margin: 16px 0 24px; background: #1d4ed8; color: #dbeafe; border-radius: 8px; }
+	.work-report .totals strong { font-size: 18pt; display: block; color: #ffffff; }
+	.work-report h2 { font-size: 14pt; margin: 24px 0 10px; font-weight: 700; color: #1d4ed8; }
+	.work-report h3 { font-size: 11pt; font-weight: 700; }
+	.work-report .overview { width: 100%; border-collapse: collapse; font-size: 9pt; }
+	.work-report .overview th { text-align: left; color: #ffffff; background: #1d4ed8; font-size: 8pt; padding: 8px; }
+	.work-report .overview td { border-bottom: 1px solid #bfdbfe; padding: 9px 8px; vertical-align: top; }
+	.work-report .overview .project { width: 25%; background: #eff6ff; color: #1e3a8a; }
+	.work-report .project-counts { margin-top: 5px; font-size: 7.5pt; color: #1d4ed8; }
+	.work-report .task-summary { display: flex; gap: 10px; padding: 4px 0; }
+	.work-report .task-summary + .task-summary { border-top: 1px solid #dbeafe; }
+	.work-report .task-content { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+	.work-report .task-count { font-size: 7.5pt; color: #64748b; white-space: nowrap; }
+	.work-report .task-hours { flex-shrink: 0; font-weight: 600; color: #1e40af; }
+	.work-report .badge { display: inline-block; background: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; border-radius: 4px; padding: 0 4px; margin-right: 4px; font-size: 7.5pt; font-weight: 600; white-space: nowrap; }
+	.work-report .badge-mr { background: #1e40af; color: #ffffff; border-color: #1e40af; }
+	.work-report .overview .project-hours { color: #1d4ed8; font-weight: 700; }
+	.work-report .hours { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+	.work-report .overview th.hours { text-align: right; }
+	.work-report .overview tr { break-inside: avoid; }
+	.work-report .details { break-before: page; }
+	.work-report .project-title { padding: 10px 12px; background: #dbeafe; color: #1e3a8a; border-left: 3px solid #1d4ed8; break-inside: avoid; break-after: avoid; }
+	.work-report .project-title .project-counts { display: block; font-weight: 400; }
+	.work-report .entry { margin: 0 0 14px; padding: 0 0 12px; border-bottom: 1px solid #dbeafe; break-inside: avoid; }
+	.work-report .entry-meta { font-size: 8pt; margin-bottom: 5px; }
+	.work-report .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+	.work-report .reference { margin-top: 5px; overflow-wrap: anywhere; }
+	.work-report .reference small { color: #64748b; }
+	.work-report .warning { padding: 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; margin-bottom: 16px; }
+	.work-report ul { padding-left: 18px; list-style: disc; }
+	.work-report .comment { padding: 12px 0; border-bottom: 1px solid #bfdbfe; break-inside: avoid; }
+	.work-report .comment h3 { margin-bottom: 6px; color: #1e40af; }
+	.work-report .ai-summary { break-before: page; }
+	.work-report .ai-outline { list-style: decimal; padding-left: 22px; margin-top: 20px; }
+	.work-report .ai-outline li { padding: 8px 0 12px 6px; border-bottom: 1px solid #dbeafe; break-inside: avoid; }
+	.work-report .ai-sources { font-size: 8pt; color: #1d4ed8; margin-top: 5px; }
+	.work-report .ai-status { font-size: 8pt; color: #92400e; margin-top: 12px; }
+</style>
+
+<div class="work-report">
+	<p class="meta muted">Práce za {$view->from|datetimeFormat:'d. m. Y'}{if $view->from != $view->to} - {$view->to|datetimeFormat:'d. m. Y'}{/if}<br>Data načtena {$view->generatedAt|datetimeFormat:'d. m. Y H:i'} · Europe/Prague</p>
+	<div class="totals"><div><strong>{$view->hours|number:2, ',', ' '} h</strong>Odpracováno</div><div><strong>{count($view->projects)}</strong>Projektů</div><div><strong>{$view->entryCount}</strong>Záznamů v Harvestu</div></div>
+	<div n:if="$view->partial || $view->warnings !== []" class="warning"><strong>Přehled obsahuje upozornění</strong><ul><li n:foreach="$view->warnings as $warning" class="text">{$warning}</li></ul></div>
+	<h2>Rychlý přehled pro standup</h2>
+	<p class="muted">Pracovní položky se součtem času. Opakované záznamy ke stejnému úkolu jsou seskupené.</p>
+	<table class="overview" n:if="$view->projects !== []">
+		<thead><tr><th>Projekt / klient</th><th>Pracovní položky a čas</th><th class="hours">Celkem</th></tr></thead>
+		<tbody>
+			<tr n:foreach="$view->projects as $project">
+				<td class="project"><strong>{$project['name']}</strong><br><span class="muted">{$project['clientName']}</span><p class="project-counts">Položky: {count($project['tasks'])} · záznamy: {count($project['entries'])}</p></td>
+				<td>
+					<div n:foreach="$project['tasks'] as $task" class="task-summary">
+						<div class="task-content">
+							{if $task['references'] !== []}
+								<div n:foreach="$task['references'] as $reference"><a href="{$reference['url']}"><span n:class="badge, str_starts_with($reference['label'], 'MR ') ? badge-mr">{$reference['label']}</span>{$reference['title']}</a></div>
+							{else}
+								<span class="badge">Harvest</span><span class="text">{$task['title']}</span>
+							{/if}
+							<span n:if="$task['entryCount'] > 1" class="task-count">Záznamy: {$task['entryCount']}</span>
+							<span n:if="count($task['references']) > 1" class="task-count">Společný čas uvedených odkazů</span>
+						</div>
+						<p class="hours task-hours">{$task['hours']|number:2, ',', ' '} h</p>
+					</div>
+				</td>
+				<td class="hours project-hours">{$project['hours']|number:2, ',', ' '} h</td>
+			</tr>
+		</tbody>
+	</table>
+	<p n:if="$view->projects === []">V tomto období nejsou vykázané žádné hodiny.</p>
+	<p n:if="$view->aiSummary !== null && $view->aiSummary['status'] === 'failed'" class="ai-status">AI návrh se nepodařilo vytvořit. Přehled z Harvestu a GitLabu zůstává dostupný.</p>
+
+	<section n:if="$view->aiSummary !== null && $view->aiSummary['status'] === 'complete'" class="ai-summary">
+		<h2>AI návrh pro standup</h2>
+		<p class="muted">Krátká osnova k přečtení. Ověř ji podle podkladových záznamů.</p>
+		<p class="entry-meta muted">{$view->aiSummary['model']} · {$view->aiSummary['generatedAt']|datetimeFormat:'d. m. Y H:i'}</p>
+		<ol class="ai-outline">
+			<li n:foreach="$view->aiSummary['bullets'] as $bullet">
+				<p class="text">{$bullet['text']}</p>
+				<p class="ai-sources">Podklady: <a n:foreach="$bullet['entryIds'] as $sourceId" href="#work-entry-{$sourceId}">Harvest #{$sourceId} </a></p>
+			</li>
+		</ol>
+	</section>
+
+	<section n:if="$view->projects !== []" class="details">
+		<h2>Podrobnosti po projektech</h2>
+		<div n:foreach="$view->projects as $project">
+			<h3 class="project-title">{$project['name']} · {$project['clientName']} / {$project['hours']|number:2, ',', ' '} h<span class="project-counts">Položky: {count($project['tasks'])} · záznamy: {count($project['entries'])}</span></h3>
+			<div n:foreach="$project['entries'] as $entry" id="work-entry-{$entry['id']}" class="entry">
+				<p class="entry-meta muted">{$entry['date']|datetimeFormat:'d. m. Y'} · {$entry['taskName']} · Harvest #{$entry['id']} · {$entry['hours']|number:2, ',', ' '} h{if $entry['isRunning']} · Běžící časovač{/if}</p>
+				<p n:if="$entry['notes'] !== ''" class="text">{$entry['notes']}</p>
+				<p n:foreach="$entry['references'] as $reference" class="reference"><a href="{$reference['url']}"><strong>{$reference['title']}</strong></a><br><small>{$reference['label']} · {$reference['state']}</small></p>
+				<p n:if="$entry['notes'] === '' && $entry['references'] === []" class="muted">Bez pracovní poznámky.</p>
+			</div>
+		</div>
+	</section>
+
+	<h2 n:if="$view->commentCount > 0">Odkazované komentáře</h2>
+	{foreach $view->context as $context}
+		<div n:foreach="$context['item']['notes'] as $note" class="comment">
+			<h3><a href="{$context['item']['url']}#note_{$note['id']}">{$context['title']}</a></h3>
+			<p class="entry-meta muted">{$context['label']}{if $note['author'] !== null} · {$note['author']}{/if}</p>
+			<p class="text">{$note['body'] ?? $note['error'] ?? 'Komentář není dostupný.'}</p>
+		</div>
+	{/foreach}
+	<p class="muted" style="margin-top: 24px; font-size: 8pt;">Zdroj: Harvest a GitLab. Stav úkolů odpovídá okamžiku načtení dat.</p>
+</div>

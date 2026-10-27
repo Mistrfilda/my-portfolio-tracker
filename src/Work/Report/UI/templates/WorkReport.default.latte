@@ -1,0 +1,13 @@
+{templateType App\Work\Report\UI\WorkReportTemplate}
+
+{block #content}
+	<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+		<div class="border-b border-gray-100 px-6 py-5">
+			<h2 class="text-lg font-semibold text-gray-900">Historie pracovních přehledů</h2>
+			<p class="mt-1 text-sm text-gray-500">Podklady pro ranní standup, podrobnosti po projektech a PDF ke stažení. Nové přehledy se zde objeví po ranním zpracování.</p>
+		</div>
+		<div class="p-6">
+			{control workReportGrid}
+		</div>
+	</section>
+{/block}
