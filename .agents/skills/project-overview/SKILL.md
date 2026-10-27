@@ -12,6 +12,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - `clients/desktop/` — macOS Electron + React client with independent npm dependencies, build, and tests.
 - `clients/ios/` — future Swift/SwiftUI client; currently a documented reserved location.
 - `doc/openapi.yaml` — common HTTP contract for the backend and both client implementations.
+- `docker/` and root deploy scripts — application images and release orchestration; Kubernetes definitions live in the separate `../kubedev` repository.
 - `src/Asset/` — shared contracts and price infrastructure used by all asset types. Start here when the task affects multiple asset modules or shared price behavior.
 - `src/Stock/` — the largest investment domain: assets, positions, dividends, prices, valuations, AI analysis.
 - `src/Portu/` and `src/Crypto/` — asset-specific modules outside stocks.
@@ -26,6 +27,9 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - `tests/` — unit and integration tests.
 
 ### Choose the likely entry point
+
+- **Infrastructure / Docker / Kubernetes / deployment**
+	- Read [kubernetes-infrastructure](../kubernetes-infrastructure/SKILL.md) for image builds, manifests, storage, networking, scheduled workloads, and rollout diagnostics across this repository and `/Users/filip/Sites/kubedev`.
 
 - **Desktop application**
 	- Start in `clients/desktop/src/`. Read [desktop-electron](../desktop-electron/SKILL.md) for main/preload/IPC, [desktop-react-ui](../desktop-react-ui/SKILL.md) for the renderer, or [desktop-build](../desktop-build/SKILL.md) for dependencies, packaging, and build isolation.

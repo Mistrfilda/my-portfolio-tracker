@@ -44,6 +44,7 @@ Treat these as project defaults. Explicit task instructions take precedence over
 ## Skills
 - Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
 - Start with `.agents/skills/project-overview/SKILL.md` when the task is broad, cross-module, or you are not sure where the code belongs.
+- For Docker, Kubernetes, and deployment work across this repository and the separate `/Users/filip/Sites/kubedev` checkout, use [kubernetes-infrastructure](.agents/skills/kubernetes-infrastructure/SKILL.md).
 - For desktop process boundaries use `desktop-electron`; for React/shadcn UI use `desktop-react-ui`; for packaging, dependencies, or build isolation use `desktop-build`. These skills live in the same root skill directory as the PHP guidance.
 - Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
 - For local browser inspection, use [mcp-local-app-access](.agents/skills/mcp-local-app-access/SKILL.md). A request to inspect the local app authorizes its documented login flow using `.env.browser-tests` only for the real local login form, without exposing credentials. After a login redirect, complete that flow and return to the requested URL; do not treat the login page alone as a blocker or a reason to switch to database inspection.
