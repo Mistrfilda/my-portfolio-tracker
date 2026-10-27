@@ -54,7 +54,7 @@ class OpenAiClient implements AiClient
 		]);
 
 		try {
-			$response = $this->psr18ClientFactory->getClient()->sendRequest(
+			$response = $this->psr18ClientFactory->getClient(['connect_timeout' => 5, 'timeout' => 120])->sendRequest(
 				$this->psr7RequestFactory->createPOSTRequest(
 					self::API_URL,
 					$this->createPayload($prompt, $systemInstruction, $responseSchema, $model),

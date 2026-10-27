@@ -31,6 +31,7 @@ custompresenterfactory:
 		Admin:ExpenseOverview: App\Cash\Expense\UI\ExpenseOverviewPresenter
 		Admin:StockAssetDetail: App\Stock\Asset\UI\Detail\StockAssetDetailPresenter
 		Admin:WorkMonthlyIncome: App\Cash\Income\WorkMonthlyIncome\UI\WorkMonthlyIncomePresenter
+		Admin:WorkReport: App\Work\Report\UI\WorkReportPresenter
 		Admin:BankIncome: App\Cash\Income\Bank\UI\BankIncomePresenter
 		Admin:PortfolioStatisticTotal: App\Statistic\Total\UI\PortfolioStatisticTotalPresenter
 		Admin:PortfolioGoal: App\Goal\UI\PortfolioGoalPresenter

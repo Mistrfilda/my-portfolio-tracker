@@ -53,8 +53,11 @@ parameters:
 		ownerUsername: filip
 		harvestAccountId: 50
 		harvestUserId: 50
-		harvestAccessToken: 50
+		harvestAccessToken: '50'
 		currentHourlyRate: 50
+
+	workReport:
+		gitlabAccessToken: null
 
 	portfolioStatistic:
 		startYear: 2023
@@ -560,6 +563,20 @@ services:
 	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeOwnerProvider(ownerUsername: %workMonthlyIncome.ownerUsername%)
 	- App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeFacade(currentHourlyRate: %workMonthlyIncome.currentHourlyRate%)
 	- App\Cash\Income\WorkMonthlyIncome\DownloadWorkMonthlyIncomeCommand
+
+	#WORK REPORTS
+	- App\Work\Harvest\HarvestReportClient(harvestAccountId: %workMonthlyIncome.harvestAccountId%, harvestUserId: %workMonthlyIncome.harvestUserId%, harvestAccessToken: %workMonthlyIncome.harvestAccessToken%)
+	- App\Work\GitLab\GitLabReportClient(gitlabAccessToken: %workReport.gitlabAccessToken%)
+	- App\Work\GitLab\GitLabReferenceExtractor
+	- App\Work\Report\WorkReportSanitizer(harvestAccessToken: %workMonthlyIncome.harvestAccessToken%, gitlabAccessToken: %workReport.gitlabAccessToken%)
+	- App\Work\Report\WorkReportBuilder
+	- App\Work\Report\WorkReportAiInputFactory
+	- App\Work\Report\WorkReportAiSummaryGenerator
+	- App\Work\Report\WorkReportRepository(App\Work\Report\WorkReport)
+	- App\Work\Report\WorkReportFacade
+	- App\Work\Report\Command\GenerateWorkReportCommand
+	- App\Work\Report\UI\WorkReportViewFactory
+	- App\Work\Report\UI\WorkReportGridFactory
 
 	- App\Cash\Income\Bank\BankIncomeRepository(App\Cash\Income\Bank\BankIncome)
 	- App\Cash\Income\Bank\UI\BankIncomeGridFactory

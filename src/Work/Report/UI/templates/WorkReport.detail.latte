@@ -1,0 +1,94 @@
+{templateType App\Work\Report\UI\WorkReportTemplate}
+
+{block #headingButtons}
+	<a n:href="default" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-700 shadow-sm ring-1 ring-gray-300 hover:bg-gray-50">Historie přehledů</a>
+	<a n:href="downloadPdf, id: $report->getId()->toString()" class="inline-flex items-center gap-2 rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500">
+		{renderSvg App\UI\Icon\SvgIcon::DOCUMENT_DUPLICATE->value, ['class' => 'size-4']}
+		Stáhnout PDF
+	</a>
+{/block}
+
+{block #content}
+	<div class="space-y-6">
+		<div class="flex flex-wrap items-start justify-between gap-4">
+			<div>
+				<h2 class="text-xl font-semibold text-gray-900">Pro standup {$view->reportDate|datetimeFormat:'d. m. Y'}</h2>
+				<p class="mt-1 text-sm text-gray-500">Práce za {$view->from|datetimeFormat:'d. m. Y'}{if $view->from != $view->to} - {$view->to|datetimeFormat:'d. m. Y'}{/if} · Europe/Prague</p>
+			</div>
+			<p class="text-xs text-gray-500">Data načtena {$view->generatedAt|datetimeFormat:'d. m. Y H:i'}. Stav GitLabu platí k tomuto okamžiku.</p>
+		</div>
+
+		<dl class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+			<div class="rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-gray-900/5"><dt class="text-sm text-gray-500">Odpracováno</dt><dd class="mt-1 text-3xl font-semibold text-gray-900">{$view->hours|number:2, ',', ' '} <span class="text-base font-normal text-gray-500">h</span></dd></div>
+			<div class="rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-gray-900/5"><dt class="text-sm text-gray-500">Projektů</dt><dd class="mt-1 text-3xl font-semibold text-gray-900">{count($view->projects)}</dd></div>
+			<div class="rounded-xl bg-white px-5 py-4 shadow-sm ring-1 ring-gray-900/5"><dt class="text-sm text-gray-500">Záznamů v Harvestu</dt><dd class="mt-1 text-3xl font-semibold text-gray-900">{$view->entryCount}</dd></div>
+		</dl>
+
+		<div n:if="$view->partial || $view->warnings !== []" class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900" role="status">
+			<p class="font-semibold">Přehled obsahuje upozornění</p>
+			<ul class="mt-2 list-disc space-y-1 pl-5"><li n:foreach="$view->warnings as $warning" class="break-words">{$warning}</li></ul>
+		</div>
+
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="border-b border-gray-100 px-6 py-5">
+				<h2 class="text-lg font-semibold text-gray-900">Rychlý přehled pro standup</h2>
+				<p class="mt-1 text-sm text-gray-500">Témata z názvů úkolů a vlastních poznámek, seřazená podle odpracovaného času.</p>
+			</div>
+			<div class="divide-y divide-gray-100">
+				<div n:foreach="$view->projects as $project" class="flex gap-4 px-6 py-4">
+					<div class="min-w-0 flex-1"><p class="font-semibold text-gray-900">{$project['name']} <span class="font-normal text-gray-500">· {$project['clientName']}</span></p><ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-700"><li n:foreach="$project['topics'] as $topic" class="break-words">{$topic}</li></ul></div>
+					<p class="shrink-0 text-sm font-semibold tabular-nums text-gray-700">{$project['hours']|number:2, ',', ' '} h</p>
+				</div>
+				<p n:if="$view->projects === []" class="px-6 py-5 text-sm text-gray-500">V tomto období nejsou vykázané žádné hodiny.</p>
+			</div>
+		</section>
+
+		<section n:if="$view->aiSummary !== null && $view->aiSummary['status'] === 'complete'" class="overflow-hidden rounded-2xl border border-blue-200 bg-blue-50 shadow-sm">
+			<div class="border-b border-blue-200 px-6 py-5">
+				<h2 class="text-lg font-semibold text-blue-900">AI návrh pro standup</h2>
+				<p class="mt-1 text-sm text-blue-700">Krátká osnova k přečtení. Ověř ji podle podkladových záznamů.</p>
+				<p class="mt-2 text-xs text-blue-600">{$view->aiSummary['model']} · {$view->aiSummary['generatedAt']|datetimeFormat:'d. m. Y H:i'}</p>
+			</div>
+			<ol class="list-decimal space-y-4 py-5 pr-6 pl-12 text-sm text-gray-900">
+				<li n:foreach="$view->aiSummary['bullets'] as $bullet" class="pl-1">
+					<p class="whitespace-pre-wrap break-words">{$bullet['text']}</p>
+					<p class="mt-1 text-xs text-blue-700">Podklady: <a n:foreach="$bullet['entryIds'] as $sourceId" href="#work-entry-{$sourceId}" class="mr-2 underline hover:text-blue-900">Harvest #{$sourceId}</a></p>
+				</li>
+			</ol>
+		</section>
+		<p n:if="$view->aiSummary !== null && $view->aiSummary['status'] === 'failed'" class="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900" role="status">AI návrh se nepodařilo vytvořit. Přehled z Harvestu a GitLabu je dostupný včetně všech uložených záznamů.</p>
+
+		<section n:foreach="$view->projects as $project" class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="flex justify-between gap-4 border-b border-gray-100 bg-gray-50 px-6 py-4"><div><h2 class="font-semibold text-gray-900">{$project['name']}</h2><p class="mt-1 text-sm text-gray-500">{$project['clientName']}</p></div><p class="shrink-0 font-semibold text-gray-900">{$project['hours']|number:2, ',', ' '} h</p></div>
+			<ol class="divide-y divide-gray-100">
+				<li n:foreach="$project['entries'] as $entry" id="work-entry-{$entry['id']}" class="scroll-mt-6 px-6 py-5">
+					<div class="flex flex-wrap justify-between gap-2 text-xs text-gray-500"><p>{$entry['date']|datetimeFormat:'d. m. Y'} · {$entry['taskName']} · Harvest #{$entry['id']}</p><p>{$entry['hours']|number:2, ',', ' '} h <span n:if="$entry['isRunning']" class="font-semibold text-amber-700">· Běžící časovač</span></p></div>
+					<p n:if="$entry['notes'] !== ''" class="mt-3 whitespace-pre-wrap break-words text-sm text-gray-800">{$entry['notes']}</p>
+					<ul n:if="$entry['references'] !== []" class="mt-3 space-y-2">
+						<li n:foreach="$entry['references'] as $reference" class="text-sm"><a href="{$reference['url']}" target="_blank" rel="noopener noreferrer" class="break-words font-medium text-blue-700 hover:underline">{$reference['title']}</a><span class="ml-2 text-xs text-gray-500">{$reference['label']} · {$reference['state']}</span></li>
+					</ul>
+					<p n:if="$entry['notes'] === '' && $entry['references'] === []" class="mt-3 text-sm text-gray-500">Bez pracovní poznámky.</p>
+					<details n:if="$entry['sourceNotes'] !== null && $entry['sourceNotes'] !== $entry['notes']" class="mt-3 text-xs text-gray-500"><summary class="cursor-pointer">Původní poznámka v Harvestu</summary><p class="mt-2 whitespace-pre-wrap break-words">{$entry['sourceNotes']}</p></details>
+				</li>
+			</ol>
+		</section>
+
+		<section n:if="$view->context !== []" class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="border-b border-gray-100 px-6 py-5"><h2 class="text-lg font-semibold text-gray-900">Kontext z GitLabu</h2><p class="mt-1 text-sm text-gray-500">Zadání úkolů a přímo odkazované komentáře slouží jako kontext k vykázané práci.</p></div>
+			<div class="divide-y divide-gray-100">
+				<details n:foreach="$view->context as $context" class="px-6 py-4">
+					<summary class="cursor-pointer text-sm font-medium text-gray-900">{$context['title']} <span class="ml-2 font-normal text-gray-500">{$context['label']} · {$context['state']}</span></summary>
+					<div class="mt-4 space-y-4 text-sm">
+						<a href="{$context['item']['url']}" target="_blank" rel="noopener noreferrer" class="break-words text-blue-700 hover:underline">{$context['item']['projectPath']} · Otevřít v GitLabu</a>
+						<p n:if="$context['item']['error'] !== null" class="text-amber-800">{$context['item']['error']}</p>
+						<p n:if="$context['item']['description'] !== null" class="whitespace-pre-wrap break-words text-gray-700">{$context['item']['description']}</p>
+						<div n:foreach="$context['item']['notes'] as $note" class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+							<a href="{$context['item']['url']}#note_{$note['id']}" target="_blank" rel="noopener noreferrer" class="font-semibold text-blue-700 hover:underline">Odkazovaný komentář{if $note['author'] !== null} · {$note['author']}{/if}</a>
+							<p class="mt-2 whitespace-pre-wrap break-words text-gray-700">{$note['body'] ?? $note['error'] ?? 'Komentář není dostupný.'}</p>
+						</div>
+					</div>
+				</details>
+			</div>
+		</section>
+	</div>
+{/block}

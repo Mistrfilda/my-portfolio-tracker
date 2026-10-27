@@ -28,6 +28,20 @@ use Psr\Log\NullLogger;
 class OpenAiClientTest extends TestCase
 {
 
+	public function testBoundsHttpConnectionAndRequestDuration(): void
+	{
+		$http = $this->createStub(ClientInterface::class);
+		$http->method('sendRequest')->willReturn(new Response(200, [], Json::encode([
+			'status' => 'completed', 'output' => [['type' => 'message', 'content' => [['type' => 'output_text', 'text' => 'Result']]]],
+		])));
+		$factory = $this->createMock(Psr18ClientFactory::class);
+		$factory->expects(self::once())->method('getClient')->with(
+			['connect_timeout' => 5, 'timeout' => 120],
+		)->willReturn($http);
+		$client = new OpenAiClient('synthetic', $factory, new Psr7RequestFactory(), new NullLogger());
+		self::assertSame('Result', $client->generateContent('Prompt'));
+	}
+
 	public function testGenerateContentSendsExpectedPayloadAndCombinesMessageText(): void
 	{
 		$httpClient = $this->createMock(ClientInterface::class);
