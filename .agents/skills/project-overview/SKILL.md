@@ -35,53 +35,62 @@ Use the map to locate the owning code and load only the guidance needed for the 
 	- Start in `clients/desktop/src/`. Read [desktop-electron](../desktop-electron/SKILL.md) for main/preload/IPC, [desktop-react-ui](../desktop-react-ui/SKILL.md) for the renderer, or [desktop-build](../desktop-build/SKILL.md) for dependencies, packaging, and build isolation.
 	- OAuth and API integrations also use the relevant server skill; do not duplicate protocol or data-ownership rules in client guidance.
 
+- **Stock assets / settings / watchlists**
+	- Start in `src/Stock/Asset/` and read [stock-asset](../stock-asset/SKILL.md) for asset identity, exchange/currency settings, watchlists, and administration.
+
 - **Price download / price history / price rendering**
 	- Start in `src/Asset/` for shared contracts.
 	- Then inspect the concrete module in `src/Stock/Price/`, `src/Portu/Price/`, or `src/Crypto/`.
-	- Read `asset-price-system` before changing shared price logic.
-	- Read `asset-price-downloaders` for source selection, HTTP/JSON imports, or downloader commands.
+	- Read [asset-price-system](../asset-price-system/SKILL.md) before changing shared price logic.
+	- Read [asset-price-downloaders](../asset-price-downloaders/SKILL.md) for source selection, HTTP/JSON imports, or downloader commands.
 
 - **Positions / closed positions / portfolio value**
 	- Start with the contracts in `src/Asset/Position/`.
 	- Continue in `src/Stock/Position/`, `src/Crypto/Position/`, or `src/Portu/Position/`.
-	- Read `asset-position-system` before changing position calculations or closing flows.
+	- Read [asset-position-system](../asset-position-system/SKILL.md) before changing position calculations or closing flows.
 
-- **Dividends / dividend forecasts / stock fundamentals**
-	- Start in `src/Stock/Dividend/`.
-	- For valuation logic, continue to `src/Stock/Valuation/` and read `stock-valuation-models`.
+- **Dividends / dividend forecasts**
+	- Start in `src/Stock/Dividend/` and read [stock-dividend](../stock-dividend/SKILL.md).
+
+- **Stock fundamentals / valuations**
+	- Start in `src/Stock/Valuation/` and read [stock-valuation-models](../stock-valuation-models/SKILL.md) for imported metrics, fair-value models, and peer comparisons.
+
+- **Stock AI analysis / investment plans**
+	- Start in `src/Stock/AiAnalysis/` and read [stock-ai-analysis](../stock-ai-analysis/SKILL.md) for snapshots, prompts, response contracts, imports, orchestration, and results.
+	- Also use [stock-ai-analysis-gemini](../stock-ai-analysis-gemini/SKILL.md) when changing Gemini requests, schema adaptation, caches, or provider processing.
 
 - **Currencies / exchange rates / LSE pence handling**
 	- Start in `src/Currency/`.
-	- Read `currency-conversion` before changing conversion logic or data sources.
+	- Read [currency-conversion](../currency-conversion/SKILL.md) before changing conversion logic or data sources.
 
 - **Presenters / controls / templates / admin screens**
 	- Start in `src/UI/` and the owning module's `UI/` subtree.
-	- Use `ui-base-presenters-templates` for presenter/control or typed-template changes.
-	- Load `latte-templates`, `nette-forms`, `ui-forms-admin`, or `ui-datagrid` for the corresponding UI layer.
+	- Use [ui-base-presenters-templates](../ui-base-presenters-templates/SKILL.md) for presenter/control or typed-template changes.
+	- Load [latte-templates](../latte-templates/SKILL.md), [nette-forms](../nette-forms/SKILL.md), [ui-forms-admin](../ui-forms-admin/SKILL.md), or [ui-datagrid](../ui-datagrid/SKILL.md) for the corresponding UI layer.
 
 - **REST API**
 	- Start in `src/Api/` or the module-specific `Api/` folder.
-	- Read `api-slim` before adding or changing endpoints.
+	- Read [api-slim](../api-slim/SKILL.md) before adding or changing endpoints.
 	- For OAuth grants, scopes, client commands, or application integration, use [oauth2-server](../oauth2-server/SKILL.md).
 
 - **Background jobs / async recalculation / queue consumers**
 	- Start in `src/JobRequest/` for generic deferred work.
 	- Continue to `src/RabbitMQ/` for shared queue abstractions.
-	- Use `job-request` for job types and payloads; use `rabbitmq-base` when changing the queue transport or a dedicated message flow.
+	- Use [job-request](../job-request/SKILL.md) for job types and payloads; use [rabbitmq-base](../rabbitmq-base/SKILL.md) when changing the queue transport or a dedicated message flow.
 
 - **Notifications**
 	- Start in `src/Notification/`.
-	- Read `notifications-discord` before adding or routing a notification.
+	- Read [notifications-discord](../notifications-discord/SKILL.md) before adding or routing a notification.
 
 - **Schema / entity / repository changes**
 	- Start in the owning module under `src/` and in `src/Doctrine/` if shared persistence code is involved.
-	- Read `doctrine-migrations` before editing entities or repositories.
-	- For live database inspection through PhpStorm MCP, read `phpstorm-database`; inspecting schema or data does not require generating or applying a migration.
+	- Read [doctrine-migrations](../doctrine-migrations/SKILL.md) before editing entities or repositories.
+	- For live database inspection through PhpStorm MCP, read [phpstorm-database](../phpstorm-database/SKILL.md); inspecting schema or data does not require generating or applying a migration.
 
 - **Scraping / downloaded JSON inputs**
 	- Start in `puppeter/` for the scraper and the related PHP downloader in `src/`.
-	- Read `puppeteer-scraping` before changing the scraper pipeline.
+	- Read [puppeteer-scraping](../puppeteer-scraping/SKILL.md) before changing the scraper pipeline.
 
 ### Practical workflow
 
-Mirror the nearest implementation in the owning module. For shared PHP behavior, inspect the base in `src/Asset/` or `src/UI/` and the affected downstream modules. Use `testing-conventions` when writing PHPUnit tests and the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix) for final checks.
+Mirror the nearest implementation in the owning module. For shared PHP behavior, inspect the base in `src/Asset/` or `src/UI/` and the affected downstream modules. Use [testing-conventions](../testing-conventions/SKILL.md) when writing PHPUnit tests and the [AGENTS.md validation matrix](../../../AGENTS.md#validation-matrix) for final checks.

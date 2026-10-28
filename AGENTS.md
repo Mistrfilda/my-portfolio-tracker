@@ -6,7 +6,7 @@ Treat these as project defaults. Explicit task instructions take precedence over
 
 - Follow the nearest established pattern for routine, reversible choices. State assumptions or tradeoffs that materially affect the result.
 - Ask only when missing information would materially change the implementation and cannot be resolved from the code or conversation. Continue independent work while waiting.
-- Reuse authorization already given for the task. If a skill actually blocks progress, identify the file and exact instruction instead of inventing an approval requirement.
+- Reuse authorization already given for the task. If a skill actually blocks progress, link to its `SKILL.md`, quote the exact instruction, and explain why it applies instead of inventing an approval requirement.
 - Make the smallest change that fulfills the request. Preserve unrelated code, formatting, and others' edits; remove only the imports or code your change makes unused. Report unrelated issues without fixing them.
 - For multi-step work, state a brief plan and observable completion criteria. Continue through implementation, applicable checks, and any requested runtime verification; resolve failures caused by the change before handing back the result, or report the concrete blocker.
 
@@ -42,10 +42,10 @@ Treat these as project defaults. Explicit task instructions take precedence over
 - After the applicable checks pass, repeat or broaden them only when further edits, failures, or unresolved concerns justify it. PhpStorm inspections supplement these checks.
 
 ## Skills
-- Domain-specific guidance lives in `.agents/skills/`. Read the relevant `SKILL.md` before changing a specialized area.
-- Start with `.agents/skills/project-overview/SKILL.md` when the task is broad, cross-module, or you are not sure where the code belongs.
+- Domain-specific guidance lives in `.agents/skills/`. Select skills by their descriptions and read the relevant `SKILL.md` before changing a specialized area. If a named project skill is missing from the session's skill list, look for `.agents/skills/<name>/SKILL.md`.
+- Start with [project-overview](.agents/skills/project-overview/SKILL.md) when the task is broad, cross-module, or you are not sure where the code belongs.
 - For Docker, Kubernetes, and deployment work across this repository and the separate `/Users/filip/Sites/kubedev` checkout, use [kubernetes-infrastructure](.agents/skills/kubernetes-infrastructure/SKILL.md).
-- For desktop process boundaries use `desktop-electron`; for React/shadcn UI use `desktop-react-ui`; for packaging, dependencies, or build isolation use `desktop-build`. These skills live in the same root skill directory as the PHP guidance.
+- For desktop process boundaries use [desktop-electron](.agents/skills/desktop-electron/SKILL.md); for React/shadcn UI use [desktop-react-ui](.agents/skills/desktop-react-ui/SKILL.md); for packaging, dependencies, or build isolation use [desktop-build](.agents/skills/desktop-build/SKILL.md).
 - Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
 - For local browser inspection, use [mcp-local-app-access](.agents/skills/mcp-local-app-access/SKILL.md). A request to inspect the local app authorizes its documented login flow using `.env.browser-tests` only for the real local login form, without exposing credentials. After a login redirect, complete that flow and return to the requested URL; do not treat the login page alone as a blocker or a reason to switch to database inspection.
 - Keep the validation matrix above authoritative. Skills may describe focused checks, but should link here for final validation instead of duplicating it.
