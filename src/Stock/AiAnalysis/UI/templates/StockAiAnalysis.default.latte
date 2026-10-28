@@ -1,70 +1,73 @@
 {templateType App\Stock\AiAnalysis\UI\StockAiAnalysisTemplate}
 
+{block #headingButtons}
+	<a n:href="StockAiInvestmentPlan:default" class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+		Investiční plán
+	</a>
+	<a href="#new-analysis" class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+		Nová analýza
+	</a>
+{/block}
+
 {block #content}
-	<section class="mb-8 rounded-lg border border-gray-200 bg-white p-6 shadow-sm" aria-labelledby="investor-instructions-heading">
-		<h2 id="investor-instructions-heading" class="text-lg font-medium text-gray-900 mb-4">Společná investiční pravidla</h2>
-		<p class="mb-4 text-sm text-gray-600">Trvalé nastavení pro všechny nové analýzy, investiční plány a doplňující dotazy v aplikaci. Popište investiční cíle, omezení a preference. Již vytvořené analýzy a plány si ponechají původní pravidla. Prázdný text vlastní pravidla vypne.</p>
-		{control settingsForm}
+	<section aria-label="Minulé analýzy">
+		{control aiAnalysisGrid}
 	</section>
 
-	<div class="mb-8 overflow-hidden rounded-xl bg-gradient-to-r from-sky-50 to-blue-50 shadow-sm ring-1 ring-sky-100">
-		<div class="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-			<div>
-				<h2 class="text-base font-semibold text-sky-950">Máte volnou hotovost k investování?</h2>
-				<p class="mt-1 max-w-3xl text-sm leading-6 text-sky-800">Nový plán přepočítá částku vůči portfoliu a v Codexu porovná stávající pozice, watchlist i podobné dividendové akcie.</p>
-			</div>
-			<a n:href="StockAiInvestmentPlan:default" class="inline-flex shrink-0 items-center justify-center rounded-md bg-sky-600 px-4 py-2 text-sm font-semibold text-white shadow-xs hover:bg-sky-700">
-				Vytvořit investiční plán
-			</a>
-		</div>
-	</div>
-
-	<div class="overflow-hidden mb-8">
-		<h2 class="text-lg font-medium text-gray-900 mb-4">Minulé analýzy</h2>
-		{control aiAnalysisGrid}
-	</div>
-
-	<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
-			<h2 class="text-lg font-medium text-gray-900 mb-4">Analýza portfolia</h2>
-
-			<form n:name="portfolioAnalysisForm" class="space-y-4">
-				<div>
-					<label n:name="portfolioPromptType" class="block text-sm font-medium text-gray-700 mb-1">Typ promptu</label>
-					<select n:name="portfolioPromptType" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></select>
-					<p class="mt-1 text-xs text-gray-500">Denní briefing využij pro rychlý přehled za posledních 24 hodin, klasické zhodnocení pro strategičtější pohled.</p>
-				</div>
-
-				<div class="flex items-center space-x-3">
-					<input n:name="includesPortfolio" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-					<label n:name="includesPortfolio" class="text-sm font-medium text-gray-700">Akciové pozice (otevřené)</label>
-				</div>
-
-				<div class="flex items-center space-x-3">
-					<input n:name="includesWatchlist" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-					<label n:name="includesWatchlist" class="text-sm font-medium text-gray-700">Akcie na plném i jednoduchém watchlistu</label>
-				</div>
-
-				<div class="flex items-center space-x-3">
-					<input n:name="includesMarketOverview" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-					<label n:name="includesMarketOverview" class="text-sm font-medium text-gray-700">Obecná situace na trhu</label>
-				</div>
-
-				<div class="pt-4">
-					<button n:name="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-						Sestavit prompt pro portfolio
-					</button>
-				</div>
-			</form>
+	<section id="new-analysis" class="mt-8 scroll-mt-6" aria-labelledby="new-analysis-heading">
+		<div class="mb-4">
+			<h2 id="new-analysis-heading" class="text-base font-semibold text-gray-900">Nová analýza</h2>
+			<p class="mt-1 text-sm text-gray-500">Sestavte prompt pro celé portfolio nebo vybranou akcii.</p>
 		</div>
 
-		<div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
-			<h2 class="text-lg font-medium text-gray-900 mb-4">Analýza jedné akcie</h2>
+		<div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+			<section class="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs" aria-labelledby="portfolio-analysis-heading">
+				<div class="border-b border-gray-200 px-5 py-4 sm:px-6">
+					<h3 id="portfolio-analysis-heading" class="text-base font-semibold text-gray-900">Analýza portfolia</h3>
+				</div>
+
+				<form n:name="portfolioAnalysisForm" class="flex flex-1 flex-col">
+					<div class="flex-1 space-y-5 p-5 sm:p-6">
+						<div>
+							<label n:name="portfolioPromptType" class="mb-1 block text-sm font-medium text-gray-700">Typ promptu</label>
+							<select n:name="portfolioPromptType" aria-describedby="portfolio-prompt-help" class="block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"></select>
+							<p id="portfolio-prompt-help" class="mt-2 text-xs leading-5 text-gray-500">Denní briefing pro přehled za posledních 24 hodin, klasické zhodnocení pro strategičtější pohled.</p>
+						</div>
+
+						<fieldset class="space-y-3">
+							<legend class="mb-3 text-sm font-medium text-gray-700">Rozsah analýzy</legend>
+							<div class="flex items-start gap-3">
+								<input n:name="includesPortfolio" class="mt-0.5 h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500">
+								<label n:name="includesPortfolio" class="text-sm text-gray-700">Akciové pozice (otevřené)</label>
+							</div>
+
+							<div class="flex items-start gap-3">
+								<input n:name="includesWatchlist" class="mt-0.5 h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500">
+								<label n:name="includesWatchlist" class="text-sm text-gray-700">Akcie na plném i jednoduchém watchlistu</label>
+							</div>
+
+							<div class="flex items-start gap-3">
+								<input n:name="includesMarketOverview" class="mt-0.5 h-4 w-4 rounded-sm border-gray-300 text-blue-600 focus:ring-blue-500">
+								<label n:name="includesMarketOverview" class="text-sm text-gray-700">Obecná situace na trhu</label>
+							</div>
+						</fieldset>
+					</div>
+
+					<div class="border-t border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
+						<button n:name="submit" class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
+							Sestavit prompt pro portfolio
+						</button>
+					</div>
+				</form>
+			</section>
 
 			<script>
 				var stockAssetsData = {$stockAssetsDataJson|noescape};
 			</script>
-			<div x-data="{
+			<section
+				class="flex min-w-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs"
+				aria-labelledby="single-stock-analysis-heading"
+				x-data="{
 					assets: stockAssetsData,
 					selectedAsset: '',
 					updateFields() {
@@ -75,43 +78,66 @@
 							$refs.nameInput.dispatchEvent(new Event('input'));
 						}
 					}
-				}">
-				<form n:name="singleStockAnalysisForm" class="space-y-4">
-					<div>
-						<label n:name="existingAsset" class="block text-sm font-medium text-gray-700 mb-1">Předvyplnit z existující akcie</label>
-						<select n:name="existingAsset" x-model="selectedAsset" @change="updateFields()" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md"></select>
+				}"
+			>
+				<div class="border-b border-gray-200 px-5 py-4 sm:px-6">
+					<h3 id="single-stock-analysis-heading" class="text-base font-semibold text-gray-900">Analýza jedné akcie</h3>
+				</div>
+
+				<form n:name="singleStockAnalysisForm" class="flex flex-1 flex-col">
+					<div class="flex-1 space-y-5 p-5 sm:p-6">
+						<div>
+							<label n:name="existingAsset" class="mb-1 block text-sm font-medium text-gray-700">Předvyplnit z existující akcie</label>
+							<select n:name="existingAsset" x-model="selectedAsset" @change="updateFields()" class="block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500"></select>
+						</div>
+
+						<div>
+							<label n:name="stockName" class="mb-1 block text-sm font-medium text-gray-700">Název společnosti</label>
+							<input n:name="stockName" x-ref="nameInput" class="block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500" placeholder="např. Apple Inc.">
+						</div>
+						<div>
+							<label n:name="stockTicker" class="mb-1 block text-sm font-medium text-gray-700">Ticker</label>
+							<input n:name="stockTicker" x-ref="tickerInput" class="block w-full rounded-md border-gray-300 text-sm shadow-xs focus:border-blue-500 focus:ring-blue-500" placeholder="např. AAPL">
+						</div>
 					</div>
 
-					<div>
-						<label n:name="stockName" class="block text-sm font-medium text-gray-700 mb-1">Název společnosti</label>
-						<input n:name="stockName" x-ref="nameInput" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="např. Apple Inc.">
-					</div>
-					<div>
-						<label n:name="stockTicker" class="block text-sm font-medium text-gray-700 mb-1">Ticker</label>
-						<input n:name="stockTicker" x-ref="tickerInput" class="shadow-xs focus:ring-blue-500 focus:border-blue-500 block w-full sm:text-sm border-gray-300 rounded-md" placeholder="např. AAPL">
-					</div>
-
-					<div class="pt-4">
-						<button n:name="submit" class="w-full inline-flex justify-center items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+					<div class="border-t border-gray-200 bg-gray-50 px-5 py-4 sm:px-6">
+						<button n:name="submit" class="inline-flex w-full items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-xs hover:bg-blue-700 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto">
 							Sestavit prompt pro akcii
 						</button>
 					</div>
 				</form>
-			</div>
+			</section>
 		</div>
+	</section>
 
-        <div n:syntax="double">
-            <div class="bg-white shadow-sm rounded-lg border border-gray-200 overflow-hidden p-6">
-                <div class="flex items-center justify-between gap-4 mb-4">
-                    <h2 class="text-lg font-medium text-gray-900">Prompt otevřených pozic</h2>
-                    <button id="copy-open-positions-prompt-btn" type="button" class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-xs ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-                        Zkopírovat
-                    </button>
-                </div>
-                <p class="mb-4 text-sm text-gray-500">Prompt obsahuje jen aktuálně otevřené pozice a základní metriky pro ruční vložení do externího chatu.</p>
-                <pre id="open-positions-prompt-text" class="shadow-xs block w-full sm:text-sm border border-gray-300 rounded-md font-mono whitespace-pre-wrap p-3 overflow-auto max-h-96">{{$manualOpenPositionsPrompt}}</pre>
+	<div class="mt-8 space-y-4">
+		<details n:attr="open: $presenter['settingsForm']->hasErrors()" class="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
+			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:px-6 [&::-webkit-details-marker]:hidden">
+				<h2 class="text-base font-semibold text-gray-900">Společná investiční pravidla</h2>
+				{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+			</summary>
+			<div class="border-t border-gray-200 p-5 sm:p-6">
+				<p class="mb-5 text-sm leading-6 text-gray-500">Trvalé nastavení pro všechny nové analýzy, investiční plány a doplňující dotazy v aplikaci. Popište investiční cíle, omezení a preference. Již vytvořené analýzy a plány si ponechají původní pravidla. Prázdný text vlastní pravidla vypne.</p>
+				{control settingsForm}
+			</div>
+		</details>
 
-                <script>
+		<details class="group overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xs">
+			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 hover:bg-gray-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:px-6 [&::-webkit-details-marker]:hidden">
+				<h2 class="text-base font-semibold text-gray-900">Prompt otevřených pozic</h2>
+				{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+			</summary>
+			<div class="border-t border-gray-200 p-5 sm:p-6" n:syntax="double">
+				<div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+					<p class="text-sm leading-6 text-gray-500">Aktuálně otevřené pozice a základní metriky pro ruční vložení do externího chatu.</p>
+					<button id="copy-open-positions-prompt-btn" type="button" class="inline-flex shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-xs hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+						Zkopírovat
+					</button>
+				</div>
+				<pre id="open-positions-prompt-text" class="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md border border-gray-200 bg-gray-50 p-4 font-mono text-xs leading-6 text-gray-700">{{$manualOpenPositionsPrompt}}</pre>
+
+				<script>
 					document.getElementById('copy-open-positions-prompt-btn').addEventListener('click', function () {
 						var btn = this;
 						var text = document.getElementById('open-positions-prompt-text').textContent;
@@ -153,8 +179,8 @@
 
 						document.body.removeChild(textarea);
 					}
-                </script>
-            </div>
-        </div>
+				</script>
+			</div>
+		</details>
 	</div>
 {/block}
