@@ -29,18 +29,49 @@
 			<ul class="mt-2 list-disc space-y-1 pl-5"><li n:foreach="$view->warnings as $warning" class="break-words">{$warning}</li></ul>
 		</div>
 
-		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="work-report-overview-heading">
 			<div class="border-b border-gray-100 px-6 py-5">
-				<h2 class="text-lg font-semibold text-gray-900">Rychlý přehled pro standup</h2>
-				<p class="mt-1 text-sm text-gray-500">Témata z názvů úkolů a vlastních poznámek, seřazená podle odpracovaného času.</p>
+				<h2 id="work-report-overview-heading" class="text-lg font-semibold text-blue-900">Rychlý přehled pro standup</h2>
+				<p class="mt-1 text-sm text-gray-500">Pracovní položky se součtem času. Opakované záznamy ke stejnému úkolu jsou seskupené.</p>
 			</div>
-			<div class="divide-y divide-gray-100">
-				<div n:foreach="$view->projects as $project" class="flex gap-4 px-6 py-4">
-					<div class="min-w-0 flex-1"><p class="font-semibold text-gray-900">{$project['name']} <span class="font-normal text-gray-500">· {$project['clientName']}</span></p><ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-gray-700"><li n:foreach="$project['topics'] as $topic" class="break-words">{$topic}</li></ul></div>
-					<p class="shrink-0 text-sm font-semibold tabular-nums text-gray-700">{$project['hours']|number:2, ',', ' '} h</p>
-				</div>
-				<p n:if="$view->projects === []" class="px-6 py-5 text-sm text-gray-500">V tomto období nejsou vykázané žádné hodiny.</p>
-			</div>
+			<table n:if="$view->projects !== []" class="block w-full text-left text-sm md:table md:table-fixed" aria-labelledby="work-report-overview-heading">
+				<thead class="hidden bg-blue-700 text-white md:table-header-group">
+					<tr>
+						<th scope="col" class="w-1/4 px-6 py-3 font-semibold">Projekt / klient</th>
+						<th scope="col" class="px-6 py-3 font-semibold">Pracovní položky a čas</th>
+						<th scope="col" class="w-28 px-6 py-3 text-right font-semibold">Celkem</th>
+					</tr>
+				</thead>
+				<tbody class="block divide-y divide-blue-200 md:table-row-group">
+					<tr n:foreach="$view->projects as $project" class="block md:table-row">
+						<th scope="row" class="block bg-blue-50 px-6 py-4 text-left align-top font-normal md:table-cell">
+							<p class="break-words font-semibold text-blue-900">{$project['name']}</p>
+							<p class="mt-1 break-words text-gray-500">{$project['clientName']}</p>
+							<p class="mt-2 text-xs text-blue-700">Položky: {count($project['tasks'])} · záznamy: {count($project['entries'])}</p>
+						</th>
+						<td class="block px-6 py-4 align-top md:table-cell">
+							<ul class="divide-y divide-blue-100">
+								<li n:foreach="$project['tasks'] as $task" class="flex items-start gap-4 py-2 first:pt-0 last:pb-0">
+									<div class="min-w-0 flex-1">
+										{if $task['references'] !== []}
+											<a n:foreach="$task['references'] as $reference" href="{$reference['url']}" target="_blank" rel="noopener noreferrer" class="block break-words text-gray-900 hover:text-blue-700 hover:underline">
+												<span n:class="'mr-1 inline-flex items-center whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-semibold', str_starts_with($reference['label'], 'MR ') ? 'bg-blue-800 text-white' : 'bg-blue-100 text-blue-800 ring-1 ring-inset ring-blue-200'">{$reference['label']}</span>{$reference['title']}
+											</a>
+										{else}
+											<p class="whitespace-pre-wrap break-words text-gray-900"><span class="mr-1 inline-flex items-center whitespace-nowrap rounded-md bg-blue-100 px-1.5 py-0.5 text-xs font-semibold text-blue-800 ring-1 ring-inset ring-blue-200">Harvest</span>{$task['title']}</p>
+										{/if}
+										<p n:if="$task['entryCount'] > 1" class="mt-1 text-xs text-gray-500">Záznamy: {$task['entryCount']}</p>
+										<p n:if="count($task['references']) > 1" class="mt-1 text-xs text-gray-500">Společný čas uvedených odkazů</p>
+									</div>
+									<p class="shrink-0 whitespace-nowrap font-semibold tabular-nums text-blue-800">{$task['hours']|number:2, ',', ' '} h</p>
+								</li>
+							</ul>
+						</td>
+						<td class="block px-6 pb-4 text-right align-top font-semibold whitespace-nowrap tabular-nums text-blue-700 md:table-cell md:py-4"><span class="mr-2 font-normal md:sr-only">Celkem</span>{$project['hours']|number:2, ',', ' '} h</td>
+					</tr>
+				</tbody>
+			</table>
+			<p n:if="$view->projects === []" class="px-6 py-5 text-sm text-gray-500">V tomto období nejsou vykázané žádné hodiny.</p>
 		</section>
 
 		<section n:if="$view->aiSummary !== null && $view->aiSummary['status'] === 'complete'" class="overflow-hidden rounded-2xl border border-blue-200 bg-blue-50 shadow-sm">
