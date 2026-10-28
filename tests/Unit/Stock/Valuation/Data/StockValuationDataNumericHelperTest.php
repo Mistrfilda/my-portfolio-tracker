@@ -23,6 +23,30 @@ class StockValuationDataNumericHelperTest extends TestCase
 		}
 	}
 
+	public function testYahooNumbersHaveExplicitDecimalAndMagnitudeRules(): void
+	{
+		$examples = [
+			'2.33k' => 2330.0,
+			'253.55k' => 253550.0,
+			'1.234' => 1.234,
+			'1.234B' => 1234000000.0,
+			'1,234.56%' => 1234.56,
+			'-1.60' => -1.6,
+			'0' => 0.0,
+		];
+		foreach ($examples as $input => $expected) {
+			self::assertEqualsWithDelta(
+				$expected,
+				StockValuationDataNumericHelper::parseWebValue((string) $input) ?? -999.0,
+				0.0001,
+			);
+		}
+
+		foreach (['N/A', '--', 'abc12', '12oops', '1.2.3', '12,34', ''] as $input) {
+			self::assertNull(StockValuationDataNumericHelper::parseWebValue($input));
+		}
+	}
+
 	/**
 	 * @return array<string, array{string|null, float|null}>
 	 */

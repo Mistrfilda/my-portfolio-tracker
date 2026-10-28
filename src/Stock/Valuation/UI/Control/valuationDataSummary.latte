@@ -1,0 +1,27 @@
+{varType App\Stock\Valuation\StockValuation $valuation}
+{varType App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus $consensus}
+{var $asset = $valuation->getStockAsset()}
+{var $quarter = $valuation->getValuationDataByType(App\Stock\Valuation\StockValuationTypeEnum::MOST_RECENT_QUARTER)?->getStringValue()}
+<div class="mb-5 rounded-lg bg-white p-4 ring-1 ring-inset ring-gray-200">
+	<dl class="grid gap-4 sm:grid-cols-3">
+		<div><dt class="text-xs text-gray-500">Pokrytí vhodných cenových modelů</dt><dd class="mt-1 text-sm font-semibold text-gray-900">{$consensus->getValidModelsCount()} / {$consensus->getTotalModelsCount()}</dd><p class="mt-1 text-xs text-gray-500">Nevhodné modely a doplňky se nepočítají.</p></div>
+		<div><dt class="text-xs text-gray-500">Poslední import dat</dt><dd class="mt-1 text-sm font-semibold text-gray-900">{if $valuation->getImportedAt() !== null}{$valuation->getImportedAt()|date:'d.m.Y H:i'}{else}Chybí{/if}</dd><p class="mt-1 text-xs text-gray-500">{if $quarter !== null}Poslední čtvrtletí: {$quarter}{else}Datum podkladových výkazů není doložené.{/if}</p></div>
+		<div><dt class="text-xs text-gray-500">Tržní cena aktualizována</dt><dd class="mt-1 text-sm font-semibold text-gray-900">{if $asset->getPriceDownloadedAt() !== null}{$asset->getPriceDownloadedAt()|date:'d.m.Y H:i'}{else}Datum chybí{/if}</dd><p class="mt-1 text-xs text-gray-500" title="Částkám je přiřazena měna akcie; původní import měnu každé metriky samostatně nedokládá.">Částky v {$asset->getCurrency()->value} dle nastavení akcie.</p></div>
+	</dl>
+	{if $asset->getIndustry() !== null}
+		<p class="mt-3 border-t border-gray-100 pt-3 text-xs text-gray-500">Odvětví: {$asset->getIndustry()->getName()} · násobky aktualizovány {$asset->getIndustry()->getUpdatedAt()|date:'d.m.Y'}. Průměr odvětví není zárukou férové ceny.</p>
+	{/if}
+	<details class="mt-3 border-t border-gray-100 pt-3">
+		<summary class="cursor-pointer text-xs font-medium text-gray-700">Změny vstupů od minulého importu ({count($valuation->getInputChanges())})</summary>
+		{if $valuation->getPreviousImportedAt() !== null}
+			<p class="mt-2 text-xs text-gray-500">Srovnání s {$valuation->getPreviousImportedAt()|date:'d.m.Y H:i'}. Jde o snímky dat, ne o samostatné roční výsledky.</p>
+			<div class="mt-2 divide-y divide-gray-100">
+				{foreach $valuation->getInputChanges() as $change}
+					<div class="flex flex-wrap justify-between gap-2 py-2 text-xs"><div class="text-gray-600">{$change->type->format()} <span class="text-gray-400">· {$change->getLabel()}</span></div><div class="font-medium text-gray-900">
+						{foreach [$change->previous, $change->current] as $data}{if $data?->getFloatValue() === null}chybí{elseif $change->type->isCurrencyValue()}{$data->getFloatValue()|compactCurrency:$data->getCurrency(),2}{else}{$data->getFloatValue()|number:2}{if $change->type->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE} %{/if}{/if}{if !$iterator->last} → {/if}{/foreach}
+					</div></div>
+				{else}<p class="py-2 text-xs text-gray-500">Hlavní vstupy se nezměnily.</p>{/foreach}
+			</div>
+		{else}<p class="mt-2 text-xs text-gray-500">Předchozí import zatím není uložený.</p>{/if}
+	</details>
+</div>

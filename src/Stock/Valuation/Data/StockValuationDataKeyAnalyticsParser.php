@@ -98,6 +98,7 @@ class StockValuationDataKeyAnalyticsParser
 			'operating_margin' => $this->findValueByText('Operating Margin'),
 			'return_on_assets' => $this->findValueByText('Return on Assets'),
 			'return_on_equity' => $this->findValueByText('Return on Equity'),
+			'most_recent_quarter' => $this->findValueByText('Most Recent Quarter'),
 		];
 	}
 
@@ -203,87 +204,38 @@ class StockValuationDataKeyAnalyticsParser
 
 	private function findValueByText(string $labelText): string|null
 	{
-		// Strategie 1: Přesná shoda textu
-		$value = $this->findValueByTextStrategy($labelText, 'normalize-space(text())="' . trim($labelText) . '"');
-		if ($value !== null) {
-			return $value;
+		$label = $this->normalizeLabel($labelText);
+		$nodes = $this->safeQuery('//tr/td[1]');
+		if ($nodes === null) {
+			return null;
 		}
 
-		// Strategie 2: Obsahuje text
-		$value = $this->findValueByTextStrategy(
-			$labelText,
-			'contains(normalize-space(text()), "' . trim($labelText) . '")',
-		);
-		if ($value !== null) {
-			return $value;
-		}
-
-		// Strategie 3: Začíná textem
-		$value = $this->findValueByTextStrategy(
-			$labelText,
-			'starts-with(normalize-space(text()), "' . trim($labelText) . '")',
-		);
-		if ($value !== null) {
-			return $value;
-		}
-
-		// Strategie 4: Text obsahuje jen hlavní část (bez suffixů jako (ttm), (mrq) atd.)
-		$coreText = preg_replace('/\s+\([^)]+\)/', '', $labelText);
-		if ($coreText !== $labelText) {
-			$value = $this->findValueByTextStrategy(
-				$coreText ?? '',
-				'contains(normalize-space(text()), "' . trim($coreText ?? '') . '")',
-			);
-			if ($value !== null) {
-				return $value;
+		foreach ($nodes as $node) {
+			// Ignore footnote markers, preserving nested label text.
+			$clone = $node->cloneNode(true);
+			if ($clone instanceof DOMElement) {
+				foreach (iterator_to_array($clone->getElementsByTagName('sup')) as $footnote) {
+					$footnote->parentNode?->removeChild($footnote);
+				}
 			}
+
+			if ($this->normalizeLabel($clone->textContent) !== $label) {
+				continue;
+			}
+
+			$value = trim($this->getNextTdSibling($node)->textContent ?? '');
+			return $value === '' ? null : $value;
 		}
 
 		return null;
 	}
 
-	private function findValueByTextStrategy(string $labelText, string $xpathCondition): string|null
+	private function normalizeLabel(string $label): string
 	{
-		// Hledáme TD element s daným textem
-		$labelNodes = $this->safeQuery('//td[' . $xpathCondition . ']');
-
-		if ($labelNodes !== null && $labelNodes->length > 0) {
-			foreach ($labelNodes as $labelNode) {
-				// Zkusíme najít následující TD element ve stejném řádku
-				$valueNode = $this->getNextTdSibling($labelNode);
-				if ($valueNode !== null) {
-					$value = trim($valueNode->textContent);
-					// Ověříme, že hodnota není prázdná nebo stejná jako label
-					if (strlen($value) > 0 && $value !== trim($labelNode->textContent)) {
-						return $value;
-					}
-				}
-
-				// Zkusíme najít hodnotu v následujícím TD elementu pomocí XPath
-				$parentTr = $labelNode->parentNode;
-				if ($parentTr !== null && $parentTr->nodeName === 'tr') {
-					$tds = $this->safeQuery('.//td', $parentTr);
-					if ($tds !== null && $tds->length > 1) {
-						// Najdeme pozici aktuálního TD a vezmeme následující
-						for ($i = 0; $i < $tds->length - 1; $i++) {
-							if ($tds->item($i) === $labelNode) {
-								$nextTd = $tds->item($i + 1);
-								if ($nextTd !== null) {
-									$value = trim($nextTd->textContent);
-									if (strlen($value) > 0) {
-										return $value;
-									}
-								}
-
-								break;
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return null;
+		$label = str_replace(["\u{00A0}", "\u{202F}"], ' ', $label);
+		$label = preg_replace('/\s*\((?:ttm|mrq|yoy|5yr expected)\)\s*/i', ' ', $label) ?? $label;
+		$label = preg_replace('/\s+\d+$/', '', $label) ?? $label;
+		return strtolower(trim(preg_replace('/\s+/', ' ', $label) ?? $label));
 	}
 
 	private function getNextTdSibling(DOMNode $node): DOMNode|null

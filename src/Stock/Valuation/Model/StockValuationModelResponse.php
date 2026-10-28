@@ -35,4 +35,19 @@ interface StockValuationModelResponse
 
 	public function getDescription(): string|null;
 
+	public function getPurpose(): StockValuationModelPurpose;
+
+	public function getAvailability(): StockValuationModelAvailability;
+
+	public function getAvailabilityReason(): string|null;
+
+	public function getValueUnit(): string;
+
+	public function isCalculated(): bool;
+
+	public function getColor(): string;
+
+	/** @return array<StockValuationScenario> */
+	public function getScenarios(): array;
+
 }

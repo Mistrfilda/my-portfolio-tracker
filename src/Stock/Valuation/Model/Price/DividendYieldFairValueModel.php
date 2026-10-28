@@ -111,8 +111,6 @@ class DividendYieldFairValueModel extends BasePriceModel
 	{
 		$values = [
 			new StockValuationModelUsedValue('TARGET_DIVIDEND_YIELD (%)', self::TARGET_DIVIDEND_YIELD),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
 		];
 
 		if ($this->currentYield !== null) {
@@ -145,9 +143,7 @@ class DividendYieldFairValueModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Vypočítá férovou cenu na základě cílového dividendového výnosu. Pokud je aktuální yield vyšší než cílový, akcie může být podhodnocená.';
-		//phpcs:enable
+		return 'Cena při zvoleném dividendovém výnosu 3,5 %. Doplňkový scénář; stejný výnos není vhodný pro každou firmu.';
 	}
 
 }

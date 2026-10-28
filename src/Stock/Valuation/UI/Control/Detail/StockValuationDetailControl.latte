@@ -5,7 +5,9 @@
     <h2 class="text-xl font-semibold text-gray-900 mb-4">Valuační modely</h2>
 </div>
 
-<div class="overflow-hidden bg-white shadow-sm sm:rounded-lg mb-6">
+{include '../valuationDataSummary.latte', valuation: $stockValuation, consensus: $modelConsensus}
+
+<div class="overflow-x-auto bg-white shadow-sm sm:rounded-lg mb-6">
     <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
         <tr>
@@ -13,7 +15,7 @@
                 Model
             </th>
             <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Spravedlivá cena
+                Odhad / ukazatel
             </th>
             <th scope="col" class="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Odchylka
@@ -23,16 +25,19 @@
         <tbody class="bg-white divide-y divide-gray-200">
         {foreach $stockValuationModelResponses as $model}
             <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">
+                <td class="px-4 py-3 text-sm font-medium text-gray-900">
                     {$model->getLabel()}
+                    <span class="block text-xs font-normal text-gray-500">{if $model->isCalculated()}{$model->getPurpose()->getLabel()}{else}{$model->getAvailability()->getLabel()}{/if}</span>
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
                     {if $model->isCalculated() && $model->getAssetPrice() !== null}
                         <span class="font-semibold text-{$model->getColor()}-700">
                                 {$model->getAssetPrice()|assetPriceFormat}
                             </span>
+                    {elseif $model->isCalculated()}
+                        {$model->getCalculatedValue()|number:2} {$model->getValueUnit()}
                     {else}
-                        <span class="text-gray-400 italic">N/A</span>
+                        <span class="text-xs text-gray-500" title="{$model->getAvailabilityReason()}">{$model->getAvailability()->getLabel()}</span>
                     {/if}
                 </td>
                 <td class="px-4 py-3 whitespace-nowrap text-sm text-right">
@@ -55,7 +60,7 @@
         {/foreach}
 
         <tr class="bg-blue-50 font-semibold">
-            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+            <td class="px-4 py-3 text-sm text-gray-900">
                 Konsenzus modelových rodin
                 <span class="block text-xs text-gray-500 font-normal">
                     Rodiny {$modelConsensus->getValidFamiliesCount()}/{$modelConsensus->getTotalFamiliesCount()} · {$modelConsensus->getConfidence()->getLabel()}
@@ -88,7 +93,7 @@
 
         {if $aiResult && $aiResult->getFairPrice() !== null}
              <tr class="bg-indigo-50 font-semibold">
-                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                <td class="px-4 py-3 text-sm text-gray-900">
                     AI Odhad ceny
                     <span class="block text-xs text-gray-500 font-normal">{$aiResult->getCreatedAt()|date:'d.m.Y'}</span>
                 </td>
@@ -119,7 +124,7 @@
             {foreach $stockValuationAnalyticsPrices as $analyticsPrice}
                 {if $analyticsPrice->getValuationType() === App\Stock\Valuation\StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE}
                     <tr class="bg-purple-50 font-semibold">
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <td class="px-4 py-3 text-sm text-gray-900">
                             Cena analytiků (průměr)
                         </td>
                         <td class="px-4 py-3 whitespace-nowrap text-sm text-right text-purple-700">
@@ -149,11 +154,11 @@
 <div class="mb-6 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-900/5">
     <div class="border-b border-gray-200 px-4 py-3">
         <h3 class="text-sm font-semibold text-gray-900">Diagnostika modelového konsenzu</h3>
-        <p class="mt-1 text-xs text-gray-500">Výsledek je mediánem odhadů modelových rodin; aritmetický průměr slouží jen ke kontrole extrémů.</p>
+        <p class="mt-1 text-xs text-gray-500">Použité rodiny mají stejnou váhu. Shoda není zárukou správnosti; pásmo Q1–Q3 vyjadřuje rozptyl odhadů.</p>
     </div>
     <dl class="grid grid-cols-2 divide-x divide-y divide-gray-200 lg:grid-cols-4 lg:divide-y-0">
         <div class="px-4 py-3">
-            <dt class="text-xs text-gray-500">Medián všech modelů</dt>
+            <dt class="text-xs text-gray-500">Medián použitých modelů</dt>
             <dd class="mt-1 text-sm font-semibold text-gray-900">
                 {if $modelConsensus->getRawMedianPrice() !== null}
                     {$modelConsensus->getRawMedianPrice()|assetPriceFormat}
@@ -183,7 +188,7 @@
             </dd>
         </div>
         <div class="px-4 py-3">
-            <dt class="text-xs text-gray-500">Nejistota</dt>
+            <dt class="text-xs text-gray-500">Rozptyl odhadů</dt>
             <dd class="mt-1 text-sm font-semibold text-gray-900">
                 {if $modelConsensus->getNormalizedIqrPercentage() !== null}
                     IQR {$modelConsensus->getNormalizedIqrPercentage()|number:1} %
@@ -389,7 +394,7 @@
     <div class="px-5 py-4 border-b border-gray-200 bg-gray-50 flex justify-between items-center">
         <div>
             <h3 class="text-base font-semibold leading-6 text-gray-900">Detail valuačních modelů</h3>
-            <p class="mt-1 text-sm text-gray-600">Podrobné informace o parametrech a výpočtech jednotlivých modelů</p>
+            <p class="mt-1 text-sm text-gray-600">Co model říká, proč se nepoužije a jak závisí na předpokladech</p>
         </div>
         <button
                 @click="modelsOpen = !modelsOpen"
@@ -420,126 +425,7 @@
             x-transition:leave-end="opacity-0 -translate-y-1"
             class="p-5"
     >
-        <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-200 shadow-sm sm:grid sm:grid-cols-2 sm:gap-px sm:divide-y-0">
-            {foreach $stockValuationModelResponses as $model}
-                <div class="group relative border-gray-200 bg-white p-6 {if $iterator->first}rounded-tl-lg{/if} {if $iterator->counter === 2}rounded-tr-lg{/if} {if $iterator->last && $iterator->counter % 2 !== 0}rounded-bl-lg rounded-br-lg{/if} {if $iterator->last && $iterator->counter % 2 === 0}rounded-br-lg{/if} {if $iterator->counter === count($stockValuationModelResponses) - 1 && $iterator->counter % 2 !== 0}rounded-bl-lg{/if}">
-                    <div>
-    				<span class="inline-flex rounded-lg bg-{$model->getColor()}-50 p-3 text-{$model->getColor()}-700">
-    					{renderSvg $model->getStockValuationModelTrend()->getIcon()}
-    				</span>
-                    </div>
-
-                    <div class="mt-8">
-                        <h3 class="text-base font-semibold text-gray-900">
-                            {$model->getLabel()}
-                        </h3>
-
-                        <div class="flex items-center justify-between text-sm my-4">
-                            <span class="text-gray-500">{$model->getDescription()}</span>
-                        </div>
-
-                        {if $model->isCalculated()}
-                            <div class="mt-4 space-y-3">
-                                <div class="flex items-center justify-between text-sm">
-                                    <span class="text-gray-500">Aktuální cena:</span>
-                                    <span class="font-semibold text-gray-900">
-    								{$model->getStockAsset()->getAssetCurrentPrice()|assetPriceFormat}
-    							</span>
-                                </div>
-
-                                {if $model->getAssetPrice() !== null}
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="text-gray-500">Spravedlivá cena:</span>
-                                        <span class="font-semibold text-{$model->getColor()}-700">
-    									{$model->getAssetPrice()|assetPriceFormat}
-    								</span>
-                                    </div>
-                                {/if}
-
-                                {if $model->getCalculatedPercentage() !== null}
-                                    {var $percentage = $model->getCalculatedPercentage()}
-                                    <div class="flex items-center justify-between">
-                                        <span class="text-sm text-gray-500">Odchylka:</span>
-                                        <span class="inline-flex items-center gap-x-1.5 rounded-md px-2 py-1 text-sm font-semibold {if $percentage > 0}bg-green-50 text-green-700{elseif $percentage < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
-    									{if $percentage > 0}
-                                            <svg viewBox="0 0 6 6" class="size-1.5 fill-green-500">
-    											<circle cx="3" cy="3" r="3" />
-    										</svg>
-    										+{$percentage|number:2} %
-    									{elseif $percentage < 0}
-    										<svg viewBox="0 0 6 6" class="size-1.5 fill-red-500">
-    											<circle cx="3" cy="3" r="3" />
-    										</svg>
-    										{$percentage|number:2} %
-    									{else}
-    										<svg viewBox="0 0 6 6" class="size-1.5 fill-gray-500">
-    											<circle cx="3" cy="3" r="3" />
-    										</svg>
-                                            0.00 %
-                                        {/if}
-    								</span>
-                                    </div>
-                                {/if}
-
-                                <div class="mt-4 pt-3 border-t border-gray-100">
-                                    <div class="flex items-start gap-x-2">
-    								<span class="inline-flex items-center rounded-md bg-{$model->getColor()}-50 px-2 py-1 text-xs font-medium text-{$model->getColor()}-700 ring-1 ring-inset ring-{$model->getColor()}-700/10">
-    									{$model->getStockValuationModelTrend()->getLabel()}
-    								</span>
-                                    </div>
-                                    <p class="mt-2 text-xs text-gray-500">{$model->getStockValuationModelTrend()->getDescription()}</p>
-                                </div>
-
-                                {if count($model->getModelUsedValues()) > 0}
-                                    <div class="mt-4 pt-3 border-t border-gray-100">
-                                        <h4 class="text-xs font-semibold text-gray-900 mb-3">Parametry modelu</h4>
-                                        <dl class="divide-y divide-gray-100 text-xs">
-                                            {foreach $model->getModelUsedValues() as $usedValue}
-                                                <div class="py-2 sm:grid sm:grid-cols-2 sm:gap-4">
-                                                    <dt class="font-medium text-gray-600">{$usedValue->getLabel()}</dt>
-                                                    <dd class="mt-1 text-gray-900 sm:mt-0 text-right">
-                                                        {if is_float($usedValue->getValue())}
-                                                            {$usedValue->getValue()|number:2}
-                                                        {else}
-                                                            {$usedValue->getValue()}
-                                                        {/if}
-                                                    </dd>
-                                                </div>
-                                            {/foreach}
-                                        </dl>
-
-                                        <p class="mt-2 text-xs text-gray-400">
-                                            Model vyžaduje následující data:
-                                            {foreach $model->getUsedStockValuationDataTypes() as $type}
-                                                {$type->format()}{if !$iterator->last}, {/if}
-                                            {/foreach}
-                                        </p>
-                                    </div>
-                                {/if}
-                            </div>
-                        {else}
-                            <div class="mt-4">
-                                <p class="text-sm text-gray-500">{$model->getStockValuationModelTrend()->getDescription()}</p>
-                                <p class="mt-2 text-xs text-gray-400">
-                                    Model vyžaduje následující data:
-                                    {foreach $model->getUsedStockValuationDataTypes() as $type}
-                                        {$type->format()}{if !$iterator->last}, {/if}
-                                    {/foreach}
-                                </p>
-                            </div>
-                        {/if}
-                    </div>
-
-                    {if $model->isCalculated()}
-                        <span aria-hidden="true" class="pointer-events-none absolute top-6 right-6 text-gray-300 group-hover:text-gray-400">
-    					<svg viewBox="0 0 24 24" fill="currentColor" class="size-6">
-    						<path d="M20 4h1a1 1 0 00-1-1v1zm-1 12a1 1 0 102 0h-2zM8 3a1 1 0 000 2V3zM3.293 19.293a1 1 0 101.414 1.414l-1.414-1.414zM19 4v12h2V4h-2zm1-1H8v2h12V3zm-.707.293l-16 16 1.414 1.414 16-16-1.414-1.414z" />
-    					</svg>
-    				</span>
-                    {/if}
-                </div>
-            {/foreach}
-        </div>
+        {include '../modelCards.latte', modelResponses: $stockValuationModelResponses}
     </div>
 </div>
 
@@ -575,7 +461,7 @@
                                                         {$valuationData->getFloatValue()|compactCurrency:$valuationData->getCurrency()}
                                                     </span>
                                                     <span class="text-xs text-gray-500">
-                                                        {$valuationData->getFloatValue()|currencyConvert:$stockValuation->getStockAsset()->getCurrency(),App\Currency\CurrencyEnum::CZK|compactCurrency:App\Currency\CurrencyEnum::CZK}
+                                                        {$valuationData->getFloatValue()|currencyConvert:$valuationData->getCurrency(),App\Currency\CurrencyEnum::CZK|compactCurrency:App\Currency\CurrencyEnum::CZK}
                                                     </span>
                                                 </div>
                                             {else}
@@ -583,7 +469,7 @@
                                                     {$valuationData->getFloatValue()|number:2}
                                                 </span>
                                             {/if}
-                                        {elseif $valuationData->getValuationType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
+                                        {elseif $valuationData->getTypeValueType() === App\Stock\Valuation\StockValuationTypeValueTypeEnum::PERCENTAGE}
                                             <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium {if $valuationData->getFloatValue() > 0}bg-green-50 text-green-700{elseif $valuationData->getFloatValue() < 0}bg-red-50 text-red-700{else}bg-gray-50 text-gray-700{/if}">
                                                 {$valuationData->getFloatValue()|number:2}%
                                             </span>

@@ -7,6 +7,28 @@ namespace App\Stock\Valuation\Data;
 class StockValuationDataNumericHelper
 {
 
+	public static function parseWebValue(string|null $value): float|null
+	{
+		if ($value === null) {
+			return null;
+		}
+
+		$value = trim(str_replace(["\u{00A0}", "\u{202F}"], ' ', $value));
+		if (preg_match('/^([+-]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?)\s*([KMBT%]?)$/i', $value, $matches) !== 1) {
+			return null;
+		}
+
+		$multiplier = match (strtoupper($matches[2])) {
+			'K' => 1e3,
+			'M' => 1e6,
+			'B' => 1e9,
+			'T' => 1e12,
+			default => 1.0,
+		};
+		$number = (float) str_replace(',', '', $matches[1]) * $multiplier;
+		return is_finite($number) ? $number : null;
+	}
+
 	public static function parseNumericValue(string|null $value): float|null
 	{
 		if ($value === null || $value === '--' || $value === 'N/A' || trim($value) === '' || $value === '-') {

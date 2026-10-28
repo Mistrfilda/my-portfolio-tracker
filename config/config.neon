@@ -667,6 +667,7 @@ services:
 	- App\Stock\Valuation\StockValuationFacade(typed(App\Stock\Valuation\Model\StockValuationModel))
 	- App\Stock\Valuation\StockValuationPriceProvider
 	- App\Stock\Valuation\Model\Consensus\StockValuationModelConsensusProvider
+	- App\Stock\Valuation\Model\StockValuationModelEvaluator
 	- App\Stock\Valuation\MarginOfSafety\StockValuationMarginOfSafetyProvider
 	- App\Stock\Valuation\Data\StockValuationDataRepository(App\Stock\Valuation\Data\StockValuationData)
 	- App\Stock\Valuation\Data\StockValuationDataParseCommand
@@ -680,10 +681,10 @@ services:
 
 	#Stock valuation models
 	- App\Stock\Valuation\Model\Price\BookValueValuationModel
-	- App\Stock\Valuation\Model\Price\DividendDiscountValuationModel
+	- App\Stock\Valuation\Model\Price\DividendDiscountValuationModel(requiredReturn: 0.10, growthRate: 0.03)
 	- App\Stock\Valuation\Model\Price\PriceEarningsValuationModel
-	- App\Stock\Valuation\Model\Price\FreeCashFlowValuationModel
-	- App\Stock\Valuation\Model\Price\EnterpriseValueValuationModel
+	- App\Stock\Valuation\Model\Price\FreeCashFlowValuationModel(requiredReturn: 0.10, growthRate: 0.03)
+	- App\Stock\Valuation\Model\Price\EnterpriseValueValuationModel(targetMultiple: 10.0)
 	- App\Stock\Valuation\Model\Price\GrahamNumberValuationModel
 	- App\Stock\Valuation\Model\Price\PegRatioValuationModel
 	- App\Stock\Valuation\Model\Price\PriceToSalesValuationModel

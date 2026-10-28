@@ -40,11 +40,13 @@ class StockValuationModelTableControl extends BaseControl
 		$stockAssets = [];
 
 		foreach ($this->stockAssetRepository->getAllActiveValuationAssets() as $stockAsset) {
-			$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset($stockAsset);
+			$valuation = $this->stockValuationFacade->getStockValuation($stockAsset->getId());
+			$modelResponses = $this->stockValuationFacade->getModelsForValuation($valuation);
 			$items[] = new StockValuationModelTableControlItem(
 				$stockAsset,
 				$modelResponses,
 				$this->stockValuationModelConsensusProvider->getForStockAsset($stockAsset, $modelResponses),
+				$valuation,
 			);
 
 			$stockAssets[] = $stockAsset;

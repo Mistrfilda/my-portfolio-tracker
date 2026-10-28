@@ -13,8 +13,6 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class EnterpriseValueValuationModel extends BasePriceModel
 {
 
-	private const FAIR_EV_EBITDA_RATIO = 10.0;
-
 	private const UNDERPRICED_THRESHOLD = 12.0;
 
 	private const OVERPRICED_THRESHOLD = -12.0;
@@ -22,6 +20,10 @@ class EnterpriseValueValuationModel extends BasePriceModel
 	private const FAIR_VALUE_THRESHOLD = 7.0;
 
 	private float|null $currentEvEbitda = null;
+
+	public function __construct(private float $targetMultiple = 10.0)
+	{
+	}
 
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
@@ -40,21 +42,29 @@ class EnterpriseValueValuationModel extends BasePriceModel
 
 		$totalDebt = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::TOTAL_DEBT,
-		)?->getFloatValue() ?? 0.0;
+		)?->getFloatValue();
 
 		$totalCash = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::TOTAL_CASH,
-		)?->getFloatValue() ?? 0.0;
-
-		$netDebt = $totalDebt - $totalCash;
+		)?->getFloatValue();
 
 		$this->currentEvEbitda = $currentEvEbitda;
 
-		if ($ebitda === null || $ebitda <= 0 || $sharesOutstanding === null || $sharesOutstanding <= 0) {
+		if (
+			$ebitda === null
+			|| !is_finite($this->targetMultiple)
+			|| $this->targetMultiple <= 0
+			|| $ebitda <= 0
+			|| $sharesOutstanding === null
+			|| $sharesOutstanding <= 0
+			|| $totalDebt === null
+			|| $totalCash === null
+		) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		$fairEV = $ebitda * self::FAIR_EV_EBITDA_RATIO;
+		$netDebt = $totalDebt - $totalCash;
+		$fairEV = $ebitda * $this->targetMultiple;
 
 		$fairEquityValue = $fairEV - $netDebt;
 
@@ -115,10 +125,7 @@ class EnterpriseValueValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		$values = [
-			new StockValuationModelUsedValue('FAIR_EV_EBITDA_RATIO', self::FAIR_EV_EBITDA_RATIO),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Předpoklad EV/EBITDA', $this->targetMultiple),
 		];
 
 		if ($this->currentEvEbitda !== null) {
@@ -151,9 +158,7 @@ class EnterpriseValueValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Oceňuje firmu pomocí EV/EBITDA poměru zohledňujícího celkovou hodnotu podniku včetně dluhu. Vhodné pro srovnání firem s různou kapitálovou strukturou.';
-		//phpcs:enable
+		return 'EBITDA × zvolený násobek, minus čistý dluh. Násobek je předpoklad, nikoli dostupný průměr odvětví.';
 	}
 
 }

@@ -38,9 +38,7 @@ class StockValuationDetailControl extends BaseControl
 		$template->stockAsset = $stockAsset;
 		$stockValuation = $this->stockValuationFacade->getStockValuation($stockAsset->getId());
 		$template->stockValuation = $stockValuation;
-		$modelResponses = $this->stockValuationFacade->getStockValuationsModelsForStockAsset(
-			$stockAsset,
-		);
+		$modelResponses = $this->stockValuationFacade->getModelsForValuation($stockValuation);
 		$template->stockValuationModelResponses = $modelResponses;
 		$template->stockValuationAnalyticsPrices = $this->stockValuationDataRepository->findTypesLatestForStockAsset(
 			$stockAsset,

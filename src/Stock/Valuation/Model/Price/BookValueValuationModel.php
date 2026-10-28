@@ -13,17 +13,23 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class BookValueValuationModel extends BasePriceModel
 {
 
-	private const FAIR_PB_RATIO = 1.5;
-
 	private const UNDERPRICED_THRESHOLD = 10.0;
 
 	private const OVERPRICED_THRESHOLD = -10.0;
 
 	private const FAIR_VALUE_THRESHOLD = 5.0;
 
+	private float $industryMultiple = 0.0;
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();
+		$multiple = $stockAsset->getIndustry()?->getPriceToBook();
+		if ($multiple === null || !is_finite($multiple) || $multiple <= 0) {
+			return $this->getUnableToCalculateResponse($stockValuation);
+		}
+
+		$this->industryMultiple = $multiple;
 		$currentPrice = $stockValuation->getStockAsset()->getAssetCurrentPrice()->getPrice();
 		$bookValuePerShare = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::BOOK_VALUE_PER_SHARE,
@@ -33,7 +39,7 @@ class BookValueValuationModel extends BasePriceModel
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		$fairPrice = $bookValuePerShare * self::FAIR_PB_RATIO;
+		$fairPrice = $bookValuePerShare * $this->industryMultiple;
 
 		$assetPrice = null;
 		$percentage = null;
@@ -62,7 +68,7 @@ class BookValueValuationModel extends BasePriceModel
 
 	protected function getLabel(): string
 	{
-		return 'Book Value Valuation (P/B)';
+		return 'P/B podle odvětví';
 	}
 
 	/**
@@ -82,10 +88,7 @@ class BookValueValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('FAIR_PB_RATIO', self::FAIR_PB_RATIO),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Odvětvový násobek', $this->industryMultiple),
 		];
 	}
 
@@ -112,9 +115,7 @@ class BookValueValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Porovnává aktuální cenu s účetní hodnotou na akcii pomocí P/B poměru. Vhodné zejména pro kapitálově náročná odvětví jako banky nebo průmyslové firmy.';
-		//phpcs:enable
+		return 'Účetní hodnota na akcii × odvětvové P/B. Tržní srovnání, citlivé na účetní hodnotu.';
 	}
 
 }

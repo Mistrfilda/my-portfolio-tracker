@@ -13,17 +13,23 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class PriceToSalesValuationModel extends BasePriceModel
 {
 
-	private const FAIR_PS_RATIO = 2.0;
-
 	private const UNDERPRICED_THRESHOLD = 12.0;
 
 	private const OVERPRICED_THRESHOLD = -12.0;
 
 	private const FAIR_VALUE_THRESHOLD = 7.0;
 
+	private float $industryMultiple = 0.0;
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();
+		$multiple = $stockAsset->getIndustry()?->getPriceToSales();
+		if ($multiple === null || !is_finite($multiple) || $multiple <= 0) {
+			return $this->getUnableToCalculateResponse($stockValuation);
+		}
+
+		$this->industryMultiple = $multiple;
 		$currentPrice = $stockValuation->getStockAsset()->getAssetCurrentPrice()->getPrice();
 		$revenuePerShare = $stockValuation->getValuationDataByType(
 			StockValuationTypeEnum::REVENUE_PER_SHARE,
@@ -33,7 +39,7 @@ class PriceToSalesValuationModel extends BasePriceModel
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		$fairPrice = $revenuePerShare * self::FAIR_PS_RATIO;
+		$fairPrice = $revenuePerShare * $this->industryMultiple;
 
 		$assetPrice = null;
 		$percentage = null;
@@ -62,7 +68,7 @@ class PriceToSalesValuationModel extends BasePriceModel
 
 	protected function getLabel(): string
 	{
-		return 'Price to Sales (P/S)';
+		return 'P/S podle odvětví';
 	}
 
 	/**
@@ -82,10 +88,7 @@ class PriceToSalesValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('FAIR_PS_RATIO', self::FAIR_PS_RATIO),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Odvětvový násobek', $this->industryMultiple),
 		];
 	}
 
@@ -112,9 +115,7 @@ class PriceToSalesValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Oceňuje akcii pomocí poměru ceny k tržbám na akcii. Užitečné pro firmy s nízkými nebo záporným ziskem, kde P/E nelze použít.';
-		//phpcs:enable
+		return 'Tržby na akcii × odvětvové P/S. Doplňkové srovnání nezohledňuje marže ani zadlužení.';
 	}
 
 }

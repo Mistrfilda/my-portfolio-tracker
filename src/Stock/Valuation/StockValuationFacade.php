@@ -8,6 +8,7 @@ use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Stock\Valuation\Model\StockValuationModel;
+use App\Stock\Valuation\Model\StockValuationModelEvaluator;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use Ramsey\Uuid\UuidInterface;
 
@@ -21,6 +22,7 @@ class StockValuationFacade
 		private array $models,
 		private StockAssetRepository $stockAssetRepository,
 		private StockValuationDataRepository $stockValuationDataRepository,
+		private StockValuationModelEvaluator $modelEvaluator,
 	)
 	{
 	}
@@ -29,7 +31,15 @@ class StockValuationFacade
 	{
 		$stockAsset = $this->stockAssetRepository->getById($stockAssetId);
 		$stockValuationData = $this->stockValuationDataRepository->findLatestForStockAsset($stockAsset);
-		return new StockValuation($stockAsset, $stockValuationData);
+		$valuation = new StockValuation($stockAsset, $stockValuationData);
+		$importedAt = $valuation->getImportedAt();
+		$previous = $importedAt === null
+			? []
+			: $this->stockValuationDataRepository->findPreviousForStockAsset(
+				$stockAsset,
+				$importedAt,
+			);
+		return new StockValuation($stockAsset, $stockValuationData, $previous);
 
 	}
 
@@ -68,9 +78,15 @@ class StockValuationFacade
 	public function getStockValuationsModelsForStockAsset(StockAsset $stockAsset): array
 	{
 		$stockValuations = $this->getStockValuation($stockAsset->getId());
+		return $this->getModelsForValuation($stockValuations);
+	}
+
+	/** @return array<StockValuationModelResponse> */
+	public function getModelsForValuation(StockValuation $stockValuations): array
+	{
 		$stockValuationsModels = [];
 		foreach ($this->models as $model) {
-			$stockValuationsModels[] = $model->calculateResponse($stockValuations);
+			$stockValuationsModels[] = $this->modelEvaluator->evaluate($model, $stockValuations);
 		}
 
 		return $stockValuationsModels;

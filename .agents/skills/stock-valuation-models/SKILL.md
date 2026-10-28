@@ -17,6 +17,7 @@ Read [references/data-parsing.md](references/data-parsing.md) when changing impo
 - `Data/StockValuationDataFacade` coordinates parsing and persistence into `StockValuationData`.
 - `StockValuationTypeEnum` defines the shared metric contract consumed by parsers, models, and UI.
 - `StockValuationFacade` loads parsed data and runs services typed as `App\Stock\Valuation\Model\StockValuationModel`.
+- `StockValuationModelEvaluator` applies availability, bank applicability, input currency and import consistency rules. App consumers must use the facade so these rules also apply to consensus.
 - `Model/Price/` holds price models extending `BasePriceModel` and returning `StockValuationPriceModelResponse`.
 - `StockIndustryComparisonFacade` aggregates industry peers; `UI/` owns detail/table rendering and sorting.
 
@@ -49,5 +50,8 @@ Read [references/data-parsing.md](references/data-parsing.md) when changing impo
 
 - Models must be **pure** — take `StockValuationData` + `StockAsset` and return a response; no DB writes, no HTTP.
 - Currency: use `AssetPriceEmbeddable` / `CurrencyEnum`; do not mix currencies silently.
-- Preserve the distinction between missing required data and a model returning a "not applicable" response; `RoeQualityValuationModel` returns a quality score rather than a fair price.
+- Preserve the distinction between missing required data and a model returning a "not applicable" response; `RoeQualityValuationModel` returns reported ROE in percentage points, without a price.
+- ROE, debt/equity, payout and PEG are diagnostics with no price. Graham, P/S and target dividend yield are supplementary references. Only available primary price models enter consensus; inapplicable models are excluded from coverage, while missing/invalid inputs count against it.
+- P/E, P/B and P/S require a valid industry multiple; do not silently substitute a universal multiple. Industry P/CF is not EV/EBITDA.
+- DDM/FCFE growth and required return, and the EV/EBITDA target, are explicit constructor arguments in `config/config.neon`. Scenario ranges describe sensitivity, not forecast probabilities.
 - Follow the applicable [AGENTS.md validation](../../../AGENTS.md#validation-matrix).

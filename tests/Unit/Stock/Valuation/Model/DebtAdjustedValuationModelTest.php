@@ -4,184 +4,42 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Valuation\Model;
 
-use App\Currency\CurrencyEnum;
-use App\Stock\Asset\StockAsset;
-use App\Stock\Valuation\Data\StockValuationData;
 use App\Stock\Valuation\Model\Price\DebtAdjustedValuationModel;
-use App\Stock\Valuation\Model\StockValuationModelState;
-use App\Stock\Valuation\StockValuation;
-use App\Stock\Valuation\StockValuationTypeEnum;
-use App\Test\UpdatedTestCase;
-use Mockery;
+use App\Stock\Valuation\Model\StockValuationModelAvailability;
+use App\Stock\Valuation\Model\StockValuationModelPurpose;
+use App\Test\Unit\Stock\Valuation\ValuationFixture;
+use PHPUnit\Framework\TestCase;
 
-class DebtAdjustedValuationModelTest extends UpdatedTestCase
+class DebtAdjustedValuationModelTest extends TestCase
 {
 
-	protected function tearDown(): void
+	public function testReportsDiagnosticWithoutInventingPrice(): void
 	{
-		parent::tearDown();
+		$response = (new DebtAdjustedValuationModel())->calculateResponse(
+			ValuationFixture::create(['total_debt_equity' => 59.71]),
+		);
+		self::assertSame(59.71, $response->getCalculatedValue());
+		self::assertNull($response->getAssetPrice());
+		self::assertNull($response->getCalculatedPercentage());
+		self::assertSame(StockValuationModelPurpose::DIAGNOSTIC, $response->getPurpose());
 	}
 
-	public function testCalculateResponseLowDebtHighLiquidity(): void
+	public function testMissingValueStaysMissing(): void
 	{
-		$model = new DebtAdjustedValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-		$stockAssetMock->shouldReceive('getCurrency')
-			->zeroOrMoreTimes()
-			->andReturn(CurrencyEnum::USD);
-
-		$bookValueDataMock = Mockery::mock(StockValuationData::class);
-		$bookValueDataMock->shouldReceive('getFloatValue')
-			->andReturn(100.0);
-
-		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
-		$debtEquityDataMock->shouldReceive('getFloatValue')
-			->andReturn(20.0); // 20% = 0.2 ratio
-
-		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
-		$currentRatioDataMock->shouldReceive('getFloatValue')
-			->andReturn(2.5); // Excellent liquidity
-
-		// Base = 100 * 1.2 = 120
-		// Debt adjustment: low debt (+15%) + excellent liquidity (+10%) = 1.25
-		// Fair Price = 120 * 1.25 = 150
-
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::BOOK_VALUE_PER_SHARE)
-			->andReturn($bookValueDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)
-			->andReturn($debtEquityDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::CURRENT_RATIO)
-			->andReturn($currentRatioDataMock);
-
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertNotNull($response->getAssetPrice());
-		$this->assertEquals(150.0, $response->getCalculatedValue());
-		$this->assertEquals(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
-		$this->assertEquals('Debt-Adjusted Book Value', $response->getLabel());
+		$response = (new DebtAdjustedValuationModel())->calculateResponse(
+			ValuationFixture::create(['total_debt_equity' => null]),
+		);
+		self::assertNull($response->getCalculatedValue());
+		self::assertSame(StockValuationModelAvailability::MISSING_DATA, $response->getAvailability());
 	}
 
-	public function testCalculateResponseHighDebtLowLiquidity(): void
+	public function testDiagnosticDoesNotDependOnDailyPrice(): void
 	{
 		$model = new DebtAdjustedValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-		$stockAssetMock->shouldReceive('getCurrency')
-			->zeroOrMoreTimes()
-			->andReturn(CurrencyEnum::USD);
-
-		$bookValueDataMock = Mockery::mock(StockValuationData::class);
-		$bookValueDataMock->shouldReceive('getFloatValue')
-			->andReturn(100.0);
-
-		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
-		$debtEquityDataMock->shouldReceive('getFloatValue')
-			->andReturn(400.0); // 400% = 4.0 ratio
-
-		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
-		$currentRatioDataMock->shouldReceive('getFloatValue')
-			->andReturn(0.8); // Poor liquidity
-
-		// Base = 100 * 1.2 = 120
-		// Debt adjustment: extreme debt (-30%) + poor liquidity (-10%) = -40%
-		// But capped at 0.7, so Fair Price = 120 * 0.7 = 84
-
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::BOOK_VALUE_PER_SHARE)
-			->andReturn($bookValueDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)
-			->andReturn($debtEquityDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::CURRENT_RATIO)
-			->andReturn($currentRatioDataMock);
-
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertEquals(84.0, $response->getCalculatedValue());
-		$this->assertEquals(StockValuationModelState::OVERPRICED, $response->getStockValuationModelTrend());
-	}
-
-	public function testNormalizesProviderDebtEquityPercentageBeforeApplyingThresholds(): void
-	{
-		$model = new DebtAdjustedValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-		$stockAssetMock->shouldReceive('getCurrency')
-			->zeroOrMoreTimes()
-			->andReturn(CurrencyEnum::USD);
-
-		$bookValueDataMock = Mockery::mock(StockValuationData::class);
-		$bookValueDataMock->shouldReceive('getFloatValue')
-			->andReturn(100.0);
-
-		$debtEquityDataMock = Mockery::mock(StockValuationData::class);
-		$debtEquityDataMock->shouldReceive('getFloatValue')
-			->andReturn(59.71);
-
-		$currentRatioDataMock = Mockery::mock(StockValuationData::class);
-		$currentRatioDataMock->shouldReceive('getFloatValue')
-			->andReturn(1.0);
-
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::BOOK_VALUE_PER_SHARE)
-			->andReturn($bookValueDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)
-			->andReturn($debtEquityDataMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::CURRENT_RATIO)
-			->andReturn($currentRatioDataMock);
-
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertEqualsWithDelta(121.54, $response->getCalculatedValue() ?? 0.0, 0.01);
-	}
-
-	public function testCalculateResponseUnableToCalculateNoBookValue(): void
-	{
-		$model = new DebtAdjustedValuationModel();
-
-		$stockAssetMock = Mockery::mock(StockAsset::class);
-		$stockAssetMock->shouldIgnoreMissing();
-		$stockAssetMock->shouldReceive('getAssetCurrentPrice->getPrice')
-			->andReturn(100.0);
-
-		$stockValuationMock = Mockery::mock(StockValuation::class);
-		$stockValuationMock->shouldReceive('getStockAsset')
-			->andReturn($stockAssetMock);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::BOOK_VALUE_PER_SHARE)
-			->andReturn(null);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)
-			->andReturn(null);
-		$stockValuationMock->shouldReceive('getValuationDataByType')
-			->with(StockValuationTypeEnum::CURRENT_RATIO)
-			->andReturn(null);
-
-		$response = $model->calculateResponse($stockValuationMock);
-
-		$this->assertEquals(StockValuationModelState::UNABLE_TO_CALCULATE, $response->getStockValuationModelTrend());
+		$low = $model->calculateResponse(ValuationFixture::create(['total_debt_equity' => 59.71], price: 50.0));
+		$high = $model->calculateResponse(ValuationFixture::create(['total_debt_equity' => 59.71], price: 200.0));
+		self::assertSame($low->getCalculatedValue(), $high->getCalculatedValue());
+		self::assertNull($high->getAssetPrice());
 	}
 
 }

@@ -77,14 +77,19 @@ class StockIndustryComparisonFacade
 			StockValuationTypeEnum::PEG_RATIO => $industry->getPegRatio(),
 			StockValuationTypeEnum::PRICE_SALES => $industry->getPriceToSales(),
 			StockValuationTypeEnum::PRICE_BOOK => $industry->getPriceToBook(),
-			StockValuationTypeEnum::EV_EBITDA => $industry->getPriceToCashFlow(),
 			default => null,
 		};
 	}
 
 	private function calculateState(float $stockValue, float|null $industryAverage): StockIndustryComparisonState
 	{
-		if ($industryAverage === null || $industryAverage === 0.0) {
+		if (
+			$industryAverage === null
+			|| !is_finite($industryAverage)
+			|| $industryAverage <= 0.0
+			|| !is_finite($stockValue)
+			|| $stockValue <= 0.0
+		) {
 			return StockIndustryComparisonState::NO_DATA;
 		}
 

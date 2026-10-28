@@ -13,8 +13,6 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class PriceEarningsValuationModel extends BasePriceModel
 {
 
-	private const DEFAULT_INDUSTRY_AVERAGE_PE = 15.0;
-
 	private const UNDERPRICED_THRESHOLD = 10.0;
 
 	private const OVERPRICED_THRESHOLD = -10.0;
@@ -34,8 +32,8 @@ class PriceEarningsValuationModel extends BasePriceModel
 			$industryAveragePe = $stockAsset->getIndustry()->getCurrentPERatio();
 		}
 
-		if ($industryAveragePe === null) {
-			$industryAveragePe = self::DEFAULT_INDUSTRY_AVERAGE_PE;
+		if ($industryAveragePe === null || !is_finite($industryAveragePe) || $industryAveragePe <= 0) {
+			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
 		$this->industryAveragePe = $industryAveragePe;
@@ -73,7 +71,7 @@ class PriceEarningsValuationModel extends BasePriceModel
 
 	protected function getLabel(): string
 	{
-		return 'P/E Ratio Valuation';
+		return 'P/E podle odvětví';
 	}
 
 	/**
@@ -93,10 +91,7 @@ class PriceEarningsValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('INDUSTRY_AVERAGE_PE', $this->industryAveragePe),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Odvětvové P/E', $this->industryAveragePe),
 		];
 	}
 
@@ -123,9 +118,7 @@ class PriceEarningsValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Porovnává P/E ratio s průměrem odvětví. Akcie s nižším P/E než odvětvový průměr může být podhodnocená, vyšší P/E značí přeceňování nebo růstové očekávání.';
-		//phpcs:enable
+		return 'Zisk na akcii × odvětvové P/E. Srovnání tržního ocenění; průměr odvětví nemusí být férový.';
 	}
 
 }

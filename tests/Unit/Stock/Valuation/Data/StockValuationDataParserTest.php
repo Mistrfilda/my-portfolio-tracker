@@ -10,6 +10,22 @@ use App\Test\UpdatedTestCase;
 class StockValuationDataParserTest extends UpdatedTestCase
 {
 
+	public function testExactLabelsSurviveNestedMarkupWithoutMatchingOtherMetrics(): void
+	{
+		$parser = new StockValuationDataKeyAnalyticsParser('<table>
+			<tr><td>Enterprise Value/Revenue</td><td>4.55</td></tr>
+			<tr><td>Total Cash Per Share (mrq)</td><td>1.20</td></tr>
+			<tr><td>Total Debt/Equity (mrq)</td><td>120.0%</td></tr>
+			<tr><td><span>Revenue</span> (ttm)<sup>3</sup></td><td>46.73B</td></tr>
+			<tr><td>Most Recent Quarter (mrq)</td><td>6/30/2026</td></tr>
+		</table>');
+		$data = $parser->parseStockData();
+		self::assertSame('46.73B', $data['financial_highlights']['revenue_ttm']);
+		self::assertSame('6/30/2026', $data['financial_highlights']['most_recent_quarter']);
+		self::assertNull($data['balance_sheet']['total_cash']);
+		self::assertNull($data['balance_sheet']['total_debt']);
+	}
+
 	/**
 	 * Tests if the parseStockData method correctly parses all sections of stock data.
 	 */
@@ -92,6 +108,7 @@ HTML;
 				'operating_margin' => null,
 				'return_on_assets' => null,
 				'return_on_equity' => null,
+				'most_recent_quarter' => null,
 			],
 			'balance_sheet' => [
 				'total_cash' => '95M',
@@ -212,6 +229,7 @@ HTML;
 				'operating_margin' => null,
 				'return_on_assets' => null,
 				'return_on_equity' => null,
+				'most_recent_quarter' => null,
 			],
 			'balance_sheet' => [
 				'total_cash' => null,

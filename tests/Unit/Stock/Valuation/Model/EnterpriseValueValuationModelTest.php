@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\Valuation\Model;
 
+use App\Asset\Price\AssetPrice;
 use App\Currency\CurrencyEnum;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Data\StockValuationData;
@@ -13,9 +14,66 @@ use App\Stock\Valuation\StockValuation;
 use App\Stock\Valuation\StockValuationTypeEnum;
 use App\Test\UpdatedTestCase;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class EnterpriseValueValuationModelTest extends UpdatedTestCase
 {
+
+	#[DataProvider('provideMissingBalanceSheetValues')]
+	public function testDoesNotAssumeMissingDebtOrCashIsZero(float|null $debt, float|null $cash): void
+	{
+		$stockAsset = $this->createStub(StockAsset::class);
+		$stockAsset->method('getAssetCurrentPrice')->willReturn(new AssetPrice($stockAsset, 50.0, CurrencyEnum::USD));
+		$stockAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$values = [
+			StockValuationTypeEnum::EBITDA->value => 1_000_000_000.0,
+			StockValuationTypeEnum::SHARES_OUTSTANDING->value => 100_000_000.0,
+			StockValuationTypeEnum::TOTAL_DEBT->value => $debt,
+			StockValuationTypeEnum::TOTAL_CASH->value => $cash,
+		];
+		$data = [];
+		foreach ($values as $type => $value) {
+			$data[$type] = $this->createStub(StockValuationData::class);
+			$data[$type]->method('getFloatValue')->willReturn($value);
+		}
+
+		$response = (new EnterpriseValueValuationModel())->calculateResponse(new StockValuation($stockAsset, $data));
+
+		self::assertNull($response->getAssetPrice());
+		self::assertSame(StockValuationModelState::UNABLE_TO_CALCULATE, $response->getStockValuationModelTrend());
+	}
+
+	/** @return array<string, array{float|null, float|null}> */
+	public static function provideMissingBalanceSheetValues(): array
+	{
+		return [
+			'missing debt' => [null, 500_000_000.0],
+			'missing cash' => [2_000_000_000.0, null],
+			'missing debt and cash' => [null, null],
+		];
+	}
+
+	public function testAcceptsExplicitZeroDebtAndCash(): void
+	{
+		$stockAsset = $this->createStub(StockAsset::class);
+		$stockAsset->method('getAssetCurrentPrice')->willReturn(new AssetPrice($stockAsset, 50.0, CurrencyEnum::USD));
+		$stockAsset->method('getCurrency')->willReturn(CurrencyEnum::USD);
+		$data = [];
+		foreach ([
+			StockValuationTypeEnum::EBITDA->value => 1_000_000_000.0,
+			StockValuationTypeEnum::SHARES_OUTSTANDING->value => 100_000_000.0,
+			StockValuationTypeEnum::TOTAL_DEBT->value => 0.0,
+			StockValuationTypeEnum::TOTAL_CASH->value => 0.0,
+		] as $type => $value) {
+			$data[$type] = $this->createStub(StockValuationData::class);
+			$data[$type]->method('getFloatValue')->willReturn($value);
+		}
+
+		$response = (new EnterpriseValueValuationModel())->calculateResponse(new StockValuation($stockAsset, $data));
+
+		self::assertSame(100.0, $response->getCalculatedValue());
+		self::assertSame(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
+	}
 
 	protected function tearDown(): void
 	{

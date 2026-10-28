@@ -54,6 +54,23 @@ class StockValuationDataRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/** @return array<string, StockValuationData> */
+	public function findPreviousForStockAsset(StockAsset $stockAsset, ImmutableDateTime $before): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('data', 'data.valuationType');
+		$qb->andWhere('data.stockAsset = :stockAsset');
+		$qb->andWhere('data.typeGroup != :analystGroup');
+		$qb->andWhere(
+			'data.parsedAt = (SELECT MAX(previous.parsedAt) FROM ' . StockValuationData::class
+			. ' previous WHERE previous.stockAsset = :stockAsset'
+			. ' AND previous.parsedAt < :before AND previous.typeGroup != :analystGroup)',
+		);
+		$qb->setParameter('stockAsset', $stockAsset);
+		$qb->setParameter('before', $before);
+		$qb->setParameter('analystGroup', StockValuationTypeGroupEnum::ANALYST_INSIGHT->value);
+		return $qb->getQuery()->getResult();
+	}
+
 	/**
 	 * @param array<StockValuationTypeEnum> $types
 	 * @return array<string, StockValuationData>

@@ -91,9 +91,6 @@ class GrahamNumberValuationModel extends BasePriceModel
 	{
 		return [
 			new StockValuationModelUsedValue('GRAHAM_MULTIPLIER', self::GRAHAM_MULTIPLIER),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
 		];
 	}
 
@@ -120,9 +117,7 @@ class GrahamNumberValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Klasická metoda Benjamina Grahama kombinující EPS a účetní hodnotu. Konzervativní přístup hledající akcie s dostatečnou bezpečnostní marží.';
-		//phpcs:enable
+		return 'Konzervativní benchmark √(22,5 × zisk × účetní hodnota na akcii). Pevné násobky nemusí odpovídat odvětví.';
 	}
 
 }

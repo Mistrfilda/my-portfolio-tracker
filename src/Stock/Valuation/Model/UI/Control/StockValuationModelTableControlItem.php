@@ -8,6 +8,7 @@ use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Model\Consensus\StockValuationModelConsensus;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
+use App\Stock\Valuation\StockValuation;
 
 class StockValuationModelTableControlItem
 {
@@ -19,8 +20,14 @@ class StockValuationModelTableControlItem
 		private StockAsset $stockAsset,
 		private array $modelResponses,
 		private StockValuationModelConsensus $modelConsensus,
+		private StockValuation|null $valuation = null,
 	)
 	{
+	}
+
+	public function getValuation(): StockValuation|null
+	{
+		return $this->valuation;
 	}
 
 	public function getStockAsset(): StockAsset

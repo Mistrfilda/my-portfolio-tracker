@@ -6,14 +6,26 @@ namespace App\Test\Unit\Stock\Valuation\Comparison\Industry;
 
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparison;
+use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonFacade;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonMetric;
 use App\Stock\Valuation\Comparison\Industry\StockIndustryComparisonState;
 use App\Stock\Valuation\StockValuationTypeEnum;
+use App\Test\Unit\Stock\Valuation\ValuationFixture;
 use App\Test\UpdatedTestCase;
 use Mockery;
 
 class StockIndustryComparisonTest extends UpdatedTestCase
 {
+
+	public function testEvEbitdaIsNotComparedWithPriceToCashFlow(): void
+	{
+		$valuation = ValuationFixture::create(['ev_ebitda' => 10.0], ValuationFixture::industry());
+		$comparison = (new StockIndustryComparisonFacade())->getComparison($valuation);
+		self::assertCount(1, $comparison->getMetrics());
+		$metric = array_values($comparison->getMetrics())[0];
+		self::assertNull($metric->getIndustryAverage());
+		self::assertSame(StockIndustryComparisonState::NO_DATA, $metric->getState());
+	}
 
 	public function testGetMetrics(): void
 	{

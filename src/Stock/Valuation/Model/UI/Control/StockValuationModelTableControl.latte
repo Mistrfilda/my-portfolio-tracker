@@ -31,7 +31,7 @@
 			<div class="text-right">Aktuální cena</div>
 			<div class="text-right">Konsenzus rodin</div>
 			<div class="text-right">Odchylka</div>
-			<div class="text-right">Pásmo Q1–Q3</div>
+			<div class="text-right" title="Prostřední pásmo odhadů rodin, nikoli interval pravděpodobnosti budoucí ceny.">Pásmo Q1–Q3</div>
 			<div></div>
 		</div>
 
@@ -54,7 +54,7 @@
 						<span class="col-span-2 min-w-0 lg:col-span-1">
 							<span class="block truncate text-sm font-semibold text-gray-900">{$stockAsset->getName()}</span>
 							<span class="mt-0.5 block text-xs text-gray-500">
-								{$stockAsset->getTicker()} · modely {$modelConsensus->getValidModelsCount()}/{$modelConsensus->getTotalModelsCount()} · rodiny {$modelConsensus->getValidFamiliesCount()}/{$modelConsensus->getTotalFamiliesCount()}
+								{$stockAsset->getTicker()} · pokrytí {$modelConsensus->getValidModelsCount()}/{$modelConsensus->getTotalModelsCount()} · rodiny {$modelConsensus->getValidFamiliesCount()}/{$modelConsensus->getTotalFamiliesCount()}
 							</span>
 						</span>
 
@@ -90,7 +90,7 @@
 						</span>
 
 						<span class="text-right">
-							<span class="block text-xs text-gray-500 lg:hidden">Pásmo Q1–Q3</span>
+							<span class="block text-xs text-gray-500 lg:hidden" title="Prostřední pásmo odhadů rodin, nikoli interval pravděpodobnosti budoucí ceny.">Pásmo Q1–Q3</span>
 							<span class="mt-1 block text-sm font-medium text-gray-900 lg:mt-0">
 								{if $lowerQuartilePercentage !== null && $upperQuartilePercentage !== null}
 									{if $lowerQuartilePercentage > 0}+{/if}{$lowerQuartilePercentage|number:1} až {if $upperQuartilePercentage > 0}+{/if}{$upperQuartilePercentage|number:1} %
@@ -112,7 +112,7 @@
 							<div class="flex flex-col gap-2 border-b border-gray-200 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
 								<div>
 									<h3 class="text-sm font-semibold text-gray-900">Diagnostika konsenzu</h3>
-									<p class="mt-0.5 text-xs text-gray-500">Každá modelová rodina má ve výsledku stejnou váhu.</p>
+									<p class="mt-0.5 text-xs text-gray-500">Každá použitá rodina má stejnou váhu. Shoda odhadů neznamená jejich správnost.</p>
 								</div>
 								<span class="inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset {$modelConsensus->getConfidence()->getBadgeClasses()}">
 									{$modelConsensus->getConfidence()->getLabel()}
@@ -131,7 +131,7 @@
 									</dd>
 								</div>
 								<div class="px-4 py-3">
-									<dt class="text-xs text-gray-500">Medián všech modelů</dt>
+									<dt class="text-xs text-gray-500">Medián použitých modelů</dt>
 									<dd class="mt-1 text-sm font-semibold text-gray-900">
 										{if $modelConsensus->getRawMedianPrice() !== null}
 											{$modelConsensus->getRawMedianPrice()|assetPriceFormat}
@@ -195,51 +195,16 @@
 								{if $modelConsensus->getOutlierCount() > 0}
 									<p class="mt-3 text-xs text-amber-700">
 										Extrémní výstup ({$modelConsensus->getOutlierCount()}):
-										{foreach $modelConsensus->getOutlierModelLabels() as $outlierLabel}{$outlierLabel}{if !$iterator->last}, {/if}{/foreach}. Zůstává v diagnostice, ale nemá přímou váhu ve výsledku.
+										{foreach $modelConsensus->getOutlierModelLabels() as $outlierLabel}{$outlierLabel}{if !$iterator->last}, {/if}{/foreach}. Je zahrnutý do mediánu své rodiny.
 									</p>
 								{/if}
 							</div>
 						</div>
 
-						<div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-							{foreach $item->getModelResponses() as $modelResponse}
-								{var $state = $modelResponse->getStockValuationModelTrend()}
-								{var $color = $state->getTailwindColor()}
-								{var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
-
-								<div class="rounded-lg bg-white p-4 ring-1 ring-inset ring-gray-200">
-									<div class="flex items-start justify-between gap-3">
-										<h3 class="text-sm font-medium text-gray-900">{$modelResponse->getLabel()}</h3>
-										<span class="inline-flex shrink-0 items-center rounded-md bg-{$color}-50 px-2 py-1 text-xs font-medium text-{$color}-700 ring-1 ring-inset ring-{$color}-700/10">
-											{$state->getLabel()}
-										</span>
-									</div>
-
-									{if $isCalculated}
-										<div class="mt-4 flex items-end justify-between gap-3">
-											<div>
-												<div class="text-xs text-gray-500">Férová cena</div>
-												<div class="mt-1 font-semibold text-gray-900">
-													{if $modelResponse->getAssetPrice() !== null}
-														{$modelResponse->getAssetPrice()|assetPriceFormat}
-													{else}
-														N/A
-													{/if}
-												</div>
-											</div>
-											{if $modelResponse->getCalculatedPercentage() !== null}
-												{var $percentage = $modelResponse->getCalculatedPercentage()}
-												<span n:class="'text-sm font-semibold', $percentage > 0 ? 'text-green-700' : ($percentage < 0 ? 'text-red-700' : 'text-gray-700')">
-													{if $percentage > 0}+{/if}{$percentage|number:2} %
-												</span>
-											{/if}
-										</div>
-									{else}
-										<p class="mt-4 text-xs text-gray-500">Pro výpočet nejsou dostupná potřebná data.</p>
-									{/if}
-								</div>
-							{/foreach}
-						</div>
+						{if $item->getValuation() !== null}
+							{include '../../../UI/Control/valuationDataSummary.latte', valuation: $item->getValuation(), consensus: $modelConsensus}
+						{/if}
+						{include '../../../UI/Control/modelCards.latte', modelResponses: $item->getModelResponses()}
 
 						<div class="mt-4 border-t border-gray-200 pt-4">
 							<a
@@ -417,7 +382,7 @@
 						<tbody class="divide-y divide-gray-200 bg-white">
 						{foreach $tableControlItems as $item}
 							{var $stockAsset = $item->getStockAsset()}
-							<tr class="group hover:bg-gray-50">
+							<tr x-show="matches($el.dataset.search)" x-cloak data-search="{$stockAsset->getName()} {$stockAsset->getTicker()}" class="group hover:bg-gray-50">
 								<td class="sticky left-0 z-10 bg-white px-6 py-4 group-hover:bg-gray-50">
 									<a
 										href="{plink StockAssetDetail:detail, 'id' => $stockAsset->getId()->toString()}"
@@ -437,17 +402,17 @@
 									{var $columnIndex = $iterator->counter + 1}
 									{var $state = $modelResponse->getStockValuationModelTrend()}
 									{var $color = $state->getTailwindColor()}
-									{var $isCalculated = $state !== App\Stock\Valuation\Model\StockValuationModelState::UNABLE_TO_CALCULATE}
+									{var $isCalculated = $modelResponse->getAvailability() === App\Stock\Valuation\Model\StockValuationModelAvailability::AVAILABLE}
 									<td
 										:class="isHidden({$columnIndex}) && 'hidden'"
-										class="whitespace-nowrap px-6 py-4 text-center"
+										class="whitespace-nowrap px-6 py-4 text-center" title="{$modelResponse->getAvailabilityReason() ?? $modelResponse->getDescription()}"
 									>
 										{if $isCalculated}
 											<div class="font-semibold text-{$color}-700">
 												{if $modelResponse->getAssetPrice() !== null}
 													{$modelResponse->getAssetPrice()|assetPriceFormat}
 												{else}
-													N/A
+													{$modelResponse->getCalculatedValue()|number:2} {$modelResponse->getValueUnit()}
 												{/if}
 											</div>
 											{if $modelResponse->getCalculatedPercentage() !== null}
@@ -457,11 +422,11 @@
 												</div>
 											{/if}
 											<span class="mt-2 inline-flex items-center rounded-md bg-{$color}-50 px-2 py-1 text-xs font-medium text-{$color}-700 ring-1 ring-inset ring-{$color}-700/10">
-												{$state->getLabel()}
+												{if $isCalculated}{$modelResponse->getPurpose()->getLabel()}{else}{$modelResponse->getAvailability()->getLabel()}{/if}
 											</span>
 										{else}
 											<span class="inline-flex items-center rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-												{$state->getLabel()}
+												{if $isCalculated}{$modelResponse->getPurpose()->getLabel()}{else}{$modelResponse->getAvailability()->getLabel()}{/if}
 											</span>
 										{/if}
 									</td>

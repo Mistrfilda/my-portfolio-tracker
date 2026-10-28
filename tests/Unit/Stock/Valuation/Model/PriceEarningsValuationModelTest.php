@@ -61,7 +61,7 @@ class PriceEarningsValuationModelTest extends UpdatedTestCase
 		$this->assertEquals(150.0, $response->getCalculatedValue());
 		$this->assertEquals(50.0, $response->getCalculatedPercentage()); // (150 - 100) / 100 * 100
 		$this->assertEquals(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
-		$this->assertEquals('P/E Ratio Valuation', $response->getLabel());
+		$this->assertEquals('P/E podle odvětví', $response->getLabel());
 	}
 
 	public function testCalculateResponseOverpriced(): void

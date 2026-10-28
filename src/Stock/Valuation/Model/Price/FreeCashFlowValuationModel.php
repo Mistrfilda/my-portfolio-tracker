@@ -13,15 +13,18 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class FreeCashFlowValuationModel extends BasePriceModel
 {
 
-	private const REQUIRED_RETURN = 0.10;
-
-	private const FCF_GROWTH_RATE = 0.03;
-
 	private const UNDERPRICED_THRESHOLD = 10.0;
 
 	private const OVERPRICED_THRESHOLD = -10.0;
 
 	private const FAIR_VALUE_THRESHOLD = 5.0;
+
+	public function __construct(
+		private float $requiredReturn = 0.10,
+		private float $growthRate = 0.03,
+	)
+	{
+	}
 
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
@@ -47,14 +50,19 @@ class FreeCashFlowValuationModel extends BasePriceModel
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		// @phpstan-ignore-next-line
-		if (self::REQUIRED_RETURN <= self::FCF_GROWTH_RATE) {
+		if (
+			!is_finite($this->requiredReturn)
+			|| !is_finite($this->growthRate)
+			|| $this->requiredReturn <= 0
+			|| $this->growthRate <= -1
+			|| $this->requiredReturn <= $this->growthRate
+		) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
 		// Intrinsic value = FCF * (1 + g) / (r - g)
-		$expectedFcf = $fcfPerShare * (1 + self::FCF_GROWTH_RATE);
-		$fairPrice = $expectedFcf / (self::REQUIRED_RETURN - self::FCF_GROWTH_RATE);
+		$expectedFcf = $fcfPerShare * (1 + $this->growthRate);
+		$fairPrice = $expectedFcf / ($this->requiredReturn - $this->growthRate);
 
 		$assetPrice = null;
 		$percentage = null;
@@ -78,6 +86,13 @@ class FreeCashFlowValuationModel extends BasePriceModel
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
 			description: $this->getDescription(),
+			scenarios: $this->getPerpetuityScenarios(
+				$stockValuation,
+				$fcfPerShare,
+				false,
+				$this->requiredReturn,
+				$this->growthRate,
+			),
 		);
 	}
 
@@ -104,11 +119,8 @@ class FreeCashFlowValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('REQUIRED_RETURN', self::REQUIRED_RETURN),
-			new StockValuationModelUsedValue('FCF_GROWTH_RATE', self::FCF_GROWTH_RATE),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Požadovaná výnosnost (%)', $this->requiredReturn * 100),
+			new StockValuationModelUsedValue('Dlouhodobý růst (%)', $this->growthRate * 100),
 		];
 	}
 
@@ -135,9 +147,7 @@ class FreeCashFlowValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Oceňuje akcii na základě volného cash flow diskontovaného požadovanou výnosností. Volný cash flow ukazuje skutečné peníze dostupné pro akcionáře.';
-		//phpcs:enable
+		return 'Příští FCF na akcii / (výnosnost − růst). Aproximace FCFE; poslední cash flow nemusí být dlouhodobě udržitelné.';
 	}
 
 }

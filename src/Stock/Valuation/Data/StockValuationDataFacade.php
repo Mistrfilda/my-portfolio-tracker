@@ -101,9 +101,9 @@ class StockValuationDataFacade
 								$stringValue = null;
 							} else {
 								if ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE) {
-									$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+									$floatValue = StockValuationDataNumericHelper::parseWebValue($value);
 								} elseif ($valueType->getTypeValueType() === StockValuationTypeValueTypeEnum::FLOAT) {
-									$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+									$floatValue = StockValuationDataNumericHelper::parseWebValue($value);
 								}
 							}
 
@@ -218,7 +218,7 @@ class StockValuationDataFacade
 							continue;
 						}
 
-						$floatValue = StockValuationDataNumericHelper::parseNumericValue($value);
+						$floatValue = StockValuationDataNumericHelper::parseWebValue($value);
 						if ($floatValue !== null) {
 							$floatValue = $stockAsset->getCurrency()->processFromWeb($floatValue);
 						}

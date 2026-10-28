@@ -5,15 +5,16 @@ Use this reference when changing valuation JSON imports, metrics, parsers, or no
 ## Download and persistence flow
 
 1. `generateStockValuationJsonFile()` in `src/Stock/Price/Downloader/Json/JsonDataSourceProviderFacade.php` prepares requests for `keyStatistics.json`, `financials.json`, `analystInsights.json`, and industry data.
-2. Scrapers in `puppeter/` write JSON under `%puppeter.folder%`. `KeyStatisticsScraper.js` stores the page section as `html` and `textContent`; its output is not a structured metric table. Related sources use `AnalystInsightsScraper.js`, `FinancialsScraper.js`, and `StockAssetIndustryScapper.js`.
-3. `StockValuationDataParseCommand` invokes `StockValuationDataFacade`. Current persistence is primarily through `processKeyStatistics()` and `processAnalystInsights()`; a downloaded `financials.json` does not imply that this command persists it.
+2. Scrapers in `puppeter/` write JSON under `%puppeter.folder%`. `KeyStatisticsScraper.js` stores the page section as `html` and `textContent`; its output is not a structured metric table. `puppeter/financials.js` currently runs only key statistics; the `FinancialsScraper` import and invocation are commented out. A generated request for `financials.json` does not mean it is downloaded.
+3. `StockValuationDataParseCommand` invokes `StockValuationDataFacade`. Persistence uses `processKeyStatistics()` and `processAnalystInsights()`.
 4. `StockValuationDataKeyAnalyticsParser` parses key-statistics HTML; `StockValuationDataAnalyticsParser` handles analyst insights JSON/text. The facade maps parsed values to `StockValuationTypeEnum` and stores `StockValuationData` rows. Parsed `basic_info` is distinct from persisted valuation metrics; check the facade before relying on a field being stored.
 
 ## Numeric and currency normalization
 
-- Use `StockValuationDataNumericHelper::parseNumericValue()`. Preserve `null`, empty strings, `--`, and `N/A` as `null`; support the established `K`, `M`, `B`, and `T` suffixes.
+- Yahoo imports use `StockValuationDataNumericHelper::parseYahooValue()` with explicit US decimal notation and `K`, `M`, `B`, `T` suffixes. In particular, `1.234` means 1.234, not 1234. The generic `parseNumericValue()` retains its legacy mixed-format behavior for other callers.
 - Percent signs are stripped without dividing by `100`; valuation percentages are stored in percentage points.
-- For monetary key-statistics values, apply `CurrencyEnum::processFromWeb()` after numeric parsing. This preserves GBP/GBp normalization without converting ratios, counts, or percentages.
+- Do not divide financial statement amounts by 100 merely because the listing uses GBP. Apply GBP/GBp normalization only to quotes known to be in pence. Legacy key-statistics rows carry the configured asset currency, not independently verified reporting currency; disclose this limitation. The evaluator rejects monetary inputs stored in another currency.
+- Import time is not the date of the underlying financial statement or PEG calculation. `MOST_RECENT_QUARTER` stores Yahoo's reported period when available. Previous snapshots compare changes, including missing values, and are not an annual financial series.
 - Match metric labels precisely. `Revenue (ttm)` must not accidentally match `Enterprise Value/Revenue`; tolerate minor markup differences without broad substring matches that capture another metric.
 
 ## Adding or changing a metric

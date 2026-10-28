@@ -19,8 +19,9 @@ use App\Stock\Valuation\Model\Price\PriceEarningsValuationModel;
 use App\Stock\Valuation\Model\Price\PriceToSalesValuationModel;
 use App\Stock\Valuation\Model\Price\RoeQualityValuationModel;
 use App\Stock\Valuation\Model\StockValuationModel;
+use App\Stock\Valuation\Model\StockValuationModelAvailability;
+use App\Stock\Valuation\Model\StockValuationModelPurpose;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
-use App\Stock\Valuation\Model\StockValuationModelState;
 use const SORT_NUMERIC;
 
 class StockValuationModelConsensusProvider
@@ -37,8 +38,16 @@ class StockValuationModelConsensusProvider
 		$currentPrice = $stockAsset->getAssetCurrentPrice();
 		$familyBuckets = [];
 		$validModelPrices = [];
+		$totalModelsCount = 0;
 
 		foreach ($modelResponses as $modelResponse) {
+			if ($modelResponse->getPurpose() !== StockValuationModelPurpose::PRICE
+				|| $modelResponse->getAvailability() === StockValuationModelAvailability::NOT_APPLICABLE
+			) {
+				continue;
+			}
+
+			$totalModelsCount++;
 			$family = $this->getFamily($modelResponse->getStockValuationModel());
 			$familyBuckets[$family->value] ??= [
 				'family' => $family,
@@ -49,7 +58,7 @@ class StockValuationModelConsensusProvider
 
 			$assetPrice = $modelResponse->getAssetPrice();
 			if (
-				$modelResponse->getStockValuationModelTrend() === StockValuationModelState::UNABLE_TO_CALCULATE
+				$modelResponse->getAvailability() !== StockValuationModelAvailability::AVAILABLE
 				|| $assetPrice === null
 				|| $assetPrice->getCurrency() !== $currentPrice->getCurrency()
 				|| !is_finite($assetPrice->getPrice())
@@ -100,7 +109,7 @@ class StockValuationModelConsensusProvider
 				normalizedIqrPercentage: null,
 				normalizedMadPercentage: null,
 				validModelsCount: 0,
-				totalModelsCount: count($modelResponses),
+				totalModelsCount: $totalModelsCount,
 				validFamiliesCount: 0,
 				totalFamiliesCount: count($familyBuckets),
 				outlierModelLabels: [],
@@ -117,7 +126,7 @@ class StockValuationModelConsensusProvider
 		$normalizedIqrPercentage = ($upperQuartilePrice - $lowerQuartilePrice) / $consensusPrice * 100;
 		$normalizedMadPercentage = $this->median(array_map(
 			static fn (float $price): float => abs($price - $consensusPrice),
-			$modelPrices,
+			$validFamilyPrices,
 		)) / $consensusPrice * 100;
 		$outlierModelLabels = $this->getOutlierModelLabels($validModelPrices);
 		$validFamiliesCount = count($validFamilyPrices);
@@ -134,7 +143,7 @@ class StockValuationModelConsensusProvider
 			normalizedIqrPercentage: $normalizedIqrPercentage,
 			normalizedMadPercentage: $normalizedMadPercentage,
 			validModelsCount: count($modelPrices),
-			totalModelsCount: count($modelResponses),
+			totalModelsCount: $totalModelsCount,
 			validFamiliesCount: $validFamiliesCount,
 			totalFamiliesCount: count($familyBuckets),
 			outlierModelLabels: $outlierModelLabels,
@@ -245,6 +254,10 @@ class StockValuationModelConsensusProvider
 		float $normalizedIqrPercentage,
 	): StockValuationModelConsensusConfidenceEnum
 	{
+		if ($validFamiliesCount < 2) {
+			return StockValuationModelConsensusConfidenceEnum::UNKNOWN;
+		}
+
 		if ($validFamiliesCount >= 4 && $normalizedIqrPercentage <= 25.0) {
 			return StockValuationModelConsensusConfidenceEnum::HIGH;
 		}

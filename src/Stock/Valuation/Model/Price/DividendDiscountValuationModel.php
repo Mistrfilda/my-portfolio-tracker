@@ -13,15 +13,18 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class DividendDiscountValuationModel extends BasePriceModel
 {
 
-	private const REQUIRED_RETURN = 0.10;
-
-	private const GROWTH_RATE = 0.03;
-
 	private const UNDERPRICED_THRESHOLD = 10.0;
 
 	private const OVERPRICED_THRESHOLD = -10.0;
 
 	private const FAIR_VALUE_THRESHOLD = 5.0;
+
+	public function __construct(
+		private float $requiredReturn = 0.10,
+		private float $growthRate = 0.03,
+	)
+	{
+	}
 
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
@@ -44,18 +47,24 @@ class DividendDiscountValuationModel extends BasePriceModel
 		$dividendRate = $forwardDividendRate ?? $trailingDividendRate;
 
 		// Gordon Growth Model: P = D / (r - g)
-		// kde D = očekávaná dividenda, r = požadovaná návratnost, g = růst
+		// D is the next dividend, r the required return, and g the perpetual growth.
 		if ($dividendRate <= 0) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		// @phpstan-ignore-next-line
-		if (self::REQUIRED_RETURN <= self::GROWTH_RATE) {
+		if (
+			!is_finite($this->requiredReturn)
+			|| !is_finite($this->growthRate)
+			|| $this->requiredReturn <= 0
+			|| $this->growthRate <= -1
+			|| $this->requiredReturn <= $this->growthRate
+		) {
 			return $this->getUnableToCalculateResponse($stockValuation);
 		}
 
-		$expectedDividend = $dividendRate * (1 + self::GROWTH_RATE);
-		$fairPrice = $expectedDividend / (self::REQUIRED_RETURN - self::GROWTH_RATE);
+		// A forward dividend is already D1; only a trailing dividend needs growth to estimate D1.
+		$expectedDividend = $forwardDividendRate ?? $dividendRate * (1 + $this->growthRate);
+		$fairPrice = $expectedDividend / ($this->requiredReturn - $this->growthRate);
 
 		$assetPrice = null;
 		$percentage = null;
@@ -79,6 +88,13 @@ class DividendDiscountValuationModel extends BasePriceModel
 			state: $state,
 			modelUsedValues: $this->getModelUsedValues(),
 			description: $this->getDescription(),
+			scenarios: $this->getPerpetuityScenarios(
+				$stockValuation,
+				$dividendRate,
+				$forwardDividendRate !== null,
+				$this->requiredReturn,
+				$this->growthRate,
+			),
 		);
 	}
 
@@ -105,11 +121,8 @@ class DividendDiscountValuationModel extends BasePriceModel
 	protected function getModelUsedValues(): array
 	{
 		return [
-			new StockValuationModelUsedValue('REQUIRED_RETURN', self::REQUIRED_RETURN),
-			new StockValuationModelUsedValue('GROWTH_RATE', self::GROWTH_RATE),
-			new StockValuationModelUsedValue('UNDERPRICED_THRESHOLD', self::UNDERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('OVERPRICED_THRESHOLD', self::OVERPRICED_THRESHOLD),
-			new StockValuationModelUsedValue('FAIR_VALUE_THRESHOLD', self::FAIR_VALUE_THRESHOLD),
+			new StockValuationModelUsedValue('Požadovaná výnosnost (%)', $this->requiredReturn * 100),
+			new StockValuationModelUsedValue('Dlouhodobý růst (%)', $this->growthRate * 100),
 		];
 	}
 
@@ -136,9 +149,7 @@ class DividendDiscountValuationModel extends BasePriceModel
 
 	protected function getDescription(): string
 	{
-		//phpcs:disable
-		return 'Gordon Growth Model oceňuje akcii na základě budoucích dividend diskontovaných požadovanou výnosností. Vhodný pro stabilní dividendové společnosti s předvídatelným růstem.';
-		//phpcs:enable
+		return 'Dividenda / (výnosnost − růst). Jednoduchý scénář stabilní dividendy; forward dividendu již znovu nezvyšujeme.';
 	}
 
 }

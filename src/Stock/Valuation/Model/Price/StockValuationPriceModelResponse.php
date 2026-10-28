@@ -7,10 +7,14 @@ namespace App\Stock\Valuation\Model\Price;
 use App\Asset\Price\AssetPrice;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Valuation\Model\StockValuationModel;
+use App\Stock\Valuation\Model\StockValuationModelAvailability;
+use App\Stock\Valuation\Model\StockValuationModelPurpose;
 use App\Stock\Valuation\Model\StockValuationModelResponse;
 use App\Stock\Valuation\Model\StockValuationModelState;
 use App\Stock\Valuation\Model\StockValuationModelUsedValue;
+use App\Stock\Valuation\Model\StockValuationScenario;
 use App\Stock\Valuation\StockValuationTypeEnum;
+use App\Stock\Valuation\StockValuationTypeValueTypeEnum;
 
 class StockValuationPriceModelResponse implements StockValuationModelResponse
 {
@@ -18,6 +22,7 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 	/**
 	 * @param array<StockValuationTypeEnum> $usedStockValuationDataTypes
 	 * @param array<StockValuationModelUsedValue> $modelUsedValues
+	 * @param array<StockValuationScenario> $scenarios
 	 */
 	public function __construct(
 		private StockValuationModel $stockValuationModel,
@@ -30,6 +35,9 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 		private StockValuationModelState $state,
 		private array $modelUsedValues = [],
 		private string|null $description = null,
+		private StockValuationModelAvailability|null $availability = null,
+		private string|null $availabilityReason = null,
+		private array $scenarios = [],
 	)
 	{
 	}
@@ -94,7 +102,56 @@ class StockValuationPriceModelResponse implements StockValuationModelResponse
 
 	public function isCalculated(): bool
 	{
-		return $this->state !== StockValuationModelState::UNABLE_TO_CALCULATE;
+		return $this->getAvailability() === StockValuationModelAvailability::AVAILABLE;
+	}
+
+	public function getPurpose(): StockValuationModelPurpose
+	{
+		return StockValuationModelPurpose::forModel($this->stockValuationModel);
+	}
+
+	public function getAvailability(): StockValuationModelAvailability
+	{
+		return $this->availability ?? ($this->state === StockValuationModelState::UNABLE_TO_CALCULATE
+			? StockValuationModelAvailability::MISSING_DATA
+			: StockValuationModelAvailability::AVAILABLE);
+	}
+
+	public function getAvailabilityReason(): string|null
+	{
+		return $this->availabilityReason;
+	}
+
+	public function getValueUnit(): string
+	{
+		return ($this->usedStockValuationDataTypes[0] ?? null)?->getTypeValueType() === StockValuationTypeValueTypeEnum::PERCENTAGE
+			? '%'
+			: '×';
+	}
+
+	/** @return array<StockValuationScenario> */
+	public function getScenarios(): array
+	{
+		return $this->scenarios;
+	}
+
+	public function withAvailability(
+		StockValuationModelAvailability $availability,
+		string $reason,
+	): self
+	{
+		$response = clone $this;
+		$response->availability = $availability;
+		$response->availabilityReason = $reason;
+		if ($availability !== StockValuationModelAvailability::AVAILABLE) {
+			$response->assetPrice = null;
+			$response->calculatedPercentage = null;
+			$response->calculatedValue = null;
+			$response->scenarios = [];
+			$response->state = StockValuationModelState::UNABLE_TO_CALCULATE;
+		}
+
+		return $response;
 	}
 
 	public function getColor(): string

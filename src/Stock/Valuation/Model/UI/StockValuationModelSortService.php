@@ -4,6 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Stock\Valuation\Model\UI;
 
+use App\Stock\Valuation\Model\StockValuationModelPurpose;
 use App\Stock\Valuation\Model\UI\Control\StockValuationModelTableControlItem;
 
 class StockValuationModelSortService
@@ -77,8 +78,12 @@ class StockValuationModelSortService
 						return $modelA === null ? 1 : -1;
 					}
 
-					$percentageA = $modelA->getCalculatedPercentage();
-					$percentageB = $modelB->getCalculatedPercentage();
+					$percentageA = $modelA->getPurpose() === StockValuationModelPurpose::DIAGNOSTIC
+						? $modelA->getCalculatedValue()
+						: $modelA->getCalculatedPercentage();
+					$percentageB = $modelB->getPurpose() === StockValuationModelPurpose::DIAGNOSTIC
+						? $modelB->getCalculatedValue()
+						: $modelB->getCalculatedPercentage();
 
 					// Pokud nelze vypočítat, dej na konec
 					if ($percentageA === null || $percentageB === null) {

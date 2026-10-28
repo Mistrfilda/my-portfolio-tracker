@@ -47,6 +47,7 @@ enum StockValuationTypeEnum: string
 	case OPERATING_MARGIN = 'operating_margin';
 	case RETURN_ON_ASSETS = 'return_on_assets';
 	case RETURN_ON_EQUITY = 'return_on_equity';
+	case MOST_RECENT_QUARTER = 'most_recent_quarter';
 
 	/**
 	 * BALANCE SHEET
@@ -131,6 +132,7 @@ enum StockValuationTypeEnum: string
 			StockValuationTypeEnum::PROFIT_MARGIN,
 			StockValuationTypeEnum::OPERATING_MARGIN,
 			StockValuationTypeEnum::RETURN_ON_ASSETS,
+			StockValuationTypeEnum::MOST_RECENT_QUARTER,
 			StockValuationTypeEnum::RETURN_ON_EQUITY => StockValuationTypeGroupEnum::FINANCIAL_HIGHLIGHTS,
 
 			StockValuationTypeEnum::TOTAL_CASH,
@@ -175,6 +177,7 @@ enum StockValuationTypeEnum: string
 		return match ($this) {
 			StockValuationTypeEnum::SYMBOL,
 			StockValuationTypeEnum::COMPANY_NAME,
+			StockValuationTypeEnum::MOST_RECENT_QUARTER,
 			StockValuationTypeEnum::DIVIDEND_DATE,
 			StockValuationTypeEnum::EX_DIVIDEND_DATE=> StockValuationTypeValueTypeEnum::TEXT,
 
@@ -265,6 +268,7 @@ enum StockValuationTypeEnum: string
 			self::OPERATING_MARGIN => 'Provozní marže',
 			self::RETURN_ON_ASSETS => 'ROA',
 			self::RETURN_ON_EQUITY => 'ROE',
+			self::MOST_RECENT_QUARTER => 'Poslední vykázané čtvrtletí',
 			self::TOTAL_CASH => 'Hotovost celkem',
 			self::TOTAL_CASH_PER_SHARE => 'Hotovost na akcii',
 			self::TOTAL_DEBT => 'Dluh celkem',

@@ -51,10 +51,10 @@ class DividendDiscountValuationModelTest extends UpdatedTestCase
 
 		$response = $model->calculateResponse($stockValuationMock);
 
-		// Expected: D * (1 + g) / (r - g) = 5 * 1.03 / 0.07 = 73.57
+		// The forward dividend already represents D1: 5 / 0.07 = 71.43.
 		$this->assertNotNull($response->getAssetPrice());
-		$this->assertEqualsWithDelta(73.57, $response->getCalculatedValue(), 0.01);
-		$this->assertEqualsWithDelta(47.14, $response->getCalculatedPercentage(), 0.01);
+		$this->assertEqualsWithDelta(71.43, $response->getCalculatedValue(), 0.01);
+		$this->assertEqualsWithDelta(42.86, $response->getCalculatedPercentage(), 0.01);
 		$this->assertEquals(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
 		$this->assertEquals('Dividend Discount Model (DDM)', $response->getLabel());
 	}
@@ -88,7 +88,8 @@ class DividendDiscountValuationModelTest extends UpdatedTestCase
 
 		$response = $model->calculateResponse($stockValuationMock);
 
-		$this->assertNotNull($response->getCalculatedValue());
+		// A trailing dividend is D0 and needs one year of growth: 4.5 * 1.03 / 0.07.
+		$this->assertEqualsWithDelta(66.2142857143, $response->getCalculatedValue(), 0.0000001);
 		$this->assertEquals(StockValuationModelState::UNDERPRICED, $response->getStockValuationModelTrend());
 	}
 

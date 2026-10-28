@@ -1,0 +1,48 @@
+{varType array<App\Stock\Valuation\Model\StockValuationModelResponse> $modelResponses}
+
+{foreach App\Stock\Valuation\Model\StockValuationModelPurpose::cases() as $purpose}
+	<section class="mt-5">
+		<h3 class="text-sm font-semibold text-gray-900">{if $purpose === App\Stock\Valuation\Model\StockValuationModelPurpose::PRICE}Cenové modely v konsenzu{elseif $purpose === App\Stock\Valuation\Model\StockValuationModelPurpose::REFERENCE}Doplňkové odhady{else}Finanční ukazatele{/if}</h3>
+		<p class="mt-1 text-xs text-gray-500">{if $purpose === App\Stock\Valuation\Model\StockValuationModelPurpose::PRICE}Do výsledku vstupují jen použitelné modely s úplnými vstupy.{elseif $purpose === App\Stock\Valuation\Model\StockValuationModelPurpose::REFERENCE}Další pohled na cenu; do konsenzu se nezapočítává.{else}Pomáhají číst kvalitu firmy. Samy neurčují cenu akcie.{/if}</p>
+		<div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+			{foreach $modelResponses as $model}
+				{continueIf $model->getPurpose() !== $purpose}
+				{var $available = $model->getAvailability() === App\Stock\Valuation\Model\StockValuationModelAvailability::AVAILABLE}
+				<div class="rounded-lg bg-white p-4 ring-1 ring-inset ring-gray-200">
+					<h4 class="text-sm font-semibold text-gray-900">{$model->getLabel()}</h4>
+					<span class="mt-2 inline-flex rounded-md bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-200">{if $available}{$purpose->getLabel()}{else}{$model->getAvailability()->getLabel()}{/if}</span>
+					<p class="mt-3 text-xs leading-5 text-gray-500">{$model->getDescription()}</p>
+					{if $available}
+						<div class="mt-3 flex items-end justify-between gap-3">
+							<div class="text-lg font-semibold text-gray-900">
+								{if $model->getAssetPrice() !== null}{$model->getAssetPrice()|assetPriceFormat}{else}{$model->getCalculatedValue()|number:2} {$model->getValueUnit()}{/if}
+							</div>
+							{if $model->getCalculatedPercentage() !== null}
+								{var $percentage = $model->getCalculatedPercentage()}
+								<span n:class="'text-sm font-semibold', $percentage > 0 ? 'text-green-700' : ($percentage < 0 ? 'text-red-700' : 'text-gray-600')">{if $percentage > 0}+{/if}{$percentage|number:1} %</span>
+							{/if}
+						</div>
+						{if $model->getScenarios() !== []}
+							<dl class="mt-4 space-y-2 border-t border-gray-100 pt-3 text-xs">
+								{foreach $model->getScenarios() as $scenario}
+									<div class="flex justify-between gap-2"><dt class="text-gray-500">{$scenario->label}<span class="block text-gray-400">výnos {$scenario->requiredReturn * 100|number:0} % · růst {$scenario->growth * 100|number:0} %</span></dt><dd class="font-medium text-gray-900">{$scenario->price|assetPriceFormat}</dd></div>
+								{/foreach}
+							</dl>
+							<p class="mt-2 text-xs text-gray-500">Citlivost na předpoklady, ne předpověď ceny.</p>
+						{/if}
+						{if $model->getModelUsedValues() !== []}
+							<details class="mt-3 border-t border-gray-100 pt-3">
+								<summary class="cursor-pointer text-xs font-medium text-gray-600">Předpoklady výpočtu</summary>
+								<dl class="mt-2 space-y-1 text-xs">
+									{foreach $model->getModelUsedValues() as $value}<div class="flex justify-between gap-3"><dt class="text-gray-500">{$value->getLabel()}</dt><dd class="text-gray-900">{$value->getValue()}</dd></div>{/foreach}
+								</dl>
+							</details>
+						{/if}
+					{else}
+						<p class="mt-3 text-xs font-medium leading-5 text-amber-700">{$model->getAvailabilityReason()}</p>
+					{/if}
+				</div>
+			{/foreach}
+		</div>
+	</section>
+{/foreach}
