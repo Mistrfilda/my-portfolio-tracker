@@ -16,7 +16,6 @@
 	],
 	"require": {
 		"php": ">= 8.5",
-		"ext-calendar": "*",
 		"ext-dom": "*",
 		"ext-iconv": "*",
 		"ext-libxml": "*",

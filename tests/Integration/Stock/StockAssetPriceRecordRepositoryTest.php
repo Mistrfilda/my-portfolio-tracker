@@ -35,14 +35,20 @@ class StockAssetPriceRecordRepositoryTest extends IntegrationTestCase
 		$stockAsset = $this->createStockAsset('Price Test Stock', 'PRC-TEST-1');
 		$this->entityManager->persist($stockAsset);
 
-		$priceRecord = $this->createPriceRecord($stockAsset, '2025-06-15', 150.50);
+		$priceRecord = $this->createPriceRecord($stockAsset, '2025-06-15 15:32:00', 150.50);
 		$this->entityManager->persist($priceRecord);
 		$this->entityManager->flush();
+		$this->entityManager->clear();
 
 		$result = $this->priceRecordRepository->getById($priceRecord->getId());
 
 		$this->assertSame($priceRecord->getId(), $result->getId());
 		$this->assertSame(150.50, $result->getPrice());
+		$this->assertSame('2025-06-15 00:00:00', $result->getDate()->format('Y-m-d H:i:s'));
+		$this->assertSame(
+			$priceRecord->getCreatedAt()->format('Y-m-d H:i:s'),
+			$result->getCreatedAt()->format('Y-m-d H:i:s'),
+		);
 	}
 
 	public function testGetByIdThrowsExceptionWhenNotFound(): void

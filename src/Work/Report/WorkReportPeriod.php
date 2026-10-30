@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Work\Report;
 
 use InvalidArgumentException;
+use Mistrfilda\Datetime\DatetimeException;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 
@@ -49,7 +50,12 @@ readonly class WorkReportPeriod
 			throw new InvalidArgumentException('Dates must use YYYY-MM-DD format.');
 		}
 
-		$date = DatetimeFactory::createFromFormat($value . ' ' . self::TIMEZONE, '!Y-m-d e');
+		try {
+			$date = DatetimeFactory::createFromFormat($value . ' ' . self::TIMEZONE, '!Y-m-d e');
+		} catch (DatetimeException $exception) {
+			throw new InvalidArgumentException('The specified date does not exist.', previous: $exception);
+		}
+
 		if ($date->format('Y-m-d') !== $value) {
 			throw new InvalidArgumentException('The specified date does not exist.');
 		}
