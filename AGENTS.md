@@ -44,6 +44,7 @@ Treat these as project defaults. Explicit task instructions take precedence over
 ## Skills
 - Domain-specific guidance lives in `.agents/skills/`. Select skills by their descriptions and read the relevant `SKILL.md` before changing a specialized area. If a named project skill is missing from the session's skill list, look for `.agents/skills/<name>/SKILL.md`.
 - Start with [project-overview](.agents/skills/project-overview/SKILL.md) when the task is broad, cross-module, or you are not sure where the code belongs.
+- For GitHub pull requests, issues, and Actions in this repository, use [github-mcp](.agents/skills/github-mcp/SKILL.md). Keep local Git operations in the CLI.
 - For Docker, Kubernetes, and deployment work across this repository and the separate `/Users/filip/Sites/kubedev` checkout, use [kubernetes-infrastructure](.agents/skills/kubernetes-infrastructure/SKILL.md).
 - For desktop process boundaries use [desktop-electron](.agents/skills/desktop-electron/SKILL.md); for React/shadcn UI use [desktop-react-ui](.agents/skills/desktop-react-ui/SKILL.md); for packaging, dependencies, or build isolation use [desktop-build](.agents/skills/desktop-build/SKILL.md).
 - Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
