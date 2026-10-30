@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip
+RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip calendar
 
 WORKDIR /var
 
