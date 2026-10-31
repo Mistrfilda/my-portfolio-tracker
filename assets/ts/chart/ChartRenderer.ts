@@ -1,4 +1,4 @@
-import {Naja, Payload} from "naja/dist/Naja";
+import type {Naja, Payload} from "naja";
 import {ChartData, ChartDataset} from "./ChartData";
 import Chart, {ChartOptions, ChartType, Colors, Plugin, TooltipItem} from 'chart.js/auto';
 import zoomPlugin from 'chartjs-plugin-zoom';

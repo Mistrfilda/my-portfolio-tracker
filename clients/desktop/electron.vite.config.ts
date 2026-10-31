@@ -10,11 +10,11 @@ export default defineConfig(({ command }) => ({
 	preload: {
 		build: {
 			externalizeDeps: false,
-			rollupOptions: {
+			rolldownOptions: {
 				output: {
 					format: 'cjs',
 					entryFileNames: 'index.cjs',
-					inlineDynamicImports: true,
+					codeSplitting: false,
 				},
 			},
 		},

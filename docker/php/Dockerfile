@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     libicu-dev \
     nano \
     wget \
-    && curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_26.x | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
@@ -44,8 +44,8 @@ RUN chown -R www-data:www-data /var/temp
 
 WORKDIR /var/puppeter
 
-ARG CHROMIUM_VERSION=149.0.7827.196-1~deb13u1
-ARG CHROMIUM_SNAPSHOT=20260626T000000Z
+ARG CHROMIUM_VERSION=156.0.8078.47-1~deb13u1
+ARG CHROMIUM_SNAPSHOT=20261023T000000Z
 
 RUN printf 'deb [check-valid-until=no] https://snapshot.debian.org/archive/debian-security/%s/ trixie-security main\n' "${CHROMIUM_SNAPSHOT}" > /etc/apt/sources.list.d/chromium-snapshot.list \
     && apt-get update \

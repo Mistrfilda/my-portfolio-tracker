@@ -10,8 +10,8 @@ This skill owns the root web assets. The Electron client has independent React/T
 - **Alpine.js 3** (`alpinejs` in `package.json`) – bootstrapped in `assets/ts/alpine/AppAlpine.ts` via `Alpine.start()`.
 - **Tailwind CSS 4** (`tailwindcss`, `@tailwindcss/postcss`, `@tailwindcss/forms`, `@tailwindcss/typography`, `@tailwindcss/aspect-ratio`) – config in `tailwind.config.js`, entrypoint `assets/css/index.css`.
 - **Tailwind Plus Elements** (`@tailwindplus/elements`) – loaded in `assets/app.ts`.
-- **Naja** (`naja`) – AJAX layer, integrated with Alpine in `AppAlpine.ts` (re-renders charts after AJAX `complete`).
-- Build: **webpack-encore**, see `webpack.config.js`. Watch: `npm run watch-dev`. Production: `npm run build-prod`.
+- **Naja 3** (`naja`) – AJAX layer, integrated with Alpine in `AppAlpine.ts` (refreshes chart data after AJAX `complete`). Import types from `naja`, not private `naja/dist/*` paths.
+- Build: **webpack-encore**, see `webpack.config.mjs`. Watch: `npm run watch-dev`. Production: `npm run build-prod`.
 
 ## Where things live
 
@@ -52,7 +52,7 @@ This skill owns the root web assets. The Electron client has independent React/T
 
 ## Alpine + Naja interaction
 
-`AppAlpine.ts` listens on `naja.addEventListener('complete', …)` and re-fetches data for any registered chart. If a new dynamic element should survive AJAX snippet updates:
+`AppAlpine.ts` listens on `naja.addEventListener('complete', …)` and re-fetches data for registered charts. This does not depend on snippet timing: `ChartControl` prohibits rendering chart canvases in AJAX snippets. For code that needs updated snippet DOM, use `naja.snippetHandler`'s `afterUpdate` event; Naja 3 does not guarantee snippet completion at `success`/`complete`. If a new dynamic element should survive AJAX snippet updates:
 
 - Put it inside a Nette snippet (`{snippet foo}…{/snippet}`) – Alpine automatically re-initializes `x-data` on snippet replacement (Naja triggers DOM mutation).
 - For imperative re-init, call `Alpine.initTree(element)` after manual DOM manipulation.

@@ -96,9 +96,13 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 ### Requirements
 - PHP 8.5+
 - Composer
-- Node.js 24+ and npm 11.10+ (required for the 5-day `min-release-age` install policy)
+- Node.js 26 and npm 11.10+ within npm 11 (required for the 5-day `min-release-age` install policy); the root `.nvmrc` selects Node 26 for all three npm projects.
 - Docker
 - MariaDB/MySQL and RabbitMQ via Docker or another local setup
+
+The web build uses Encore 7/Babel 8 through `webpack.config.mjs`. TypeScript stays on 6 because the current Encore and typescript-eslint peer ranges do not support 7; its explicit `strict: false` preserves the web's previous compiler behavior while `noImplicitAny` remains enabled. Naja 3 handles AJAX and snippet history. Chart canvases remain outside AJAX snippets, as enforced by `ChartControl`, so their data refresh can use `complete` independently of snippet update timing. Code that needs updated snippet DOM must use `snippetHandler`'s `afterUpdate` event.
+
+Puppeteer 25 uses Chromium 156, pinned in the PHP Dockerfile. The scraper package approves its version-specific browser download script through npm's `allowScripts`; review and renew that entry when upgrading Puppeteer. Docker still skips the download and uses `/usr/bin/chromium`.
 
 ### Useful commands
 - Frontend watch mode: `npm run watch-dev`

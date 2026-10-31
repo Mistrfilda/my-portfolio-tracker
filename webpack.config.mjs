@@ -1,5 +1,7 @@
-var Encore = require('@symfony/webpack-encore');
-require('dotenv').config();
+import Encore from '@symfony/webpack-encore';
+import dotenv from 'dotenv';
+
+dotenv.config({ quiet: true });
 
 if (!Encore.isRuntimeEnvironmentConfigured()) {
     Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
@@ -23,11 +25,13 @@ Encore
     .enableBuildNotifications()
     .enableSourceMaps(!Encore.isProduction())
     .enableVersioning(Encore.isProduction())
-    .configureBabelPresetEnv((config) => {
-        config.useBuiltIns = 'usage';
-        config.corejs = 3;
+    .configureBabel((config) => {
+		config.plugins.push(['babel-plugin-polyfill-corejs3', {
+			method: 'usage-global',
+			version: '3.51',
+		}]);
     })
     .enablePostCssLoader()
     .enableTypeScriptLoader();
 
-module.exports = Encore.getWebpackConfig();
+export default await Encore.getWebpackConfig();

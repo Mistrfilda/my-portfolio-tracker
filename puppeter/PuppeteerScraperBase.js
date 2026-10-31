@@ -21,7 +21,7 @@ export class PuppeteerScraperBase {
 			headless: true,
 			slowMo: 100,
 			browser: "chrome",
-			executablePath: fs.existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : puppeteer.executablePath(),
+			executablePath: fs.existsSync("/usr/bin/chromium") ? "/usr/bin/chromium" : undefined,
 			args: [
 				'--no-sandbox',
 				'--disable-setuid-sandbox',

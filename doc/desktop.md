@@ -18,7 +18,7 @@ The initial target is Apple Silicon (arm64), matching the development machine. I
 
 ## Development
 
-Requirements: macOS with a graphical session, Node.js 24 and npm 11.10 or newer within npm 11. Desktop dependencies have their own committed lockfile, exact direct versions, and the same five-day minimum release age as the web. First installation needs internet access.
+Requirements: macOS with a graphical session, Node.js 26 and npm 11.10 or newer within npm 11. Desktop dependencies have their own committed lockfile, exact direct versions, and the same five-day minimum release age as the web. First installation needs internet access. Electron bundles its own Node.js 24 runtime, so `@types/node` stays on 24 for main/preload compatibility even though the build tools run on Node 26.
 
 Run from the repository root:
 
@@ -115,7 +115,7 @@ The smoke tests check rendering, navigation, the restricted preload bridge, Node
 
 Native tests need a graphical macOS session. Use the PhpStorm execution route described above when working through Codex on this machine. Browser preview cannot verify native IPC or Electron's process isolation.
 
-The dependency audit was refreshed on 2026-10-25. Electron was updated to 44.9.1 (including its [certificate-trust mitigation](https://github.com/electron/electron/security/advisories/GHSA-jr5w-w6x2-84p9)), Vitest to 4.1.12, and compatible transitive Undici/fast-uri fixes were incorporated without overrides or major upgrades. All selected releases met the five-day release-age policy. `npm --prefix clients/desktop audit` reported zero known vulnerabilities for this lockfile on that date; rerun it when reviewing dependency updates.
+The dependency update on 2026-10-31 uses Node 26, Electron 45.0.0, electron-vite 6, Vite 8, and Vitest 5. Renderer minification uses Vite's Oxc minifier, and preload remains a single CommonJS bundle. TypeScript stays on 6.0.3 because typescript-eslint does not yet support TypeScript 7. All selected releases meet the five-day release-age policy. `npm --prefix clients/desktop audit` reports 26 moderate transitive findings from [minimatch](https://github.com/advisories/GHSA-g3hv-75wg-m249), with no high or critical findings. Its patched major release is still inside the release-age window, and parent packages also need compatible updates; no forced overrides were added. Rerun the audit when reviewing dependency updates.
 
 Electron and renderer libraries are listed under `devDependencies` for packaging, but their binary/bundled code still ships in the application. An audit with `--omit=dev` therefore does not assess the desktop runtime.
 

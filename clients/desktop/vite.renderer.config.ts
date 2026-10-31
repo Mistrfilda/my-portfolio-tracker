@@ -46,7 +46,7 @@ export function rendererConfig(development: boolean): UserConfig {
 		build: {
 			outDir: fileURLToPath(new URL('./out/renderer', import.meta.url)),
 			emptyOutDir: true,
-			minify: 'esbuild',
+			minify: 'oxc',
 		},
 	};
 }

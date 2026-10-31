@@ -8,7 +8,7 @@ import {ChartInstance} from "../chart/ChartInstance";
 
 import naja from 'naja';
 import {registerExtensions} from "../naja/extension";
-import {CompleteEvent} from "naja/dist/Naja";
+import type {CompleteEvent} from "naja";
 import dragScroll from "./DragScroll";
 import datagrid from "./Datagrid";
 import searchableSelect from "./SearchableSelect";
@@ -20,6 +20,7 @@ registerExtensions(naja);
 const loadedCharts: Array<ChartInstance> = [];
 const chartRenderer = new ChartRenderer(naja, loadedCharts);
 
+// ChartControl keeps chart canvases outside AJAX snippets; only their data is refreshed here.
 naja.addEventListener(
     'complete',
     (event: CompleteEvent) => {

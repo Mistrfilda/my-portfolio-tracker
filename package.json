@@ -10,34 +10,35 @@
     }
   },
   "dependencies": {
-    "@tailwindcss/aspect-ratio": "^0.4",
-    "@tailwindcss/postcss": "^4.1.13",
-    "@tailwindplus/elements": "^1.0.4",
-    "alpinejs": "^3.5.2",
-    "chart.js": "^4.4.2",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@tailwindplus/elements": "^1.0.22",
+    "alpinejs": "^3.17.5",
+    "chart.js": "^4.6.1",
     "chartjs-plugin-zoom": "^2.2.0",
-    "dotenv": "^10.0.0",
-    "live-form-validation": "^1.10.0",
-    "naja": "^2.2.1",
-    "postcss": "^8.3.11",
-    "tailwindcss": "^4.1.13",
-    "tom-select": "^2.0.0"
+    "dotenv": "^18.0.9",
+    "live-form-validation": "^1.10.1",
+    "naja": "^3.3.3",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^4.3.3",
+    "tom-select": "^2.6.2"
   },
   "devDependencies": {
-    "@eslint/css": "^0.11.1",
-    "@playwright/test": "^1.59.1",
-    "@symfony/webpack-encore": "^6.0.0",
-    "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/typography": "^0.5.19",
-    "autoprefixer": "^10.4.0",
-    "core-js": "^3.19.1",
-    "eslint": "^9.36.0",
-    "globals": "^16.4.0",
-    "postcss-loader": "^8.0",
-    "ts-loader": "^9.2.6",
-    "typescript": "^5.0",
-    "typescript-eslint": "^8.44.1",
-    "webpack-notifier": "^1.11.1"
+    "@eslint/css": "^2.0.1",
+    "@playwright/test": "^1.64.1",
+    "@symfony/webpack-encore": "^7.2.0",
+    "@tailwindcss/forms": "^0.5.11",
+    "@tailwindcss/typography": "^0.5.20",
+    "autoprefixer": "^10.6.1",
+    "babel-plugin-polyfill-corejs3": "^1.0.0",
+    "core-js": "^3.51.0",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "postcss-loader": "^8.2.1",
+    "ts-loader": "^9.6.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.72.0",
+    "webpack-notifier": "^1.17.0"
   },
   "scripts": {
     "encore": "encore",
@@ -52,5 +53,9 @@
     "acceptance-tests": "playwright test",
     "lint": "eslint assets/",
     "lint-fix": "eslint assets/ --fix"
+  },
+  "engines": {
+    "node": ">=26 <27",
+    "npm": ">=11.10.0 <12"
   }
 }

@@ -36,4 +36,4 @@ Headless-browser scrapers written in Node.js. Output JSON files consumed by PHP 
 - Throw in English; return non-zero exit code on failure so cron marks it failed.
 - Respect the PHP-side `updateStockAssetHoursThreshold` — do not schedule scrapes more aggressively than the downloader will accept.
 - Keep credentials, cookies, and private/token-bearing URLs out of git. Public source URL templates belong in the existing public configuration.
-- JS files use the existing Node version (v24 recommended) — no TypeScript here; TS lives in `assets/`.
+- JS files use Node 26, as selected by the root `.nvmrc` — no TypeScript here; TS lives in `assets/`.

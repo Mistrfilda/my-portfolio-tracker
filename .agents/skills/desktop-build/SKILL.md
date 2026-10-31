@@ -11,7 +11,7 @@ Read [desktop setup](../../../doc/desktop.md) for commands and current distribut
 
 - `clients/desktop/package.json` and its lockfile own desktop dependencies. Root npm dependencies remain exclusively for the existing web frontend.
 - Renderer-only libraries belong in desktop `devDependencies` because Vite bundles them. Reserve `dependencies` for packages actually imported at runtime by main; otherwise electron-builder copies unused library source into the app.
-- Preserve Node 24, npm 11.10+, and the five-day npm release-age policy in the desktop package.
+- Preserve Node 26, npm 11.10+ within npm 11, and the five-day npm release-age policy in the desktop package. Keep `@types/node` aligned with Electron's bundled Node runtime, which can differ from the build toolchain.
 - `electron.vite.config.ts` builds main, preload, and renderer into `out/`. `vite.renderer.config.ts` also supports the browser preview and injects separate development/production CSPs.
 - `npm run dev` uses `electron-vite dev --watch`: renderer HMR, preload rebuild/reload, and main rebuild/restart. Reuse the existing development process on port 5173. Stop it before `npm ci`, a production build, or packaging; they replace dependencies or share its output directory.
 - `electron-builder.yml` packages the compiled client into `artifacts/`. Keep its file selection restricted to client output and required client dependencies.
