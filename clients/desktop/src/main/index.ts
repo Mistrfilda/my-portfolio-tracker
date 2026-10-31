@@ -16,6 +16,8 @@ import {
 import { APP_INFO_CHANNEL, type AppInfo } from '../shared/desktop';
 import { SESSION_CHANNELS } from '../shared/session';
 import { DASHBOARD_CHANNEL } from '../shared/dashboard';
+import { STOCKS_CHANNEL } from '../shared/stocks';
+import { StocksClient, StocksService } from './stocks/client';
 import { DashboardClient, DashboardService } from './dashboard/client';
 import { authorize } from './auth/authorize';
 import { OAuthClient } from './auth/client';
@@ -138,7 +140,9 @@ if (hasInstanceLock)
 			auth,
 			new DashboardClient(defaultConnection),
 		);
+		const stocks = new StocksService(auth, new StocksClient(defaultConnection));
 		const handlers: Record<string, () => unknown> = {
+			[STOCKS_CHANNEL]: () => stocks.get(),
 			[DASHBOARD_CHANNEL]: () => dashboard.get(),
 			[SESSION_CHANNELS.get]: () => auth!.getState(),
 			[SESSION_CHANNELS.signIn]: async () => {

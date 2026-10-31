@@ -224,6 +224,9 @@ services:
 	- App\Stock\Dividend\Api\StockDividendSerializer
 	- App\Goal\Api\PortfolioGoalController
 	- App\Goal\Api\PortfolioGoalSerializer
+	- App\Stock\Position\Api\StockPortfolioController
+	- App\Stock\Position\Api\StockPortfolioProvider
+	- App\Stock\Position\Api\StockHoldingSerializer
 	- App\Stock\Asset\Api\StockAssetSerializer
 	- App\Stock\Asset\Api\StockAssetController
 	- App\Api\RequestValidationMiddleware(%appDir%/../doc/openapi.yaml)

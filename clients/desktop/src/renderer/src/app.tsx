@@ -4,6 +4,7 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SessionProvider } from '@/components/session-provider';
 import { OverviewPage } from '@/pages/overview';
 import { SettingsPage } from '@/pages/settings';
+import { StocksPage } from '@/pages/stocks';
 
 export function App() {
 	return (
@@ -14,6 +15,7 @@ export function App() {
 						<Route element={<AppLayout />}>
 							<Route index element={<OverviewPage />} />
 							<Route path="settings" element={<SettingsPage />} />
+							<Route path="stocks" element={<StocksPage />} />
 						</Route>
 					</Routes>
 				</MemoryRouter>

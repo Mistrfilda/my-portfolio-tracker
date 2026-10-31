@@ -42,7 +42,16 @@ test('isolates Node, saves appearance, and starts and cancels PKCE login', async
 		});
 		expect(info.app.version).toMatch(/^\d+\.\d+\.\d+/);
 		expect(info.hasNode).toBe(false);
-		expect(info.bridgeKeys).toEqual(['getAppInfo', 'dashboard', 'session']);
+		expect(info.bridgeKeys).toEqual([
+			'getAppInfo',
+			'dashboard',
+			'stocks',
+			'session',
+		]);
+		expect(await page.evaluate(() => window.desktop!.stocks.get())).toEqual({
+			data: null,
+			issue: 'session',
+		});
 		expect(
 			await page.evaluate(() => window.desktop!.dashboard.get()),
 		).toMatchObject({

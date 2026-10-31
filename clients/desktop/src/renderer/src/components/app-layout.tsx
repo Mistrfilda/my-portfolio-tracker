@@ -3,6 +3,7 @@ import {
 	LayoutDashboard,
 	Settings2,
 	UserRound,
+	ChartColumnIncreasing,
 } from 'lucide-react';
 import { NavLink, Outlet, useLocation } from 'react-router';
 import { buttonVariants } from '@/components/ui/button';
@@ -11,6 +12,7 @@ import { useSession } from '@/lib/session';
 
 const navigation = [
 	{ to: '/', label: 'Přehled', icon: LayoutDashboard },
+	{ to: '/stocks', label: 'Akcie a pozice', icon: ChartColumnIncreasing },
 	{ to: '/settings', label: 'Nastavení', icon: Settings2 },
 ];
 

@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import { SESSION_CHANNELS, type SessionState } from '../shared/session';
 import { DASHBOARD_CHANNEL, type DashboardSnapshot } from '../shared/dashboard';
+import { STOCKS_CHANNEL, type StockPortfolioResult } from '../shared/stocks';
 import {
 	APP_INFO_CHANNEL,
 	type AppInfo,
@@ -13,6 +14,10 @@ const desktop: DesktopBridge = {
 	dashboard: {
 		get: () =>
 			ipcRenderer.invoke(DASHBOARD_CHANNEL) as Promise<DashboardSnapshot>,
+	},
+	stocks: {
+		get: () =>
+			ipcRenderer.invoke(STOCKS_CHANNEL) as Promise<StockPortfolioResult>,
 	},
 	session: {
 		getState: () =>

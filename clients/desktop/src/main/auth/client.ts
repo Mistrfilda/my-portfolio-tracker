@@ -40,6 +40,7 @@ export function parseStoredTokens(value: unknown): Tokens {
 
 export async function readJson(
 	response: Response,
+	maxBytes = 256 * 1024,
 ): Promise<Record<string, unknown>> {
 	if (
 		!response.headers.get('content-type')?.includes('application/json') ||
@@ -55,7 +56,7 @@ export async function readJson(
 			const { done, value } = await reader.read();
 			if (done) break;
 			size += value.length;
-			if (size > 256 * 1024) throw new AuthError('invalid-response');
+			if (size > maxBytes) throw new AuthError('invalid-response');
 			chunks.push(value);
 		}
 		const data: unknown = JSON.parse(Buffer.concat(chunks).toString('utf8'));

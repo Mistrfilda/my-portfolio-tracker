@@ -12,7 +12,7 @@ The PHP application stays in place. There is no root npm workspace: installing o
 
 ## Current scope
 
-The desktop includes a macOS window, sidebar navigation, appearance settings, public-client OAuth login, and a personal portfolio dashboard. It opens the server's login/consent page in the system browser, restores and refreshes the saved session, displays the user returned by `/api/v1/me`, and supports logout. Position detail/editing and automatic updates are still future work.
+The desktop includes a macOS window, sidebar navigation, appearance settings, public-client OAuth login, a personal portfolio dashboard, and an overview of stock holdings with purchase details. It opens the server's login/consent page in the system browser, restores and refreshes the saved session, displays the user returned by `/api/v1/me`, and supports logout. Position editing and automatic updates are still future work.
 
 The initial target is Apple Silicon (arm64), matching the development machine. Intel macOS, Windows, and Linux packages are not configured. The application identifier is `com.mistrfilda.portfolio.desktop`.
 
@@ -113,7 +113,7 @@ Useful individual commands:
 | `npm --prefix clients/desktop run test:smoke` | Test the compiled app in Electron; run build first |
 | `npm --prefix clients/desktop run package:mac` | Package existing compiled output |
 
-The smoke tests check rendering, navigation, the restricted preload bridge, Node isolation, appearance persistence, and starting/cancelling a PKCE login. Dashboard coverage includes loading, refresh failures/recovery, empty portfolios, null statistics, logout, both themes, and the minimum window size. Tests intercept the OS browser opener and install synthetic IPC responses only inside isolated test processes; they never log into the deployed server or use a real account or Keychain credential. The npm pre-test hook installs Electron before the timed tests begin. Each test creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to test that package.
+The smoke tests check rendering, navigation, the restricted preload bridge, Node isolation, appearance persistence, and starting/cancelling a PKCE login. Dashboard coverage includes loading, refresh failures/recovery, empty portfolios, null statistics, logout, both themes, and the minimum window size. Stock coverage also checks search, currency filtering, sorting, purchase details, and clearing personal data on account changes. Tests intercept the OS browser opener and install synthetic IPC responses only inside isolated test processes; they never log into the deployed server or use a real account or Keychain credential. The npm pre-test hook installs Electron before the timed tests begin. Each test creates and removes its own temporary profile. Set `DESKTOP_EXECUTABLE` to the absolute path of a packaged app's `Contents/MacOS/My Portfolio` executable to test that package.
 
 Native tests need a graphical macOS session. Use the PhpStorm execution route described above when working through Codex on this machine. Browser preview cannot verify native IPC or Electron's process isolation.
 
@@ -127,8 +127,10 @@ Electron and renderer libraries are listed under `devDependencies` for packaging
 clients/desktop/
 ├── src/
 │   ├── main/                  Electron lifecycle, native operations, asset protocol
+│   │   ├── api/              Shared authenticated HTTP and runtime value validation
 │   │   ├── auth/             Connection, PKCE callback, HTTP client, session and storage
-│   │   └── dashboard/        Authenticated reads and runtime API validation
+│   │   ├── dashboard/        Dashboard reads and response contracts
+│   │   └── stocks/           Stock holdings reads and response contracts
 │   ├── preload/               Small, typed bridge exposed to the renderer
 │   ├── shared/                Serializable bridge contracts and channel names
 │   └── renderer/
@@ -137,9 +139,10 @@ clients/desktop/
 │           ├── app.tsx        Providers and memory router
 │           ├── components/    Application layout and theme provider
 │           │   └── ui/        Owned shadcn component source
-│           ├── pages/         Overview and appearance settings
+│           ├── pages/         Overview, stocks and appearance settings
 │           ├── features/
-│           │   └── dashboard/ Portfolio panels, loading and formatting
+│           │   ├── dashboard/ Portfolio panels, loading and formatting
+│           │   └── stocks/    Holdings, filtering and purchase details
 │           ├── lib/           Theme and class-name helpers
 │           └── styles.css     Tailwind and semantic theme tokens
 ├── tests/
@@ -151,7 +154,7 @@ clients/desktop/
 └── electron-builder.yml       macOS packaging
 ```
 
-Main owns operating-system capabilities. Preload exposes `getAppInfo()`, a `session` API (get state, sign in, cancel, retry, sign out, and subscribe to state changes), and the argument-free `dashboard.get()` operation. The renderer is ordinary React with no Node access. It cannot choose IPC channels, authentication URLs, API paths, HTTP headers or token values. Main validates every IPC sender and rejects unexpected arguments.
+Main owns operating-system capabilities. Preload exposes `getAppInfo()`, a `session` API (get state, sign in, cancel, retry, sign out, and subscribe to state changes), and the argument-free `dashboard.get()` and `stocks.get()` operations. The renderer is ordinary React with no Node access. It cannot choose IPC channels, authentication URLs, API paths, HTTP headers or token values. Main validates every IPC sender and rejects unexpected arguments.
 
 Compiled assets load from the internal `app://portfolio/index.html` URL. File resolution is confined to the renderer output directory. IPC validates the window, top-level frame, and exact renderer URL. New windows, page navigation, and unrequested browser permissions are denied. Development permits only the fixed loopback Vite URL; packaged apps ignore it. The production CSP allows bundled resources and contains no external API origins.
 
@@ -175,6 +178,16 @@ The React feature lives in `src/renderer/src/features/dashboard/`. Data loads on
 Amounts and percentage points are formatted for Czech locale. Missing performance/forecasts remain unavailable, while real zero amounts remain zero. Annual dividends include future recorded entitlements and are not labelled as settled payments. The summary timestamp is its assembly time, not the freshness of every price. Historical portfolio value charts need a future API time-series contract; the current composition and dividend bars use real summary values.
 
 Native tests use synthetic fixtures; verify the deployed account manually by starting the app, signing in if necessary, and opening **Přehled**. No test reads real credentials or production portfolios.
+
+## Stocks and positions
+
+**Akcie a pozice** loads `/api/v1/portfolio/stocks` with the existing `portfolio:read` scope. Deploy the backend endpoint together with the desktop change. It returns only the authenticated user's open stock positions, including holdings in disabled assets, following the web `/stock-asset-position-detail/` screen. Closed positions and other users' purchases are excluded server-side.
+
+The screen shows total stock value, historical invested cost and profit in CZK, then holdings with prices, pieces, portfolio weights, gross dividend yields and broker-currency profits. Search accepts company names and tickers without requiring Czech diacritics. Currency filtering and sorting do not change portfolio totals or weights. Selecting a holding shows each purchase's date, pieces, unit price, stored broker cost, current value and profit, plus separate trading- and broker-currency summaries.
+
+Calculations reuse the existing stock position and currency services. Total invested CZK uses historical broker-cost conversions; individual broker costs retain their stored currencies. Dividend yields use the web's gross dividend events since 365 days ago, including announced future events, and are not personal net income or settled payments. A zero price or purchase-cost denominator yields an unavailable percentage. Quote timestamps are separate from the response assembly time.
+
+Main validates and selects response fields, limits the stock response to 2 MiB, and uses the same authenticated session lifecycle as the dashboard. The page loads on entry and manual refresh, retains successful data with a warning after refresh failure, and clears it when leaving the page or changing accounts. Empty holdings, no search results and unavailable data have separate states. Backend integration tests cover user ownership, closed positions, authorization scopes and empty accounts; native tests use synthetic fixtures.
 
 ## React and shadcn conventions
 

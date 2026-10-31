@@ -29,6 +29,7 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecord;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendTypeEnum;
+use App\Stock\Position\Closed\StockClosedPosition;
 use App\Stock\Position\StockPosition;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
@@ -330,7 +331,7 @@ class ApiDataIsolationTest extends ApiTestCase
 		$market = $this->getOAuthAccessToken(['market:read']);
 		$portfolio = $this->getUserOAuthAccessToken($this->owners[0], ['portfolio:read']);
 		$clientOnly = $this->getOAuthAccessToken(['portfolio:read', 'market:read']);
-		foreach (['/dashboard/summary', '/portfolio/dividends', '/portfolio/goals'] as $path) {
+		foreach (['/dashboard/summary', '/portfolio/dividends', '/portfolio/goals', '/portfolio/stocks'] as $path) {
 			self::assertSame('insufficient_scope', $this->data($this->api('GET', $path, $market), 403)['error']);
 			self::assertSame(
 				'insufficient_scope',
@@ -354,13 +355,87 @@ class ApiDataIsolationTest extends ApiTestCase
 		}
 
 		self::assertSame('insufficient_scope', $this->data($this->api('GET', '/stocks', $portfolio), 403)['error']);
-		foreach (['/dashboard/summary', '/portfolio/dividends', '/portfolio/goals', '/exchange-rates', '/stock-dividends'] as $path) {
+		$paths = [
+			'/dashboard/summary',
+			'/portfolio/dividends',
+			'/portfolio/goals',
+			'/portfolio/stocks',
+			'/exchange-rates',
+			'/stock-dividends',
+		];
+		foreach ($paths as $path) {
 			$request = new ServerRequestFactory()->createServerRequest('GET', '/api/v1' . $path);
 			self::assertSame(401, $this->app->handle($request)->getStatusCode());
 			self::assertSame(
 				401,
 				$this->app->handle($request->withHeader('X-Api-Key', 'test-api-key'))->getStatusCode(),
 			);
+		}
+	}
+
+	public function testStockHoldingsContainOnlyTheOwnersOpenPositions(): void
+	{
+		$stock = $this->getService(StockAssetRepository::class)->getById($this->stock->getId());
+		$now = $this->createDatetime();
+		foreach ([0, 2] as $index) {
+			$owner = $this->em->find(AppAdmin::class, $this->owners[$index]->getId());
+			self::assertNotNull($owner);
+			$position = new StockPosition(
+				$owner,
+				$stock,
+				1000,
+				1,
+				$now,
+				new AssetPriceEmbeddable(1000, CurrencyEnum::CZK),
+				false,
+				$now,
+			);
+			$closed = new StockClosedPosition(
+				$position,
+				2,
+				$now,
+				false,
+				new AssetPriceEmbeddable(2000, CurrencyEnum::CZK),
+				$now,
+			);
+			$position->closePosition($closed);
+			$this->em->persist($position);
+			$this->em->persist($closed);
+		}
+
+		$this->em->flush();
+		$tokens = array_map(
+			fn (AppAdmin $owner): string => $this->getUserOAuthAccessToken($owner, ['portfolio:read']),
+			$this->owners,
+		);
+		foreach ([0, 1, 2, 1, 0] as $index) {
+			$response = $this->api('GET', '/portfolio/stocks?userId=' . $this->owners[1]->getId(), $tokens[$index]);
+			self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));
+			$data = $this->data($response);
+			$factor = $index === 2 ? 0 : $index + 1;
+			self::assertSame('CZK', $data['currency']);
+			self::assertSame($factor * 1000.0, $data['total']['investedAmount']);
+			self::assertSame($factor * 1500.0, $data['total']['currentValue']);
+			self::assertSame($factor * 500.0, $data['total']['profit']);
+			self::assertCount($factor === 0 ? 0 : 1, $data['items']);
+			if ($factor > 0) {
+				$item = $data['items'][0];
+				self::assertSame($stock->getId()->toString(), $item['stock']['id']);
+				self::assertSame($factor * 10, $item['pieces']);
+				self::assertSame(100.0, $item['portfolioSharePercent']);
+				self::assertSame(150.0, $item['stock']['currentPrice']);
+				self::assertSame(2.0, $item['dividends']['grossPerShare']);
+				self::assertSame(2.0, $item['dividends']['yieldOnCostPercent']);
+				self::assertEqualsWithDelta(2 / 150 * 100, $item['dividends']['yieldOnPricePercent'], 0.000001);
+				self::assertSame(
+					[$this->positions[$index]->getId()->toString()],
+					array_column($item['positions'], 'id'),
+				);
+				self::assertSame($item['amounts'], $item['positions'][0]['amounts']);
+				self::assertSame($data['total'], $item['brokerAmounts']);
+			}
+
+			self::assertNull($this->getService(CurrentAppAdminGetter::class)->getAppAdminOrNull());
 		}
 	}
 

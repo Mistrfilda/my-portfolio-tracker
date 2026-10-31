@@ -82,6 +82,36 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '503':
                     $ref: '#/components/responses/DataUnavailable'
+    /portfolio/stocks:
+        get:
+            summary: Get the authenticated user's open stock holdings and purchase positions
+            description: >-
+                Mirrors the open-position detail page. Includes only stocks with the user's open
+                positions, even if price downloading is disabled. Holdings are ordered by current
+                CZK value descending. Trading and broker amounts use the existing position-detail
+                calculations; the broker currency is selected by that service. Top-level totals
+                use historical broker costs converted to CZK, as on the dashboard. Portfolio share
+                is the share of the user's open stock portfolio, not of crypto or Portu.
+                Dividend figures are gross per-share company events with ex-date since 365 days
+                before generatedAt, including announced future and special dividends, as on the web.
+                A yield with a zero price denominator is null. Empty portfolios return zero totals
+                and an empty items array. Missing required exchange rates return 503.
+            tags: [Portfolio]
+            security:
+                - OAuth2: [portfolio:read]
+            responses:
+                '200':
+                    description: Personal stock holdings and open positions
+                    content:
+                        application/json:
+                            schema:
+                                $ref: '#/components/schemas/StockPortfolio'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
+                '503':
+                    $ref: '#/components/responses/DataUnavailable'
     /portfolio/goals:
         get:
             summary: Get the authenticated user's active portfolio goals
@@ -629,7 +659,7 @@ components:
                     scopes:
                         api:read: Read shared stock catalog; personal endpoints require user authorization
                         market:read: Read shared exchange rates and company dividend events
-                        portfolio:read: Read personal dashboard, goals and dividends; requires user authorization
+                        portfolio:read: Read personal dashboard, holdings, goals and dividends; requires user authorization
                         home:read: Read own home devices and records; requires user authorization
                         home:write: Create records for own home devices; requires user authorization
                 authorizationCode:
@@ -638,7 +668,7 @@ components:
                     refreshUrl: /api/oauth/token
                     scopes:
                         api:read: Read own portfolio and shared stock data
-                        portfolio:read: Read own dashboard, goals, dividend records and user identity
+                        portfolio:read: Read own dashboard, holdings, goals, dividend records and user identity
                         market:read: Read shared exchange rates and company dividend events
                         home:read: Read own home devices and records
                         home:write: Create records for own home devices
@@ -730,6 +760,79 @@ components:
                             maxItems: 4
                             items:
                                 $ref: '#/components/schemas/StockMover'
+        StockPortfolio:
+            type: object
+            additionalProperties: false
+            required: [generatedAt, currency, total, items]
+            properties:
+                generatedAt: {type: string, format: date-time}
+                currency: {type: string, enum: [CZK]}
+                total:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                items:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockHolding'
+        StockHolding:
+            type: object
+            additionalProperties: false
+            required: [stock, pieces, averagePurchasePrice, amounts, brokerCurrency, brokerAmounts, currentValueCzk, portfolioSharePercent, dividends, positions]
+            properties:
+                stock:
+                    type: object
+                    additionalProperties: false
+                    required: [id, name, ticker, exchange, currency, currentPrice, priceUpdatedAt]
+                    properties:
+                        id: {type: string, format: uuid}
+                        name: {type: string}
+                        ticker: {type: string}
+                        exchange: {type: string, description: Human-readable exchange name.}
+                        currency:
+                            $ref: '#/components/schemas/ApiCurrency'
+                        currentPrice: {type: number}
+                        priceUpdatedAt: {type: string, format: date-time, nullable: true}
+                pieces: {type: integer}
+                averagePurchasePrice: {type: number}
+                amounts:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                brokerCurrency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                brokerAmounts:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                currentValueCzk: {type: number}
+                portfolioSharePercent: {type: number}
+                dividends:
+                    type: object
+                    additionalProperties: false
+                    required: [fromDate, grossPerShare, yieldOnPricePercent, yieldOnCostPercent]
+                    properties:
+                        fromDate: {type: string, format: date}
+                        grossPerShare: {type: number}
+                        yieldOnPricePercent: {type: number, nullable: true}
+                        yieldOnCostPercent: {type: number, nullable: true}
+                positions:
+                    type: array
+                    items:
+                        $ref: '#/components/schemas/StockPurchasePosition'
+        StockPurchasePosition:
+            type: object
+            additionalProperties: false
+            required: [id, orderDate, pieces, purchasePrice, amounts, brokerCost]
+            properties:
+                id: {type: string, format: uuid}
+                orderDate: {type: string, format: date}
+                pieces: {type: integer}
+                purchasePrice: {type: number}
+                amounts:
+                    $ref: '#/components/schemas/PortfolioAmounts'
+                brokerCost:
+                    type: object
+                    additionalProperties: false
+                    required: [amount, currency]
+                    properties:
+                        amount: {type: number}
+                        currency:
+                            $ref: '#/components/schemas/ApiCurrency'
         PortfolioGoal:
             type: object
             additionalProperties: false

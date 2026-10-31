@@ -17,6 +17,7 @@ use App\OAuth2\Http\TokenController;
 use App\OAuth2\OAuthScope;
 use App\Stock\Asset\Api\StockAssetController;
 use App\Stock\Dividend\Api\StockDividendController;
+use App\Stock\Position\Api\StockPortfolioController;
 use Psr\Container\ContainerInterface;
 use Slim\App;
 use Slim\Routing\RouteCollectorProxy;
@@ -64,6 +65,7 @@ class RouterFactory
 			$v1->get('/dashboard/summary', DashboardSummaryController::class . ':summary');
 			$v1->get('/portfolio/dividends', StockDividendController::class . ':portfolio');
 			$v1->get('/portfolio/goals', PortfolioGoalController::class . ':list');
+			$v1->get('/portfolio/stocks', StockPortfolioController::class . ':list');
 		});
 		$portfolioGroup->add($this->requestValidationMiddleware);
 		$portfolioGroup->add($this->authentication->create(OAuthScope::PORTFOLIO_READ, requireUser: true));
