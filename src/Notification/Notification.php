@@ -10,10 +10,10 @@ use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Notification\RabbitMQ\NotificationMessage;
 use App\RabbitMQ\RabbitMQDatabaseMessage;
-use App\RabbitMQ\RabbitMQMessage;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use InvalidArgumentException;
+use Mistrfilda\Amqp\RabbitMQMessage;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Ramsey\Uuid\Uuid;
 

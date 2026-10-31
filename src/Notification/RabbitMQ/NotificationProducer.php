@@ -4,7 +4,7 @@ declare(strict_types = 1);
 
 namespace App\Notification\RabbitMQ;
 
-use App\RabbitMQ\BaseProducer;
+use Mistrfilda\Amqp\BaseProducer;
 
 /**
  * @extends BaseProducer<NotificationMessage>

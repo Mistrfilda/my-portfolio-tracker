@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace App\Notification\RabbitMQ;
 
 use App\Notification\NotificationSenderFacade;
-use App\RabbitMQ\BaseConsumer;
+use Mistrfilda\Amqp\BaseConsumer;
 use Tracy\Debugger;
 
 /**

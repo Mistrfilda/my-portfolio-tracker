@@ -12,7 +12,7 @@ Generic deferred-job mechanism backed by RabbitMQ. Prefer it over creating a new
 - **`JobRequestTypeEnum`** — source of truth for supported job types.
 - **`JobRequestFacade`** — public entry point; call it from any facade/presenter to enqueue a job.
 - **`JobRequestProcessor`** — consumer-side dispatcher; routes each `JobRequestTypeEnum` to the concrete facade (`ExpenseTagFacade`, `StockAssetDividendForecastRecordFacade`, `PortfolioGoalUpdateFacade`, …).
-- **`RabbitMQ/`** — `JobRequestMessage`, `JobRequestProducer`, `JobRequestConsumer` built on top of `src/RabbitMQ/` base classes (see [rabbitmq-base](../rabbitmq-base/SKILL.md)).
+- **`RabbitMQ/`** — `JobRequestMessage`, `JobRequestProducer`, `JobRequestConsumer` built on top of `Mistrfilda\Amqp` base classes from `mistrfilda/amqp` (see [rabbitmq-base](../rabbitmq-base/SKILL.md)).
 
 The Gemini enum case, convenience method, and processor branch remain for compatibility. New stock-analysis run and follow-up messages use the dedicated `StockAiAnalysisGeminiProcessProducer` in `src/Stock/AiAnalysis/RabbitMQ/`; see [stock-ai-analysis-gemini](../stock-ai-analysis-gemini/SKILL.md) when changing that flow.
 

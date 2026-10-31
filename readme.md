@@ -21,7 +21,7 @@ It is a monorepo: the web application and API stay at the root, the macOS deskto
 - **PHP 8.5** with **Nette Framework 3.1**
 - **Doctrine ORM**
 - **Symfony Console**
-- **RabbitMQ**
+- **RabbitMQ** through [mistrfilda/amqp](https://packagist.org/packages/mistrfilda/amqp)
 - **Monolog**
 
 ### Web frontend
@@ -49,7 +49,7 @@ It is a monorepo: the web application and API stay at the root, the macOS deskto
 - `src/Currency` - exchange rates and currency conversions
 - `src/Cash` - expenses, bank imports, and income tracking
 - `src/Goal` - portfolio and income goals
-- `src/JobRequest` and `src/RabbitMQ` - asynchronous processing and queue integration
+- `src/JobRequest` - asynchronous processing; `mistrfilda/amqp` provides queue transport and commands, wired in `config/rabbitmq.neon`
 - `src/UI` - shared presenters, controls, datagrids, forms, filters, and charts
 - `src/Api` and `src/OAuth2` - REST API and OAuth authorization, including client registration commands
 

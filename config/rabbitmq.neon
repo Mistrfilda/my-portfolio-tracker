@@ -14,18 +14,18 @@ parameters:
 				prefetchCount: 5
 
 services:
-	rabbitMQConnectionConfig: App\RabbitMQ\RabbitMQConnectionConfig(%rabbitmq.host%, %rabbitmq.port%, %rabbitmq.user%, %rabbitmq.password%)
-	rabbitMQConnectionFactory: App\RabbitMQ\RabbitMQConnectionFactory
-	rabbitMQPublisher: App\RabbitMQ\PhpAmqpLibRabbitMQPublisher
-	rabbitMQQueueConfigCollection: App\RabbitMQ\RabbitMQQueueConfigCollection([
-		App\RabbitMQ\RabbitMQQueueConfig('notificationQueue', 'notificationConsumer', @notificationConsumer, %rabbitmq.queues.notificationQueue.prefetchCount%),
-		App\RabbitMQ\RabbitMQQueueConfig('jobRequestQueue', 'jobRequestConsumer', @jobRequestConsumer, %rabbitmq.queues.jobRequestQueue.prefetchCount%),
-		App\RabbitMQ\RabbitMQQueueConfig('aiClientsQueue', 'aiClientsConsumer', @aiClientsConsumer, %rabbitmq.queues.aiClientsQueue.prefetchCount%, requeueOnFailure: false),
+	rabbitMQConnectionConfig: Mistrfilda\Amqp\RabbitMQConnectionConfig(%rabbitmq.host%, %rabbitmq.port%, %rabbitmq.user%, %rabbitmq.password%)
+	rabbitMQConnectionFactory: Mistrfilda\Amqp\RabbitMQConnectionFactory
+	rabbitMQPublisher: Mistrfilda\Amqp\PhpAmqpLibRabbitMQPublisher
+	rabbitMQQueueConfigCollection: Mistrfilda\Amqp\RabbitMQQueueConfigCollection([
+		Mistrfilda\Amqp\RabbitMQQueueConfig('notificationQueue', 'notificationConsumer', @notificationConsumer, %rabbitmq.queues.notificationQueue.prefetchCount%),
+		Mistrfilda\Amqp\RabbitMQQueueConfig('jobRequestQueue', 'jobRequestConsumer', @jobRequestConsumer, %rabbitmq.queues.jobRequestQueue.prefetchCount%),
+		Mistrfilda\Amqp\RabbitMQQueueConfig('aiClientsQueue', 'aiClientsConsumer', @aiClientsConsumer, %rabbitmq.queues.aiClientsQueue.prefetchCount%, requeueOnFailure: false),
 	])
-	rabbitMQQueueDeclarator: App\RabbitMQ\RabbitMQQueueDeclarator
-	rabbitMQConsumerRunner: App\RabbitMQ\RabbitMQConsumerRunner
-	- App\RabbitMQ\RabbitMQDeclareQueuesCommand
-	- App\RabbitMQ\RabbitMQConsumerCommand
+	rabbitMQQueueDeclarator: Mistrfilda\Amqp\RabbitMQQueueDeclarator
+	rabbitMQConsumerRunner: Mistrfilda\Amqp\RabbitMQConsumerRunner
+	- Mistrfilda\Amqp\RabbitMQDeclareQueuesCommand
+	- Mistrfilda\Amqp\RabbitMQConsumerCommand
 	notificationConsumer: App\Notification\RabbitMQ\NotificationConsumer
 	notificationProducer: App\Notification\RabbitMQ\NotificationProducer(@rabbitMQPublisher, 'notificationQueue')
 	jobRequestConsumer: App\JobRequest\RabbitMQ\JobRequestConsumer

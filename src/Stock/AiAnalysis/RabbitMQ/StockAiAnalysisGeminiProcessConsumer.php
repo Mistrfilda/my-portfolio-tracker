@@ -4,8 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Stock\AiAnalysis\RabbitMQ;
 
-use App\RabbitMQ\BaseConsumer;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
+use Mistrfilda\Amqp\BaseConsumer;
 
 /**
  * @extends BaseConsumer<StockAiAnalysisGeminiProcessMessage>

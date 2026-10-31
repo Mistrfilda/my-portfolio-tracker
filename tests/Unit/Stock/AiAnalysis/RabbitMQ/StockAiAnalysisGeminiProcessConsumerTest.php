@@ -4,10 +4,10 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\RabbitMQ;
 
-use App\RabbitMQ\RabbitMQConsumeResult;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessConsumer;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
+use Mistrfilda\Amqp\RabbitMQConsumeResult;
 use Nette\Utils\Json;
 use PHPUnit\Framework\TestCase;
 

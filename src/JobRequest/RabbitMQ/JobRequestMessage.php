@@ -5,7 +5,7 @@ declare(strict_types = 1);
 namespace App\JobRequest\RabbitMQ;
 
 use App\JobRequest\JobRequestTypeEnum;
-use App\RabbitMQ\RabbitMQMessage;
+use Mistrfilda\Amqp\RabbitMQMessage;
 
 class JobRequestMessage implements RabbitMQMessage
 {

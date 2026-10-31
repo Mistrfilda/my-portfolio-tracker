@@ -5,8 +5,8 @@ declare(strict_types = 1);
 namespace App\JobRequest\RabbitMQ;
 
 use App\JobRequest\JobRequestProcessor;
-use App\RabbitMQ\BaseConsumer;
 use Doctrine\ORM\EntityManagerInterface;
+use Mistrfilda\Amqp\BaseConsumer;
 use Tracy\Debugger;
 
 /**

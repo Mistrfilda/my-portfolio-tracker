@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0432a7d64fb3ba91c08310a94ce4c2fc",
+    "content-hash": "1f04cc5fce5a6ba7b474416eb29002ef",
     "packages": [
         {
             "name": "beberlei/doctrineextensions",
@@ -2908,6 +2908,63 @@
                 "source": "https://github.com/marc-mabe/php-enum/tree/v4.7.2"
             },
             "time": "2025-09-14T11:18:39+00:00"
+        },
+        {
+            "name": "mistrfilda/amqp",
+            "version": "v0.1.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Mistrfilda/amqp.git",
+                "reference": "4e4886851b75f88c3ee8ac67219ef38a63ca36b5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Mistrfilda/amqp/zipball/4e4886851b75f88c3ee8ac67219ef38a63ca36b5",
+                "reference": "4e4886851b75f88c3ee8ac67219ef38a63ca36b5",
+                "shasum": ""
+            },
+            "require": {
+                "cuyz/valinor": "^2.0",
+                "nette/utils": "^4.0",
+                "php": ">=8.4.1",
+                "php-amqplib/php-amqplib": "^3.7",
+                "symfony/console": "^8.0"
+            },
+            "require-dev": {
+                "php-parallel-lint/php-parallel-lint": "^1.4",
+                "phpstan/extension-installer": "^1.0",
+                "phpstan/phpstan": "^2.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
+                "phpunit/phpunit": "^13.4",
+                "roave/security-advisories": "dev-master",
+                "slevomat/coding-standard": "^8.31",
+                "squizlabs/php_codesniffer": "^4.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mistrfilda\\Amqp\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "description": "RabbitMQ integration with typed JSON messages, producers, consumers and Symfony Console commands.",
+            "keywords": [
+                "AMQP",
+                "console",
+                "queue",
+                "rabbitmq",
+                "valinor"
+            ],
+            "support": {
+                "issues": "https://github.com/Mistrfilda/amqp/issues",
+                "source": "https://github.com/Mistrfilda/amqp/tree/v0.1.0"
+            },
+            "time": "2026-10-31T11:46:42+00:00"
         },
         {
             "name": "mistrfilda/datetime",

@@ -4,9 +4,9 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\RabbitMQ;
 
-use App\RabbitMQ\RabbitMQPublisher;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
+use Mistrfilda\Amqp\RabbitMQPublisher;
 use Nette\Utils\Json;
 use PHPUnit\Framework\TestCase;
 

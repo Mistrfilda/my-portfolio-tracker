@@ -17,7 +17,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 - `src/Stock/` — the largest investment domain: assets, positions, dividends, prices, valuations, AI analysis.
 - `src/Portu/` and `src/Crypto/` — asset-specific modules outside stocks.
 - `src/Currency/` — exchange rates, currency conversion, and GBp to GBP handling.
-- `src/JobRequest/` + `src/RabbitMQ/` — deferred jobs and queue-based processing.
+- `src/JobRequest/` + `config/rabbitmq.neon` — deferred jobs and queue-based processing through `mistrfilda/amqp`; `src/RabbitMQ/` holds the application entity-to-message contract.
 - `src/Notification/` — outbound notifications, including Discord.
 - `src/UI/` — presenters, controls, datagrids, forms, filters, icons, and shared template infrastructure.
 - `src/Api/` and module `Api/` folders — REST API endpoints.
@@ -75,7 +75,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 
 - **Background jobs / async recalculation / queue consumers**
 	- Start in `src/JobRequest/` for generic deferred work.
-	- Continue to `src/RabbitMQ/` for shared queue abstractions.
+	- Shared queue abstractions and commands come from `mistrfilda/amqp` (`Mistrfilda\Amqp`); application wiring is in `config/rabbitmq.neon`.
 	- Use [job-request](../job-request/SKILL.md) for job types and payloads; use [rabbitmq-base](../rabbitmq-base/SKILL.md) when changing the queue transport or a dedicated message flow.
 
 - **Notifications**

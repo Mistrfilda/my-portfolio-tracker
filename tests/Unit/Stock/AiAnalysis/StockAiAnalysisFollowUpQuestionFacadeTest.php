@@ -6,7 +6,6 @@ namespace App\Test\Unit\Stock\AiAnalysis;
 
 use App\Admin\AppAdmin;
 use App\Ai\Gemini\GeminiClient;
-use App\RabbitMQ\RabbitMQPublisher;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessMessage;
 use App\Stock\AiAnalysis\RabbitMQ\StockAiAnalysisGeminiProcessProducer;
 use App\Stock\AiAnalysis\StockAiAnalysisFollowUpPromptGenerator;
@@ -19,6 +18,7 @@ use App\Stock\AiAnalysis\StockAiAnalysisRun;
 use App\Stock\AiAnalysis\StockAiAnalysisRunRepository;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use Mistrfilda\Amqp\RabbitMQPublisher;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Utils\Json;
