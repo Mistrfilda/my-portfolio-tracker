@@ -38,6 +38,7 @@ export function useDashboard() {
 				summary: failed,
 				dividends: failed,
 				rates: failed,
+				goals: failed,
 			}))
 			.then((next) => {
 				if (active)
@@ -47,6 +48,7 @@ export function useDashboard() {
 							summary: merge(previous?.view.summary, next.summary),
 							dividends: merge(previous?.view.dividends, next.dividends),
 							rates: merge(previous?.view.rates, next.rates),
+							goals: merge(previous?.view.goals, next.goals),
 						},
 					}));
 			});

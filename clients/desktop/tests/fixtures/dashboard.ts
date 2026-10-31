@@ -2,6 +2,7 @@ import type {
 	DashboardSnapshot,
 	DashboardSummary,
 	ExchangeRate,
+	PortfolioGoal,
 } from '../../src/shared/dashboard';
 
 // Synthetic data only; never copied from a user's portfolio.
@@ -91,6 +92,51 @@ export const dividendResponse = {
 	],
 };
 
+export const goals: PortfolioGoal[] = [
+	{
+		id: 'goal-invested',
+		type: 'total_invested_amount',
+		currency: 'CZK',
+		startDate: '2026-01-01',
+		endDate: '2026-12-31',
+		repeatable: null,
+		valueAtStart: 1_000_000,
+		currentValue: 1_212_500,
+		targetValue: 1_500_000,
+		completionPercent: 42.5,
+		remainingAmount: 287_500,
+		updatedAt: '2026-10-25T12:00:00+01:00',
+	},
+	{
+		id: 'goal-dividends',
+		type: 'total_dividend_amount',
+		currency: 'CZK',
+		startDate: '2026-01-01',
+		endDate: '2026-12-31',
+		repeatable: null,
+		valueAtStart: 0,
+		currentValue: 25_075,
+		targetValue: 20_000,
+		completionPercent: 125.375,
+		remainingAmount: -5_075,
+		updatedAt: '2026-10-25T12:00:00+01:00',
+	},
+	{
+		id: 'goal-monthly-income',
+		type: 'monthly_income',
+		currency: 'CZK',
+		startDate: '2026-10-01',
+		endDate: '2026-10-31',
+		repeatable: 'monthly',
+		valueAtStart: 0,
+		currentValue: 65_000,
+		targetValue: 100_000,
+		completionPercent: 65,
+		remainingAmount: 35_000,
+		updatedAt: '2026-10-25T12:00:00+01:00',
+	},
+];
+
 export const rates: ExchangeRate[] = [
 	['USD', 'CZK', 23.1],
 	['EUR', 'CZK', 24.6],
@@ -132,5 +178,6 @@ export function dashboardFixture(): DashboardSnapshot {
 			issue: null,
 		},
 		rates: { data: rates, issue: null },
+		goals: { data: goals, issue: null },
 	});
 }

@@ -5,6 +5,7 @@ import type {
 	ExchangeRate,
 	PortfolioAmounts,
 	PortfolioDividend,
+	PortfolioGoal,
 	StockMover,
 	StockReference,
 } from '../../shared/dashboard';
@@ -186,6 +187,46 @@ export function parseDividends(value: unknown): PortfolioDividend[] {
 			};
 		},
 		8,
+	);
+}
+
+export function parseGoals(value: unknown): PortfolioGoal[] {
+	return list(
+		object(value).items,
+		(value) => {
+			const data = object(value);
+			const type = string(data.type);
+			if (
+				![
+					'total_invested_amount',
+					'total_income',
+					'total_dividend_amount',
+					'monthly_income',
+				].includes(type) ||
+				(data.repeatable !== null &&
+					data.repeatable !== 'monthly' &&
+					data.repeatable !== 'weekly')
+			)
+				return invalid();
+			const startDate = date(data.startDate);
+			const endDate = date(data.endDate);
+			if (endDate < startDate) return invalid();
+			return {
+				id: string(data.id),
+				type: type as PortfolioGoal['type'],
+				currency: currency(data.currency),
+				startDate,
+				endDate,
+				repeatable: data.repeatable,
+				valueAtStart: number(data.valueAtStart),
+				currentValue: number(data.currentValue),
+				targetValue: number(data.targetValue),
+				completionPercent: number(data.completionPercent),
+				remainingAmount: number(data.remainingAmount),
+				updatedAt: timestamp(data.updatedAt),
+			};
+		},
+		1000,
 	);
 }
 

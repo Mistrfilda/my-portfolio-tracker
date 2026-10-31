@@ -82,6 +82,36 @@ paths:
                     $ref: '#/components/responses/Forbidden'
                 '503':
                     $ref: '#/components/responses/DataUnavailable'
+    /portfolio/goals:
+        get:
+            summary: Get the authenticated user's active portfolio goals
+            description: >-
+                Uses the web dashboard's active, already-started goals, ordered by start date.
+                Returns stored values without recalculating or advancing recurring goals.
+                Completion is relative to valueAtStart, in percentage points, and may be below
+                zero or above 100. remainingAmount may be negative when a target is exceeded.
+                An empty account returns an empty items array. Requires user authorization.
+            tags: [Portfolio]
+            security:
+                - OAuth2: [portfolio:read]
+            responses:
+                '200':
+                    description: Personal active goals
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                additionalProperties: false
+                                required: [items]
+                                properties:
+                                    items:
+                                        type: array
+                                        items:
+                                            $ref: '#/components/schemas/PortfolioGoal'
+                '401':
+                    $ref: '#/components/responses/Unauthorized'
+                '403':
+                    $ref: '#/components/responses/Forbidden'
     /portfolio/dividends:
         get:
             summary: Get the authenticated user's latest dividend records
@@ -599,7 +629,7 @@ components:
                     scopes:
                         api:read: Read shared stock catalog; personal endpoints require user authorization
                         market:read: Read shared exchange rates and company dividend events
-                        portfolio:read: Read personal dashboard and dividends; requires user authorization
+                        portfolio:read: Read personal dashboard, goals and dividends; requires user authorization
                         home:read: Read own home devices and records; requires user authorization
                         home:write: Create records for own home devices; requires user authorization
                 authorizationCode:
@@ -608,7 +638,7 @@ components:
                     refreshUrl: /api/oauth/token
                     scopes:
                         api:read: Read own portfolio and shared stock data
-                        portfolio:read: Read own dashboard, dividend records and user identity
+                        portfolio:read: Read own dashboard, goals, dividend records and user identity
                         market:read: Read shared exchange rates and company dividend events
                         home:read: Read own home devices and records
                         home:write: Create records for own home devices
@@ -700,6 +730,29 @@ components:
                             maxItems: 4
                             items:
                                 $ref: '#/components/schemas/StockMover'
+        PortfolioGoal:
+            type: object
+            additionalProperties: false
+            required: [id, type, currency, startDate, endDate, repeatable, valueAtStart, currentValue, targetValue, completionPercent, remainingAmount, updatedAt]
+            properties:
+                id: {type: string, format: uuid}
+                type:
+                    type: string
+                    enum: [total_invested_amount, total_income, total_dividend_amount, monthly_income]
+                currency:
+                    $ref: '#/components/schemas/ApiCurrency'
+                startDate: {type: string, format: date}
+                endDate: {type: string, format: date}
+                repeatable:
+                    type: string
+                    nullable: true
+                    enum: [monthly, weekly, null]
+                valueAtStart: {type: number}
+                currentValue: {type: number}
+                targetValue: {type: number}
+                completionPercent: {type: number}
+                remainingAmount: {type: number}
+                updatedAt: {type: string, format: date-time}
         PortfolioAmounts:
             type: object
             additionalProperties: false

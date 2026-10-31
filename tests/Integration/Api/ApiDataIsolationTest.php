@@ -11,6 +11,9 @@ use App\Currency\CurrencyConversion;
 use App\Currency\CurrencyConversionRepository;
 use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
+use App\Goal\PortfolioGoal;
+use App\Goal\PortfolioGoalRepeatableEnum;
+use App\Goal\PortfolioGoalTypeEnum;
 use App\Home\Device\HomeDevice;
 use App\Home\Device\HomeDeviceType;
 use App\Home\Device\Record\HomeDeviceRecord;
@@ -327,7 +330,7 @@ class ApiDataIsolationTest extends ApiTestCase
 		$market = $this->getOAuthAccessToken(['market:read']);
 		$portfolio = $this->getUserOAuthAccessToken($this->owners[0], ['portfolio:read']);
 		$clientOnly = $this->getOAuthAccessToken(['portfolio:read', 'market:read']);
-		foreach (['/dashboard/summary', '/portfolio/dividends'] as $path) {
+		foreach (['/dashboard/summary', '/portfolio/dividends', '/portfolio/goals'] as $path) {
 			self::assertSame('insufficient_scope', $this->data($this->api('GET', $path, $market), 403)['error']);
 			self::assertSame(
 				'insufficient_scope',
@@ -351,13 +354,65 @@ class ApiDataIsolationTest extends ApiTestCase
 		}
 
 		self::assertSame('insufficient_scope', $this->data($this->api('GET', '/stocks', $portfolio), 403)['error']);
-		foreach (['/dashboard/summary', '/portfolio/dividends', '/exchange-rates', '/stock-dividends'] as $path) {
+		foreach (['/dashboard/summary', '/portfolio/dividends', '/portfolio/goals', '/exchange-rates', '/stock-dividends'] as $path) {
 			$request = new ServerRequestFactory()->createServerRequest('GET', '/api/v1' . $path);
 			self::assertSame(401, $this->app->handle($request)->getStatusCode());
 			self::assertSame(
 				401,
 				$this->app->handle($request->withHeader('X-Api-Key', 'test-api-key'))->getStatusCode(),
 			);
+		}
+	}
+
+	public function testActiveGoalsFollowTokenOwnerAndExcludeInactiveOrFutureGoals(): void
+	{
+		$now = $this->createDatetime();
+		$ids = [];
+		foreach ([0, 1] as $index) {
+			$owner = $this->em->find(AppAdmin::class, $this->owners[$index]->getId());
+			self::assertNotNull($owner);
+			foreach (['active', 'inactive', 'future'] as $state) {
+				$goal = new PortfolioGoal(
+					$owner,
+					$now->modify($state === 'future' ? '+2 days' : '-2 days'),
+					$now->modify('+1 month'),
+					PortfolioGoalTypeEnum::TOTAL_INVESTED_AMOUNT,
+					1000,
+					PortfolioGoalRepeatableEnum::MONTHLY,
+					$now,
+				);
+				if ($state !== 'inactive') {
+					$goal->start(200, 600 + $index * 500, $now);
+				}
+
+				if ($state === 'active') {
+					$ids[$index] = $goal->getId()->toString();
+				}
+
+				$this->em->persist($goal);
+			}
+		}
+
+		$this->em->flush();
+		$tokens = array_map(
+			fn (AppAdmin $owner): string => $this->getUserOAuthAccessToken($owner, ['portfolio:read']),
+			$this->owners,
+		);
+		foreach ([0, 1, 2, 1, 0] as $index) {
+			$response = $this->api('GET', '/portfolio/goals?userId=' . $this->owners[1]->getId(), $tokens[$index]);
+			self::assertSame('no-store', $response->getHeaderLine('Cache-Control'));
+			$items = $this->data($response)['items'];
+			self::assertCount($index === 2 ? 0 : 1, $items);
+			if ($index !== 2) {
+				self::assertSame($ids[$index], $items[0]['id']);
+				self::assertSame(600.0 + $index * 500, $items[0]['currentValue']);
+				self::assertSame($index === 0 ? 50.0 : 112.5, $items[0]['completionPercent']);
+				self::assertSame($index === 0 ? 400.0 : -100.0, $items[0]['remainingAmount']);
+				self::assertSame('monthly', $items[0]['repeatable']);
+				self::assertArrayNotHasKey('appAdmin', $items[0]);
+			}
+
+			self::assertNull($this->getService(CurrentAppAdminGetter::class)->getAppAdminOrNull());
 		}
 	}
 

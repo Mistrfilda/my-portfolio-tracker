@@ -96,7 +96,9 @@ Outputs are ignored by Git:
 - `clients/desktop/artifacts/mac-arm64/My Portfolio.app` — application to open locally.
 - `clients/desktop/artifacts/*.zip` — archive containing the application.
 
-This is a local build with an ad-hoc signature, without an Apple Developer ID certificate or notarization. Hardened runtime is disabled for this development package. It is not a public distribution release; macOS can restrict applications downloaded from other machines. Developer ID signing, notarization, an application icon, and an update feed will be added when distribution is needed. The build uses no Developer ID credentials and does not publish artifacts.
+This is a local build with an ad-hoc signature, without an Apple Developer ID certificate or notarization. Hardened runtime is disabled for this development package. It is not a public distribution release; macOS can restrict applications downloaded from other machines. Developer ID signing, notarization, and an update feed will be added when distribution is needed. The build uses no Developer ID credentials and does not publish artifacts.
+
+The macOS application icon uses the web favicon artwork. `clients/desktop/build/icon.png` is a copy of `www/android-chrome-512x512.png`; electron-builder converts it to ICNS and registers it in the application bundle for Finder and the Dock. When the favicon changes, copy the source PNG again and rebuild the package. Packaging uses only the desktop copy, so it does not depend on the web build.
 
 ZIP is the initial packaging target and does not need a mounted disk image. A DMG can be added with the distribution work; the agent environment returned `hdiutil: create failed - Device not configured` when that format was tested.
 
@@ -157,11 +159,14 @@ React Router uses in-memory navigation so application routes do not change the d
 
 ## Portfolio dashboard
 
-After login, the overview loads three fixed GET endpoints from the existing server:
+After login, the overview loads four fixed GET endpoints from the existing server:
 
 - `/api/v1/dashboard/summary`: open-position value, cost and profit in CZK, stocks/crypto/Portu allocation, stock trading currencies, historical performance, annual dividend entitlements, remaining dividend forecast and daily owned-stock movers.
 - `/api/v1/portfolio/dividends?limit=8`: latest personal entitlements, preserving each record's original currency and announced payment date.
 - `/api/v1/exchange-rates`: twelve shared currency pairs with their effective dates and sources.
+- `/api/v1/portfolio/goals`: the user's active, already-started goals, with stored values, target, starting amount, completion percentage, dates and recurrence. GET does not recalculate goals. Deploy the backend changes together with this client feature; an older server leaves only the goals panel unavailable.
+
+The goals panel groups full calendar-year goals under **Roční cíle**, monthly recurring goals and full calendar-month goals under **Měsíční cíle**, and weekly or custom periods under **Další cíle portfolia**. It uses the server's completion percentage relative to the starting amount; only the visual progress bar is limited to 0–100%, so exceeded or negative progress stays visible in the text. Empty and unavailable goals have distinct states. The light and dark themes share the web application's blue accent; gains and losses retain their semantic colors.
 
 The existing `portfolio:read market:read` authorization is sufficient; no new client or scope change is needed. `src/main/dashboard/` validates numeric responses against the selected shapes in [OpenAPI](openapi.yaml) and returns only explicitly selected fields. HTTP stays in main with bounded response size, timeouts, no redirects/cookies/cache and token-free errors. `SessionService.readAuthenticated` serializes reads with rotating refresh and logout, permits at most one 401 retry and discards responses when logout starts. Overlapping dashboard loads share one in-flight request.
 

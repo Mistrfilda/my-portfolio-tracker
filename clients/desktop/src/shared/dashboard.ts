@@ -72,6 +72,25 @@ export interface ExchangeRate {
 	source: 'CNB' | 'ECB';
 }
 
+export interface PortfolioGoal {
+	id: string;
+	type:
+		| 'total_invested_amount'
+		| 'total_income'
+		| 'total_dividend_amount'
+		| 'monthly_income';
+	currency: Currency;
+	startDate: string;
+	endDate: string;
+	repeatable: 'monthly' | 'weekly' | null;
+	valueAtStart: number;
+	currentValue: number;
+	targetValue: number;
+	completionPercent: number;
+	remainingAmount: number;
+	updatedAt: string;
+}
+
 export type DashboardIssue =
 	| 'network'
 	| 'server'
@@ -87,6 +106,7 @@ export interface DashboardSnapshot {
 	summary: DashboardResult<DashboardSummary>;
 	dividends: DashboardResult<PortfolioDividend[]>;
 	rates: DashboardResult<ExchangeRate[]>;
+	goals: DashboardResult<PortfolioGoal[]>;
 }
 
 export interface DashboardBridge {

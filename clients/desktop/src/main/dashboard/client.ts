@@ -7,13 +7,19 @@ import { readJson } from '../auth/client';
 import type { Connection } from '../auth/config';
 import { AuthError } from '../auth/errors';
 import type { SessionService } from '../auth/session-service';
-import { parseDividends, parseRates, parseSummary } from './contracts';
+import {
+	parseDividends,
+	parseGoals,
+	parseRates,
+	parseSummary,
+} from './contracts';
 
 export function dashboardFailure(issue: DashboardIssue): DashboardSnapshot {
 	return {
 		summary: { data: null, issue },
 		dividends: { data: null, issue },
 		rates: { data: null, issue },
+		goals: { data: null, issue },
 	};
 }
 
@@ -73,20 +79,23 @@ export class DashboardClient {
 			this.get('dashboard/summary', token, parseSummary),
 			this.get('portfolio/dividends?limit=8', token, parseDividends),
 			this.get('exchange-rates', token, parseRates),
+			this.get('portfolio/goals', token, parseGoals),
 		]);
-		const [summary, dividends, rates] = results;
+		const [summary, dividends, rates, goals] = results;
 		for (const result of results)
 			if (result.status === 'rejected') throw result.reason;
 		if (
 			summary.status !== 'fulfilled' ||
 			dividends.status !== 'fulfilled' ||
-			rates.status !== 'fulfilled'
+			rates.status !== 'fulfilled' ||
+			goals.status !== 'fulfilled'
 		)
 			throw new Error('Dashboard request did not complete.');
 		return {
 			summary: summary.value,
 			dividends: dividends.value,
 			rates: rates.value,
+			goals: goals.value,
 		};
 	}
 }

@@ -9,6 +9,7 @@ use App\Api\Controller\PingController;
 use App\Currency\Api\ExchangeRateController;
 use App\Dashboard\Api\DashboardSummaryController;
 use App\Dashboard\Api\DashboardValueController;
+use App\Goal\Api\PortfolioGoalController;
 use App\Home\Device\Record\Api\HomeDeviceRecordController;
 use App\OAuth2\Http\AuthorizationController;
 use App\OAuth2\Http\RevocationController;
@@ -62,6 +63,7 @@ class RouterFactory
 		$portfolioGroup = $slimApp->group('/api/v1', function (RouteCollectorProxy $v1): void {
 			$v1->get('/dashboard/summary', DashboardSummaryController::class . ':summary');
 			$v1->get('/portfolio/dividends', StockDividendController::class . ':portfolio');
+			$v1->get('/portfolio/goals', PortfolioGoalController::class . ':list');
 		});
 		$portfolioGroup->add($this->requestValidationMiddleware);
 		$portfolioGroup->add($this->authentication->create(OAuthScope::PORTFOLIO_READ, requireUser: true));

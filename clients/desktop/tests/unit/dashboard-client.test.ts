@@ -8,10 +8,11 @@ import {
 } from '../../src/main/dashboard/client';
 import {
 	parseDividends,
+	parseGoals,
 	parseRates,
 	parseSummary,
 } from '../../src/main/dashboard/contracts';
-import { dividendResponse, rates, summary } from '../fixtures/dashboard';
+import { dividendResponse, goals, rates, summary } from '../fixtures/dashboard';
 
 function fixture() {
 	const request = vi.fn<typeof fetch>(async (input) => {
@@ -21,19 +22,20 @@ function fixture() {
 				? summary
 				: path.endsWith('/dividends')
 					? dividendResponse
-					: { items: rates },
+					: { items: path.endsWith('/goals') ? goals : rates },
 		);
 	});
 	return { request, client: new DashboardClient(defaultConnection, request) };
 }
 
 describe('dashboard contracts and requests', () => {
-	it('loads only the three fixed endpoints with bearer auth, no cookies, redirects or cache', async () => {
+	it('loads only the four fixed endpoints with bearer auth, no cookies, redirects or cache', async () => {
 		const f = fixture();
 		const result = await f.client.load('test-access');
 		expect(result.summary.data).toEqual(summary);
 		expect(result.dividends.data?.[0]?.netAmount).toBe(106.25);
 		expect(result.rates.data).toEqual(rates);
+		expect(result.goals.data).toEqual(goals);
 		expect(
 			f.request.mock.calls.map(
 				([url]) => new URL(String(url)).pathname + new URL(String(url)).search,
@@ -42,6 +44,7 @@ describe('dashboard contracts and requests', () => {
 			'/api/v1/dashboard/summary',
 			'/api/v1/portfolio/dividends?limit=8',
 			'/api/v1/exchange-rates',
+			'/api/v1/portfolio/goals',
 		]);
 		for (const [, options] of f.request.mock.calls)
 			expect(options).toMatchObject({
@@ -81,6 +84,40 @@ describe('dashboard contracts and requests', () => {
 		expect(result.summary).toEqual({ data: null, issue: 'data-unavailable' });
 		expect(result.dividends).toEqual({ data: [], issue: null });
 		expect(result.rates).toEqual({ data: null, issue: 'invalid-response' });
+		expect(result.goals).toEqual({ data: [], issue: null });
+	});
+	it('keeps the rest of the dashboard available if the server has no goals endpoint yet', async () => {
+		const f = fixture();
+		const request = f.request.getMockImplementation()!;
+		f.request.mockImplementation(async (input, options) =>
+			new URL(String(input)).pathname.endsWith('/goals')
+				? new Response('', { status: 404 })
+				: request(input, options),
+		);
+		const result = await f.client.load('test-access');
+		expect(result.goals).toEqual({ data: null, issue: 'server' });
+		expect(result.summary.data).toEqual(summary);
+		expect(result.rates.data).toEqual(rates);
+	});
+	it('preserves goal progress beyond the target and strips unselected fields', () => {
+		expect(parseGoals({ items: goals })).toEqual(goals);
+		expect(parseGoals({ items: [] })).toEqual([]);
+		expect(
+			parseGoals({ items: [{ ...goals[0], owner: 'private' }] })[0],
+		).not.toHaveProperty('owner');
+	});
+	it.each([
+		{ currentValue: '100 Kč' },
+		{ completionPercent: Infinity },
+		{ type: 'unknown' },
+		{ repeatable: 'yearly' },
+		{ endDate: '2026-02-30' },
+		{ endDate: '2025-12-31' },
+		{ updatedAt: null },
+	])('rejects invalid goal data: %j', (changes) => {
+		expect(() =>
+			parseGoals({ items: [{ ...goals[0], ...changes }] }),
+		).toThrow();
 	});
 	it.each([
 		[403, 'permissions'],

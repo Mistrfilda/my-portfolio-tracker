@@ -8,6 +8,7 @@ files:
 asar: true
 npmRebuild: false
 mac:
+  icon: build/icon.png
   category: public.app-category.finance
   target:
     - target: zip

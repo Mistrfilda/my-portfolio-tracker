@@ -76,6 +76,28 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 			page.getByText('Nedostatek dat pro výpočet', { exact: true }),
 		).toBeVisible();
 		await expect(page.getByText('106,25 US$', { exact: true })).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Aktuální cíle portfolia' }),
+		).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Roční cíle', exact: true }),
+		).toBeVisible();
+		await expect(
+			page.getByRole('heading', { name: 'Měsíční cíle', exact: true }),
+		).toBeVisible();
+		await expect(
+			page.getByRole('progressbar', { name: /Investovaná částka/ }),
+		).toHaveAttribute('aria-valuenow', '42.5');
+		await expect(
+			page.getByRole('progressbar', { name: /Příjem z dividend/ }),
+		).toHaveAttribute('aria-valuenow', '100');
+		await expect(
+			page.getByRole('progressbar', { name: /Příjem z dividend/ }),
+		).toHaveAttribute('aria-valuetext', /125,38\s%/);
+		await expect(page.getByText('Nad cílem 5 075 Kč')).toBeVisible();
+		await page.locator('main').evaluate((element) => {
+			element.scrollTop = 0;
+		});
 		await page.screenshot({
 			path: test.info().outputPath('dashboard-light.png'),
 		});
@@ -104,9 +126,15 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 		});
 
 		const failed = { data: null, issue: 'network' } as const;
-		await respond({ summary: failed, dividends: failed, rates: failed });
+		await respond({
+			summary: failed,
+			dividends: failed,
+			rates: failed,
+			goals: failed,
+		});
 		await page.getByRole('button', { name: 'Obnovit', exact: true }).click();
-		await expect(page.getByText(/Zobrazená data pocházejí/)).toHaveCount(3);
+		await expect(page.getByText(/Zobrazená data pocházejí/)).toHaveCount(4);
+		await expect(page.getByRole('progressbar')).toHaveCount(3);
 		await expect(
 			page.getByRole('heading', { name: 'Složení portfolia' }),
 		).toBeVisible();
@@ -150,6 +178,7 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 			performance: null,
 		};
 		empty.dividends = { data: [], issue: null };
+		empty.goals = { data: [], issue: null };
 		await respond(empty);
 		await page.getByRole('button', { name: 'Obnovit', exact: true }).click();
 		await expect(
@@ -161,6 +190,20 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 		await expect(
 			page.getByText(/Pro výpočet výkonnosti zatím není dostatek/),
 		).toBeVisible();
+		await expect(
+			page.getByText('Zatím nemáte žádné aktivní cíle portfolia.'),
+		).toBeVisible();
+		await expect(page.getByRole('progressbar')).toHaveCount(0);
+		await page.getByRole('link', { name: 'Nastavení', exact: true }).click();
+		await respond({ ...empty, goals: failed });
+		await page.getByRole('link', { name: 'Přehled', exact: true }).click();
+		await expect(page.getByRole('alert')).toHaveCount(1);
+		await expect(
+			page.getByText('Zatím nemáte žádné aktivní cíle portfolia.'),
+		).toHaveCount(0);
+		await respond(dashboardFixture());
+		await page.getByRole('button', { name: 'Obnovit', exact: true }).click();
+		await expect(page.getByRole('progressbar')).toHaveCount(3);
 
 		// A real lifecycle notification must immediately remove all personal data.
 		await application.evaluate(({ BrowserWindow }) => {
@@ -177,6 +220,9 @@ test('renders the dashboard, refresh errors, empty data and logout in an isolate
 		).toBeVisible();
 		await expect(
 			page.getByRole('heading', { name: 'Složení portfolia' }),
+		).toHaveCount(0);
+		await expect(
+			page.getByRole('heading', { name: 'Aktuální cíle portfolia' }),
 		).toHaveCount(0);
 		expect(errors).toEqual([]);
 	} finally {

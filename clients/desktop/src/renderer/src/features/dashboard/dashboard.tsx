@@ -1,6 +1,7 @@
 import { LoaderCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DividendSummary, RecentDividends } from './dividends';
+import { PortfolioGoals } from './goals';
 import { ExchangeRates, StockMovers } from './market';
 import { PortfolioSummary } from './portfolio-summary';
 import { DataIssue } from './section';
@@ -55,6 +56,7 @@ export function Dashboard() {
 					))}
 				</div>
 			)}
+			{view && <PortfolioGoals section={view.goals} />}
 			{view?.summary.issue && (
 				<DataIssue issue={view.summary.issue} stale={summary !== null} />
 			)}
