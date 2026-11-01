@@ -18,6 +18,7 @@ use App\Dashboard\DashboardDividendvalueBuilderFacade;
 use App\Dashboard\DashboardStockPerformanceProvider;
 use App\Dashboard\DashboardValueBuilderFacade;
 use App\Portu\Position\PortuPositionFacade;
+use App\Statistic\PortfolioStatisticCache;
 use App\Statistic\Total\PortfolioStatisticTotalValue;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
 use App\Stock\Asset\StockAsset;
@@ -26,6 +27,7 @@ use App\Stock\Position\Closed\StockClosedPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\Test\Unit\Dashboard\Support\DashboardLinkGeneratorPresenter;
 use Closure;
+use Doctrine\DBAL\Connection;
 use LogicException;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -34,6 +36,7 @@ use Mockery\MockInterface;
 use Nette\Application\IPresenter;
 use Nette\Application\IPresenterFactory;
 use Nette\Application\LinkGenerator;
+use Nette\Caching\Storages\DevNullStorage;
 use Nette\Http\UrlScript;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
@@ -74,6 +77,7 @@ class DashboardValueBuilderFacadeTest extends TestCase
 	protected function setUp(): void
 	{
 		$this->appAdmin = $this->createStub(AppAdmin::class);
+		$this->appAdmin->method('getId')->willReturn(Uuid::uuid4());
 		$this->currencyConversionRepository = Mockery::mock(CurrencyConversionRepository::class);
 		$this->stockPositionFacade = Mockery::mock(StockPositionFacade::class);
 		$this->summaryPriceService = Mockery::mock(SummaryPriceService::class);
@@ -98,7 +102,11 @@ class DashboardValueBuilderFacadeTest extends TestCase
 			$this->stockClosedPositionFacade,
 			$this->cryptoPositionFacade,
 			$this->cryptoAssetRepository,
-			new DashboardStockPerformanceProvider($this->stockAssetRepository, $this->datetimeFactory),
+			new DashboardStockPerformanceProvider(
+				$this->stockAssetRepository,
+				$this->datetimeFactory,
+				new PortfolioStatisticCache(new DevNullStorage(), $this->createStub(Connection::class)),
+			),
 			$this->portfolioStatisticTotalValueProvider,
 			$this->linkGenerator,
 			$this->createStub(CurrentAppAdminGetter::class),

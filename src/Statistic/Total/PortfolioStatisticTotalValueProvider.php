@@ -8,35 +8,31 @@ use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\PortfolioStatistic;
+use App\Statistic\PortfolioStatisticCache;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
-use Nette\Caching\Cache;
-use Nette\Caching\Storage;
 
 class PortfolioStatisticTotalValueProvider
 {
 
 	private const string CACHE_KEY = 'all-time-value-v2-';
 
-	private readonly Cache $cache;
-
 	public function __construct(
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
-		Storage $storage,
+		private readonly PortfolioStatisticCache $cache,
 		private CurrentAppAdminGetter $currentAppAdminGetter,
 	)
 	{
-		$this->cache = new Cache($storage, self::class);
 	}
 
 	public function getAllTimeValue(AppAdmin|null $appAdmin = null): PortfolioStatisticTotalValue|null
 	{
 		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
 		$value = $this->cache->load(
-			self::CACHE_KEY . $appAdmin->getId()->toString(),
+			$appAdmin,
+			self::CACHE_KEY,
 			fn (): PortfolioStatisticTotalValue|false => $this->buildAllTimeValue($appAdmin) ?? false,
-			[Cache::Expire => '1 hour'],
 		);
 		assert($value === false || $value instanceof PortfolioStatisticTotalValue);
 
@@ -45,7 +41,7 @@ class PortfolioStatisticTotalValueProvider
 
 	public function invalidateCache(AppAdmin $appAdmin): void
 	{
-		$this->cache->remove(self::CACHE_KEY . $appAdmin->getId()->toString());
+		$this->cache->invalidate($appAdmin);
 	}
 
 	private function buildAllTimeValue(AppAdmin $appAdmin): PortfolioStatisticTotalValue|null

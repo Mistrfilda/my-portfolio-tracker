@@ -8,6 +8,7 @@ use App\Asset\Price\AssetPriceDownloader;
 use App\Asset\Price\AssetPriceRecord;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\StockAssetPriceDownloaderEnum;
 use App\Stock\Price\StockAssetPriceRecord;
@@ -36,6 +37,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -128,6 +130,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 			}
 
 			$this->entityManager->flush();
+			$this->statisticCache->invalidateAll();
 			sleep(5);
 		}
 

@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Asset\StockAssetExchange;
 use App\Stock\Asset\StockAssetFacade;
@@ -53,6 +54,7 @@ class StockAssetFacadeTest extends UpdatedTestCase
 			$this->logger,
 			$this->currentAppAdminGetter,
 			$this->stockAssetIndustryRepository,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

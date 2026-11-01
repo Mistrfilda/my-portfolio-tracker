@@ -14,6 +14,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Position\StockPositionRepository;
@@ -38,6 +39,7 @@ class StockClosedPositionFacade
 		private readonly SummaryPriceService $summaryPriceService,
 		private readonly StockAssetDividendRecordFacade $stockAssetDividendRecordFacade,
 		private readonly JobRequestFacade $jobRequestFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -65,6 +67,7 @@ class StockClosedPositionFacade
 
 		$stockAssetPosition->closePosition($stockPosition);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($stockPosition->getAssetPositon()->getAppAdmin());
 		$this->entityManager->refresh($stockPosition);
 
 		$this->logger->info(
@@ -103,6 +106,7 @@ class StockClosedPositionFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($stockPosition->getAssetPositon()->getAppAdmin());
 		$this->entityManager->refresh($stockPosition);
 
 		$this->logger->info(

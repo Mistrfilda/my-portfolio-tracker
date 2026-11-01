@@ -16,6 +16,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
@@ -39,6 +40,7 @@ class StockPositionFacade implements AssetPriceFacade
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 		private readonly JobRequestFacade $jobRequestFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -67,6 +69,7 @@ class StockPositionFacade implements AssetPriceFacade
 
 		$this->entityManager->persist($stockPosition);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($stockPosition->getAppAdmin());
 		$this->entityManager->refresh($stockPosition);
 
 		$this->logger->info(
@@ -109,6 +112,7 @@ class StockPositionFacade implements AssetPriceFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($stockPosition->getAppAdmin());
 		$this->entityManager->refresh($stockPosition);
 
 		$this->logger->info(

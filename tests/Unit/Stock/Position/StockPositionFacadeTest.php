@@ -14,6 +14,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetDetailDTO;
 use App\Stock\Asset\StockAssetRepository;
@@ -78,6 +79,7 @@ class StockPositionFacadeTest extends TestCase
 			UpdatedTestCase::createMockWithIgnoreMethods(LoggerInterface::class),
 			$this->currentAppAdminGetter,
 			$this->jobRequestFacade,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

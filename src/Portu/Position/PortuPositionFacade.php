@@ -16,6 +16,7 @@ use App\JobRequest\JobRequestTypeEnum;
 use App\Portu\Asset\PortuAssetRepository;
 use App\Portu\Price\PortuAssetPriceRecord;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
+use App\Statistic\PortfolioStatisticCache;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -35,6 +36,7 @@ class PortuPositionFacade implements AssetPriceFacade
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 		private readonly JobRequestFacade $jobRequestFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -75,6 +77,7 @@ class PortuPositionFacade implements AssetPriceFacade
 
 		$this->entityManager->persist($portuPosition);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($portuPosition->getAppAdmin());
 		$this->entityManager->refresh($portuPosition);
 
 		$this->logger->info(
@@ -124,6 +127,7 @@ class PortuPositionFacade implements AssetPriceFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($portuPosition->getAppAdmin());
 		$this->entityManager->refresh($portuPosition);
 
 		$this->logger->info(
@@ -197,6 +201,7 @@ class PortuPositionFacade implements AssetPriceFacade
 		}
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($portuPosition->getAppAdmin());
 		$this->entityManager->refresh($portuAssetPriceRecord);
 
 		$this->jobRequestFacade->addToQueue(

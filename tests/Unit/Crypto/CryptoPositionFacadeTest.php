@@ -16,6 +16,7 @@ use App\Crypto\Position\CryptoPositionFacade;
 use App\Crypto\Position\CryptoPositionRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Test\UpdatedTestCase;
 use App\UI\Icon\SvgIcon;
 use Doctrine\ORM\EntityManagerInterface;
@@ -58,6 +59,7 @@ class CryptoPositionFacadeTest extends TestCase
 			$this->datetimeFactory,
 			UpdatedTestCase::createMockWithIgnoreMethods(LoggerInterface::class),
 			$this->currentAppAdminGetter,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

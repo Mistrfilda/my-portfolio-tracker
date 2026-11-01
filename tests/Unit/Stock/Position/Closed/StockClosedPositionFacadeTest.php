@@ -6,6 +6,7 @@ namespace App\Test\Unit\Stock\Position\Closed;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
+use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPrice;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\PriceDiff;
@@ -15,6 +16,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
@@ -88,6 +90,7 @@ class StockClosedPositionFacadeTest extends TestCase
 			$this->summaryPriceService,
 			$this->stockAssetDividendRecordFacade,
 			$this->jobRequestFacade,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 
@@ -158,6 +161,9 @@ class StockClosedPositionFacadeTest extends TestCase
 
 		$stockClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(StockClosedPosition::class);
 		$appAdmin = UpdatedTestCase::createMockWithIgnoreMethods(AppAdmin::class);
+		$position = $this->createStub(AssetPosition::class);
+		$position->method('getAppAdmin')->willReturn($appAdmin);
+		$stockClosedPosition->shouldReceive('getAssetPositon')->andReturn($position);
 		$adminUuid = Uuid::uuid4();
 		$positionUuid = Uuid::uuid4();
 

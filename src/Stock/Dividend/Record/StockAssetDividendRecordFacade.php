@@ -11,6 +11,7 @@ use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\JobRequest\JobRequestFacade;
 use App\JobRequest\JobRequestTypeEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividendRepository;
@@ -35,6 +36,7 @@ class StockAssetDividendRecordFacade
 		private JobRequestFacade $jobRequestFacade,
 		private AppAdminRepository $appAdminRepository,
 		private StockPositionRepository $stockPositionRepository,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -99,6 +101,7 @@ class StockAssetDividendRecordFacade
 			}
 
 			$this->entityManager->flush();
+			$this->statisticCache->invalidate($appAdmin);
 		}
 
 		$this->jobRequestFacade->addToQueue(

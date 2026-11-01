@@ -8,6 +8,7 @@ use App\Admin\AppAdmin;
 use App\Admin\AppAdminRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\JobRequest\JobRequestFacade;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
@@ -76,6 +77,7 @@ class StockAssetDividendRecordFacadeTest extends UpdatedTestCase
 			$this->jobRequestFacade,
 			$admins,
 			$this->createStub(StockPositionRepository::class),
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

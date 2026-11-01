@@ -6,6 +6,7 @@ namespace App\Stock\Asset;
 
 use App\Admin\CurrentAppAdminGetter;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\Exception\StockAssetTickerAlreadyExistsException;
 use App\Stock\Asset\Industry\StockAssetIndustryRepository;
 use App\Stock\Dividend\StockAssetDividendSourceEnum;
@@ -26,6 +27,7 @@ class StockAssetFacade
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
 		private readonly StockAssetIndustryRepository $stockAssetIndustryRepository,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -71,6 +73,7 @@ class StockAssetFacade
 
 		$this->entityManager->persist($stockAsset);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 
 		$this->logger->info(
 			sprintf(
@@ -122,6 +125,7 @@ class StockAssetFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 
 		$this->logger->info(
 			sprintf(

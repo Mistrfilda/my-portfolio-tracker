@@ -12,6 +12,7 @@ use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Currency\CurrencyEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,6 +33,7 @@ class TwelveDataCryptoDownloaderFacade implements AssetPriceDownloader
 		private readonly EntityManagerInterface $entityManager,
 		private readonly LoggerInterface $logger,
 		private readonly SystemValueFacade $systemValueFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -86,6 +88,7 @@ class TwelveDataCryptoDownloaderFacade implements AssetPriceDownloader
 			$priceRecords[] = $priceRecord;
 
 			$this->entityManager->flush();
+			$this->statisticCache->invalidateAll();
 		}
 
 		$this->systemValueFacade->updateValue(

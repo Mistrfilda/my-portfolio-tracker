@@ -7,6 +7,7 @@ namespace App\Statistic\Total;
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
+use App\Statistic\PortfolioStatisticCache;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
 use InvalidArgumentException;
@@ -21,6 +22,7 @@ class PortfolioTotalStatisticControlFacade
 		private PortfolioStatisticRecordRepository $portfolioStatisticRecordRepository,
 		private PortfolioPerformanceProvider $portfolioPerformanceProvider,
 		private CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly PortfolioStatisticCache $cache,
 	)
 	{
 
@@ -29,12 +31,21 @@ class PortfolioTotalStatisticControlFacade
 	/**
 	 * @return array<PortfolioStatisticTotalGroup>
 	 */
-	public function getData(AppAdmin|null $appAdmin = null): array
+	public function getData(AppAdmin|null $appAdmin = null, bool $onlyYears = false): array
 	{
 		$appAdmin ??= $this->currentAppAdminGetter->getAppAdmin();
+		$currentYear = $this->datetimeFactory->createNow()->getYear();
+		return $this->cache->load(
+			$appAdmin,
+			sprintf('groups-%d-%d-%s', $this->startYear, $currentYear, $onlyYears ? 'years' : 'months'),
+			fn (): array => $this->buildData($appAdmin, $currentYear, $onlyYears),
+		);
+	}
+
+	/** @return array<PortfolioStatisticTotalGroup> */
+	private function buildData(AppAdmin $appAdmin, int $currentYear, bool $onlyYears): array
+	{
 		$this->portfolioPerformanceProvider->invalidateCache($appAdmin);
-		$now = $this->datetimeFactory->createNow();
-		$currentYear = $now->getYear();
 
 		$groups = [];
 
@@ -70,50 +81,53 @@ class PortfolioTotalStatisticControlFacade
 					throw new InvalidArgumentException();
 				}
 
-				$income = $this->portfolioPerformanceProvider->getIncomeBetween(
-					$firstMonthValue->getCreatedAt(),
-					$portfolioStatisticRecord->getCreatedAt(),
-					$appAdmin,
-				);
-				$group->addValue(
-					new PortfolioStatisticTotalValue(
-						$month,
-						sprintf(
-							'%s - %s',
-							$firstMonthValue->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
-							$portfolioStatisticRecord->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
-						),
-						$this->parseStatisticIntoFloat(
-							$firstMonthValue->getPortfolioStatisticByType(
-								PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
-							)?->getValue(),
-						),
-						$this->parseStatisticIntoFloat(
-							$portfolioStatisticRecord->getPortfolioStatisticByType(
-								PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
-							)?->getValue(),
-						),
-						$this->parseStatisticIntoFloat(
-							$firstMonthValue->getPortfolioStatisticByType(
-								PortolioStatisticType::TOTAL_VALUE_IN_CZK,
-							)?->getValue(),
-						),
-						$this->parseStatisticIntoFloat(
-							$portfolioStatisticRecord->getPortfolioStatisticByType(
-								PortolioStatisticType::TOTAL_VALUE_IN_CZK,
-							)?->getValue(),
-						),
-						$income->realizedProfit,
-						$income->netDividends,
+				if (!$onlyYears) {
+					$income = $this->portfolioPerformanceProvider->getIncomeBetween(
 						$firstMonthValue->getCreatedAt(),
 						$portfolioStatisticRecord->getCreatedAt(),
-						performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
+						$appAdmin,
+					);
+					$group->addValue(
+						new PortfolioStatisticTotalValue(
+							$month,
+							sprintf(
+								'%s - %s',
+								$firstMonthValue->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
+								$portfolioStatisticRecord->getCreatedAt()->format(DatetimeFactory::DEFAULT_DATE_FORMAT),
+							),
+							$this->parseStatisticIntoFloat(
+								$firstMonthValue->getPortfolioStatisticByType(
+									PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
+								)?->getValue(),
+							),
+							$this->parseStatisticIntoFloat(
+								$portfolioStatisticRecord->getPortfolioStatisticByType(
+									PortolioStatisticType::TOTAL_INVESTED_IN_CZK,
+								)?->getValue(),
+							),
+							$this->parseStatisticIntoFloat(
+								$firstMonthValue->getPortfolioStatisticByType(
+									PortolioStatisticType::TOTAL_VALUE_IN_CZK,
+								)?->getValue(),
+							),
+							$this->parseStatisticIntoFloat(
+								$portfolioStatisticRecord->getPortfolioStatisticByType(
+									PortolioStatisticType::TOTAL_VALUE_IN_CZK,
+								)?->getValue(),
+							),
+							$income->realizedProfit,
+							$income->netDividends,
 							$firstMonthValue->getCreatedAt(),
 							$portfolioStatisticRecord->getCreatedAt(),
-							$appAdmin,
+							performanceSummary: $this->portfolioPerformanceProvider->getSummaryBetween(
+								$firstMonthValue->getCreatedAt(),
+								$portfolioStatisticRecord->getCreatedAt(),
+								$appAdmin,
+							),
 						),
-					),
-				);
+					);
+
+				}
 
 				$lastYearValue = $portfolioStatisticRecord;
 			}

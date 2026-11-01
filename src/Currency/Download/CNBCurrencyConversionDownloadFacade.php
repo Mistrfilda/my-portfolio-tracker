@@ -10,6 +10,7 @@ use App\Currency\CurrencyEnum;
 use App\Currency\CurrencySourceEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use App\Utils\TypeValidator;
@@ -38,6 +39,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly EntityManagerInterface $entityManager,
 		private readonly SystemValueFacade $systemValueFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 
@@ -113,6 +115,7 @@ class CNBCurrencyConversionDownloadFacade implements CurrencyConversionDownloadF
 		}
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 
 		$this->systemValueFacade->updateValue(
 			SystemValueEnum::CNB_CURRENCY_DOWNLOADED_COUNT,

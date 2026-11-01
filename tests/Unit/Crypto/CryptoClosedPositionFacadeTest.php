@@ -6,6 +6,7 @@ namespace App\Test\Unit\Crypto;
 
 use App\Admin\AppAdmin;
 use App\Admin\CurrentAppAdminGetter;
+use App\Asset\Position\AssetPosition;
 use App\Asset\Price\AssetPriceEmbeddable;
 use App\Asset\Price\SummaryPriceService;
 use App\Crypto\Asset\CryptoAssetRepository;
@@ -16,6 +17,7 @@ use App\Crypto\Position\CryptoPosition;
 use App\Crypto\Position\CryptoPositionRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -59,6 +61,7 @@ class CryptoClosedPositionFacadeTest extends TestCase
 			$this->currentAppAdminGetter,
 			UpdatedTestCase::createMockWithIgnoreMethods(CurrencyConversionFacade::class),
 			UpdatedTestCase::createMockWithIgnoreMethods(SummaryPriceService::class),
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 
@@ -124,6 +127,9 @@ class CryptoClosedPositionFacadeTest extends TestCase
 
 		$cryptoClosedPosition = UpdatedTestCase::createMockWithIgnoreMethods(CryptoClosedPosition::class);
 		$appAdmin = UpdatedTestCase::createMockWithIgnoreMethods(AppAdmin::class);
+		$position = $this->createStub(AssetPosition::class);
+		$position->method('getAppAdmin')->willReturn($appAdmin);
+		$cryptoClosedPosition->shouldReceive('getAssetPositon')->andReturn($position);
 		$adminUuid = Uuid::uuid4();
 		$positionUuid = Uuid::uuid4();
 

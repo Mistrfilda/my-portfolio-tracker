@@ -10,13 +10,14 @@ use App\Dashboard\DashboardValueGroupEnum;
 use App\Statistic\Performance\PortfolioPerformanceProvider;
 use App\Statistic\Performance\PortfolioPerformanceSummary;
 use App\Statistic\PortfolioStatistic;
+use App\Statistic\PortfolioStatisticCache;
 use App\Statistic\PortfolioStatisticControlTypeEnum;
 use App\Statistic\PortfolioStatisticRecord;
 use App\Statistic\PortfolioStatisticRecordRepository;
 use App\Statistic\PortolioStatisticType;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
+use Doctrine\DBAL\Connection;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
-use Nette\Caching\Cache;
 use Nette\Caching\Storage;
 use Nette\Caching\Storages\FileStorage;
 use Nette\Caching\Storages\MemoryStorage;
@@ -67,14 +68,14 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			$value = (new PortfolioStatisticTotalValueProvider(
 				$repository,
 				$performanceProvider,
-				new FileStorage($directory),
+				$this->createCache(new FileStorage($directory)),
 				$this->currentAppAdminGetter,
 			))
 				->getAllTimeValue();
 			$cachedValue = (new PortfolioStatisticTotalValueProvider(
 				$repository,
 				$performanceProvider,
-				new FileStorage($directory),
+				$this->createCache(new FileStorage($directory)),
 				$this->currentAppAdminGetter,
 			))
 				->getAllTimeValue();
@@ -106,7 +107,7 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			(new PortfolioStatisticTotalValueProvider(
 				$repository,
 				$performanceProvider,
-				$storage,
+				$this->createCache($storage),
 				$this->currentAppAdminGetter,
 			))->getAllTimeValue(),
 		);
@@ -114,7 +115,7 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 			(new PortfolioStatisticTotalValueProvider(
 				$repository,
 				$performanceProvider,
-				$storage,
+				$this->createCache($storage),
 				$this->currentAppAdminGetter,
 			))->getAllTimeValue(),
 		);
@@ -144,13 +145,13 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 		$provider = new PortfolioStatisticTotalValueProvider(
 			$repository,
 			$performanceProvider,
-			$storage,
+			$this->createCache($storage),
 			$this->currentAppAdminGetter,
 		);
 		$otherProvider = new PortfolioStatisticTotalValueProvider(
 			$repository,
 			$performanceProvider,
-			$storage,
+			$this->createCache($storage),
 			$this->currentAppAdminGetter,
 		);
 
@@ -166,27 +167,9 @@ class PortfolioStatisticTotalValueProviderTest extends TestCase
 		self::assertSame($value, $otherProvider->getAllTimeValue());
 	}
 
-	public function testCachesMissingHistoryWithOneHourExpiration(): void
+	private function createCache(Storage $storage): PortfolioStatisticCache
 	{
-		$repository = $this->createStub(PortfolioStatisticRecordRepository::class);
-		$repository->method('findFirst')->willReturn(null);
-		$repository->method('findLast')->willReturn(null);
-		$storage = $this->createMock(Storage::class);
-		$storage->expects(self::once())->method('read')->willReturn(null);
-		$storage->expects(self::once())->method('write')->with(
-			self::anything(),
-			false,
-			[Cache::Expire => 3600],
-		);
-
-		$provider = new PortfolioStatisticTotalValueProvider(
-			$repository,
-			$this->createStub(PortfolioPerformanceProvider::class),
-			$storage,
-			$this->currentAppAdminGetter,
-		);
-
-		self::assertNull($provider->getAllTimeValue());
+		return new PortfolioStatisticCache($storage, $this->createStub(Connection::class));
 	}
 
 	private function createRecord(string $date, float $invested, float $portfolioValue): PortfolioStatisticRecord

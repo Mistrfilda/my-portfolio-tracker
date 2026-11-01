@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Stock\Dividend;
 
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAssetRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -19,6 +20,7 @@ class StockAssetDividendFacade
 		private StockAssetRepository $stockAssetRepository,
 		private EntityManagerInterface $entityManager,
 		private DatetimeFactory $datetimeFactory,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -46,6 +48,7 @@ class StockAssetDividendFacade
 
 		$this->entityManager->persist($stockAssetDividend);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 	}
 
 	public function update(
@@ -70,6 +73,7 @@ class StockAssetDividendFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 	}
 
 	/**

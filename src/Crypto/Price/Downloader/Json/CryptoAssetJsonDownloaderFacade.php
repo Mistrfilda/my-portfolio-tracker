@@ -7,6 +7,7 @@ namespace App\Crypto\Price\Downloader\Json;
 use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Price\CryptoAssetPriceRecord;
 use App\Crypto\Price\CryptoAssetPriceRecordRepository;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use App\Utils\TypeValidator;
@@ -28,6 +29,7 @@ class CryptoAssetJsonDownloaderFacade
 		private DatetimeFactory $datetimeFactory,
 		private LoggerInterface $logger,
 		private SystemValueFacade $systemValueFacade,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -139,6 +141,7 @@ class CryptoAssetJsonDownloaderFacade
 			intValue: count($results),
 		);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidateAll();
 
 		return $results;
 	}

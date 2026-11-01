@@ -7,6 +7,7 @@ namespace App\Test\Unit\Stock\Price\Downloader;
 use App\Currency\CurrencyEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Price\Downloader\Web\WebDataDownloaderFacade;
@@ -118,6 +119,7 @@ class WebDataDownloaderFacadeTest extends TestCase
 			$priceRecordRepository ?? $this->createStub(StockAssetPriceRecordRepository::class),
 			$entityManager ?? $this->createStub(EntityManagerInterface::class),
 			$this->createStub(LoggerInterface::class),
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

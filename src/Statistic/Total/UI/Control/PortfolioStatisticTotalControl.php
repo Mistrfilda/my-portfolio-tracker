@@ -26,7 +26,9 @@ class PortfolioStatisticTotalControl extends BaseControl
 	public function render(): void
 	{
 		$this->getTemplate()->renderOnlyYears = $this->renderOnlyYears;
-		$this->getTemplate()->groups = array_reverse($this->portfolioTotalStatisticControlFacade->getData());
+		$this->getTemplate()->groups = array_reverse($this->portfolioTotalStatisticControlFacade->getData(
+			onlyYears: $this->renderOnlyYears,
+		));
 		$this->getTemplate()->setFile(__DIR__ . '/PortfolioStatisticTotalControl.latte');
 		$this->getTemplate()->render();
 	}

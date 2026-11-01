@@ -9,6 +9,7 @@ use App\Admin\AppAdminRepository;
 use App\Statistic\Performance\PortfolioPerformanceEventProvider;
 use App\Statistic\Performance\PortfolioPerformanceRebuildFacade;
 use App\Statistic\PortfolioStatisticBatchFacade;
+use App\Statistic\PortfolioStatisticCacheWarmer;
 use App\Statistic\PortfolioStatisticFacade;
 use App\Statistic\PortfolioStatisticRecord;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
@@ -36,6 +37,11 @@ class PortfolioStatisticBatchFacadeTest extends TestCase
 
 	/** @var array<string> */
 	private array $failedOwners = [];
+
+	/** @var array<string> */
+	private array $warmedOwners = [];
+
+	private bool $transactionActive = false;
 
 	public function testEachOwnerFinishesTheSequenceBeforeTheNextOwnerStarts(): void
 	{
@@ -67,6 +73,10 @@ class PortfolioStatisticBatchFacadeTest extends TestCase
 			'save:' . $owners[1]->getId(), 'rebuild:' . $owners[1]->getId(), 'append:' . $owners[1]->getId(),
 		], $steps);
 		self::assertSame(2, $this->clears);
+		self::assertSame(
+			array_map(static fn (AppAdmin $owner): string => $owner->getId()->toString(), $owners),
+			$this->warmedOwners,
+		);
 	}
 
 	#[TestWith(['save'])]
@@ -109,6 +119,7 @@ class PortfolioStatisticBatchFacadeTest extends TestCase
 			'save:' . $owners[1]->getId(), 'rebuild:' . $owners[1]->getId(), 'append:' . $owners[1]->getId(),
 		], $steps);
 		self::assertSame([$owners[0]->getId()->toString()], $this->failedOwners);
+		self::assertSame([$owners[1]->getId()->toString()], $this->warmedOwners);
 		self::assertSame(
 			array_map(static fn (AppAdmin $owner): string => $owner->getId()->toString(), $owners),
 			$this->invalidatedTotals,
@@ -184,9 +195,14 @@ class PortfolioStatisticBatchFacadeTest extends TestCase
 			},
 		);
 		$connection = $this->createStub(Connection::class);
-		$connection->method('transactional')->willReturnCallback(
-			static fn (callable $operation): mixed => $operation(),
-		);
+		$connection->method('transactional')->willReturnCallback(function (callable $operation): mixed {
+			$this->transactionActive = true;
+			try {
+				return $operation();
+			} finally {
+				$this->transactionActive = false;
+			}
+		});
 		$em = $this->createStub(EntityManagerInterface::class);
 		$em->method('getConnection')->willReturn($connection);
 		$em->method('isOpen')->willReturn($managerOpen);
@@ -207,7 +223,23 @@ class PortfolioStatisticBatchFacadeTest extends TestCase
 				$this->failedOwners[] = $context['appAdminId'];
 			}
 		});
-		return new PortfolioStatisticBatchFacade($repository, $statistics, $performance, $em, $total, $events, $logger);
+		$warmer = $this->createStub(PortfolioStatisticCacheWarmer::class);
+		$warmer->method('warmUp')->willReturnCallback(function (AppAdmin $owner): void {
+			self::assertFalse($this->transactionActive, 'Only committed statistics may be published.');
+			self::assertSame($owner->getId()->toString(), end($this->invalidatedTotals));
+			self::assertSame($owner->getId()->toString(), end($this->invalidatedEvents));
+			$this->warmedOwners[] = $owner->getId()->toString();
+		});
+		return new PortfolioStatisticBatchFacade(
+			$repository,
+			$statistics,
+			$performance,
+			$em,
+			$total,
+			$events,
+			$logger,
+			$warmer,
+		);
 	}
 
 	private function owner(): AppAdmin

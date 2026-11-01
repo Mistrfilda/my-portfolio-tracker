@@ -459,6 +459,8 @@ services:
 	- App\Portu\Price\PortuAssetPriceRecordRepository(App\Portu\Price\PortuAssetPriceRecord)
 
 	#Portfolio statistics
+	- App\Statistic\PortfolioStatisticCache
+	- App\Statistic\PortfolioStatisticCacheWarmer
 	- App\Statistic\PortfolioStatisticFacade
 	- App\Statistic\PortfolioStatisticBatchFacade
 	- App\Statistic\PortfolioStatisticRepository(App\Statistic\PortfolioStatistic)

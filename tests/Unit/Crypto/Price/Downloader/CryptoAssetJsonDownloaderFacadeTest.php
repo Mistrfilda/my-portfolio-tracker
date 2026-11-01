@@ -11,6 +11,7 @@ use App\Crypto\Price\CryptoAssetPriceRecordRepository;
 use App\Crypto\Price\Downloader\Json\CryptoAssetJsonDownloaderFacade;
 use App\Crypto\Price\Downloader\Json\CryptoJsonDataSourceProviderFacade;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
@@ -158,6 +159,7 @@ class CryptoAssetJsonDownloaderFacadeTest extends TestCase
 			$datetimeFactory,
 			$logger ?? $this->createStub(LoggerInterface::class),
 			$systemValueFacade ?? $this->createStub(SystemValueFacade::class),
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

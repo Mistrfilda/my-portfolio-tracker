@@ -17,7 +17,6 @@ use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\PortolioStatisticType;
 use App\Statistic\Total\PortfolioStatisticTotalValue;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
-use App\Stock\Asset\StockAsset;
 use App\Stock\Position\Closed\StockClosedPositionFacade;
 use App\Stock\Position\StockPositionFacade;
 use App\UI\Filter\CurrencyFilter;
@@ -581,7 +580,7 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 	}
 
 	/**
-	 * @param array<int, array{stockAsset: StockAsset, trend: float}> $dailyPerformance
+	 * @param array<int, array{id: string, name: string, ticker: string, trend: float}> $dailyPerformance
 	 */
 	private function createStockDailyPerformanceTable(
 		string $label,
@@ -601,17 +600,16 @@ class DashboardValueBuilderFacade implements DashboardValueBuilder
 		);
 
 		foreach ($dailyPerformance as $performance) {
-			$stockAsset = $performance['stockAsset'];
 			$trend = $performance['trend'];
 
 			$table->addData([
 				'rowColor' => $this->getStockPerformanceRowColor($trend),
-				'stockAssetName' => $stockAsset->getName(),
-				'ticker' => $stockAsset->getTicker(),
+				'stockAssetName' => $performance['name'],
+				'ticker' => $performance['ticker'],
 				'trend' => $this->formatStockTrend($trend),
 				'link' => $this->linkGenerator->link(
 					'Admin:StockAssetDetail:detail',
-					['id' => $stockAsset->getId()->toString()],
+					['id' => $performance['id']],
 				),
 			]);
 		}

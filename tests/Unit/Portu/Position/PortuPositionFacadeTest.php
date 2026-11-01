@@ -18,6 +18,7 @@ use App\Portu\Position\PortuPositionFacade;
 use App\Portu\Position\PortuPositionRepository;
 use App\Portu\Price\PortuAssetPriceRecord;
 use App\Portu\Price\PortuAssetPriceRecordRepository;
+use App\Statistic\PortfolioStatisticCache;
 use App\Test\UpdatedTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -52,6 +53,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$loggerMock,
 			$currentAppAdminGetterMock,
 			$jobRequestFacadeMock,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 
 		$portuAssetId = Uuid::uuid4();
@@ -143,6 +145,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$loggerMock,
 			$currentAppAdminGetterMock,
 			$jobRequestFacadeMock,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 
 		$portuPositionId = Uuid::uuid4();
@@ -237,6 +240,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
 		$jobRequestFacadeMock->shouldIgnoreMissing();
 
+		$cache = $this->createMock(PortfolioStatisticCache::class);
+
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
 			$portuPositionRepositoryMock,
@@ -247,6 +252,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$loggerMock,
 			$currentAppAdminGetterMock,
 			$jobRequestFacadeMock,
+			statisticCache: $cache,
 		);
 
 		$portuPositionId = Uuid::uuid4();
@@ -258,6 +264,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$appAdminMock = Mockery::mock(AppAdmin::class);
 		$ownerId = Uuid::uuid4();
 		$appAdminMock->shouldReceive('getId')->andReturn($ownerId);
+		$cache->expects(self::once())->method('invalidate')->with($appAdminMock);
+		$cache->expects(self::never())->method('invalidateAll');
 		$jobRequestFacadeMock->shouldReceive('addToQueue')
 			->once()
 			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $ownerId->toString()]);
@@ -333,6 +341,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$jobRequestFacadeMock = Mockery::mock(JobRequestFacade::class);
 		$jobRequestFacadeMock->shouldIgnoreMissing();
 
+		$cache = $this->createMock(PortfolioStatisticCache::class);
+
 		$portuPositionFacade = new PortuPositionFacade(
 			$portuAssetRepositoryMock,
 			$portuPositionRepositoryMock,
@@ -343,6 +353,7 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 			$loggerMock,
 			$currentAppAdminGetterMock,
 			$jobRequestFacadeMock,
+			statisticCache: $cache,
 		);
 
 		$portuPositionId = Uuid::uuid4();
@@ -354,6 +365,8 @@ class PortuPositionFacadeTest extends UpdatedTestCase
 		$appAdminMock = Mockery::mock(AppAdmin::class);
 		$ownerId = Uuid::uuid4();
 		$appAdminMock->shouldReceive('getId')->andReturn($ownerId);
+		$cache->expects(self::once())->method('invalidate')->with($appAdminMock);
+		$cache->expects(self::never())->method('invalidateAll');
 		$jobRequestFacadeMock->shouldReceive('addToQueue')
 			->once()
 			->with(JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE, ['appAdminId' => $ownerId->toString()]);

@@ -12,6 +12,7 @@ use App\Currency\Download\CNBCurrencyConversionDownloadFacade;
 use App\Currency\Download\CurrencyConversionDownloadInverseRateHelper;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use App\Test\UpdatedTestCase;
@@ -81,6 +82,7 @@ class CNBCurrencyConversionDownloadFacadeTest extends UpdatedTestCase
 			$this->datetimeFactory,
 			$this->entityManager,
 			$this->systemValueFacade,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

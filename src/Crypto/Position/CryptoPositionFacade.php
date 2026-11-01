@@ -17,6 +17,7 @@ use App\Crypto\Asset\CryptoAssetRepository;
 use App\Crypto\Asset\UI\Detail\List\CryptoAssetListDetailControlEnum;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -36,6 +37,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 		private readonly DatetimeFactory $datetimeFactory,
 		private readonly LoggerInterface $logger,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -64,6 +66,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 
 		$this->entityManager->persist($cryptoPosition);
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($cryptoPosition->getAppAdmin());
 		$this->entityManager->refresh($cryptoPosition);
 
 		$this->logger->info(
@@ -101,6 +104,7 @@ class CryptoPositionFacade implements AssetPriceFacade
 		);
 
 		$this->entityManager->flush();
+		$this->statisticCache->invalidate($cryptoPosition->getAppAdmin());
 		$this->entityManager->refresh($cryptoPosition);
 
 		$this->logger->info(

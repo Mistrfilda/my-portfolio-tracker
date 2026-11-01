@@ -12,6 +12,7 @@ use App\Crypto\Price\Downloader\TwelveData\TwelveDataCryptoDownloaderFacade;
 use App\Currency\CurrencyEnum;
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
 use Doctrine\ORM\EntityManagerInterface;
@@ -134,6 +135,7 @@ class TwelveDataCryptoDownloaderFacadeTest extends TestCase
 			$entityManager ?? $this->createStub(EntityManagerInterface::class),
 			$this->createStub(LoggerInterface::class),
 			$systemValueFacade ?? $this->createStub(SystemValueFacade::class),
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

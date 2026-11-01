@@ -26,6 +26,7 @@ class PortfolioStatisticBatchFacade
 		private readonly PortfolioStatisticTotalValueProvider $portfolioStatisticTotalValueProvider,
 		private readonly PortfolioPerformanceEventProvider $portfolioPerformanceEventProvider,
 		private readonly LoggerInterface $logger,
+		private readonly PortfolioStatisticCacheWarmer $cacheWarmer,
 	)
 	{
 	}
@@ -49,6 +50,7 @@ class PortfolioStatisticBatchFacade
 		$successful = true;
 		foreach ($ownerIds as $ownerId) {
 			$appAdmin = null;
+			$cacheWarmed = false;
 			try {
 				// Load a managed owner after clearing the previous account's entities.
 				$appAdmin = $this->appAdminRepository->findById($ownerId);
@@ -68,6 +70,10 @@ class PortfolioStatisticBatchFacade
 						return $months;
 					},
 				);
+				$this->portfolioStatisticTotalValueProvider->invalidateCache($appAdmin);
+				$this->portfolioPerformanceEventProvider->invalidateCache($appAdmin);
+				$this->cacheWarmer->warmUp($appAdmin);
+				$cacheWarmed = true;
 				$this->logger->info('Portfolio statistics processed for account', [
 					'appAdminId' => $ownerId->toString(),
 					'months' => $months,
@@ -85,7 +91,7 @@ class PortfolioStatisticBatchFacade
 				}
 			} finally {
 				$this->entityManager->clear();
-				if ($appAdmin !== null) {
+				if ($appAdmin !== null && !$cacheWarmed) {
 					// Cache writes are outside the transaction, including a rolled-back calculation.
 					$this->portfolioStatisticTotalValueProvider->invalidateCache($appAdmin);
 					$this->portfolioPerformanceEventProvider->invalidateCache($appAdmin);

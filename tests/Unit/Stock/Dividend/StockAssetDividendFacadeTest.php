@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Test\Unit\Stock\Dividend;
 
 use App\Currency\CurrencyEnum;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividend;
@@ -50,6 +51,7 @@ class StockAssetDividendFacadeTest extends UpdatedTestCase
 			$this->stockAssetRepository,
 			$this->entityManager,
 			$this->datetimeFactory,
+			statisticCache: $this->createStub(PortfolioStatisticCache::class),
 		);
 	}
 

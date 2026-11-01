@@ -93,7 +93,9 @@ class DashboardSummaryProviderTest extends TestCase
 			),
 		);
 		$movers = $this->createMock(DashboardStockPerformanceProvider::class);
-		$movers->expects(self::once())->method('getDailyPerformance')->with($owner)->willReturn([]);
+		$movers->expects(self::once())->method('getDailyPerformance')->with($owner)->willReturn([
+			['id' => 'stock-id', 'name' => 'Example stock', 'ticker' => 'EXAMPLE', 'trend' => 7.25],
+		]);
 
 		$provider = new DashboardSummaryProvider(
 			$totals,
@@ -132,6 +134,10 @@ class DashboardSummaryProviderTest extends TestCase
 		self::assertSame(12.5, $data['performance']['moneyWeightedReturnPercent']);
 		self::assertNull($data['performance']['annualizedTimeWeightedReturnPercent']);
 		self::assertNull($data['performance']['xirrPercent']);
+		self::assertSame([
+			'stock' => ['id' => 'stock-id', 'name' => 'Example stock', 'ticker' => 'EXAMPLE'],
+			'changePercent' => 7.25,
+		], $data['stockMovers']['best'][0]);
 	}
 
 }

@@ -13,7 +13,6 @@ use App\Currency\CurrencyEnum;
 use App\Dashboard\DashboardStockPerformanceProvider;
 use App\Portu\Position\PortuPositionFacade;
 use App\Statistic\Total\PortfolioStatisticTotalValueProvider;
-use App\Stock\Asset\StockAsset;
 use App\Stock\Dividend\Forecast\StockAssetDividendRemainingForecastProvider;
 use App\Stock\Dividend\Record\StockAssetDividendRecordFacade;
 use App\Stock\Dividend\Record\StockAssetDividendYearSummaryDTO;
@@ -131,17 +130,16 @@ class DashboardSummaryProvider
 	}
 
 	/**
-	 * @param array{stockAsset: StockAsset, trend: float} $performance
+	 * @param array{id: string, name: string, ticker: string, trend: float} $performance
 	 * @return array<string, mixed>
 	 */
 	private function stockMover(array $performance): array
 	{
-		$stock = $performance['stockAsset'];
 		return [
 			'stock' => [
-				'id' => $stock->getId()->toString(),
-				'name' => $stock->getName(),
-				'ticker' => $stock->getTicker(),
+				'id' => $performance['id'],
+				'name' => $performance['name'],
+				'ticker' => $performance['ticker'],
 			],
 			'changePercent' => $performance['trend'],
 		];

@@ -6,6 +6,7 @@ namespace App\Stock\Dividend\Downloader;
 
 use App\Http\Psr18\Psr18ClientFactory;
 use App\Http\Psr7\Psr7RequestFactory;
+use App\Statistic\PortfolioStatisticCache;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Dividend\StockAssetDividend;
 use App\Stock\Dividend\StockAssetDividendRepository;
@@ -32,6 +33,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 		private DatetimeFactory $datetimeFactory,
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
+		private readonly PortfolioStatisticCache $statisticCache,
 	)
 	{
 	}
@@ -136,6 +138,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 			}
 
 			$this->entityManager->flush();
+			$this->statisticCache->invalidateAll();
 			sleep(5);
 		}
 	}
