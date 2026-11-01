@@ -32,6 +32,9 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 	#[Persistent]
 	public int|null $selectedMonth = null;
 
+	#[Persistent]
+	public int|null $selectedOtherTagId = null;
+
 	public function __construct(
 		private ExpanseOverviewCategoryControlFactory $expanseOverviewCategoryControlFactory,
 		private ChartControlFactory $chartControlFactory,
@@ -105,11 +108,36 @@ class ExpenseOverviewPresenter extends ExpensePresenter
 		$this->invalidatePage();
 	}
 
+	public function handleSetOtherTag(int|null $selectedOtherTagId = null): void
+	{
+		$this->selectedOtherTagId = $selectedOtherTagId;
+		$this->invalidatePage();
+	}
+
+	public function handleChangeMainTag(string $expenseId, string $tagId): void
+	{
+		parent::handleChangeMainTag($expenseId, $tagId);
+		$this->invalidatePage();
+	}
+
+	public function handleAddOtherTag(string $expenseId, string $tagId): void
+	{
+		parent::handleAddOtherTag($expenseId, $tagId);
+		$this->invalidatePage();
+	}
+
+	public function handleRemoveOtherTag(string $expenseId, string $tagId): void
+	{
+		parent::handleRemoveOtherTag($expenseId, $tagId);
+		$this->invalidatePage();
+	}
+
 	protected function createComponentExpanseOverviewCategoryControl(): ExpenseOverviewCategoryControl
 	{
 		return $this->expanseOverviewCategoryControlFactory->create(
 			$this->selectedYear,
 			$this->selectedMonth,
+			$this->selectedOtherTagId,
 		);
 	}
 

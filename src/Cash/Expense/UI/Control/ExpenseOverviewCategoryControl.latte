@@ -1,6 +1,4 @@
-{varType App\Cash\Expense\UI\Control\ExpanseOverviewData[] $data}
-{varType App\Asset\Price\SummaryPrice $totalSummaryPrice}
-{varType App\Cash\Expense\UI\Control\ExpenseOverviewBankAccountSummary[] $bankAccountSummaryPrices}
+{templateType App\Cash\Expense\UI\Control\ExpenseOverviewCategoryControlTemplate}
 
 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
     <div class="relative overflow-hidden bg-gradient-to-br from-sky-500 to-sky-600 rounded-2xl p-6 text-white shadow-lg shadow-sky-200">
@@ -84,6 +82,45 @@
     </div>
 {/if}
 
+{snippet tagSummary}
+	<section class="bg-white rounded-xl border border-gray-100 shadow-sm mb-6 overflow-hidden" aria-label="Doplňkové tagy">
+		<div class="px-6 py-4 border-b border-gray-100">
+			<h3 class="text-sm font-semibold text-gray-900">Doplňkové tagy</h3>
+			<p class="mt-1 text-xs text-gray-500">Filtr plateb napříč kategoriemi. Opakovaným kliknutím výběr zrušíte.</p>
+		</div>
+		<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 p-4 sm:p-6">
+			{foreach $otherTagSummaries as $tagSummary}
+				{var $isSelected = $selectedOtherTag?->getId() === $tagSummary->tag->getId()}
+				<a href="{plink setOtherTag!, selectedOtherTagId: ($isSelected ? null : $tagSummary->tag->getId())}"
+					aria-current={$isSelected ? 'true' : 'false'}
+					n:class="'ajax flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600', $isSelected ? 'border-blue-200 bg-blue-50' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50'">
+					<span n:class="'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg', $isSelected ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'" aria-hidden="true">
+						{renderSvg ($isSelected ? App\UI\Icon\SvgIcon::CHECK_CIRCLE : App\UI\Icon\SvgIcon::TAG)->value, ['class' => 'w-4 h-4']}
+					</span>
+					<span class="min-w-0 flex-1">
+						<span n:class="'block text-sm font-medium', $isSelected ? 'text-blue-700' : 'text-gray-900'">{$tagSummary->tag->getName()}</span>
+						<span class="mt-0.5 block text-xs text-gray-500">Počet plateb: {$tagSummary->summaryPrice->getCounter()}</span>
+					</span>
+					<span n:class="'shrink-0 text-sm font-semibold tabular-nums', $isSelected ? 'text-blue-700' : 'text-gray-900'">{$tagSummary->summaryPrice|summaryPriceFormat}</span>
+				</a>
+			{/foreach}
+			{if $otherTagSummaries === []}
+				<p class="text-sm text-gray-500 md:col-span-2 xl:col-span-3">V tomto období nejsou žádné doplňkové tagy.</p>
+			{/if}
+		</div>
+		{if $selectedOtherTag !== null}
+			<div class="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100 bg-gray-50 px-6 py-4">
+				<div>
+					<p class="text-sm font-medium text-gray-900">Filtr: {$selectedOtherTag->getName()}</p>
+					<p class="mt-1 text-xs text-gray-500">Počet plateb: {$selectedSummaryPrice->getCounter()} · {$selectedSummaryPrice|summaryPriceFormat}</p>
+				</div>
+				<a href="{plink setOtherTag!, selectedOtherTagId: null}" class="ajax rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">Zrušit filtr</a>
+			</div>
+		{/if}
+		<p class="border-t border-gray-100 px-6 py-3 text-xs text-gray-500">Platba může mít více tagů. Souhrny a graf zobrazují celé období.</p>
+	</section>
+{/snippet}
+
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="px-6 py-5 border-b border-gray-100">
         <h3 class="text-lg font-semibold text-gray-900">Výdaje dle kategorií</h3>
@@ -93,7 +130,7 @@
     {snippetArea expenseOverviewArea}
         <div class="divide-y divide-gray-100">
             {foreach $data as $expanseOverviewData}
-                <div x-data="{ open: false }" class="group">
+                <div x-data="{ open: $el.dataset.filtered === 'true' }" data-filtered="{$selectedOtherTag !== null ? 'true' : 'false'}" class="group">
                     <button
                             @click="open = !open"
                             class="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
@@ -103,7 +140,7 @@
                                 {renderSvg App\UI\Icon\SvgIcon::TAG->value, ['class' => 'w-5 h-5 text-blue-600']}
                             </div>
                             <div class="text-left">
-                                <p class="text-sm font-semibold text-gray-900">{$expanseOverviewData->getExpenseCategory()->getEnumName()->format()}</p>
+                                <p class="text-sm font-semibold text-gray-900">{$expanseOverviewData->getCategoryName()}</p>
                                 <p class="text-xs text-gray-500">{$expanseOverviewData->getSummaryPrice()->getCounter()} položek</p>
                             </div>
                         </div>
@@ -162,9 +199,11 @@
                                                 <td class="px-6 py-4">
                                                     <div class="flex flex-wrap gap-1">
                                                         {foreach $bankExpense->getOtherTags() as $otherTag}
-                                                            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-xs font-medium text-blue-700">
-                                                                    {$otherTag->getName()}
-                                                                </span>
+															{if !$otherTag->isMainTag()}
+																<a href="{plink setOtherTag!, selectedOtherTagId: ($selectedOtherTag?->getId() === $otherTag->getId() ? null : $otherTag->getId())}" class="ajax inline-flex items-center px-2 py-0.5 rounded-md bg-blue-50 text-xs font-medium text-blue-700 hover:bg-blue-100">{$otherTag->getName()}</a>
+															{else}
+																<span class="text-xs text-gray-500">{$otherTag->getName()}</span>
+															{/if}
                                                         {/foreach}
                                                     </div>
                                                 </td>
@@ -204,13 +243,16 @@
                     </div>
                 </div>
             {/foreach}
+			{if $data === []}
+				<p class="px-6 py-4 text-sm text-gray-500">Výběru neodpovídají žádné platby.</p>
+			{/if}
         </div>
     {/snippetArea}
 
     <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
         <div class="flex items-center justify-between">
-            <span class="text-sm text-gray-500">Celkový počet položek</span>
-            <span class="text-sm font-semibold text-gray-900">{$totalSummaryPrice->getCounter()}</span>
+            <span class="text-sm text-gray-500">Počet zobrazených položek</span>
+            <span class="text-sm font-semibold text-gray-900">{$selectedSummaryPrice->getCounter()}</span>
         </div>
     </div>
 </div>

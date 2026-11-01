@@ -60,7 +60,7 @@ class ExpenseTagRepository extends BaseRepository
 	public function findAllMain(): array
 	{
 		$qb = $this->createQueryBuilderForCurrentAppAdmin();
-		$qb->andWhere($qb->expr()->isNull('expenseTag.parentTag'));
+		$qb->andWhere($qb->expr()->isNotNull('expenseTag.expenseCategory'));
 		$qb->orderBy('expenseTag.name', 'ASC');
 
 		return $qb->getQuery()->getResult();
@@ -72,7 +72,7 @@ class ExpenseTagRepository extends BaseRepository
 	public function findAllOtherTags(): array
 	{
 		$qb = $this->createQueryBuilderForCurrentAppAdmin();
-		$qb->andWhere($qb->expr()->isNotNull('expenseTag.parentTag'));
+		$qb->andWhere($qb->expr()->isNull('expenseTag.expenseCategory'));
 		$qb->orderBy('expenseTag.name', 'ASC');
 
 		return $qb->getQuery()->getResult();

@@ -133,7 +133,7 @@ class ExpenseTagFacadeTest extends TestCase
 		$this->assertTrue($expenseTag->isTax());
 	}
 
-	public function testCreateThrowsExceptionWhenBothCategoryAndParentAreNull(): void
+	public function testCreateThrowsExceptionWhenBothCategoryAndParentAreFilled(): void
 	{
 		// Mock dependencies
 		$expenseTagRepositoryMock = Mockery::mock(ExpenseTagRepository::class);
@@ -159,10 +159,10 @@ class ExpenseTagFacadeTest extends TestCase
 
 		// Expect exception
 		$this->expectException(ExpenseTagException::class);
-		$this->expectExceptionMessage('Expense category or parent tag must be filled');
+		$this->expectExceptionMessage('A tag cannot have both a category and a parent tag');
 
 		// Execute - should throw exception
-		$facade->create('Test Tag', null, null, ['regex'], false);
+		$facade->create('Test Tag', 1, 2, ['regex'], false);
 	}
 
 	public function testUpdate(): void

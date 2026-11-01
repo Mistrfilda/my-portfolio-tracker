@@ -15,14 +15,14 @@ class ExpanseOverviewData
 	 * @param array<BankExpense> $expenses
 	 */
 	public function __construct(
-		private ExpenseCategory $expenseCategory,
+		private ExpenseCategory|null $expenseCategory,
 		private array $expenses,
 		private SummaryPrice $summaryPrice,
 	)
 	{
 	}
 
-	public function getExpenseCategory(): ExpenseCategory
+	public function getExpenseCategory(): ExpenseCategory|null
 	{
 		return $this->expenseCategory;
 	}
@@ -42,7 +42,12 @@ class ExpanseOverviewData
 
 	public function getExpenseCategoryId(): int
 	{
-		return $this->expenseCategory->getId();
+		return $this->expenseCategory?->getId() ?? 0;
+	}
+
+	public function getCategoryName(): string
+	{
+		return $this->expenseCategory?->getEnumName()->format() ?? 'Bez hlavního tagu';
 	}
 
 }

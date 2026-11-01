@@ -165,6 +165,28 @@ class BankExpenseRepository extends BaseRepository
 	}
 
 	/** @return array<BankExpense> */
+	public function findForOverview(int|null $year, int|null $month): array
+	{
+		$qb = $this->createQueryBuilderForCurrentAppAdmin();
+		$qb->addSelect('mainTag', 'expenseCategory', 'otherTag');
+		$qb->leftJoin('mainTag.expenseCategory', 'expenseCategory');
+		$qb->leftJoin('bankExpense.otherTags', 'otherTag');
+		if ($year !== null) {
+			$qb->andWhere('YEAR(bankExpense.settlementDate) = :year');
+			$qb->setParameter('year', $year);
+		}
+
+		if ($month !== null) {
+			$qb->andWhere('MONTH(bankExpense.settlementDate) = :month');
+			$qb->setParameter('month', $month);
+		}
+
+		$qb->orderBy('bankExpense.amount', 'ASC');
+		$qb->addOrderBy('bankExpense.id', 'ASC');
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<BankExpense> */
 	public function findAllForAppAdmin(AppAdmin $appAdmin): array
 	{
 		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();

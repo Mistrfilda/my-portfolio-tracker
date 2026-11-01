@@ -10,12 +10,14 @@ use App\Cash\Bank\Account\BankAccountTypeEnum;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
+use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Cash\Income\Bank\BankIncomeRepository;
 use App\Cash\Income\WorkMonthlyIncome\WorkMonthlyIncomeRepository;
 use App\Currency\CurrencyConversionFacade;
 use App\Currency\CurrencyEnum;
 use App\Stock\Dividend\Record\StockAssetDividendRecordRepository;
 use App\UI\Base\BaseControl;
+use Nette\Application\BadRequestException;
 
 class ExpenseOverviewCategoryControl extends BaseControl
 {
@@ -23,6 +25,8 @@ class ExpenseOverviewCategoryControl extends BaseControl
 	public function __construct(
 		private int $year,
 		private int|null $month,
+		private int|null $selectedOtherTagId,
+		private ExpenseTagRepository $expenseTagRepository,
 		private BankExpenseRepository $bankExpenseRepository,
 		private ExpenseCategoryRepository $expenseCategoryRepository,
 		private BankIncomeRepository $bankIncomeRepository,
@@ -36,7 +40,16 @@ class ExpenseOverviewCategoryControl extends BaseControl
 
 	public function render(): void
 	{
-		$data = [];
+		$selectedOtherTag = null;
+		if ($this->selectedOtherTagId !== null) {
+			$selectedOtherTag = $this->expenseTagRepository->findByIds([$this->selectedOtherTagId])[0] ?? null;
+			if ($selectedOtherTag === null || $selectedOtherTag->isMainTag()) {
+				throw new BadRequestException('Additional expense tag not found');
+			}
+		}
+
+		$expenses = $this->bankExpenseRepository->findForOverview($this->year, $this->month);
+		$dataSet = new ExpenseOverviewDataSet($expenses, $selectedOtherTag);
 
 		$totalSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
 		$investmentSummaryPrice = new SummaryPrice(CurrencyEnum::CZK);
@@ -53,25 +66,17 @@ class ExpenseOverviewCategoryControl extends BaseControl
 			);
 		}
 
-		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
-			$expenses = $this->bankExpenseRepository->findByTagCategory($expenseCategory, $this->year, $this->month);
-
-			$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
-			foreach ($expenses as $expense) {
-				$summaryPrice->addBankExpense($expense);
-				if ($expense->getMainTag()?->getExpenseCategory()?->getExpenseCategoryEnum() === ExpenseCategoryEnum::INVESTMENT) {
-					$investmentSummaryPrice->addBankExpense($expense);
-				} else {
-					$excludedInvestmentSummaryPrice->addBankExpense($expense);
-				}
-
-				$totalSummaryPrice->addBankExpense($expense);
-				$bankAccountSummaryPrices[$expense->getBankAccount()->getId()->toString()]->getSummaryPrice()->addBankExpense(
-					$expense,
-				);
+		foreach ($expenses as $expense) {
+			if ($expense->getMainTag()?->getExpenseCategory()?->getExpenseCategoryEnum() === ExpenseCategoryEnum::INVESTMENT) {
+				$investmentSummaryPrice->addBankExpense($expense);
+			} else {
+				$excludedInvestmentSummaryPrice->addBankExpense($expense);
 			}
 
-			$data[] = new ExpanseOverviewData($expenseCategory, $expenses, $summaryPrice);
+			$totalSummaryPrice->addBankExpense($expense);
+			$bankAccountSummaryPrices[$expense->getBankAccount()->getId()->toString()]->getSummaryPrice()->addBankExpense(
+				$expense,
+			);
 		}
 
 		foreach ($this->bankIncomeRepository->findByYearAndMonthAndBankAccountType(
@@ -106,26 +111,28 @@ class ExpenseOverviewCategoryControl extends BaseControl
 			$totalDividendIncome->addSummaryPrice($recordPrice);
 		}
 
-		usort(
-			$data,
-			static fn ($item1, $item2): int => $item1->getSummaryPrice()->getPrice() <=> $item2->getSummaryPrice()->getPrice(),
-		);
-
-		$this->getTemplate()->totalSummaryPrice = $totalSummaryPrice;
-		$this->getTemplate()->investmentSummaryPrice = $investmentSummaryPrice;
-		$this->getTemplate()->excludedInvestmentSummaryPrice = $excludedInvestmentSummaryPrice;
-		$this->getTemplate()->totalIncomeSummaryPrice = $totalIncomeSummaryPrice;
-		$this->getTemplate()->totalWorkIncome = $totalWorkIncome;
-		$this->getTemplate()->totalDividendIncome = $totalDividendIncome;
-		$this->getTemplate()->data = $data;
-		$this->getTemplate()->bankAccountSummaryPrices = $bankAccountSummaryPrices;
-		$this->getTemplate()->setFile(str_replace('.php', '.latte', __FILE__));
-		$this->getTemplate()->render();
+		$template = $this->createTemplate(ExpenseOverviewCategoryControlTemplate::class);
+		assert($template instanceof ExpenseOverviewCategoryControlTemplate);
+		$template->otherTagSummaries = $dataSet->otherTags;
+		$template->selectedOtherTag = $selectedOtherTag;
+		$template->selectedSummaryPrice = $dataSet->selectedSummaryPrice;
+		$template->totalSummaryPrice = $totalSummaryPrice;
+		$template->investmentSummaryPrice = $investmentSummaryPrice;
+		$template->excludedInvestmentSummaryPrice = $excludedInvestmentSummaryPrice;
+		$template->totalIncomeSummaryPrice = $totalIncomeSummaryPrice;
+		$template->totalWorkIncome = $totalWorkIncome;
+		$template->totalDividendIncome = $totalDividendIncome;
+		$template->data = $dataSet->groups;
+		$template->bankAccountSummaryPrices = $bankAccountSummaryPrices;
+		$template->setFile(str_replace('.php', '.latte', __FILE__));
+		$template->render();
 	}
 
 	public function redrawDetailTables(): void
 	{
 		$this->redrawControl('expenseOverviewArea');
+		$this->redrawControl('bankExpenses-0');
+		$this->redrawControl('tagSummary');
 		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
 			$this->redrawControl('bankExpenses-' . $expenseCategory->getId());
 		}

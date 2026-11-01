@@ -7,6 +7,10 @@ namespace App\Cash\Expense\UI\Control;
 interface ExpanseOverviewCategoryControlFactory
 {
 
-	public function create(int $year, int|null $month): ExpenseOverviewCategoryControl;
+	public function create(
+		int $year,
+		int|null $month,
+		int|null $selectedOtherTagId = null,
+	): ExpenseOverviewCategoryControl;
 
 }

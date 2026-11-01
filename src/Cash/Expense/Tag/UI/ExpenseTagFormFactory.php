@@ -37,10 +37,14 @@ class ExpenseTagFormFactory
 			'Kategorie',
 			$this->expenseCategoryRepository->findPairs(),
 		)
-			->setPrompt('Vyberte');
+			->setPrompt('Bez kategorie (doplňkový tag)');
 
-		$parentTag = $form->addSelect('parentTag', 'Parent Tag', $this->expenseTagRepository->findPairs())
-			->setPrompt('Vyberte');
+		$parentTag = $form->addSelect(
+			'parentTag',
+			'Nadřazený tag (volitelné)',
+			$this->expenseTagRepository->findPairs(),
+		)
+			->setPrompt('Samostatný tag');
 
 		$form->addCheckbox('isTax', 'Je tag daň?');
 
@@ -88,12 +92,6 @@ class ExpenseTagFormFactory
 		$form->onSuccess[] = function (AdminForm $form) use ($id, $onSuccess): void {
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
-			if ($id === null && $values->expenseCategory === null && $values->parentTag === null) {
-				$form['expenseCategory']->addError('Vyberte kategorii nebo parent tag');
-				$form['parentTag']->addError('Vyberte kategorii nebo parent tag');
-				return;
-			}
-
 			if ($id === null && $values->expenseCategory !== null && $values->parentTag !== null) {
 				$form['expenseCategory']->addError('Vyberte pouze kategorii nebo parent tag');
 				$form['parentTag']->addError('Vyberte pouze kategorii nebo parent tag');

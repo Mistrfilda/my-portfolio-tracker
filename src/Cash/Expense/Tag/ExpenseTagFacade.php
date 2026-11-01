@@ -46,8 +46,8 @@ class ExpenseTagFacade
 		bool $isTax,
 	): ExpenseTag
 	{
-		if ($expenseCategory === null && $parentTag === null) {
-			throw new ExpenseTagException('Expense category or parent tag must be filled');
+		if ($expenseCategory !== null && $parentTag !== null) {
+			throw new ExpenseTagException('A tag cannot have both a category and a parent tag');
 		}
 
 		$now = $this->datetimeFactory->createNow();
@@ -127,7 +127,7 @@ class ExpenseTagFacade
 			foreach ($expenseTags as $expenseTag) {
 				$matched = false;
 				foreach ($expenseTag->getRegexes() as $regex) {
-					$pattern = sprintf('~.*%s.*~', preg_quote($regex, '/'));
+					$pattern = sprintf('~.*%s.*~', preg_quote($regex, '~'));
 					if (preg_match($pattern, $bankExpenseRawContent) === 1) {
 						$matched = true;
 						break;
@@ -135,7 +135,11 @@ class ExpenseTagFacade
 				}
 
 				if ($matched) {
-					if ($expenseTag->isMainTag() && $bankExpense->isMainTagSetManually() === false) {
+					if ($expenseTag->isMainTag()) {
+						if ($bankExpense->isMainTagSetManually()) {
+							continue;
+						}
+
 						if (
 							$bankExpense->getMainTag() !== null
 							&& $bankExpense->getMainTag()->getId() !== $expenseTag->getId()

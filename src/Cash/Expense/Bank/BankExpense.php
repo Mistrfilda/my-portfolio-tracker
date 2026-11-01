@@ -156,6 +156,10 @@ class BankExpense implements Entity, Expense
 
 	public function addOtherTag(ExpenseTag $expenseTag): void
 	{
+		if ($expenseTag->isMainTag()) {
+			throw new ExpenseTagException('Invalid additional tag');
+		}
+
 		if ($this->otherTags->contains($expenseTag) === false) {
 			$this->otherTags->add($expenseTag);
 			$expenseTag->addOtherBankExpense($this);
@@ -164,12 +168,11 @@ class BankExpense implements Entity, Expense
 
 	public function addManuallyOtherTag(ExpenseTag $expenseTag): void
 	{
-		if ($this->otherTags->contains($expenseTag) === false) {
-			$this->otherTags->add($expenseTag);
-			$expenseTag->addOtherBankExpense($this);
-		}
+		$this->addOtherTag($expenseTag);
 
-		$this->otherTagSetManually = true;
+		if ($expenseTag->getRegexes() !== []) {
+			$this->otherTagSetManually = true;
+		}
 	}
 
 	public function manuallyRemoveOtherTag(ExpenseTag $expenseTag): void
@@ -178,7 +181,9 @@ class BankExpense implements Entity, Expense
 			$this->otherTags->removeElement($expenseTag);
 		}
 
-		$this->otherTagSetManually = true;
+		if ($expenseTag->getRegexes() !== []) {
+			$this->otherTagSetManually = true;
+		}
 	}
 
 	public function getMainTag(): ExpenseTag|null

@@ -15,6 +15,7 @@ use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategory;
 use App\Cash\Expense\Category\ExpenseCategoryEnum;
 use App\Cash\Expense\Tag\ExpenseTag;
+use App\Cash\Expense\Tag\ExpenseTagRepository;
 use App\Currency\CurrencyEnum;
 use App\Test\Integration\IntegrationTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -167,6 +168,57 @@ class BankExpenseRepositoryTest extends IntegrationTestCase
 				$result,
 			),
 		);
+	}
+
+	public function testOverviewIncludesUntaggedExpensesAndStandaloneTagsWithoutCrossingOwners(): void
+	{
+		$now = new ImmutableDateTime('2092-01-01');
+		$owner = new AppAdmin(
+			'overview-owner',
+			'Overview owner',
+			'overview-owner@example.test',
+			'unused',
+			$now,
+			false,
+			false,
+		);
+		$otherOwner = new AppAdmin(
+			'overview-other',
+			'Other owner',
+			'overview-other@example.test',
+			'unused',
+			$now,
+			false,
+			false,
+		);
+		$account = new BankAccount($owner, 'Overview', 'Test', BankAccountTypeEnum::PERSONAL);
+		$otherAccount = new BankAccount($otherOwner, 'Other', 'Test', BankAccountTypeEnum::PERSONAL);
+		$extra = new ExpenseTag($owner, 'Context', null, null, [], $now, false);
+		$secondExtra = new ExpenseTag($owner, 'Gift', null, null, [], $now, false);
+		$untagged = $this->createBankExpense('overview-untagged', $account, $now, $now, null);
+		$untagged->addOtherTag($extra);
+		$untagged->addOtherTag($secondExtra);
+		$otherExpense = $this->createBankExpense('overview-other', $otherAccount, $now, $now, null);
+		$nextMonth = $this->createBankExpense(
+			'overview-february',
+			$account,
+			$now,
+			new ImmutableDateTime('2092-02-01'),
+			null,
+		);
+		foreach ([$owner, $otherOwner, $account, $otherAccount, $extra, $secondExtra, $untagged, $otherExpense, $nextMonth] as $entity) {
+			$this->entityManager->persist($entity);
+		}
+
+		$this->entityManager->flush();
+		$this->getService(CurrentAppAdminGetter::class)->setApiAppAdmin($owner);
+		$result = $this->bankExpenseRepository->findForOverview(2092, 1);
+		self::assertSame([$untagged], $result);
+		self::assertCount(2, $result[0]->getOtherTags());
+		self::assertCount(2, $this->bankExpenseRepository->findForOverview(2092, null));
+		$tags = $this->getService(ExpenseTagRepository::class);
+		self::assertSame([], $tags->findAllMain());
+		self::assertCount(2, $tags->findAllOtherTags());
 	}
 
 	private function createBankExpense(

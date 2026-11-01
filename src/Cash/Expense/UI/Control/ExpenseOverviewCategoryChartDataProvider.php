@@ -4,11 +4,8 @@ declare(strict_types = 1);
 
 namespace App\Cash\Expense\UI\Control;
 
-use App\Asset\Price\SummaryPrice;
 use App\Cash\Expense\Bank\BankExpenseRepository;
-use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use App\Cash\Expense\UI\ExpenseOverviewPresenter;
-use App\Currency\CurrencyEnum;
 use App\UI\Control\Chart\ChartData;
 use App\UI\Control\Chart\ChartDataProvider;
 use App\UI\Control\Chart\ChartDataSet;
@@ -18,7 +15,6 @@ class ExpenseOverviewCategoryChartDataProvider implements ChartDataProvider
 
 	public function __construct(
 		private BankExpenseRepository $bankExpenseRepository,
-		private ExpenseCategoryRepository $expenseCategoryRepository,
 		private int|null $year = null,
 		private int|null $month = null,
 	)
@@ -31,30 +27,20 @@ class ExpenseOverviewCategoryChartDataProvider implements ChartDataProvider
 	 */
 	public function processParametersFromRequest(array $parameters): void
 	{
-		if (array_key_exists('originalRequestselectedYear', $parameters)) {
-			$this->setYear((int) $parameters['originalRequestselectedYear']);
+		if ($parameters === []) {
+			return;
 		}
 
-		if (array_key_exists('originalRequestselectedMonth', $parameters)) {
-			$this->setMonth((int) $parameters['originalRequestselectedMonth']);
-		}
-
-		if (array_key_exists('originalRequestdo', $parameters)) {
-			if ($parameters['originalRequestdo'] === 'setYear') {
-				if (array_key_exists('originalRequestselectedYear', $parameters)) {
-					$this->setYear((int) $parameters['originalRequestselectedYear']);
-				} else {
-					$this->setYear(ExpenseOverviewPresenter::DEFAULT_YEAR);
-				}
-			}
-
-			if (
-				$parameters['originalRequestdo'] === 'setMonth'
-				&& array_key_exists('originalRequestmonth', $parameters)
-			) {
-				$this->setMonth((int) $parameters['originalRequestmonth']);
-			}
-		}
+		$this->setYear(
+			array_key_exists('originalRequestselectedYear', $parameters)
+				? (int) $parameters['originalRequestselectedYear']
+				: ExpenseOverviewPresenter::DEFAULT_YEAR,
+		);
+		$this->setMonth(
+			array_key_exists('originalRequestselectedMonth', $parameters)
+				? (int) $parameters['originalRequestselectedMonth']
+				: null,
+		);
 	}
 
 	public function setYear(int $year): void
@@ -69,16 +55,12 @@ class ExpenseOverviewCategoryChartDataProvider implements ChartDataProvider
 
 	public function getChartData(): ChartDataSet
 	{
-		$data = new ChartData('Dataset 1');
-		foreach ($this->expenseCategoryRepository->findAll() as $expenseCategory) {
-			$expenses = $this->bankExpenseRepository->findByTagCategory($expenseCategory, $this->year, $this->month);
-
-			$summaryPrice = new SummaryPrice(CurrencyEnum::CZK);
-			foreach ($expenses as $expense) {
-				$summaryPrice->addBankExpense($expense);
-			}
-
-			$data->add($expenseCategory->getEnumName()->format(), (int) $summaryPrice->getPrice());
+		$data = new ChartData('Výdaje');
+		$overview = new ExpenseOverviewDataSet(
+			$this->bankExpenseRepository->findForOverview($this->year, $this->month),
+		);
+		foreach ($overview->groups as $group) {
+			$data->add($group->getCategoryName(), $group->getSummaryPrice()->getPrice());
 		}
 
 		return new ChartDataSet([$data], 'Kč');

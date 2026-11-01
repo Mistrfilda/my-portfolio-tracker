@@ -480,7 +480,7 @@ export class ChartRenderer {
                                     weight: 500,
                                 },
                                 generateLabels: (chart: Chart) => {
-                                    const values = (chart.data.datasets[0]?.data ?? []).map((value) => Number(value));
+                                    const values = (chart.data.datasets[0]?.data ?? []).map((value) => Math.abs(Number(value)));
                                     const total = values.reduce((sum, value) => sum + value, 0);
 
                                     return (chart.data.labels ?? []).map((label, index) => {
