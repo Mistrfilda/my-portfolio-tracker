@@ -130,6 +130,7 @@ extensions:
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
 	psr11: Contributte\Psr11\DI\Psr11ContainerExtension
+	redis: Contributte\Redis\DI\RedisExtension
 
 	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
 	custompresenterfactory: App\UI\Extension\PresenterFactory\DI\CustomPresenterFactoryExtension
