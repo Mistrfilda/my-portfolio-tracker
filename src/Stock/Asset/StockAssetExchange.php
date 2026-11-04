@@ -27,6 +27,12 @@ enum StockAssetExchange: string implements DatagridRenderableEnum
 
 	case EURONEXT_AMSTERDAM = 'AS';
 
+	case EURONEXT_PARIS = 'PA';
+
+	case NASDAQ_STOCKHOLM = 'STO';
+
+	case MADRID_STOCK_EXCHANGE = 'MC';
+
 	public function format(): string
 	{
 		return match ($this) {
@@ -39,6 +45,9 @@ enum StockAssetExchange: string implements DatagridRenderableEnum
 			StockAssetExchange::WARSAW => 'WA',
 			StockAssetExchange::EURONEXT_OSLO => 'OL',
 			StockAssetExchange::EURONEXT_AMSTERDAM => 'AS',
+			StockAssetExchange::EURONEXT_PARIS => 'PA',
+			StockAssetExchange::NASDAQ_STOCKHOLM => 'STO',
+			StockAssetExchange::MADRID_STOCK_EXCHANGE => 'MC',
 		};
 	}
 
@@ -57,6 +66,9 @@ enum StockAssetExchange: string implements DatagridRenderableEnum
 			self::WARSAW->value => 'WA',
 			self::EURONEXT_OSLO->value => 'OL',
 			self::EURONEXT_AMSTERDAM->value => 'AS',
+			self::EURONEXT_PARIS->value => 'PA',
+			self::NASDAQ_STOCKHOLM->value => 'STO',
+			self::MADRID_STOCK_EXCHANGE->value => 'MC',
 		];
 	}
 
