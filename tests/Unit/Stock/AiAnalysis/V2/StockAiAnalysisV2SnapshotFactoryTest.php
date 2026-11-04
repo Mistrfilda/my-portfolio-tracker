@@ -21,13 +21,15 @@ use App\Stock\Asset\Watchlist\StockAssetWatchlistRepository;
 use App\Stock\Position\StockPositionFacade;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Ramsey\Uuid\Uuid;
 
 class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 {
 
-	public function testAllFullCompanyScopesReceiveTheSameDataAndKeepRequestedIdentity(): void
+	#[DataProvider('providePortfolioScopes')]
+	public function testAllFullCompanyScopesReceiveTheSameDataAndKeepRequestedIdentity(bool $includesPortfolio): void
 	{
 		$admin = $this->createStub(AppAdmin::class);
 		$id = Uuid::uuid4();
@@ -43,6 +45,8 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 			'currency' => 'USD',
 			'sector' => null,
 			'currentPrice' => 100.0,
+			'performance1Day' => 1.25,
+			'performance7Days' => -3.5,
 			'dilutedEps' => 5.0,
 			'fundamentalMetadata' => ['dilutedEps' => ['importedAt' => '2026-10-25T12:00:00+01:00']],
 			'internalValuation' => ['models' => [['availability' => 'not_applicable', 'availabilityReason' => 'Industry rule']]],
@@ -61,6 +65,9 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 		$positions = $this->createStub(StockPositionFacade::class);
 		$positions->method('getStockAssetDetailDTO')->willReturn($detail);
 		$settings = $this->createStub(StockAiAnalysisSettingsFacade::class);
+		$settings->method('getInvestorInstructions')->willReturn(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+		);
 		$generator = new StockAiAnalysisPromptGenerator(
 			$assets,
 			$provider,
@@ -75,7 +82,7 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 		$snapshot = $factory->create(
 			Uuid::uuid4(),
 			new ImmutableDateTime('2026-11-04 12:00:00'),
-			true,
+			$includesPortfolio,
 			true,
 			false,
 			null,
@@ -86,10 +93,36 @@ class StockAiAnalysisV2SnapshotFactoryTest extends TestCase
 		);
 
 		self::assertSame($company, $snapshot['watchlist'][0]);
-		self::assertSame($company, array_intersect_key($snapshot['portfolio'][0], $company));
+		if ($includesPortfolio) {
+			self::assertSame($company, array_intersect_key($snapshot['portfolio'][0], $company));
+			self::assertSame(100.0, $snapshot['portfolio'][0]['portfolioPercentage']);
+		} else {
+			self::assertSame([], $snapshot['portfolio']);
+		}
+
 		self::assertSame([...$company, 'stockAssetName' => 'User supplied name'], $snapshot['singleStock']);
-		self::assertSame(100.0, $snapshot['portfolio'][0]['portfolioPercentage']);
+		self::assertSame(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+			$snapshot['investorInstructions'],
+		);
+		self::assertSame([
+			'stockAssetId' => $id->toString(),
+			'stockAssetTicker' => 'TEST',
+			'sector' => null,
+			'currency' => 'USD',
+			'portfolioPercentage' => 100.0,
+			'performance1Day' => 1.25,
+			'performance7Days' => -3.5,
+			'profitLossPercent' => 0.0,
+			'contextOnly' => !$includesPortfolio,
+		], $snapshot['portfolioContext']['positions'][0]);
 		self::assertArrayNotHasKey('internalValuation', $snapshot['portfolioContext']['positions'][0]);
+	}
+
+	/** @return array<string, array{bool}> */
+	public static function providePortfolioScopes(): array
+	{
+		return ['requested portfolio' => [true], 'context-only portfolio' => [false]];
 	}
 
 	public function testUnknownSingleStockKeepsResearchOnlyInput(): void

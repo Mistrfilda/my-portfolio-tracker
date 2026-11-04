@@ -4,8 +4,10 @@ declare(strict_types = 1);
 
 namespace App\Test\Unit\Stock\AiAnalysis\V2;
 
+use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator;
 use App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory;
+use Nette\Utils\Json;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
@@ -131,10 +133,28 @@ class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 		self::assertStringContainsString('a purchase is not yet justified', $prompt);
 	}
 
+	public function testDefaultDividendProfileReachesEveryProviderWithoutExcludingNonDividendCandidates(): void
+	{
+		$snapshot = $this->createSnapshot('portfolio_evaluation');
+		$snapshot['investorInstructions'] = StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS;
+		foreach ($this->createProviderPrompts($snapshot) as $provider => $prompt) {
+			self::assertSame(
+				1,
+				substr_count($prompt, StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS),
+				$provider,
+			);
+			self::assertStringContainsString('preferencí kvalitních dividendových společností', $prompt, $provider);
+			self::assertStringContainsString('watchlistu nemusí vyplácet dividendu', $prompt, $provider);
+		}
+	}
+
 	public function testEveryProviderIncludesAConciseDecisionAndAvoidsDuplicateConcentrationWarnings(): void
 	{
 		foreach ($this->createProviderPrompts($this->createSnapshot('portfolio_evaluation')) as $prompt) {
-			self::assertStringContainsString('one short, self-contained Czech sentence of at most 35 words', $prompt);
+			self::assertStringContainsString(
+				'one short, self-contained Czech sentence of approximately 35 words or fewer',
+				$prompt,
+			);
 			self::assertStringContainsString('any essential condition or uncertainty', $prompt);
 			self::assertStringContainsString(
 				'distinguish intentional allocations from actionable concentration problems',
@@ -216,6 +236,88 @@ class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 		self::assertStringContainsString('assumptions', $instruction);
 		self::assertStringContainsString('not rely only on an analyst target', $instruction);
 		self::assertStringContainsString('Use null values when support is insufficient', $instruction);
+	}
+
+	public function testCodexMapsEveryInputAndSharesCompanyPortfolioContext(): void
+	{
+		$generator = new StockAiAnalysisV2PromptGenerator(new StockAiAnalysisV2SchemaFactory());
+		$prompt = $generator->generateCodexTaskPrompt($this->createSnapshot('portfolio_evaluation'));
+		foreach ([
+			'portfolio-*.json` -> `portfolioAnalysis',
+			'watchlist-*.json` -> `watchlistAnalysis',
+			'simple-watchlist-*.json` -> `simpleWatchlistAnalysis',
+			'stock.json` -> `stockAnalysis',
+			'not a company task',
+			'Use it in company assessments for portfolio fit and exposure',
+			'one-item array; stockAnalysis is a single object',
+		] as $instruction) {
+			self::assertStringContainsString($instruction, $prompt);
+		}
+	}
+
+	#[DataProvider('provideResearchModes')]
+	public function testEveryProviderReceivesBusinessRulesAndEnumDefinitions(string $mode): void
+	{
+		foreach ($this->createProviderPrompts($this->createSnapshot($mode)) as $provider => $prompt) {
+			foreach ([
+				'0 < fairValueLow <= fairValueBase <= fairValueHigh',
+				'currency equal to the input asset currency',
+				'dataQuality.status = insufficient requires all five fields null and assessment uncertain',
+				'Keep the valuation object and its explanatory summary',
+				'recommendation.confidence measures the strength and consistency of evidence for the selected action',
+				'Limited valuation data can still support a high-confidence decision to wait',
+				'uncertain is also valid with a supported range',
+				'materialEvents.timeHorizon describes the duration of investment impact',
+				'catalysts.horizon describes expected realization',
+				'Risk likelihood is the evidence-based chance',
+				'Impact is severity if it occurs',
+				'Use mixed for material metrics pointing in different directions',
+				'dividend.status at_risk requires concrete evidence',
+				'null means the calculation is unavailable',
+				'not a daily or weekly return',
+				'do not claim an aggregate percentage or total return',
+				'portfolioContext.sectorAllocation as the source',
+				'outside the schema currency enum',
+				'next 30 calendar days',
+				'Listing currency alone does not establish business exposure',
+			] as $instruction) {
+				self::assertStringContainsString($instruction, $prompt, $provider);
+			}
+		}
+	}
+
+	public function testDailyRulesDefineValuationScopeAndFollowUpPriority(): void
+	{
+		$generator = new StockAiAnalysisV2PromptGenerator(new StockAiAnalysisV2SchemaFactory());
+		$prompt = $generator->generateSystemInstruction($this->createSnapshot('daily_brief'));
+		foreach ([
+			'a daily brief does not require rebuilding every model',
+			'No new news alone is not a reason for insufficient data',
+			'performanceComment, describe performance1Day',
+			'portfolioImpactSummary is null only when portfolio analysis is outside scope',
+			'watchlistSummary is null only when both watchlist scopes are excluded',
+			'choose review_positions and retain the watchlist task in checklist',
+			'Routine price volatility alone is not critical',
+		] as $instruction) {
+			self::assertStringContainsString($instruction, $prompt);
+		}
+	}
+
+	public function testReduceReceivesNumericPerformanceAndRunScope(): void
+	{
+		$snapshot = $this->createSnapshot('portfolio_evaluation');
+		$snapshot['portfolioContext'] = ['positions' => [[
+			'stockAssetId' => '018f6d0e-7c2a-7f45-8d82-b9e4653cb957',
+			'portfolioPercentage' => 25.0,
+			'performance1Day' => null,
+			'performance7Days' => -3.5,
+			'profitLossPercent' => 12.5,
+		]]];
+		$generator = new StockAiAnalysisV2PromptGenerator(new StockAiAnalysisV2SchemaFactory());
+		$prompt = $generator->generateReducePrompt($snapshot, [], [], []);
+
+		self::assertStringContainsString(Json::encode($snapshot['portfolioContext'], pretty: true), $prompt);
+		self::assertStringContainsString(Json::encode($snapshot['scope'], pretty: true), $prompt);
 	}
 
 	/**

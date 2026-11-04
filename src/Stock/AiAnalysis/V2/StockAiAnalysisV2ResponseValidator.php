@@ -276,7 +276,10 @@ class StockAiAnalysisV2ResponseValidator
 
 		$dataQuality = is_array($item['dataQuality'] ?? null) ? $item['dataQuality'] : [];
 		if (($dataQuality['status'] ?? null) === 'insufficient') {
-			$errors[] = sprintf('%s.valuation must be null when dataQuality.status is insufficient.', $path);
+			$errors[] = sprintf(
+				'%s.valuation price range, currency, and method must be null when dataQuality.status is insufficient.',
+				$path,
+			);
 		}
 	}
 

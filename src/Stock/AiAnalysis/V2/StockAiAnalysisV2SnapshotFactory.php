@@ -79,7 +79,11 @@ class StockAiAnalysisV2SnapshotFactory
 				'stockAssetId' => $item['stockAssetId'] ?? null,
 				'stockAssetTicker' => $item['stockAssetTicker'] ?? null,
 				'sector' => $item['sector'] ?? null,
+				'currency' => $item['currency'] ?? null,
 				'portfolioPercentage' => $weight,
+				'performance1Day' => $item['performance1Day'] ?? null,
+				'performance7Days' => $item['performance7Days'] ?? null,
+				'profitLossPercent' => $item['profitLossPercent'] ?? null,
 				'contextOnly' => !$includesPortfolio,
 			];
 		}

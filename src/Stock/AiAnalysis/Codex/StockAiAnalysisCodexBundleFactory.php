@@ -181,6 +181,7 @@ MARKDOWN,
 - Preserve all IDs, company names, and tickers exactly. Do not omit, duplicate, or add companies.
 - Use Czech narrative values and English JSON keys. Use empty arrays, `null`, and explicit uncertainty instead of filler or fabricated facts.
 - Validate every partial file with `node validate-stock-json.mjs schema/company-result.schema.json <partial-file>`.
+- The validator reads the bundled manifest and company inputs to check scope, exact identities, currencies, and valuation rules.
 - After all company results are ready, create run-level sections using `input/context.json` and all partial results.
 - Create `result.json` in the project root, then run `node validate-stock-json.mjs schema/result.schema.json result.json`.
 - The analysis is complete only when the validator succeeds and all IDs/counts match `manifest.json`.

@@ -1,4 +1,6 @@
 import fs from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const [schemaPath, dataPath, ...unexpectedArguments] = process.argv.slice(2);
 if (!schemaPath || !dataPath || unexpectedArguments.length > 0) {
@@ -129,7 +131,99 @@ function validate(nodeSchema, value, pointer = '$') {
   }
 }
 
+function validateCompany(item, expected, pointer) {
+	for (const key of ['stockAssetId', 'stockAssetName', 'stockAssetTicker']) {
+		if ((item[key] ?? null) !== (expected[key] ?? null)) {
+			errors.push(`${pointer}.${key}: must match the immutable input`);
+		}
+	}
+
+	const valuation = item.valuation;
+	const values = ['fairValueLow', 'fairValueBase', 'fairValueHigh', 'currency', 'method']
+		.map((key) => valuation[key]);
+	const nonNullCount = values.filter((value) => value !== null).length;
+	if (nonNullCount !== 0 && nonNullCount !== values.length) {
+		errors.push(`${pointer}.valuation: price range, currency, and method must be all null or all present`);
+		return;
+	}
+
+	if (nonNullCount === 0) {
+		if (valuation.assessment !== 'uncertain') {
+			errors.push(`${pointer}.valuation.assessment: must be uncertain when no fair value is available`);
+		}
+		return;
+	}
+
+	const [low, base, high, currency] = values;
+	if (low <= 0 || base <= 0 || high <= 0 || low > base || base > high) {
+		errors.push(`${pointer}.valuation: must satisfy 0 < low <= base <= high`);
+	}
+	if (typeof expected.currency === 'string' && currency !== expected.currency) {
+		errors.push(`${pointer}.valuation.currency: must equal ${expected.currency}`);
+	}
+	if (item.dataQuality.status === 'insufficient') {
+		errors.push(`${pointer}.valuation: value fields must be null when dataQuality.status is insufficient`);
+	}
+}
+
+function validateBusinessRules() {
+	const bundleDirectory = dirname(fileURLToPath(import.meta.url));
+	const manifest = readJson(join(bundleDirectory, 'manifest.json'));
+	const fullResult = Object.hasOwn(schema.properties ?? {}, 'schemaVersion');
+	if (fullResult) {
+		for (const key of ['schemaVersion', 'runId', 'analysisAsOf']) {
+			if (data[key] !== manifest[key]) errors.push(`$.${key}: must match manifest.json`);
+		}
+	}
+
+	for (const [rootKey, prefix, idsKey] of [
+		['portfolioAnalysis', 'portfolio', 'portfolioStockAssetIds'],
+		['watchlistAnalysis', 'watchlist', 'watchlistStockAssetIds'],
+		['simpleWatchlistAnalysis', 'simple-watchlist', 'simpleWatchlistIds'],
+	]) {
+		if (!Object.hasOwn(data, rootKey)) continue;
+		if (!manifest.requiredSections.includes(rootKey)) {
+			errors.push(`$.${rootKey}: section is outside the requested scope`);
+			continue;
+		}
+
+		const expectedById = new Map((manifest[idsKey] ?? []).map((id, index) => {
+			const inputPath = join(bundleDirectory, 'input', `${prefix}-${String(index + 1).padStart(3, '0')}-${id}.json`);
+			return [id, readJson(inputPath)];
+		}));
+		const seenIds = new Set();
+		data[rootKey].forEach((item, index) => {
+			const pointer = `$.${rootKey}[${index}]`;
+			const expected = expectedById.get(item.stockAssetId);
+			if (!expected) {
+				errors.push(`${pointer}: unexpected stockAssetId`);
+				return;
+			}
+			if (seenIds.has(item.stockAssetId)) {
+				errors.push(`${pointer}: duplicate stockAssetId ${item.stockAssetId}`);
+				return;
+			}
+			seenIds.add(item.stockAssetId);
+			validateCompany(item, expected, pointer);
+		});
+		if (fullResult) {
+			for (const id of expectedById.keys()) {
+				if (!seenIds.has(id)) errors.push(`$.${rootKey}: missing stockAssetId ${id}`);
+			}
+		}
+	}
+
+	if (Object.hasOwn(data, 'stockAnalysis')) {
+		if (!manifest.requiredSections.includes('stockAnalysis')) {
+			errors.push('$.stockAnalysis: section is outside the requested scope');
+		} else {
+			validateCompany(data.stockAnalysis, readJson(join(bundleDirectory, 'input', 'stock.json')), '$.stockAnalysis');
+		}
+	}
+}
+
 validate(schema, data);
+if (errors.length === 0) validateBusinessRules();
 
 if (errors.length > 0) {
   for (const error of errors) console.error(error);

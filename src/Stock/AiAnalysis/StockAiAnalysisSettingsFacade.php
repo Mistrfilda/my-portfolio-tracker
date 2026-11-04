@@ -12,6 +12,11 @@ use Mistrfilda\Datetime\DatetimeFactory;
 class StockAiAnalysisSettingsFacade
 {
 
+	public const string DEFAULT_INVESTOR_INSTRUCTIONS = 'Jsem dlouhodobý investor s preferencí kvalitních dividendových společností. '
+		. 'Důležitá je udržitelnost dividend a dlouhodobý celkový výnos. Zajímavá společnost na plném nebo jednoduchém '
+		. 'watchlistu nemusí vyplácet dividendu, pokud její kvalita, ocenění a investiční teze odůvodňují nákup. '
+		. 'Absence dividendy sama o sobě není důvodem k jejímu odmítnutí.';
+
 	public function __construct(
 		private readonly StockAiAnalysisSettingsRepository $repository,
 		private readonly EntityManagerInterface $entityManager,
@@ -23,7 +28,9 @@ class StockAiAnalysisSettingsFacade
 
 	public function getInvestorInstructions(AppAdmin|null $appAdmin = null): string
 	{
-		return $this->repository->findSettings($appAdmin)?->getInvestorInstructions() ?? '';
+		$instructions = $this->repository->findSettings($appAdmin)?->getInvestorInstructions() ?? '';
+
+		return trim($instructions) !== '' ? $instructions : self::DEFAULT_INVESTOR_INSTRUCTIONS;
 	}
 
 	public function saveInvestorInstructions(string $instructions): void

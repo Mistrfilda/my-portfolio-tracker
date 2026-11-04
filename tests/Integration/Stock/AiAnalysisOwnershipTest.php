@@ -175,10 +175,20 @@ class AiAnalysisOwnershipTest extends IntegrationTestCase
 		self::assertSame('Private instructions 1', $settings->getInvestorInstructions());
 		self::assertSame([$runs[1]], $this->getService(StockAiAnalysisRunRepository::class)->findAll());
 		$this->currentAdmin->setApiAppAdmin($this->emptyOwner);
-		self::assertSame('', $settings->getInvestorInstructions());
-		$empty = $facade->createRun(true, true, false)->getInputSnapshot();
+		self::assertSame(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+			$settings->getInvestorInstructions(),
+		);
+		$emptyRun = $facade->createRun(true, true, false);
+		$empty = $emptyRun->getInputSnapshot();
 		self::assertSame([], $empty['portfolio']);
 		self::assertSame([], $empty['simpleWatchlist']);
+		self::assertSame(StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS, $empty['investorInstructions']);
+		$settings->saveInvestorInstructions('Custom profile after snapshot');
+		self::assertSame(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+			$emptyRun->getInputSnapshot()['investorInstructions'],
+		);
 	}
 
 	public function testResultsQuestionsPlansAndExportsRejectForeignIds(): void

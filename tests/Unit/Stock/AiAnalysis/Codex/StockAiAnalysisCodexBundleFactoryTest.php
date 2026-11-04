@@ -26,6 +26,12 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 		$runId = Uuid::uuid4();
 		$snapshot = $this->createSnapshot($runId->toString());
 		$snapshot['investorInstructions'] = 'Keep Czech holdings.';
+		$snapshot['portfolioContext'] = ['positions' => [[
+			'stockAssetId' => $snapshot['portfolio'][0]['stockAssetId'],
+			'performance1Day' => null,
+			'performance7Days' => -3.5,
+			'profitLossPercent' => 12.5,
+		]]];
 		$run = new StockAiAnalysisRun(
 			$this->createStub(AppAdmin::class),
 			'Prompt',
@@ -71,6 +77,8 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			self::assertNotFalse($zip->locateName('validate-stock-json.mjs'));
 			self::assertNotSame('', trim((string) $zip->getFromName('validate-stock-json.mjs')));
 			self::assertNotFalse($zip->locateName('input/context.json'));
+			$context = Json::decode((string) $zip->getFromName('input/context.json'), forceArrays: true);
+			self::assertSame($snapshot['portfolioContext'], $context['portfolioContext']);
 			self::assertNotFalse(
 				$zip->locateName('input/portfolio-001-' . $snapshot['portfolio'][0]['stockAssetId'] . '.json'),
 			);
@@ -143,15 +151,15 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				(string) $zip->getFromName('instructions/system.md'),
 			);
 			self::assertStringContainsString(
-				'currentPrice: null` means the application did not provide a quote',
-				(string) $zip->getFromName('instructions/task.md'),
+				'currentPrice: null means a local quote is missing',
+				(string) $zip->getFromName('instructions/system.md'),
 			);
 			self::assertStringContainsString(
-				'state the researched price, currency, and quote date in `valuation.summary`',
-				(string) $zip->getFromName('instructions/task.md'),
+				'State the researched price, currency, and quote date in valuation.summary',
+				(string) $zip->getFromName('instructions/system.md'),
 			);
 			self::assertStringContainsString(
-				'Do not use `uncertain` solely because input `currentPrice` is null',
+				'follow the canonical purchase, quote-research, and currency rules',
 				(string) $zip->getFromName('instructions/task.md'),
 			);
 			self::assertStringContainsString(

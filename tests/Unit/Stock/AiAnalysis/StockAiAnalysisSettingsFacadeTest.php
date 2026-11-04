@@ -37,7 +37,10 @@ class StockAiAnalysisSettingsFacadeTest extends TestCase
 			$this->createStub(CurrentAppAdminGetter::class),
 		);
 
-		self::assertSame('', $facade->getInvestorInstructions());
+		self::assertSame(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+			$facade->getInvestorInstructions(),
+		);
 		$facade->saveInvestorInstructions("  Keep Czech holdings.\n");
 	}
 
@@ -67,7 +70,11 @@ class StockAiAnalysisSettingsFacadeTest extends TestCase
 		self::assertSame('Updated preferences', $facade->getInvestorInstructions());
 		self::assertSame($now, $settings->getUpdatedAt());
 		$facade->saveInvestorInstructions(" \n ");
-		self::assertSame('', $facade->getInvestorInstructions());
+		self::assertSame('', $settings->getInvestorInstructions());
+		self::assertSame(
+			StockAiAnalysisSettingsFacade::DEFAULT_INVESTOR_INSTRUCTIONS,
+			$facade->getInvestorInstructions(),
+		);
 	}
 
 }
