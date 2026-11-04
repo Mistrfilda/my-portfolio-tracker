@@ -11,6 +11,8 @@ Use this reference when changing the V2 contract or either provider workflow. Ke
 
 `StockAiAnalysisV2SnapshotFactory` still reuses the legacy prompt generator only as a data provider for current portfolio and watchlist facts. Do not treat that dependency as ownership of the V2 prompt contract.
 
+`StockAiAnalysisCompanyDataProvider` supplies the common company input for portfolio, full watchlist, and known single-stock assets. It includes fundamentals with per-metric import/currency metadata and evaluated `internalValuation` models, applicability reasons, assumptions, sensitivity scenarios, and family consensus. Always obtain model results through `StockValuationFacade` so industry and input-validity rules remain authoritative. Preserve these values in the immutable snapshot for every provider; simple-watchlist and unknown single-stock inputs still rely on research. Import timestamps are not reporting dates, and imported currencies are not independently verified reporting currencies.
+
 ## Dynamic response contract
 
 `StockAiAnalysisV2SchemaFactory::createFullSchema()` derives required sections from `snapshot.scope`:

@@ -12,6 +12,11 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class PegRatioValuationModel extends BasePriceModel
 {
 
+	public function getName(): string
+	{
+		return 'PegRatioValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$value = $stockValuation->getValuationDataByType(StockValuationTypeEnum::PEG_RATIO)?->getFloatValue();

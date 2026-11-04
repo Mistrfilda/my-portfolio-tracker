@@ -10,6 +10,8 @@ use App\Stock\Valuation\StockValuation;
 interface StockValuationModel
 {
 
+	public function getName(): string;
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse;
 
 }

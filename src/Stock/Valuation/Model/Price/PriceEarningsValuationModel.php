@@ -21,6 +21,11 @@ class PriceEarningsValuationModel extends BasePriceModel
 
 	private float $industryAveragePe;
 
+	public function getName(): string
+	{
+		return 'PriceEarningsValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

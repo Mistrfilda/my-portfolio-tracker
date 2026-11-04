@@ -10,10 +10,6 @@ use App\Stock\Asset\StockAsset;
 use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Asset\UI\Detail\List\StockAssetListDetailControlEnum;
 use App\Stock\Position\StockPositionFacade;
-use App\Stock\Price\StockAssetPriceRecordRepository;
-use App\Stock\Valuation\Data\StockValuationData;
-use App\Stock\Valuation\Data\StockValuationDataRepository;
-use App\Stock\Valuation\StockValuationTypeEnum;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Nette\Utils\Json;
 use RuntimeException;
@@ -25,9 +21,8 @@ class StockAiAnalysisPromptGenerator
 
 	public function __construct(
 		private StockAssetRepository $stockAssetRepository,
-		private StockValuationDataRepository $stockValuationDataRepository,
+		private readonly StockAiAnalysisCompanyDataProvider $companyDataProvider,
 		private StockPositionFacade $stockPositionFacade,
-		private StockAssetPriceRecordRepository $stockAssetPriceRecordRepository,
 		private DatetimeFactory $datetimeFactory,
 		private readonly StockAiAnalysisSettingsFacade $settingsFacade,
 		private readonly CurrentAppAdminGetter $currentAppAdminGetter,
@@ -169,6 +164,12 @@ class StockAiAnalysisPromptGenerator
 	public function getAutomaticPortfolioData(AppAdmin|null $appAdmin = null): array
 	{
 		return $this->getPortfolioData($appAdmin);
+	}
+
+	/** @return array<string, mixed> */
+	public function getAutomaticStockData(StockAsset $stockAsset): array
+	{
+		return $this->companyDataProvider->getData($stockAsset);
 	}
 
 	public function generateManualOpenPositionsPrompt(): string
@@ -623,7 +624,6 @@ class StockAiAnalysisPromptGenerator
 			$currentPriceInCzk = $dto->getCurrentPriceInCzk()->getPrice();
 			$currentPricesInCzk[] = $currentPriceInCzk;
 			$totalPortfolioValue += $currentPriceInCzk;
-			$valuations = $this->stockValuationDataRepository->findLatestForStockAsset($asset);
 
 			$firstPurchaseDate = null;
 			$lastPurchaseDate = null;
@@ -638,13 +638,7 @@ class StockAiAnalysisPromptGenerator
 				}
 			}
 
-			$data[] = [
-				'stockAssetId' => $asset->getId()->toString(),
-				'stockAssetName' => $asset->getName(),
-				'stockAssetTicker' => $asset->getTicker(),
-				'currency' => $asset->getCurrency()->value,
-				'sector' => $asset->getIndustry()?->getName(),
-				'currentPrice' => $asset->getAssetCurrentPrice()->getPrice(),
+			$data[] = array_merge($this->getAutomaticStockData($asset), [
 				'averagePurchasePrice' => $dto->getPiecesCount() > 0
 					? $dto->getTotalInvestedAmount()->getPrice() / $dto->getPiecesCount()
 					: 0,
@@ -652,39 +646,7 @@ class StockAiAnalysisPromptGenerator
 				'profitLossPercent' => round($dto->getCurrentPriceDiff()->getPercentageDifference(), 2),
 				'firstPurchaseDate' => $firstPurchaseDate?->format('Y-m-d'),
 				'lastPurchaseDate' => $lastPurchaseDate?->format('Y-m-d'),
-				'dividendYield' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD,
-				),
-				'trailingDividendYield' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::TRAILING_ANNUAL_DIVIDEND_YIELD,
-				),
-				'payoutRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PAYOUT_RATIO),
-				'trailingPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::TRAILING_PE),
-				'forwardPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::FORWARD_PE),
-				'priceToBook' => $this->getValuationValue($valuations, StockValuationTypeEnum::PRICE_BOOK),
-				'pegRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PEG_RATIO),
-				'profitMargin' => $this->getValuationValue($valuations, StockValuationTypeEnum::PROFIT_MARGIN),
-				'returnOnEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::RETURN_ON_EQUITY),
-				'debtToEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::TOTAL_DEBT_EQUITY),
-				'52WeekHigh' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_HIGH),
-				'52WeekLow' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_LOW),
-				'analystTargetPrice' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
-				),
-				'quarterlyEarningsGrowth' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
-				),
-				'quarterlyRevenueGrowth' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
-				),
-				'performance1Day' => $this->getPerformance1Day($asset),
-				'performance7Days' => $this->getPerformance7Days($asset),
-			];
+			]);
 		}
 
 		foreach ($data as $index => $portfolioItem) {
@@ -710,94 +672,10 @@ class StockAiAnalysisPromptGenerator
 				continue;
 			}
 
-			$valuations = $this->stockValuationDataRepository->findLatestForStockAsset($asset);
-
-			$data[] = [
-				'stockAssetId' => $asset->getId()->toString(),
-				'stockAssetName' => $asset->getName(),
-				'stockAssetTicker' => $asset->getTicker(),
-				'currency' => $asset->getCurrency()->value,
-				'sector' => $asset->getIndustry()?->getName(),
-				'currentPrice' => $asset->getAssetCurrentPrice()->getPrice(),
-				'trailingPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::TRAILING_PE),
-				'forwardPE' => $this->getValuationValue($valuations, StockValuationTypeEnum::FORWARD_PE),
-				'priceToBook' => $this->getValuationValue($valuations, StockValuationTypeEnum::PRICE_BOOK),
-				'pegRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PEG_RATIO),
-				'dividendYield' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::FORWARD_ANNUAL_DIVIDEND_YIELD,
-				),
-				'trailingDividendYield' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::TRAILING_ANNUAL_DIVIDEND_YIELD,
-				),
-				'payoutRatio' => $this->getValuationValue($valuations, StockValuationTypeEnum::PAYOUT_RATIO),
-				'marketCap' => $this->getValuationValue($valuations, StockValuationTypeEnum::MARKET_CAP),
-				'52WeekHigh' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_HIGH),
-				'52WeekLow' => $this->getValuationValue($valuations, StockValuationTypeEnum::WEEK_52_LOW),
-				'profitMargin' => $this->getValuationValue($valuations, StockValuationTypeEnum::PROFIT_MARGIN),
-				'returnOnEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::RETURN_ON_EQUITY),
-				'debtToEquity' => $this->getValuationValue($valuations, StockValuationTypeEnum::TOTAL_DEBT_EQUITY),
-				'revenueGrowth' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::QUARTERLY_REVENUE_GROWTH,
-				),
-				'analystTargetPrice' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::ANALYST_PRICE_TARGET_AVERAGE,
-				),
-				'quarterlyEarningsGrowth' => $this->getValuationValue(
-					$valuations,
-					StockValuationTypeEnum::QUARTERLY_EARNINGS_GROWTH,
-				),
-				'performance1Day' => $this->getPerformance1Day($asset),
-				'performance7Days' => $this->getPerformance7Days($asset),
-			];
+			$data[] = $this->getAutomaticStockData($asset);
 		}
 
 		return $data;
-	}
-
-	/**
-	 * @param array<string, StockValuationData> $valuations
-	 */
-	private function getValuationValue(array $valuations, StockValuationTypeEnum $type): float|null
-	{
-		return isset($valuations[$type->value]) ? $valuations[$type->value]->getFloatValue() : null;
-	}
-
-	private function getPerformance1Day(StockAsset $asset): float|null
-	{
-		return $this->getPerformanceDays($asset, 1);
-	}
-
-	private function getPerformance7Days(StockAsset $asset): float|null
-	{
-		return $this->getPerformanceDays($asset, 7);
-	}
-
-	private function getPerformanceDays(StockAsset $asset, int $days): float|null
-	{
-		$now = $this->datetimeFactory->createNow();
-		$sinceDate = $now->deductDaysFromDatetime($days);
-
-		$priceRecords = $this->stockAssetPriceRecordRepository->findByStockAssetSinceDate(
-			$asset,
-			$sinceDate,
-		);
-
-		if (count($priceRecords) < 2) {
-			return null;
-		}
-
-		$oldestPrice = $priceRecords[0]->getPrice();
-		$newestPrice = $priceRecords[count($priceRecords) - 1]->getPrice();
-
-		if ($oldestPrice <= 0) {
-			return null;
-		}
-
-		return round(($newestPrice - $oldestPrice) / $oldestPrice * 100, 2);
 	}
 
 }

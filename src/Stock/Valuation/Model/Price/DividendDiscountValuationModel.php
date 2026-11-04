@@ -26,6 +26,11 @@ class DividendDiscountValuationModel extends BasePriceModel
 	{
 	}
 
+	public function getName(): string
+	{
+		return 'DividendDiscountValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

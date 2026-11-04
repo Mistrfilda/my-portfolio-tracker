@@ -10,6 +10,7 @@ use App\Asset\Price\AssetPrice;
 use App\Asset\Price\PriceDiff;
 use App\Asset\Price\SummaryPrice;
 use App\Currency\CurrencyEnum;
+use App\Stock\AiAnalysis\StockAiAnalysisCompanyDataProvider;
 use App\Stock\AiAnalysis\StockAiAnalysisPortfolioPromptTypeEnum;
 use App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator;
 use App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade;
@@ -19,8 +20,6 @@ use App\Stock\Asset\StockAssetRepository;
 use App\Stock\Position\StockAssetPositionDetailDTO;
 use App\Stock\Position\StockPosition;
 use App\Stock\Position\StockPositionFacade;
-use App\Stock\Price\StockAssetPriceRecordRepository;
-use App\Stock\Valuation\Data\StockValuationDataRepository;
 use App\Test\UpdatedTestCase;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
@@ -38,9 +37,8 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$datetimeFactory->method('createNow')->willReturn(new ImmutableDateTime('2026-09-20 10:00:00'));
 		$generator = new StockAiAnalysisPromptGenerator(
 			$this->createStub(StockAssetRepository::class),
-			$this->createStub(StockValuationDataRepository::class),
+			$this->createStub(StockAiAnalysisCompanyDataProvider::class),
 			$this->createStub(StockPositionFacade::class),
-			$this->createStub(StockAssetPriceRecordRepository::class),
 			$datetimeFactory,
 			$settings,
 			$this->currentAppAdminGetter(),
@@ -56,9 +54,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 	{
 		$generator = $this->createGenerator(
 			$stockAssetRepository,
-			$stockValuationDataRepository,
 			stockPositionFacade: $stockPositionFacade,
-			stockAssetPriceRecordRepository: $stockAssetPriceRecordRepository,
 			datetimeFactory: $datetimeFactory,
 		);
 
@@ -118,10 +114,7 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 
 	public function testGeneratePortfolioAndWatchlistPromptUsesWeeklyPerformanceSchema(): void
 	{
-		$generator = $this->createGenerator(
-			$stockAssetRepository,
-			$stockValuationDataRepository,
-		);
+		$generator = $this->createGenerator($stockAssetRepository);
 
 		$stockAssetRepository->shouldReceive('findWithPositionsForAppAdmin')->once()->andReturn([]);
 		$stockAssetRepository->shouldReceive('findAll')->once()->andReturn([]);
@@ -218,10 +211,8 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 	{
 		$generator = $this->createGenerator(
 			$stockAssetRepository,
-			$stockValuationDataRepository,
 			stockPositionFacade: $stockPositionFacade,
-			stockAssetPriceRecordRepository: $stockAssetPriceRecordRepository,
-			datetimeFactory: $datetimeFactory,
+			companyDataProvider: $companyDataProvider,
 		);
 
 		$stockAsset = UpdatedTestCase::createMockWithIgnoreMethods(StockAsset::class);
@@ -267,14 +258,11 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 		$stockPositionFacade->shouldReceive('getStockAssetDetailDTO')
 			->once()
 			->andReturn($stockAssetDetail);
-		$stockValuationDataRepository->shouldReceive('findLatestForStockAsset')
-			->andReturn([]);
-		$datetimeFactory->shouldReceive('createNow')
-			->twice()
-			->andReturn(new ImmutableDateTime('2025-04-01'));
-		$stockAssetPriceRecordRepository->shouldReceive('findByStockAssetSinceDate')
-			->twice()
-			->andReturn([]);
+		$companyDataProvider->shouldReceive('getData')->once()->with($stockAsset)->andReturn([
+			'stockAssetName' => 'Apple Inc.',
+			'stockAssetTicker' => 'AAPL',
+			'currency' => 'USD',
+		]);
 
 		$prompt = $generator->generateManualOpenPositionsPrompt();
 
@@ -351,27 +339,22 @@ class StockAiAnalysisPromptGeneratorTest extends TestCase
 
 	private function createGenerator(
 		mixed &$stockAssetRepository = null,
-		mixed &$stockValuationDataRepository = null,
 		mixed &$stockPositionFacade = null,
-		mixed &$stockAssetPriceRecordRepository = null,
 		mixed &$datetimeFactory = null,
+		mixed &$companyDataProvider = null,
 	): StockAiAnalysisPromptGenerator
 	{
 		$stockAssetRepository ??= UpdatedTestCase::createMockWithIgnoreMethods(StockAssetRepository::class);
-		$stockValuationDataRepository ??= UpdatedTestCase::createMockWithIgnoreMethods(
-			StockValuationDataRepository::class,
-		);
 		$stockPositionFacade ??= UpdatedTestCase::createMockWithIgnoreMethods(StockPositionFacade::class);
-		$stockAssetPriceRecordRepository ??= UpdatedTestCase::createMockWithIgnoreMethods(
-			StockAssetPriceRecordRepository::class,
+		$companyDataProvider ??= UpdatedTestCase::createMockWithIgnoreMethods(
+			StockAiAnalysisCompanyDataProvider::class,
 		);
 		$datetimeFactory ??= UpdatedTestCase::createMockWithIgnoreMethods(DatetimeFactory::class);
 
 		return new StockAiAnalysisPromptGenerator(
 			$stockAssetRepository,
-			$stockValuationDataRepository,
+			$companyDataProvider,
 			$stockPositionFacade,
-			$stockAssetPriceRecordRepository,
 			$datetimeFactory,
 			$this->createStub(StockAiAnalysisSettingsFacade::class),
 			$this->currentAppAdminGetter(),

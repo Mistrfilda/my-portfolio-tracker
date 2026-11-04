@@ -88,14 +88,17 @@ class StockAiAnalysisV2SnapshotFactory
 
 		$singleStockData = null;
 		if ($stockTicker !== null && $stockName !== null) {
-			$singleStockData = [
-				'stockAssetId' => $stockAsset?->getId()->toString(),
-				'stockAssetTicker' => $stockTicker,
-				'stockAssetName' => $stockName,
-				'currency' => $stockAsset?->getCurrency()->value,
-				'sector' => $stockAsset?->getIndustry()?->getName(),
-				'currentPrice' => $stockAsset?->getAssetCurrentPrice()->getPrice(),
-			];
+			$singleStockData = array_merge(
+				$stockAsset !== null ? $this->legacyPromptGenerator->getAutomaticStockData($stockAsset) : [],
+				[
+					'stockAssetId' => $stockAsset?->getId()->toString(),
+					'stockAssetTicker' => $stockTicker,
+					'stockAssetName' => $stockName,
+					'currency' => $stockAsset?->getCurrency()->value,
+					'sector' => $stockAsset?->getIndustry()?->getName(),
+				],
+			);
+			$singleStockData['currentPrice'] ??= null;
 		}
 
 		return [

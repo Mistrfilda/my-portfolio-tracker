@@ -27,6 +27,11 @@ class DividendYieldFairValueModel extends BasePriceModel
 
 	private float|null $currentYield = null;
 
+	public function getName(): string
+	{
+		return 'DividendYieldFairValueModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

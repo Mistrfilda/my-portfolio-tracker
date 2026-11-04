@@ -12,6 +12,11 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class DebtAdjustedValuationModel extends BasePriceModel
 {
 
+	public function getName(): string
+	{
+		return 'DebtAdjustedValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$value = $stockValuation->getValuationDataByType(StockValuationTypeEnum::TOTAL_DEBT_EQUITY)?->getFloatValue();

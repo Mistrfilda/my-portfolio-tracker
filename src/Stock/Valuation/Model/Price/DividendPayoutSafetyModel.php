@@ -12,6 +12,11 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class DividendPayoutSafetyModel extends BasePriceModel
 {
 
+	public function getName(): string
+	{
+		return 'DividendPayoutSafetyModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$value = $stockValuation->getValuationDataByType(StockValuationTypeEnum::PAYOUT_RATIO)?->getFloatValue();

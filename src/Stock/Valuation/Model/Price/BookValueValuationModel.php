@@ -21,6 +21,11 @@ class BookValueValuationModel extends BasePriceModel
 
 	private float $industryMultiple = 0.0;
 
+	public function getName(): string
+	{
+		return 'BookValueValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

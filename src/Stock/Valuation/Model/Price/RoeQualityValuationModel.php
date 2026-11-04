@@ -12,6 +12,11 @@ use App\Stock\Valuation\StockValuationTypeEnum;
 class RoeQualityValuationModel extends BasePriceModel
 {
 
+	public function getName(): string
+	{
+		return 'RoeQualityValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$value = $stockValuation->getValuationDataByType(StockValuationTypeEnum::RETURN_ON_EQUITY)?->getFloatValue();

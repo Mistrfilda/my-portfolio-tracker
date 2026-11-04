@@ -26,6 +26,11 @@ class FreeCashFlowValuationModel extends BasePriceModel
 	{
 	}
 
+	public function getName(): string
+	{
+		return 'FreeCashFlowValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

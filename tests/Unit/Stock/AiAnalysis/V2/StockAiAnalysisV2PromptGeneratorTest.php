@@ -12,6 +12,81 @@ use PHPUnit\Framework\TestCase;
 class StockAiAnalysisV2PromptGeneratorTest extends TestCase
 {
 
+	public function testEveryProviderRespectsApplicationApplicabilityAndExplainsValuationDifferences(): void
+	{
+		foreach ($this->createProviderPrompts($this->createSnapshot('portfolio_evaluation')) as $provider => $prompt) {
+			self::assertStringContainsString('already evaluated model applicability', $prompt, $provider);
+			self::assertStringContainsString('availability and availabilityReason', $prompt, $provider);
+			self::assertStringContainsString('not_applicable, missing_data, or invalid_data', $prompt, $provider);
+			self::assertStringContainsString('or re-enable a model marked not_applicable', $prompt, $provider);
+			self::assertStringContainsString('you may build a separate independent estimate', $prompt, $provider);
+			self::assertStringContainsString('keep the original model status unchanged', $prompt, $provider);
+			self::assertStringContainsString(
+				'diagnostic identifies indicators without a fair price',
+				$prompt,
+				$provider,
+			);
+			self::assertStringContainsString('model agreement and coverage', $prompt, $provider);
+			self::assertStringContainsString('scenarios describe sensitivity', $prompt, $provider);
+			self::assertStringContainsString('material differences between your fair value', $prompt, $provider);
+			self::assertStringContainsString('not financial reporting dates', $prompt, $provider);
+			self::assertStringContainsString('not independently verified reporting currencies', $prompt, $provider);
+		}
+	}
+
+	#[DataProvider('provideResearchModes')]
+	public function testEveryProviderCombinesResearchWithImmutableApplicationEvidence(string $mode): void
+	{
+		foreach ($this->createProviderPrompts($this->createSnapshot($mode)) as $provider => $prompt) {
+			self::assertStringContainsString('Web research remains required', $prompt, $provider);
+			self::assertStringContainsString(
+				'Do not re-collect every supplied metric mechanically',
+				$prompt,
+				$provider,
+			);
+			self::assertStringContainsString('All researched evidence must respect analysisAsOf', $prompt, $provider);
+			self::assertStringContainsString('first reconcile the reporting period', $prompt, $provider);
+			self::assertStringContainsString(
+				'prefer verified primary disclosures over imported aggregates',
+				$prompt,
+				$provider,
+			);
+			self::assertStringContainsString(
+				'Preserve the application snapshot and its model results',
+				$prompt,
+				$provider,
+			);
+			self::assertStringContainsString('state both prices', $prompt, $provider);
+			self::assertStringContainsString('margin of safety still uses the snapshot price', $prompt, $provider);
+		}
+	}
+
+	/** @return array<string, array{string}> */
+	public static function provideResearchModes(): array
+	{
+		return ['comprehensive' => ['portfolio_evaluation'], 'daily' => ['daily_brief']];
+	}
+
+	public function testManualAndGeminiPromptsPreserveCompanyValuationInput(): void
+	{
+		$snapshot = $this->createSnapshot('portfolio_evaluation');
+		$company = [
+			'stockAssetTicker' => 'TEST',
+			'fundamentalMetadata' => ['dilutedEps' => ['importedAt' => '2026-09-01T12:00:00+02:00']],
+			'internalValuation' => ['models' => [['availabilityReason' => 'Excluded by the supplied industry rule']]],
+		];
+		$snapshot['portfolio'] = [$company];
+		$generator = new StockAiAnalysisV2PromptGenerator(new StockAiAnalysisV2SchemaFactory());
+		foreach ([
+			$generator->generateManualPrompt($snapshot),
+			$generator->generateTaskPrompt($snapshot),
+			$generator->generateCompanyPrompt($snapshot, 'portfolioAnalysis', $company),
+		] as $prompt) {
+			self::assertStringContainsString('Excluded by the supplied industry rule', $prompt);
+			self::assertStringContainsString('2026-09-01T12:00:00+02:00', $prompt);
+		}
+	}
+
 	public function testInvestorInstructionsReachEveryProviderAndRespectSnapshot(): void
 	{
 		$snapshot = $this->createSnapshot('portfolio_evaluation');

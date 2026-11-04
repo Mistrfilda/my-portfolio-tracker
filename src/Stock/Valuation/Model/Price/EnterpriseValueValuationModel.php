@@ -25,6 +25,11 @@ class EnterpriseValueValuationModel extends BasePriceModel
 	{
 	}
 
+	public function getName(): string
+	{
+		return 'EnterpriseValueValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

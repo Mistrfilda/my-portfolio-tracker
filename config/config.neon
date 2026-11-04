@@ -411,6 +411,7 @@ services:
 	- App\Stock\AiAnalysis\StockAiAnalysisSettingsFacade
 	- App\Stock\AiAnalysis\UI\StockAiAnalysisSettingsFormFactory
 	- App\Stock\AiAnalysis\StockAiAnalysisPromptGenerator
+	- App\Stock\AiAnalysis\StockAiAnalysisCompanyDataProvider
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SchemaFactory
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2SnapshotFactory
 	- App\Stock\AiAnalysis\V2\StockAiAnalysisV2PromptGenerator

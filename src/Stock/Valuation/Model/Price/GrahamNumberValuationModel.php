@@ -21,6 +21,11 @@ class GrahamNumberValuationModel extends BasePriceModel
 
 	private const FAIR_VALUE_THRESHOLD = 8.0;
 
+	public function getName(): string
+	{
+		return 'GrahamNumberValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();

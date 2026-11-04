@@ -34,6 +34,8 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 			false,
 			null,
 			new ImmutableDateTime('2026-07-21 10:00:00'),
+			stockTicker: 'SINGLE',
+			stockName: 'Single Corp',
 			analysisSchemaVersion: 2,
 			inputSnapshot: $snapshot,
 			id: $runId,
@@ -47,7 +49,7 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 
 		try {
 			$bundle = $factory->create($run);
-			self::assertSame(3, $run->getCodexCompanyTaskCount());
+			self::assertSame(4, $run->getCodexCompanyTaskCount());
 			self::assertFileExists($bundle->filePath);
 			self::assertSame(sprintf('stock-ai-analysis-%s.zip', $runId->toString()), $bundle->downloadName);
 
@@ -81,6 +83,41 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				),
 			);
 			self::assertFalse($zip->locateName('result.json'));
+			foreach (['portfolio', 'watchlist', 'singleStock'] as $scope) {
+				$company = $scope === 'singleStock' ? $snapshot[$scope] : $snapshot[$scope][0];
+				$path = $scope === 'singleStock'
+					? 'input/stock.json'
+					: sprintf('input/%s-001-%s.json', $scope, $company['stockAssetId']);
+				$input = Json::decode((string) $zip->getFromName($path), forceArrays: true);
+				self::assertEquals($company, $input);
+				self::assertSame('not_applicable', $input['internalValuation']['models'][0]['availability']);
+				self::assertSame('Industry rule', $input['internalValuation']['models'][0]['availabilityReason']);
+				self::assertSame(
+					'2026-07-20T12:00:00+02:00',
+					$input['fundamentalMetadata']['dilutedEps']['importedAt'],
+				);
+			}
+
+			self::assertStringContainsString(
+				'already evaluated model applicability',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
+			self::assertStringContainsString(
+				'Live web research is mandatory',
+				(string) $zip->getFromName('AGENTS.md'),
+			);
+			self::assertStringContainsString(
+				'Web research complements the supplied fundamentals and internal valuations',
+				(string) $zip->getFromName('AGENTS.md'),
+			);
+			self::assertStringContainsString(
+				'prefer verified primary disclosures over imported aggregates',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
+			self::assertStringContainsString(
+				'you may build a separate independent estimate',
+				(string) $zip->getFromName('instructions/system.md'),
+			);
 			self::assertStringContainsString(
 				StockAiAnalysisCodexBundleFactory::START_PROMPT,
 				(string) $zip->getFromName('README.md'),
@@ -142,6 +179,19 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 	 */
 	private function createSnapshot(string $runId): array
 	{
+		$companyData = [
+			'dilutedEps' => 5.0,
+			'fundamentalMetadata' => ['dilutedEps' => ['importedAt' => '2026-07-20T12:00:00+02:00']],
+			'internalValuation' => [
+				'industry' => ['mappingName' => 'Banks - Regional'],
+				'models' => [[
+					'model' => 'FreeCashFlowValuationModel',
+					'availability' => 'not_applicable',
+					'availabilityReason' => 'Industry rule',
+					'fairValue' => null,
+				]],
+			],
+		];
 		return [
 			'schemaVersion' => 2,
 			'runId' => $runId,
@@ -152,17 +202,19 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'includesWatchlist' => true,
 				'includesSimpleWatchlist' => true,
 				'includesMarketOverview' => false,
-				'includesStockAnalysis' => false,
+				'includesStockAnalysis' => true,
 				'portfolioPromptType' => null,
 			],
 			'conventions' => ['narrativeLanguage' => 'cs'],
 			'portfolio' => [[
+				...$companyData,
 				'stockAssetId' => Uuid::uuid4()->toString(),
 				'stockAssetName' => 'Portfolio Corp',
 				'stockAssetTicker' => 'PORT',
 				'currency' => 'USD',
 			]],
 			'watchlist' => [[
+				...$companyData,
 				'stockAssetId' => Uuid::uuid4()->toString(),
 				'stockAssetName' => 'Watch Corp',
 				'stockAssetTicker' => 'WATCH',
@@ -177,7 +229,13 @@ class StockAiAnalysisCodexBundleFactoryTest extends TestCase
 				'recommendedEntryPrice' => 50.0,
 			]],
 			'portfolioContext' => [],
-			'singleStock' => null,
+			'singleStock' => [
+				...$companyData,
+				'stockAssetId' => Uuid::uuid4()->toString(),
+				'stockAssetName' => 'Single Corp',
+				'stockAssetTicker' => 'SINGLE',
+				'currency' => 'USD',
+			],
 		];
 	}
 

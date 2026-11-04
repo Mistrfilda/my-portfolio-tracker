@@ -21,6 +21,11 @@ class PriceToSalesValuationModel extends BasePriceModel
 
 	private float $industryMultiple = 0.0;
 
+	public function getName(): string
+	{
+		return 'PriceToSalesValuationModel';
+	}
+
 	public function calculateResponse(StockValuation $stockValuation): StockValuationPriceModelResponse
 	{
 		$stockAsset = $stockValuation->getStockAsset();
