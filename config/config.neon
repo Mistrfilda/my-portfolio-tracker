@@ -130,11 +130,32 @@ extensions:
 	migrations: Nettrine\Migrations\DI\MigrationsExtension
 	monolog: Contributte\Monolog\DI\MonologExtension
 	psr11: Contributte\Psr11\DI\Psr11ContainerExtension
-	redis: Contributte\Redis\DI\RedisExtension
+	redis: Mistrfilda\Redis\Bridges\Nette\DI\RedisExtension
 
 	webpackassets: App\UI\Extension\Webpack\DI\WebpackAssetExtension
 	custompresenterfactory: App\UI\Extension\PresenterFactory\DI\CustomPresenterFactoryExtension
 	latteMacros: App\UI\Extension\Latte\LatteMacrosExtension
+
+redis:
+	connections:
+		default:
+			host: 127.0.0.1
+			port: 6379
+			database: 0
+		session:
+			host: 127.0.0.1
+			port: 6379
+			database: 1
+	cache:
+		enabled: true
+		prefix: 'my-portfolio-tracker:cache:'
+	sessions:
+		enabled: true
+		connection: session
+		prefix: 'my-portfolio-tracker:session:'
+	locks:
+		enabled: true
+		prefix: 'my-portfolio-tracker:lock:'
 
 dbal:
 	debug:
@@ -211,6 +232,8 @@ latteMacros:
 
 services:
 	- App\Router\RouterFactory::createRouter
+
+	redisGc: Mistrfilda\Redis\Bridges\Symfony\Console\CacheGarbageCollectCommand(@redis.cache)
 
 	# API
 	- App\Api\RouterFactory

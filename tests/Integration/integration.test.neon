@@ -2,6 +2,19 @@ parameters:
 	database:
 		dbname: my-portfolio-app-tracker-tests
 
+# General application tests do not require a running Redis server.
+redis:
+	cache:
+		enabled: false
+	sessions:
+		enabled: false
+	locks:
+		enabled: false
+
+services:
+	# Replace the entire definition so the disabled cache is not referenced.
+	redisGc!: [false]
+
 # Debug panels retain containers and query traces across test cases.
 di:
 	debugger: false
