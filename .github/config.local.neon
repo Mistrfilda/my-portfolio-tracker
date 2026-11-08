@@ -5,3 +5,12 @@ parameters:
 		password: ''
 		dbname: 'my-portfolio-app-tracker-tests'
 		port: 32574
+
+# CI checks and database migrations do not require a running Redis server.
+redis:
+	cache:
+		enabled: false
+	sessions:
+		enabled: false
+	locks:
+		enabled: false

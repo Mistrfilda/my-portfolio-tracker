@@ -11,10 +11,6 @@ redis:
 	locks:
 		enabled: false
 
-services:
-	# Replace the entire definition so the disabled cache is not referenced.
-	redisGc!: [false]
-
 # Debug panels retain containers and query traces across test cases.
 di:
 	debugger: false

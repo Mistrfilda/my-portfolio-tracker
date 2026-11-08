@@ -148,11 +148,13 @@ redis:
 			database: 1
 	cache:
 		enabled: true
+		registerGcCommand: true
 		prefix: 'my-portfolio-tracker:cache:'
 	sessions:
 		enabled: true
 		connection: session
 		prefix: 'my-portfolio-tracker:session:'
+		lockRetries: 500
 	locks:
 		enabled: true
 		prefix: 'my-portfolio-tracker:lock:'
@@ -232,8 +234,6 @@ latteMacros:
 
 services:
 	- App\Router\RouterFactory::createRouter
-
-	redisGc: Mistrfilda\Redis\Bridges\Symfony\Console\CacheGarbageCollectCommand(@redis.cache)
 
 	# API
 	- App\Api\RouterFactory
