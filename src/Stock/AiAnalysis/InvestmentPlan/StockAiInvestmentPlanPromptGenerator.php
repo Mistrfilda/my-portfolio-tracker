@@ -27,7 +27,10 @@ class StockAiInvestmentPlanPromptGenerator
 			'Distinguish verified facts, estimates, and inference. Never fabricate missing data.',
 			'Prioritize dividend sustainability, balance-sheet resilience, valuation, and portfolio concentration over headline yield.',
 			'Use sector-appropriate dividend coverage: for example AFFO for REITs and capital/regulatory metrics for banks.',
-			'You may recommend keeping some or all cash when no candidate offers an adequate risk-adjusted entry point.',
+			'The entire requested capital is earmarked for investment. Allocate 100% of it; do not recommend keeping '
+				. 'any part as a cash reserve or waiting for a better market entry.',
+			'Any stagingPlan must commit the full budget to the selected allocations; do not leave funds unassigned '
+				. 'or contingent on a market correction.',
 			StockAiAnalysisInvestorPrompt::fromSnapshot($snapshot),
 			'Return Czech narrative values and English JSON keys. Return only JSON without citations, markdown, or surrounding text.',
 		]);
@@ -37,15 +40,19 @@ class StockAiInvestmentPlanPromptGenerator
 	public function generateTaskPrompt(array $snapshot): string
 	{
 		return implode("\n\n", [
-			'Create one concrete investment plan for the available capital. Select at most three allocations.',
+			'Create one concrete investment plan that invests the entire requested capital. Select one to three allocations.',
 			'Consider existing holdings first, then the watchlist, and finally closely related dividend stocks discovered through live research. '
-				. 'Do not force a purchase and do not diversify merely by increasing the number of positions.',
+				. 'Do not force a purchase of a particular company and do not diversify merely by increasing the number of positions.',
 			'Treat the current portfolio and capital snapshot as authoritative. The completed reference analysis is supporting context only; '
-				. 'verify all time-sensitive facts and explicitly account for information that may have changed.',
+				. 'verify all time-sensitive facts and explicitly account for information that may have changed. '
+				. 'Its cash-reserve recommendations do not override the requirement to invest the full budget of this plan.',
 			'Every allocated company must have sufficient or limited data, a dividend-safety status of strong or acceptable, '
-				. 'and a valuation supported by more than an analyst target. Otherwise keep the applicable capital in cash.',
-			'Use whole CZK amounts. The allocation sum must equal deployAmountCzk and deployAmountCzk plus cashReserveCzk must equal '
-				. 'the requested CZK budget. Existing and watchlist identities must be preserved exactly.',
+				. 'and a valuation supported by more than an analyst target. '
+				. 'If a candidate fails these criteria, research another qualifying company.',
+			'Use CZK amounts with at most two decimal places. Set decision.deployment to invest_all, '
+				. 'decision.deployAmountCzk to capital.requestedAmountCzk, and decision.cashReserveCzk to 0. '
+				. 'The sum of allocationAmountCzk must equal the full requested CZK budget. '
+				. 'Estimated whole-share counts must not reduce planned allocations. Existing and watchlist identities must be preserved exactly.',
 			...$this->createUserContextPromptSections($snapshot),
 			'Output must match this JSON Schema:',
 			Json::encode($this->schemaFactory->createSchema($snapshot), pretty: true),
@@ -58,11 +65,16 @@ class StockAiInvestmentPlanPromptGenerator
 	public function generateCodexTaskPrompt(array $snapshot): string
 	{
 		return implode("\n", [
-			'Research current facts and create a single complete `result.json` for the available capital.',
+			'Research current facts and create a single complete `result.json` investing the entire requested capital.',
 			'Use `input/context.json` as the authoritative portfolio and capital snapshot.',
-			'Use `input/reference-analysis.json` only as prior analytical context and re-check time-sensitive claims.',
+			'Use `input/reference-analysis.json` only as prior analytical context and re-check time-sensitive claims. '
+				. 'Its cash-reserve recommendations do not override the requirement to invest the full budget of this plan.',
 			'Compare existing holdings, watchlist companies, and genuinely similar dividend-paying alternatives.',
-			'Allocate to at most three companies, or retain cash when dividend safety, valuation, or data quality is inadequate.',
+			'Allocate the full budget to one to three companies. When dividend safety, valuation, or data quality is inadequate, '
+				. 'research another qualifying company; do not retain a cash reserve.',
+			'Set decision.deployment to invest_all, decision.deployAmountCzk to capital.requestedAmountCzk, '
+				. 'and decision.cashReserveCzk to 0. Use CZK amounts with at most two decimal places and make the sum of '
+				. 'allocationAmountCzk equal the full requested CZK budget. Estimated whole-share counts must not reduce planned allocations.',
 			...$this->createUserContextPromptSections($snapshot),
 			'Preserve immutable metadata and known company identities exactly, then validate the result against `schema/result.schema.json`.',
 		]);
@@ -97,7 +109,8 @@ class StockAiInvestmentPlanPromptGenerator
 		if ($companies !== []) {
 			$sections[] = sprintf(
 				'The user explicitly wants these companies evaluated as candidates; research and compare each one, '
-					. 'but do not force a purchase. Use source `new` only when the company is absent from the portfolio '
+					. 'but do not force a purchase of these particular companies. Choose other qualifying companies when needed '
+					. 'to invest the full budget. Use source `new` only when the company is absent from the portfolio '
 					. "and watchlist snapshots:\n- %s",
 				implode("\n- ", $companies),
 			);

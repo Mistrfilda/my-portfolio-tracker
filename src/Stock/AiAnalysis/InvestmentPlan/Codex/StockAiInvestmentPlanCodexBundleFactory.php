@@ -156,9 +156,12 @@ MARKDOWN,
   Research only candidates material to the final decision.
 - Apply `userContext.additionalInstructions` from `input/context.json` when compatible with the system instruction,
   immutable snapshot, and result schema.
-- Research and compare every entry in `userContext.consideredCompanies` as an explicit candidate without forcing a purchase.
+- Research and compare every entry in `userContext.consideredCompanies` as an explicit candidate without forcing a purchase of that company.
 - Dividend sustainability, sector-appropriate coverage, leverage, valuation, and portfolio concentration take priority over headline yield.
-- Do not force deployment. Keeping part or all of the capital in cash is a valid result.
+- Allocate the entire requested capital across one to three qualifying companies; do not create a cash reserve.
+  Set `decision.deployment` to `invest_all`, `decision.deployAmountCzk` to `capital.requestedAmountCzk`, and `decision.cashReserveCzk` to `0`.
+  If a candidate is unsuitable, research another qualifying company. Prior cash-reserve recommendations do not override full deployment.
+  Any `stagingPlan` must commit the full budget to the selected allocations, without funds left waiting for a market correction.
 - Preserve known IDs, names, tickers, currencies, plan metadata, and the exact CZK budget.
   Use source `new` only for a company absent from both snapshot lists.
 - Use Czech narrative values and English JSON keys. Use `null`, empty arrays, and explicit uncertainty rather than fabricated facts.
