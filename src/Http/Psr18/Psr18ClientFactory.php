@@ -11,7 +11,7 @@ class Psr18ClientFactory
 {
 
 	/**
-	 * @param array<string, mixed>|null $options
+	 * @param array{connect_timeout?: int|float, timeout?: int|float, verify?: bool|string}|null $options
 	 */
 	public function getClient(array|null $options = null): ClientInterface
 	{
