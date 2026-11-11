@@ -1,6 +1,7 @@
 .git
 .idea
 .vscode
+.codex/github-mcp-headers.local.json
 
 vendor
 node_modules

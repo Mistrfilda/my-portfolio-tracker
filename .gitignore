@@ -2,6 +2,7 @@ config/config.local.neon
 config/config-docker.local.neon
 docker/config-docker.local.neon
 .env.browser-tests
+.codex/github-mcp-headers.local.json
 
 deploy-local.sh
 

@@ -11,6 +11,7 @@ extends = ":workspace"
 [permissions.portfolio-workspace.filesystem.":workspace_roots"]
 "config/config.local.neon" = "deny"
 "docker/config-docker.local.neon" = "deny"
+".codex/github-mcp-headers.local.json" = "deny"
 
 [permissions.portfolio-workspace.network]
 enabled = true
@@ -20,7 +21,8 @@ enabled = true
 
 [mcp_servers.github_personal]
 url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "CODEX_GITHUB_PAT"
+# Use this checkout's credentials regardless of the shared daemon's working directory.
+http_headers_helper = "/bin/cat /Users/filip/Sites/my-portfolio-tracker/.codex/github-mcp-headers.local.json"
 
 [mcp_servers.github_personal.http_headers]
 "X-MCP-Toolsets" = "context,repos,pull_requests,issues,actions"
