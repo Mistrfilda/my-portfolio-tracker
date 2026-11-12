@@ -34,6 +34,16 @@ class DashboardPresenter extends BaseAdminPresenter
 		$this->template->heading = 'Dashboard';
 	}
 
+	public function renderContent(): void
+	{
+		// Release the session lock before calculating data so navigation can continue in parallel.
+		$this->getSession()->close();
+		$this->getHttpResponse()->setHeader('Cache-Control', 'no-store');
+		$this->sendJson([
+			'html' => $this->template->renderToString(__DIR__ . '/templates/Dashboard.content.latte'),
+		]);
+	}
+
 	protected function createComponentDashboardValueControl(): DashboardValueControl
 	{
 		return $this->dashboardValueControlFactory->create($this->dashboardValueBuilder);

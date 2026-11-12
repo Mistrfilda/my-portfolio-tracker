@@ -13,6 +13,7 @@ import dragScroll from "./DragScroll";
 import datagrid from "./Datagrid";
 import searchableSelect from "./SearchableSelect";
 import expenseTagAction from "./ExpenseTagAction";
+import dashboard from "./Dashboard";
 
 naja.initialize();
 registerExtensions(naja);
@@ -82,6 +83,8 @@ Alpine.data('flashMessage', () => ({
 Alpine.data('searchableSelect', searchableSelect);
 
 Alpine.data('datagrid', datagrid);
+
+Alpine.data('dashboard', dashboard);
 
 Alpine.data('stockAiAnalysisDetail', () => ({
 	init() {
