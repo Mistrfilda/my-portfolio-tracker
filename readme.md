@@ -94,6 +94,46 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 
 ## Local development
 
+### Docker development
+
+With OrbStack or Docker Engine running, start the development stack from the repository root:
+
+```sh
+./dev up
+```
+
+Open <http://localhost:8080/> and sign in as `developer`. On first use, `./dev` generates
+`var/docker-dev.env` with owner-only access. The initial login password is the value of
+`MPT_DEV_ADMIN_PASSWORD` in that file. Keep the file alongside the database volume across restarts.
+An empty database gets a development account after migrations. Existing accounts keep their passwords.
+The first start also populates an empty exchange-rate table so the dashboard can render offline.
+These historical sample rates and their cross rates use the [CNB fixing for 2 January 2025](https://www.cnb.cz/en/financial_markets/foreign_exchange_market/exchange_rate_fixing/daily.txt?date=02.01.2025).
+
+The stack includes PHP-FPM, Nginx, MariaDB, Valkey, RabbitMQ and the frontend watcher. Startup installs
+the locked dependencies, runs migrations, declares queues and waits for the first frontend build.
+Edit PHP, Latte, TypeScript and CSS in the checkout as usual. Docker has its own dependency, cache,
+database and frontend build volumes, so Apache/Homebrew and its watcher can run at the same time.
+
+```sh
+./dev ps
+./dev logs -f php assets
+./dev exec php bin/console list
+./dev exec php composer build-all
+./dev exec assets npm run lint
+./dev down
+```
+
+`./dev down` keeps the database and other volumes. The test suite rebuilds its own database using
+a dedicated MariaDB account. Consumers can be run on demand, for example with
+`./dev exec php bin/console-rabbit rabbitmq:consumer jobRequestConsumer`.
+Scheduled jobs and external integrations such as Gotenberg are outside the default stack.
+
+Compose sets `MY_PORTFOLIO_TRACKER_DOCKER_DEV=1`. In this mode Nette loads the tracked
+`config/config.docker-dev.neon` after the optional `config/config.local.neon`. To run using only the
+tracked settings, use `MPT_DEV_LOAD_LOCAL_CONFIG=0 ./dev up`. The integration suite uses its Docker
+test settings in place of Homebrew's private test overrides. Release builds use `docker-compose.yaml`
+and the production PHP target. Homebrew uses the requirements and commands below.
+
 ### Requirements
 - PHP 8.5+ with `ext-redis` 6.3+ within 6.x
 - Composer

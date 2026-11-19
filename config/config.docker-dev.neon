@@ -1,0 +1,54 @@
+parameters:
+	console:
+		url: http://localhost:8080/
+	database!:
+		host: db
+		port: 3306
+		dbname: portfolio
+		user: portfolio
+		password: %dockerDbPassword%
+	rabbitmq:
+		host: rabbitmq
+		port: 5672
+		user: portfolio
+		password: %dockerRabbitPassword%
+	notifications:
+		discord:
+			userWebhooks!: []
+			webhooks!: []
+	monitoring:
+		monitoringUptimeMonitorMapping!: []
+
+# Replace any host-specific DSN or socket as well as the account used by CLI migrations.
+dbal:
+	connections:
+		default!:
+			host: %database.host%
+			port: %database.port%
+			user: %database.user%
+			password: %database.password%
+			dbname: %database.dbname%
+			driver: pdo_mysql
+			charset: utf8
+			defaultTableOptions:
+				charset: utf8
+				collation: utf8_unicode_ci
+				engine: InnoDB
+
+redis:
+	connections!:
+		default:
+			host: valkey
+		session:
+			host: valkey
+			database: 1
+
+session:
+	name: PortfolioDockerDev
+
+monolog:
+	channel:
+		default:
+			handlers!:
+				- Monolog\Handler\RotatingFileHandler(%appDir%/../log/app-log.log, 30)
+				- Monolog\Handler\StreamHandler('php://stderr')

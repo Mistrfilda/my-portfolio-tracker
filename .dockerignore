@@ -24,6 +24,11 @@ playwright-report
 *.log
 
 docker-compose.yaml
+compose.dev.yaml
+dev
+docker/dev
+config/config.docker-dev.neon
+tests/Integration/integration.docker-dev.neon
 readme.md
 
 .twui/*

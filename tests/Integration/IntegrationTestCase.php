@@ -31,7 +31,10 @@ abstract class IntegrationTestCase extends TestCase
 
 		$configurator = Bootstrap::boot(true, false);
 		$configurator->addConfig(__DIR__ . '/integration.test.neon');
-		if (is_file(__DIR__ . '/integration.test.local.neon')) {
+		if (getenv('MY_PORTFOLIO_TRACKER_DOCKER_DEV') === '1') {
+			$configurator->addDynamicParameters(['dockerTestDbPassword' => getenv('MPT_DEV_TEST_DB_PASSWORD')]);
+			$configurator->addConfig(__DIR__ . '/integration.docker-dev.neon');
+		} elseif (is_file(__DIR__ . '/integration.test.local.neon')) {
 			$configurator->addConfig(__DIR__ . '/integration.test.local.neon');
 		}
 

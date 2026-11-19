@@ -1,19 +1,18 @@
 import Encore from '@symfony/webpack-encore';
 import dotenv from 'dotenv';
 
-dotenv.config({ quiet: true });
+const dockerDev = process.env.MY_PORTFOLIO_TRACKER_DOCKER_DEV === '1';
+if (!dockerDev) {
+	dotenv.config({ quiet: true });
+}
 
 if (!Encore.isRuntimeEnvironmentConfigured()) {
     Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
 }
 
-var publicPath = '/my-portfolio-tracker/www/build/admin';
-var prodHost = process.env.PROD_HOST;
-var outputPath = './www/build/admin';
-if (prodHost !== undefined) {
-    publicPath = '/build/admin';
-	outputPath = './www/prod-build/build/admin'
-}
+const productionBuild = process.env.PROD_HOST !== undefined;
+const publicPath = dockerDev || productionBuild ? '/build/admin' : '/my-portfolio-tracker/www/build/admin';
+const outputPath = productionBuild ? './www/prod-build/build/admin' : './www/build/admin';
 
 Encore
     .setOutputPath(outputPath)

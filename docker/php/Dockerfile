@@ -1,4 +1,4 @@
-FROM php:8.5-fpm AS php-build
+FROM php:8.5-fpm AS php-base
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -20,6 +20,20 @@ RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip calendar
 
 RUN pecl install redis-6.3.0 \
     && docker-php-ext-enable redis
+
+FROM php-base AS development
+
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+RUN apt-get update && apt-get install -y --no-install-recommends python3 \
+    && rm -rf /var/lib/apt/lists/* \
+    && install -d -o www-data -g www-data /app/vendor /app/temp /app/log /app/var \
+        /app/www/build /app/node_modules /app/resources/oauth /app/resources/gemini \
+        /app/puppeter/files /app/.phpunit.cache /var/www/.cache /var/www/.npm
+ENV COMPOSER_HOME=/var/www/.cache/composer
+WORKDIR /app
+USER www-data
+
+FROM php-base AS php-build
 
 WORKDIR /var
 

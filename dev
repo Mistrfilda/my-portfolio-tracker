@@ -1,0 +1,31 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")"
+
+settings=var/docker-dev.env
+if [ ! -f "$settings" ]; then
+	mkdir -p var
+	umask 077
+	draft=$(mktemp var/docker-dev.env.XXXXXX)
+	trap 'rm -f "$draft"' EXIT
+	for key in DB_ROOT_PASSWORD DB_PASSWORD TEST_DB_PASSWORD RABBIT_PASSWORD ADMIN_PASSWORD; do
+		value=$(openssl rand -hex 24)
+		printf 'MPT_DEV_%s=%s\n' "$key" "$value" >> "$draft"
+	done
+	# Publish the complete file only once, including when two callers start together.
+	ln "$draft" "$settings" || test -f "$settings"
+	rm -f "$draft"
+	trap - EXIT
+fi
+
+compose() {
+	docker compose --env-file "$settings" -f compose.dev.yaml "$@"
+}
+
+if [ "${1:-up}" = up ]; then
+	if [ "$#" -gt 0 ]; then shift; fi
+	compose build --pull php
+	compose up -d --wait "$@"
+else
+	compose "$@"
+fi

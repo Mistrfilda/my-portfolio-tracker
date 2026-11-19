@@ -1,0 +1,137 @@
+name: my-portfolio-tracker-dev
+
+services:
+  db:
+    image: mariadb:11.4.13
+    environment:
+      MARIADB_DATABASE: portfolio
+      MARIADB_USER: portfolio
+      MARIADB_PASSWORD: ${MPT_DEV_DB_PASSWORD:?}
+      MARIADB_ROOT_PASSWORD: ${MPT_DEV_DB_ROOT_PASSWORD:?}
+      MPT_DEV_TEST_DB_PASSWORD: ${MPT_DEV_TEST_DB_PASSWORD:?}
+    volumes:
+      - database:/var/lib/mysql
+      - ./docker/dev/test-database.sh:/docker-entrypoint-initdb.d/test-database.sh:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  valkey:
+    image: valkey/valkey:9.0.7-alpine
+    volumes:
+      - valkey:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  rabbitmq:
+    image: rabbitmq:4-alpine
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: portfolio
+      RABBITMQ_DEFAULT_PASS: ${MPT_DEV_RABBIT_PASSWORD:?}
+    volumes:
+      - rabbitmq:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  php:
+    image: my-portfolio-tracker-dev-php
+    build:
+      context: ./docker/php
+      target: development
+    environment:
+      MY_PORTFOLIO_TRACKER_DOCKER_DEV: "1"
+      MPT_DEV_LOAD_LOCAL_CONFIG: ${MPT_DEV_LOAD_LOCAL_CONFIG:-1}
+      MPT_DEV_DB_PASSWORD: ${MPT_DEV_DB_PASSWORD:?}
+      MPT_DEV_TEST_DB_PASSWORD: ${MPT_DEV_TEST_DB_PASSWORD:?}
+      MPT_DEV_RABBIT_PASSWORD: ${MPT_DEV_RABBIT_PASSWORD:?}
+      MPT_DEV_ADMIN_PASSWORD: ${MPT_DEV_ADMIN_PASSWORD:?}
+    volumes:
+      - .:/app
+      - vendor:/app/vendor
+      - modules:/app/node_modules
+      - temp:/app/temp
+      - logs:/app/log
+      - tools-cache:/app/var
+      - phpunit-cache:/app/.phpunit.cache
+      - composer-cache:/var/www/.cache
+      - build:/app/www/build
+      - oauth:/app/resources/oauth
+      - gemini:/app/resources/gemini
+      - scraper-files:/app/puppeter/files
+    depends_on:
+      db: {condition: service_healthy}
+      valkey: {condition: service_healthy}
+      rabbitmq: {condition: service_healthy}
+    command:
+      - sh
+      - -ec
+      - |
+        composer install --prefer-dist --no-interaction
+        composer migm
+        composer declare-queues
+        php docker/dev/seed.php
+        unset MPT_DEV_ADMIN_PASSWORD MPT_DEV_TEST_DB_PASSWORD
+        exec php-fpm
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@fsockopen('127.0.0.1', 9000) ? 0 : 1);"]
+      interval: 5s
+      timeout: 3s
+      start_period: 5m
+      retries: 12
+
+  assets:
+    image: my-portfolio-tracker-dev-php
+    pull_policy: never
+    environment:
+      MY_PORTFOLIO_TRACKER_DOCKER_DEV: "1"
+    volumes:
+      - .:/app:ro
+      - modules:/app/node_modules
+      - npm-cache:/var/www/.npm
+      - build:/app/www/build
+    command: ["sh", "-ec", "touch /tmp/watch-started && npm ci && exec npm run watch-dev"]
+    healthcheck:
+      test: ["CMD", "test", "/app/www/build/admin/entrypoints.json", "-nt", "/tmp/watch-started"]
+      interval: 3s
+      timeout: 3s
+      start_period: 3m
+      retries: 10
+
+  nginx:
+    image: nginx:stable-alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./docker/dev/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./www:/app/www:ro
+      - build:/app/www/build:ro
+      - ./doc/openapi.yaml:/app/openapi.yaml:ro
+    depends_on:
+      php: {condition: service_healthy, restart: true}
+      assets: {condition: service_healthy}
+
+volumes:
+  database:
+  valkey:
+  rabbitmq:
+  vendor:
+  temp:
+  logs:
+  tools-cache:
+  phpunit-cache:
+  composer-cache:
+  build:
+  oauth:
+  gemini:
+  scraper-files:
+  modules:
+  npm-cache:

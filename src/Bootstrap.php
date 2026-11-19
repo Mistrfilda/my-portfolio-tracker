@@ -21,8 +21,9 @@ class Bootstrap
 		$configurator = new Configurator();
 		$appDir = dirname(__DIR__);
 
-		if ($forceDebugMode) {
-			$configurator->setDebugMode($forceDebugMode);
+		$dockerDev = getenv('MY_PORTFOLIO_TRACKER_DOCKER_DEV') === '1';
+		if ($forceDebugMode || $dockerDev) {
+			$configurator->setDebugMode(true);
 		}
 
 		if ($enableTracy) {
@@ -39,16 +40,23 @@ class Bootstrap
 		$configurator->addConfig($appDir . '/config/routing.neon');
 		$configurator->addConfig($appDir . '/config/rabbitmq.neon');
 
-		if (is_file($appDir . '/config/config.local.neon')) {
+		$loadLocalConfig = !$dockerDev || getenv('MPT_DEV_LOAD_LOCAL_CONFIG') !== '0';
+		if ($loadLocalConfig && is_file($appDir . '/config/config.local.neon')) {
 			$configurator->addConfig($appDir . '/config/config.local.neon');
 		}
 
-		if (is_file($appDir . '/config/config-docker.local.neon')) {
+		if ($dockerDev) {
+			$configurator->addDynamicParameters([
+				'dockerDbPassword' => getenv('MPT_DEV_DB_PASSWORD'),
+				'dockerRabbitPassword' => getenv('MPT_DEV_RABBIT_PASSWORD'),
+			]);
+			$configurator->addConfig($appDir . '/config/config.docker-dev.neon');
+		} elseif (is_file($appDir . '/config/config-docker.local.neon')) {
 			$configurator->addConfig($appDir . '/config/config-docker.local.neon');
 		}
 
 		$integrationTestLocalConfig = $appDir . '/tests/Integration/integration.test.local.neon';
-		if (getenv('MY_PORTFOLIO_TRACKER_CODEX') === '1' && is_file($integrationTestLocalConfig)) {
+		if (!$dockerDev && getenv('MY_PORTFOLIO_TRACKER_CODEX') === '1' && is_file($integrationTestLocalConfig)) {
 			$configurator->addConfig($appDir . '/tests/Integration/integration.test.neon');
 			$configurator->addConfig($integrationTestLocalConfig);
 		}

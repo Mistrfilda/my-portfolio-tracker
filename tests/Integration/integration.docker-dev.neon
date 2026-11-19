@@ -1,0 +1,4 @@
+parameters:
+	database:
+		user: portfolio_test
+		password: %dockerTestDbPassword%
