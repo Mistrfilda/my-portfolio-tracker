@@ -13,7 +13,7 @@ use App\Currency\CurrencyEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
-use Nette\Application\UI\Form;
+use Nette\Forms\Form;
 use Nette\Utils\ArrayHash;
 use Ramsey\Uuid\Uuid;
 use Ramsey\Uuid\UuidInterface;
@@ -50,7 +50,10 @@ class BankExpenseFormFactory
 		$form->addSelect('type', 'Typ transkace', BankTransactionType::getOptionsForAdminSelect())
 			->setRequired();
 
-		$form->addFloat('amount', 'Částka');
+		$form->addFloat('amount', 'Částka')
+			->setRequired('Zadejte částku výdaje.')
+			->addCondition(Form::Min, 0)
+			->addRule(Form::Blank, 'Částka výdaje musí být záporná.');
 
 		$form->addSelect('currency', 'Měna', CurrencyEnum::getOptionsForAdminSelect())
 			->setRequired();
