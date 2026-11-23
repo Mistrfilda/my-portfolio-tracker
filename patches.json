@@ -2,6 +2,12 @@
 	"patches": {
 		"contributte/forms-multiplier": {
 			"Fix compatibility with nette/forms 3.3 (contributte/forms-multiplier#126)": "patches/forms-multiplier-nette-forms-3.3.patch"
+		},
+		"nettrine/orm": {
+			"Replace deprecated listener object hashing on PHP 8.6": "patches/nettrine-orm-php86-object-id.patch"
+		},
+		"smalot/pdfparser": {
+			"Replace deprecated PDF object hashing on PHP 8.6": "patches/pdfparser-php86-object-id.patch"
 		}
 	}
 }

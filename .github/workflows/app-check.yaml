@@ -13,7 +13,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                php-versions: [ '8.5' ]
+                php-versions: [ '8.6' ]
         services:
             mysql:
                 image: mariadb:10.5
@@ -25,13 +25,17 @@ jobs:
                     - 32574:3306
         steps:
             -   name: Checkout
-                uses: actions/checkout@v2
+                uses: actions/checkout@v6
             -   name: Setup PHP, with composer and extensions
                 uses: shivammathur/setup-php@v2
                 with:
                     php-version: ${{ matrix.php-versions }}
                     extensions: mbstring, xml, ctype, iconv, intl, mysql, pdo_mysql
                     coverage: none
+                    tools: composer:v2, phpize, pie:1.5.5
+
+            -   name: Install PhpRedis
+                run: sudo -n pie install --no-interaction phpredis/phpredis:6.4.0RC1
 
             -   name: Install Composer dependencies
                 run: |

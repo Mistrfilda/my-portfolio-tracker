@@ -1,0 +1,14 @@
+diff --git a/src/Events/ContainerEventManager.php b/src/Events/ContainerEventManager.php
+--- a/src/Events/ContainerEventManager.php
++++ b/src/Events/ContainerEventManager.php
+@@ -122,7 +122,9 @@ class ContainerEventManager extends EventManager
+ 
+ 	private function calculateHash(string|object $listener): string
+ 	{
+-		return is_object($listener) ? spl_object_hash($listener) : 'service@' . $listener;
++		return is_object($listener)
++			? sprintf('%016x0000000000000000', spl_object_id($listener))
++			: 'service@' . $listener;
+ 	}
+ 
+ }

@@ -95,7 +95,7 @@ The [user data isolation plan](doc/user-data-isolation-plan.md) tracks the agree
 ## Local development
 
 ### Requirements
-- PHP 8.5+ with `ext-redis` 6.3+ within 6.x
+- PHP 8.5+ with `ext-redis` 6.3+ within 6.x. On PHP 8.6, use PhpRedis 6.4.0RC1 or later within 6.x.
 - Composer
 - Node.js 26 and npm 11.10+ within npm 11 (required for the 5-day `min-release-age` install policy); the root `.nvmrc` selects Node 26 for all three npm projects.
 - Docker

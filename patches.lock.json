@@ -1,5 +1,5 @@
 {
-    "_hash": "9dc87c3588b51c3ad1d1bb4aa7ba8eb0caa0d7ec640b6b564bb4152471a8fee0",
+    "_hash": "f9dce5efe3aedfc9e93a0cbfb13413652bd40212482ebb7d679e4948bf2d896f",
     "patches": {
         "contributte/forms-multiplier": [
             {
@@ -7,6 +7,30 @@
                 "description": "Fix compatibility with nette/forms 3.3 (contributte/forms-multiplier#126)",
                 "url": "patches/forms-multiplier-nette-forms-3.3.patch",
                 "sha256": "982527cdbc690f77b8069f3dfeeeb744310c19b884cf72223a5812bc4fd9ef15",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ],
+        "nettrine/orm": [
+            {
+                "package": "nettrine/orm",
+                "description": "Replace deprecated listener object hashing on PHP 8.6",
+                "url": "patches/nettrine-orm-php86-object-id.patch",
+                "sha256": "a2f0a79bbeba20c8dbc79fc4c51f0155a3f705c472e32b6e25a8f10ee27bcf8e",
+                "depth": 1,
+                "extra": {
+                    "provenance": "patches-file:patches.json"
+                }
+            }
+        ],
+        "smalot/pdfparser": [
+            {
+                "package": "smalot/pdfparser",
+                "description": "Replace deprecated PDF object hashing on PHP 8.6",
+                "url": "patches/pdfparser-php86-object-id.patch",
+                "sha256": "0e4301e12981f51d31b092c87b81a6bcf582d775e59b407e8857051996196089",
                 "depth": 1,
                 "extra": {
                     "provenance": "patches-file:patches.json"

@@ -1,4 +1,4 @@
-FROM php:8.5-fpm AS php-build
+FROM php:8.6-fpm AS php-build
 
 RUN apt-get update && apt-get install -y \
     curl \
@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libxml2-dev \
     libicu-dev \
+    libonig-dev \
     nano \
     wget \
     && curl -fsSL https://deb.nodesource.com/setup_26.x | bash - \
@@ -16,10 +17,10 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip calendar
+RUN docker-php-ext-install simplexml pdo_mysql intl sockets zip calendar mbstring
 
-RUN pecl install redis-6.3.0 \
-    && docker-php-ext-enable redis
+COPY --from=ghcr.io/php/pie:1.5.5-bin /pie /usr/local/bin/pie
+RUN pie install --no-interaction --no-cache phpredis/phpredis:6.4.0RC1
 
 WORKDIR /var
 
