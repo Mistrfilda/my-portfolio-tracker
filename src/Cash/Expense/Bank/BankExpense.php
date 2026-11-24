@@ -17,6 +17,7 @@ use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\SimpleUuid;
 use App\Doctrine\UpdatedAt;
+use App\Tax\Payment\TaxPaymentRoleEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -74,6 +75,12 @@ class BankExpense implements Entity, Expense
 	#[ORM\ManyToOne(targetEntity: BankAccount::class, inversedBy: 'expenses')]
 	#[ORM\JoinColumn(nullable: false)]
 	private BankAccount $bankAccount;
+
+	#[ORM\Column(type: Types::STRING, enumType: TaxPaymentRoleEnum::class, nullable: true)]
+	private TaxPaymentRoleEnum|null $taxPaymentRoleOverride = null;
+
+	#[ORM\Column(type: Types::INTEGER, nullable: true)]
+	private int|null $taxYearOverride = null;
 
 	public function __construct(
 		string $identifier,
@@ -275,6 +282,46 @@ class BankExpense implements Entity, Expense
 	public function getBankAccount(): BankAccount
 	{
 		return $this->bankAccount;
+	}
+
+	public function getTaxPaymentRoleOverride(): TaxPaymentRoleEnum|null
+	{
+		return $this->taxPaymentRoleOverride;
+	}
+
+	public function getTaxYearOverride(): int|null
+	{
+		return $this->taxYearOverride;
+	}
+
+	public function updateTaxClassification(
+		TaxPaymentRoleEnum|null $taxPaymentRoleOverride,
+		int|null $taxYearOverride,
+		ImmutableDateTime $now,
+	): void
+	{
+		$this->taxPaymentRoleOverride = $taxPaymentRoleOverride;
+		$this->taxYearOverride = $taxYearOverride;
+		$this->updatedAt = $now;
+	}
+
+	public function resolveTaxPaymentRole(): TaxPaymentRoleEnum|null
+	{
+		if ($this->taxPaymentRoleOverride !== null) {
+			return $this->taxPaymentRoleOverride;
+		}
+
+		foreach ($this->otherTags as $otherTag) {
+			if ($otherTag->getTaxPaymentRole() !== null) {
+				return $otherTag->getTaxPaymentRole();
+			}
+		}
+
+		if ($this->mainTag?->getTaxPaymentRole() !== null) {
+			return $this->mainTag->getTaxPaymentRole();
+		}
+
+		return null;
 	}
 
 }

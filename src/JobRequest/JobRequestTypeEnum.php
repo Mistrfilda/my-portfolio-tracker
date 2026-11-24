@@ -21,4 +21,6 @@ enum JobRequestTypeEnum: string
 
 	case PORTFOLIO_PERIOD_STATISTIC_PROCESS = 'portfolio_period_statistic_process';
 
+	case TAX_YEAR_REPORT_PROCESS = 'tax_year_report_process';
+
 }

@@ -187,6 +187,44 @@ class BankExpenseRepository extends BaseRepository
 	}
 
 	/** @return array<BankExpense> */
+	public function findTaxRelevantForAppAdmin(AppAdmin $appAdmin, int $year): array
+	{
+		$effectiveDate = 'COALESCE(bankExpense.transactionDate, bankExpense.settlementDate, bankExpense.createdAt)';
+		$windowStart = new ImmutableDateTime(sprintf('%d-12-01 00:00:00', $year - 1));
+		$windowEnd = new ImmutableDateTime(sprintf('%d-03-31 23:59:59', $year + 1));
+
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->distinct();
+		$qb->addSelect('mainTag', 'otherTag');
+		$qb->addSelect($effectiveDate . ' AS HIDDEN effectiveDate');
+		$qb->leftJoin('bankExpense.otherTags', 'otherTag');
+		$qb->andWhere(
+			$qb->expr()->orX(
+				$qb->expr()->isNotNull('bankExpense.taxPaymentRoleOverride'),
+				$qb->expr()->isNotNull('mainTag.taxPaymentRole'),
+				$qb->expr()->isNotNull('otherTag.taxPaymentRole'),
+			),
+		);
+		$qb->andWhere(
+			$qb->expr()->orX(
+				$qb->expr()->eq('bankExpense.taxYearOverride', ':year'),
+				$qb->expr()->andX(
+					$qb->expr()->isNull('bankExpense.taxYearOverride'),
+					$qb->expr()->gte($effectiveDate, ':windowStart'),
+					$qb->expr()->lte($effectiveDate, ':windowEnd'),
+				),
+			),
+		);
+		$qb->setParameter('year', $year);
+		$qb->setParameter('windowStart', $windowStart);
+		$qb->setParameter('windowEnd', $windowEnd);
+		$qb->orderBy('effectiveDate', 'ASC');
+		$qb->addOrderBy('bankExpense.id', 'ASC');
+
+		return $qb->getQuery()->getResult();
+	}
+
+	/** @return array<BankExpense> */
 	public function findAllForAppAdmin(AppAdmin $appAdmin): array
 	{
 		return $this->createQueryBuilderForAppAdmin($appAdmin)->getQuery()->getResult();

@@ -7,10 +7,13 @@ namespace App\Cash\Expense\Tag;
 use App\Admin\AppAdmin;
 use App\Admin\AppAdminRepository;
 use App\Admin\CurrentAppAdminGetter;
+use App\Cash\Expense\Bank\BankExpense;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use App\System\SystemValueEnum;
 use App\System\SystemValueFacade;
+use App\Tax\Payment\TaxPaymentRoleEnum;
+use App\Tax\TaxYearReportFacade;
 use App\Utils\Console\ConsoleCurrentOutputHelper;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
@@ -30,6 +33,7 @@ class ExpenseTagFacade
 		private SystemValueFacade $systemValueFacade,
 		private CurrentAppAdminGetter $currentAppAdminGetter,
 		private AppAdminRepository $appAdminRepository,
+		private TaxYearReportFacade|null $taxYearReportFacade = null,
 	)
 	{
 
@@ -44,6 +48,7 @@ class ExpenseTagFacade
 		int|null $parentTag,
 		array $regexes,
 		bool $isTax,
+		TaxPaymentRoleEnum|null $taxPaymentRole = null,
 	): ExpenseTag
 	{
 		if ($expenseCategory !== null && $parentTag !== null) {
@@ -70,10 +75,15 @@ class ExpenseTagFacade
 			$regexes,
 			$now,
 			$isTax,
+			$taxPaymentRole,
 		);
 		$this->entityManager->persist($expenseTag);
 		$this->entityManager->flush();
 		$this->entityManager->refresh($expenseTag);
+
+		if ($taxPaymentRole !== null) {
+			$this->taxYearReportFacade?->enqueueOpenYearRefresh($now->getYear(), $expenseTag->getAppAdmin());
+		}
 
 		return $expenseTag;
 	}
@@ -81,16 +91,23 @@ class ExpenseTagFacade
 	/**
 	 * @param array<string> $regexes
 	 */
-	public function update(int $id, string $name, array $regexes, bool $isTax): ExpenseTag
+	public function update(
+		int $id,
+		string $name,
+		array $regexes,
+		bool $isTax,
+		TaxPaymentRoleEnum|null $taxPaymentRole = null,
+	): ExpenseTag
 	{
 		$expenseTag = $this->expenseTagRepository->getById($id);
-		$expenseTag->update(
-			$name,
-			$regexes,
-			$this->datetimeFactory->createNow(),
-			$isTax,
-		);
+		$previousRole = $this->taxYearReportFacade !== null ? $expenseTag->getTaxPaymentRole() : null;
+		$now = $this->datetimeFactory->createNow();
+		$expenseTag->update($name, $regexes, $now, $isTax, $taxPaymentRole);
 		$this->entityManager->flush();
+
+		if ($this->taxYearReportFacade !== null && ($previousRole !== null || $taxPaymentRole !== null)) {
+			$this->taxYearReportFacade->enqueueOpenYearRefresh($now->getYear(), $expenseTag->getAppAdmin());
+		}
 
 		return $expenseTag;
 	}
@@ -115,6 +132,7 @@ class ExpenseTagFacade
 
 		$output?->writeln('Processing expenses...');
 		$expenseTags = $this->expenseTagRepository->findAllForAppAdmin($appAdmin);
+		$affectedTaxYears = [];
 		foreach ($this->bankExpenseRepository->findAllForAppAdmin($appAdmin) as $bankExpense) {
 			//remove new lines
 			$bankExpenseRawContent = str_replace("\n", ' ', $bankExpense->getTransactionRawContent());
@@ -135,6 +153,7 @@ class ExpenseTagFacade
 				}
 
 				if ($matched) {
+					$changed = false;
 					if ($expenseTag->isMainTag()) {
 						if ($bankExpense->isMainTagSetManually()) {
 							continue;
@@ -153,13 +172,37 @@ class ExpenseTagFacade
 							);
 						}
 
+						if ($bankExpense->getMainTag() === null) {
+							$changed = true;
+						}
+
 						$bankExpense->setMainTag($expenseTag);
 					} elseif ($bankExpense->isOtherTagSetManually() === false) {
+						if (!in_array($expenseTag, $bankExpense->getOtherTags(), true)) {
+							$changed = true;
+						}
+
 						$bankExpense->addOtherTag($expenseTag);
 					}
 
 					$this->entityManager->flush();
+
+					if (
+						$this->taxYearReportFacade !== null
+						&& $changed
+						&& $bankExpense->resolveTaxPaymentRole() !== null
+					) {
+						foreach ($this->resolveExpenseAffectedTaxYears($bankExpense) as $affectedYear) {
+							$affectedTaxYears[$affectedYear] = true;
+						}
+					}
 				}
+			}
+		}
+
+		if ($this->taxYearReportFacade !== null) {
+			foreach (array_keys($affectedTaxYears) as $taxYear) {
+				$this->taxYearReportFacade->enqueueOpenYearRefresh($taxYear, $appAdmin);
 			}
 		}
 
@@ -173,28 +216,90 @@ class ExpenseTagFacade
 	public function manuallySetMainTag(UuidInterface $id, int $tagId): void
 	{
 		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$previousRole = $this->taxYearReportFacade !== null ? $bankExpense->resolveTaxPaymentRole() : null;
 		$bankExpense->setManuallyMainTag(
 			$this->expenseTagRepository->getById($tagId),
 		);
 		$this->entityManager->flush();
+
+		if (
+			$this->taxYearReportFacade !== null
+			&& (
+				$previousRole !== null
+				|| $bankExpense->resolveTaxPaymentRole() !== null
+			)
+		) {
+			$this->enqueueTaxRefreshForExpense($bankExpense);
+		}
 	}
 
 	public function manuallySetOtherTag(UuidInterface $id, int $tagId): void
 	{
 		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$previousRole = $this->taxYearReportFacade !== null ? $bankExpense->resolveTaxPaymentRole() : null;
 		$bankExpense->addManuallyOtherTag(
 			$this->expenseTagRepository->getById($tagId),
 		);
 		$this->entityManager->flush();
+
+		if (
+			$this->taxYearReportFacade !== null
+			&& (
+				$previousRole !== null
+				|| $bankExpense->resolveTaxPaymentRole() !== null
+			)
+		) {
+			$this->enqueueTaxRefreshForExpense($bankExpense);
+		}
 	}
 
 	public function manuallyRemoveOtherTag(UuidInterface $id, int $tagId): void
 	{
 		$bankExpense = $this->bankExpenseRepository->getById($id);
+		$previousRole = $this->taxYearReportFacade !== null ? $bankExpense->resolveTaxPaymentRole() : null;
 		$bankExpense->manuallyRemoveOtherTag(
 			$this->expenseTagRepository->getById($tagId),
 		);
 		$this->entityManager->flush();
+
+		if (
+			$this->taxYearReportFacade !== null
+			&& (
+				$previousRole !== null
+				|| $bankExpense->resolveTaxPaymentRole() !== null
+			)
+		) {
+			$this->enqueueTaxRefreshForExpense($bankExpense);
+		}
+	}
+
+	private function enqueueTaxRefreshForExpense(BankExpense $bankExpense): void
+	{
+		if ($this->taxYearReportFacade === null) {
+			return;
+		}
+
+		$owner = $bankExpense->getBankAccount()->getAppAdmin();
+		foreach ($this->resolveExpenseAffectedTaxYears($bankExpense) as $taxYear) {
+			$this->taxYearReportFacade->enqueueOpenYearRefresh($taxYear, $owner);
+		}
+	}
+
+	/**
+	 * @return list<int>
+	 */
+	private function resolveExpenseAffectedTaxYears(BankExpense $bankExpense): array
+	{
+		$date = $bankExpense->getDate();
+		$years = [
+			$bankExpense->getTaxYearOverride() ?? $date->getYear(),
+		];
+
+		if ($bankExpense->getTaxYearOverride() === null && $date->getMonth() === 1 && $date->getDay() <= 10) {
+			$years[] = $date->getYear() - 1;
+		}
+
+		return array_values(array_unique($years));
 	}
 
 }

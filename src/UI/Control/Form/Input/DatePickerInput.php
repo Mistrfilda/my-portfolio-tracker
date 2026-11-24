@@ -8,6 +8,7 @@ use Mistrfilda\Datetime\DatetimeException;
 use Mistrfilda\Datetime\DatetimeFactory;
 use Mistrfilda\Datetime\Types\ImmutableDateTime;
 use Nette\Forms\Controls\TextInput;
+use Nette\Forms\Form;
 
 class DatePickerInput extends TextInput
 {
@@ -17,16 +18,17 @@ class DatePickerInput extends TextInput
 	public function __construct(string|null $caption = null)
 	{
 		parent::__construct($caption);
-		$this->addRule(
-			static fn (self $input): bool => $input->getValue() instanceof ImmutableDateTime,
-			'Zadejte platné datum.',
-		);
+		$this->addCondition(Form::Filled)
+			->addRule(
+				static fn (self $input): bool => $input->getValue() instanceof ImmutableDateTime,
+				'Zadejte platné datum.',
+			);
 	}
 
 	public function getValue(): mixed
 	{
 		$value = parent::getValue();
-		if (is_string($value) === false) {
+		if (is_string($value) === false || trim($value) === '') {
 			return $value;
 		}
 

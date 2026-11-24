@@ -56,3 +56,4 @@ custompresenterfactory:
 		Admin:StockAiAnalysis: App\Stock\AiAnalysis\UI\StockAiAnalysisPresenter
 		Admin:StockAiInvestmentPlan: App\Stock\AiAnalysis\InvestmentPlan\UI\StockAiInvestmentPlanPresenter
 		Admin:StockValuationOverview: App\Stock\Valuation\UI\StockValuationOverviewPresenter
+		Admin:TaxOverview: App\Tax\UI\TaxOverviewPresenter

@@ -10,6 +10,7 @@ use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\Asset\Download\StockAssetDataDownloadFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
+use App\Tax\TaxYearReportFacade;
 use App\Utils\TypeValidator;
 use Ramsey\Uuid\Uuid;
 
@@ -23,6 +24,7 @@ class JobRequestProcessor
 		private PortfolioGoalUpdateFacade $portfolioGoalUpdateFacade,
 		private StockAiAnalysisGeminiProcessorFacade $stockAiAnalysisGeminiProcessorFacade,
 		private PortfolioPeriodStatisticFacade $portfolioPeriodStatisticFacade,
+		private TaxYearReportFacade $taxYearReportFacade,
 	)
 	{
 	}
@@ -75,6 +77,11 @@ class JobRequestProcessor
 				break;
 			case JobRequestTypeEnum::PORTFOLIO_PERIOD_STATISTIC_PROCESS:
 				$this->portfolioPeriodStatisticFacade->process(
+					TypeValidator::validateString($additionalData['reportId'] ?? null),
+				);
+				break;
+			case JobRequestTypeEnum::TAX_YEAR_REPORT_PROCESS:
+				$this->taxYearReportFacade->process(
 					TypeValidator::validateString($additionalData['reportId'] ?? null),
 				);
 				break;
