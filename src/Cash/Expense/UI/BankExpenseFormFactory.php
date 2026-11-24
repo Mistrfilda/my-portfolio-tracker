@@ -10,6 +10,7 @@ use App\Cash\Bank\BankTransactionType;
 use App\Cash\Expense\Bank\BankExpenseFormFacade;
 use App\Cash\Expense\Bank\BankExpenseRepository;
 use App\Currency\CurrencyEnum;
+use App\Tax\Payment\TaxPaymentRoleEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
@@ -63,6 +64,18 @@ class BankExpenseFormFactory
 
 		$form->addTextArea('transactionRawContent', 'Obsah transakce')->setRequired();
 
+		$form->addSelect(
+			'taxPaymentRoleOverride',
+			'Daňová role (přepis tagu)',
+			TaxPaymentRoleEnum::getOptionsForAdminSelect(),
+		)
+			->setPrompt('Dle tagu');
+
+		$form->addInteger('taxYearOverride', 'Daňový rok (přepis)')
+			->setNullable()
+			->setRequired(false)
+			->addRule(Form::Range, 'Zadejte platný rok.', [2020, 2100]);
+
 		$form->addSubmit('submit', 'Odeslat');
 
 		if ($id !== null) {
@@ -77,6 +90,8 @@ class BankExpenseFormFactory
 				'transactionDate' => $bankExpense->getTransactionDate(),
 				'transactionRawContent' => $bankExpense->getTransactionRawContent(),
 				'bankAccount' => $bankExpense->getBankAccount()->getId()->toString(),
+				'taxPaymentRoleOverride' => $bankExpense->getTaxPaymentRoleOverride()?->value,
+				'taxYearOverride' => $bankExpense->getTaxYearOverride(),
 			]);
 		} elseif ($duplicateId !== null) {
 			$bankExpense = $this->bankExpenseRepository->getById($duplicateId);
@@ -96,6 +111,12 @@ class BankExpenseFormFactory
 			$values = $form->getValues(ArrayHash::class);
 			assert($values instanceof ArrayHash);
 
+			$taxPaymentRoleOverrideValue = TypeValidator::validateNullableString($values->taxPaymentRoleOverride);
+			$taxPaymentRoleOverride = $taxPaymentRoleOverrideValue !== null
+				? TaxPaymentRoleEnum::from($taxPaymentRoleOverrideValue)
+				: null;
+			$taxYearOverride = TypeValidator::validateNullableInt($values->taxYearOverride);
+
 			if ($id === null) {
 				$this->bankExpenseFormFacade->create(
 					TypeValidator::validateNullableString($values->identifier),
@@ -107,6 +128,8 @@ class BankExpenseFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
 					TypeValidator::validateString($values->transactionRawContent),
 					Uuid::fromString(TypeValidator::validateString($values->bankAccount)),
+					$taxPaymentRoleOverride,
+					$taxYearOverride,
 				);
 			} else {
 				$this->bankExpenseFormFacade->update(
@@ -120,6 +143,8 @@ class BankExpenseFormFactory
 					TypeValidator::validateNullableImmutableDatetime($values->transactionDate),
 					TypeValidator::validateString($values->transactionRawContent),
 					Uuid::fromString(TypeValidator::validateString($values->bankAccount)),
+					$taxPaymentRoleOverride,
+					$taxYearOverride,
 				);
 			}
 

@@ -65,6 +65,13 @@ class ExpenseTagDatagridFactory
 			static fn (ExpenseTag $expenseTag): string => BooleanFilter::format($expenseTag->isTax()),
 		);
 
+		$grid->addColumnText(
+			'taxPaymentRole',
+			'Daňová role',
+			static fn (ExpenseTag $expenseTag): string => $expenseTag->getTaxPaymentRole()?->format()
+				?? Datagrid::NULLABLE_PLACEHOLDER,
+		);
+
 		$grid->addAction(
 			'edit',
 			'Editovat',

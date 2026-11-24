@@ -5,6 +5,7 @@ declare(strict_types = 1);
 namespace App\Cash\Income\WorkMonthlyIncome;
 
 use App\Admin\CurrentAppAdminGetter;
+use App\Tax\TaxYearReportFacade;
 use Doctrine\ORM\EntityManagerInterface;
 use Mistrfilda\Datetime\DatetimeFactory;
 
@@ -22,6 +23,7 @@ class WorkMonthlyIncomeFacade
 		private EntityManagerInterface $entityManager,
 		private WorkMonthlyIncomeOwnerProvider $ownerProvider,
 		private CurrentAppAdminGetter $currentAppAdminGetter,
+		private TaxYearReportFacade|null $taxYearReportFacade = null,
 	)
 	{
 
@@ -44,11 +46,19 @@ class WorkMonthlyIncomeFacade
 			$serializedTimeEntries[$key] = $timeEntry['hours'];
 		}
 
+		$affectedTaxYears = [];
 		foreach ($serializedTimeEntries as $key => $timeEntry) {
 			$keyParts = explode('-', $key);
+			$entryYear = (int) $keyParts[0];
+			$entryMonth = (int) $keyParts[1];
+			$affectedTaxYears[$entryYear] = true;
+			if ($entryMonth === 12) {
+				$affectedTaxYears[$entryYear + 1] = true;
+			}
+
 			$existingRow = $this->workMonthlyIncomeRepository->getByYearAndMonthForAppAdmin(
-				(int) $keyParts[0],
-				(int) $keyParts[1],
+				$entryYear,
+				$entryMonth,
 				$appAdmin,
 			);
 
@@ -64,13 +74,19 @@ class WorkMonthlyIncomeFacade
 
 			$this->entityManager->persist(new WorkMonthlyIncome(
 				$appAdmin,
-				(int) $keyParts[0],
-				(int) $keyParts[1],
+				$entryYear,
+				$entryMonth,
 				$timeEntry,
 				$this->currentHourlyRate,
 				$this->datetimeFactory->createNow(),
 			));
 			$this->entityManager->flush();
+		}
+
+		if ($this->taxYearReportFacade !== null) {
+			foreach (array_keys($affectedTaxYears) as $taxYear) {
+				$this->taxYearReportFacade->enqueueOpenYearRefresh($taxYear, $appAdmin);
+			}
 		}
 	}
 

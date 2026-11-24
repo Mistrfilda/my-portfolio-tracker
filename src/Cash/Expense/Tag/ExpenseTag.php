@@ -11,6 +11,7 @@ use App\Doctrine\CreatedAt;
 use App\Doctrine\Entity;
 use App\Doctrine\Identifier;
 use App\Doctrine\UpdatedAt;
+use App\Tax\Payment\TaxPaymentRoleEnum;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
@@ -60,6 +61,9 @@ class ExpenseTag implements Entity
 	#[ORM\Column(type: Types::BOOLEAN)]
 	private bool $isTax;
 
+	#[ORM\Column(type: Types::STRING, enumType: TaxPaymentRoleEnum::class, nullable: true)]
+	private TaxPaymentRoleEnum|null $taxPaymentRole = null;
+
 	/**
 	 * @param array<string> $regexes
 	 */
@@ -71,6 +75,7 @@ class ExpenseTag implements Entity
 		array $regexes,
 		ImmutableDateTime $now,
 		bool $isTax,
+		TaxPaymentRoleEnum|null $taxPaymentRole = null,
 	)
 	{
 		$this->appAdmin = $appAdmin;
@@ -81,7 +86,8 @@ class ExpenseTag implements Entity
 		$this->regexes = $regexes;
 		$this->createdAt = $now;
 		$this->updatedAt = $now;
-		$this->isTax = $isTax;
+		$this->taxPaymentRole = $taxPaymentRole;
+		$this->isTax = $isTax || ($taxPaymentRole !== null && $taxPaymentRole->isTaxPayment());
 
 		$this->mainExpenses = new ArrayCollection();
 		$this->otherExpenses = new ArrayCollection();
@@ -100,13 +106,14 @@ class ExpenseTag implements Entity
 		array $regexes,
 		ImmutableDateTime $now,
 		bool $isTax,
+		TaxPaymentRoleEnum|null $taxPaymentRole = null,
 	): void
 	{
 		$this->name = $name;
 		$this->regexes = $regexes;
-		$this->createdAt = $now;
 		$this->updatedAt = $now;
-		$this->isTax = $isTax;
+		$this->taxPaymentRole = $taxPaymentRole;
+		$this->isTax = $isTax || ($taxPaymentRole !== null && $taxPaymentRole->isTaxPayment());
 	}
 
 	public function isMainTag(): bool
@@ -169,6 +176,11 @@ class ExpenseTag implements Entity
 	public function isTax(): bool
 	{
 		return $this->isTax;
+	}
+
+	public function getTaxPaymentRole(): TaxPaymentRoleEnum|null
+	{
+		return $this->taxPaymentRole;
 	}
 
 }

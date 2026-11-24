@@ -128,6 +128,37 @@ class CurrencyConversionRepository extends BaseRepository
 		}
 	}
 
+	public function findClosestBeforeForSource(
+		CurrencyEnum $fromCurrency,
+		CurrencyEnum $toCurrency,
+		ImmutableDateTime $date,
+		CurrencySourceEnum $source,
+	): CurrencyConversion|null
+	{
+		$qb = $this->createQueryBuilder();
+		$qb->andWhere(
+			$qb->expr()->eq('currencyConversion.fromCurrency', ':fromCurrency'),
+			$qb->expr()->eq('currencyConversion.toCurrency', ':toCurrency'),
+			$qb->expr()->eq('currencyConversion.source', ':source'),
+			$qb->expr()->lte('currencyConversion.forDate', ':date'),
+		);
+		$qb->setParameter('fromCurrency', $fromCurrency);
+		$qb->setParameter('toCurrency', $toCurrency);
+		$qb->setParameter('source', $source);
+		$qb->setParameter('date', $date->setTime(0, 0));
+		$qb->orderBy('currencyConversion.forDate', OrderBy::DESC->value);
+		$qb->setMaxResults(1);
+
+		try {
+			$result = $qb->getQuery()->getSingleResult();
+			assert($result instanceof CurrencyConversion);
+
+			return $result;
+		} catch (NoResultException) {
+			return null;
+		}
+	}
+
 	public function findClosestAfter(
 		CurrencyEnum $fromCurrency,
 		CurrencyEnum $toCurrency,

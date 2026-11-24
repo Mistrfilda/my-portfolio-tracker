@@ -26,14 +26,14 @@ class KbContentParserTest extends TestCase
 		$kbContentParser = new KbContentParser();
 
 		$transaction = new KbTransaction();
-		$transaction->setTransactionRawContent('4. 11. 2024 DEKUJEME, ROHLIK.CZ  477975******7707      -401,61 Kč
-1. 11. 2024 4483469379     Mobilní platba -    -    -');
+		$transaction->setTransactionRawContent('15. 1. 2024 EXAMPLE SHOP  123456******1234      -250,50 Kč
+14. 1. 2024 1234567890     Mobilní platba -    -    -');
 		$transactions = [$transaction];
 
 		$result = $kbContentParser->processRawKbTransactions($transactions);
 		$this->assertIsObject($result);
 		$this->assertNotEmpty($result->getProcessedTransactions());
-		$this->assertEquals(-401.61, $result->getProcessedTransactions()[0]->getAmount());
+		$this->assertEquals(-250.5, $result->getProcessedTransactions()[0]->getAmount());
 		$this->assertEquals(
 			BankTransactionType::CARD_PAYMENT,
 			$result->getProcessedTransactions()[0]->getBankTransactionType(),

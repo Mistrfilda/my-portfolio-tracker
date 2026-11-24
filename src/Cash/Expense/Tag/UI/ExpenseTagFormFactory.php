@@ -7,6 +7,7 @@ namespace App\Cash\Expense\Tag\UI;
 use App\Cash\Expense\Category\ExpenseCategoryRepository;
 use App\Cash\Expense\Tag\ExpenseTagFacade;
 use App\Cash\Expense\Tag\ExpenseTagRepository;
+use App\Tax\Payment\TaxPaymentRoleEnum;
 use App\UI\Control\Form\AdminForm;
 use App\UI\Control\Form\AdminFormFactory;
 use App\Utils\TypeValidator;
@@ -48,6 +49,13 @@ class ExpenseTagFormFactory
 
 		$form->addCheckbox('isTax', 'Je tag daň?');
 
+		$form->addSelect(
+			'taxPaymentRole',
+			'Daňová role tagu (pro přehled daní a odvodů)',
+			TaxPaymentRoleEnum::getOptionsForAdminSelect(),
+		)
+			->setPrompt('Bez daňové role');
+
 		$multiplier = $form->addDynamic(
 			'regexes',
 			'Regexy',
@@ -85,6 +93,8 @@ class ExpenseTagFormFactory
 				'name' => $expenseTag->getName(),
 				'expenseCategory' => $expenseTag->getExpenseCategory()?->getId(),
 				'parentTag' => $expenseTag->getParentTag()?->getId(),
+				'isTax' => $expenseTag->isTax(),
+				'taxPaymentRole' => $expenseTag->getTaxPaymentRole()?->value,
 				'regexes' => $regexes,
 			]);
 		}
@@ -106,6 +116,11 @@ class ExpenseTagFormFactory
 				}
 			}
 
+			$taxPaymentRoleValue = TypeValidator::validateNullableString($values->taxPaymentRole);
+			$taxPaymentRole = $taxPaymentRoleValue !== null
+				? TaxPaymentRoleEnum::from($taxPaymentRoleValue)
+				: null;
+
 			if ($id === null) {
 				$this->expenseTagFacade->create(
 					TypeValidator::validateString($values->name),
@@ -113,6 +128,7 @@ class ExpenseTagFormFactory
 					TypeValidator::validateNullableInt($values->parentTag),
 					$regexes,
 					TypeValidator::validateBool($values->isTax),
+					$taxPaymentRole,
 				);
 			} else {
 				$this->expenseTagFacade->update(
@@ -120,6 +136,7 @@ class ExpenseTagFormFactory
 					TypeValidator::validateString($values->name),
 					$regexes,
 					TypeValidator::validateBool($values->isTax),
+					$taxPaymentRole,
 				);
 			}
 

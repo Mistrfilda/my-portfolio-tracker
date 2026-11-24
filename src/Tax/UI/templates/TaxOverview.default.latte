@@ -1,0 +1,808 @@
+{templateType App\Tax\UI\TaxOverviewTemplate}
+
+{block #content}
+	<div class="space-y-6 sm:space-y-8">
+		{* Hlavička s přepínačem roků a generováním přes JobRequest frontu *}
+		<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<div class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-5 py-5 sm:px-6">
+				<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+					<div>
+						<div class="flex flex-wrap items-center gap-2">
+							<p class="text-sm font-medium text-blue-700">Přehled daní a odvodů OSVČ</p>
+							{if $snapshot !== null}
+								{if $snapshot->isClosed}
+									<span class="inline-flex rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">Uzavřený rok</span>
+								{elseif $snapshot->isOpenYear}
+									<span class="inline-flex rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-800">Otevřený rok · výhled k {$asOfDateFormatted}</span>
+								{else}
+									<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-semibold text-gray-800">Roční vyúčtování</span>
+								{/if}
+							{/if}
+						</div>
+						<h2 class="mt-1 text-xl font-semibold tracking-tight text-gray-900">
+							Daňový rok {$selectedYear}
+						</h2>
+						<p class="mt-1 max-w-3xl text-sm leading-6 text-gray-600">
+							Výpočet daně z příjmů (§ 7, § 8/§ 16a, § 10), zdravotního pojištění a ČSSZ z vašich dat. Report se generuje na pozadí přes frontu úloh.
+						</p>
+					</div>
+
+					<div class="flex flex-wrap items-center gap-2">
+						<div class="inline-flex rounded-lg bg-white p-1 shadow-sm ring-1 ring-inset ring-gray-300">
+							{foreach $availableYears as $availableYear}
+								<a
+									n:href="default, year => $availableYear"
+									n:class="'rounded-md px-3 py-1.5 text-sm font-semibold transition', $availableYear === $selectedYear ? 'bg-blue-600 text-white shadow-sm' : 'text-gray-700 hover:bg-gray-50'"
+								>
+									{$availableYear}
+								</a>
+							{/foreach}
+						</div>
+
+						<a
+							n:href="generateReport!, year => $selectedYear"
+							class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3.5 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+						>
+							{renderSvg App\UI\Icon\SvgIcon::ARROW_TRENDING_UP->value, ['class' => 'h-4 w-4']}
+							{if $completedReport !== null}Přepočítat přehled{else}Vygenerovat přehled{/if}
+						</a>
+					</div>
+				</div>
+
+				<nav aria-label="Sekce daňového přehledu" class="mt-4 flex flex-wrap items-center gap-1.5 border-t border-blue-100/80 pt-3.5 text-xs">
+					{if $snapshot !== null}
+						<a href="#tax-institutions" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">Instituce</a>
+						{if $snapshot->isOpenYear}
+							<a href="#tax-scenario" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">Scénář „co když“</a>
+						{/if}
+						<a href="#tax-business" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">§ 7 a řádky DPFO</a>
+						<a href="#tax-stocks" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">§ 10 Akcie ({count($snapshot->stockSales->items)})</a>
+						<a href="#tax-dividends" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">§ 8 Dividendy ({count($snapshot->dividends->items)})</a>
+						<a href="#tax-payments" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">Platby ({count($snapshot->payments)})</a>
+					{/if}
+					<a href="#tax-donations" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">Dary</a>
+					<a href="#tax-settings" class="rounded-full bg-white px-2.5 py-1 font-medium text-gray-700 ring-1 ring-inset ring-gray-200 hover:bg-blue-50 hover:text-blue-700">Nastavení roku</a>
+				</nav>
+			</div>
+
+			{if $latestReport !== null && $latestReportIsPending}
+				<div class="border-t border-blue-200 bg-blue-50 px-5 py-4 sm:px-6">
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div class="flex items-center gap-2 text-sm font-medium text-blue-900">
+							{renderSvg App\UI\Icon\SvgIcon::SPINNER->value, ['class' => 'h-4 w-4 animate-spin text-blue-600']}
+							<span>Přehled za rok {$selectedYear} ({$latestReport->getStatusLabel()}) se právě připravuje ve frontě.</span>
+						</div>
+						<a n:href="default, year => $selectedYear" class="text-sm font-semibold text-blue-700 hover:text-blue-600">
+							Obnovit stránku
+						</a>
+					</div>
+				</div>
+			{elseif $latestReport !== null && $latestReportCanRetry}
+				<div class="border-t border-red-200 bg-red-50 px-5 py-4 sm:px-6">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<p class="text-sm font-semibold text-red-900">
+								{if $latestReport->isProcessing()}
+									Zpracování přehledu se pravděpodobně přerušilo
+								{else}
+									Poslední výpočet přehledu selhal
+								{/if}
+							</p>
+							<p class="mt-0.5 text-xs text-red-700">
+								{if $latestReport->isProcessing()}
+									Výpočet běží déle než 10 minut a můžete ho znovu zařadit do fronty.
+								{else}
+									{$latestReport->getProcessingError() ?? 'Neznámá chyba'}
+								{/if}
+							</p>
+						</div>
+						<a
+							n:href="retryReport!, reportId => $latestReport->getId()->toString(), year => $selectedYear"
+							class="inline-flex shrink-0 rounded-md bg-red-600 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500"
+						>
+							Zkusit znovu
+						</a>
+					</div>
+				</div>
+			{/if}
+		</section>
+
+		{if $snapshot === null}
+			<section class="rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-gray-900/5">
+				<h3 class="text-base font-semibold text-gray-900">Pro rok {$selectedYear} zatím není vygenerovaný přehled</h3>
+				<p class="mt-2 text-sm text-gray-600">
+					Klikněte na tlačítko výše pro zařazení výpočtu za rok {$selectedYear} do fronty. Před generováním můžete níže doplnit dary nebo upravit nastavení roku.
+				</p>
+				<div class="mt-5">
+					<a
+						n:href="generateReport!, year => $selectedYear"
+						class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+					>
+						Vygenerovat přehled pro rok {$selectedYear}
+					</a>
+				</div>
+			</section>
+		{else}
+			{* Seznam K doplnění / Upozornění *}
+			{if $snapshot->warnings !== []}
+				<section class="rounded-2xl border border-amber-200 bg-amber-50 p-5" aria-labelledby="tax-warnings-heading">
+					<div class="flex items-start gap-3">
+						{renderSvg App\UI\Icon\SvgIcon::EXCLAMATION->value, ['class' => 'mt-0.5 h-5 w-5 shrink-0 text-amber-600']}
+						<div>
+							<h3 id="tax-warnings-heading" class="text-sm font-semibold text-amber-900">K doplnění a upozornění ({count($snapshot->warnings)})</h3>
+							<ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-800">
+								{foreach $snapshot->warnings as $warning}
+									<li>{$warning}</li>
+								{/foreach}
+							</ul>
+						</div>
+					</div>
+				</section>
+			{/if}
+
+			{* Hlavní KPI karty *}
+			<dl class="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">
+						{if $snapshot->isOpenYear}Připravit na vyúčtování{else}Celkem k doplatku{/if}
+					</dt>
+					<dd n:class="'mt-2 text-3xl font-semibold tracking-tight tabular-nums', $snapshot->totalReserveToPrepareCzk > 0 ? 'text-amber-700' : 'text-emerald-700'">
+						{$snapshot->totalReserveToPrepareCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">
+						Součet kladných doplatků FÚ, ZP a ČSSZ{if $reserveTargetDateFormatted !== null} · cíl {$reserveTargetDateFormatted}{/if}
+					</p>
+				</div>
+
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Celková roční povinnost</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$snapshot->totalAnnualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">
+						DPFO {$snapshot->taxOfficeSummary->annualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK} · ZP {$snapshot->healthInsuranceSummary->annualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK} · ČSSZ {$snapshot->socialInsuranceSummary->annualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</p>
+				</div>
+
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">
+						{if $snapshot->isOpenYear}Zálohy (uhrazené / zbývající){else}Uhrazené zálohy{/if}
+					</dt>
+					<dd class="mt-2 text-2xl font-semibold tracking-tight text-gray-900 tabular-nums">
+						{$snapshot->totalPaidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">
+						{if $snapshot->isOpenYear}
+							Očekávané zbývající zálohy: {$snapshot->totalExpectedRemainingAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}
+						{else}
+							Započtené zálohy za celý rok {$snapshot->year}
+						{/if}
+					</p>
+				</div>
+
+				<div class="overflow-hidden rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-gray-900/5">
+					<dt class="text-sm font-medium text-gray-500">Očekávané přeplatky zvlášť</dt>
+					<dd n:class="'mt-2 text-2xl font-semibold tracking-tight tabular-nums', $snapshot->totalExpectedOverpaymentsCzk > 0 ? 'text-emerald-700' : 'text-gray-900'">
+						{$snapshot->totalExpectedOverpaymentsCzk|currency:App\Currency\CurrencyEnum::CZK}
+					</dd>
+					<p class="mt-1 text-xs leading-5 text-gray-500">
+						{if $snapshot->isOpenYear}
+							Celkem zbývá financovat (zálohy + doplatky): {$snapshot->totalRemainingCashflowThisYearAndSettlementCzk|currency:App\Currency\CurrencyEnum::CZK}
+						{else}
+							Přeplatky se nezapočítávají proti doplatku jiné instituce
+						{/if}
+					</p>
+				</div>
+			</dl>
+
+			{* Tabulka 3 institucí *}
+			<section id="tax-institutions" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="institutions-heading">
+				<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h3 id="institutions-heading" class="text-lg font-semibold text-gray-900">Rozpis tří institucí</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								{if $completedReport !== null && $completedReport->getProcessingFinishedAt() !== null}
+									Vygenerováno {$completedReport->getProcessingFinishedAt()|datetimeFormat} k datu {$asOfDateFormatted}.
+								{/if}
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200">
+						<thead class="bg-gray-50">
+							<tr>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Instituce</th>
+								<th scope="col" class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Roční povinnost</th>
+								<th scope="col" class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Uhrazené zálohy</th>
+								{if $snapshot->isOpenYear}
+									<th scope="col" class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Zbývající zálohy</th>
+								{/if}
+								<th scope="col" class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Doplatek / Přeplatek</th>
+								<th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Nová záloha po podání</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $snapshot->getInstitutionSummaries() as $inst}
+								<tr>
+									<td class="whitespace-nowrap px-6 py-4">
+										<div class="text-sm font-semibold text-gray-900">{$inst->institutionLabel}</div>
+										<div class="text-xs text-gray-500">{$inst->advancesSourceNote}</div>
+									</td>
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm font-medium text-gray-900 tabular-nums">
+										{$inst->annualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK}
+									</td>
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700 tabular-nums">
+										{$inst->paidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}
+									</td>
+									{if $snapshot->isOpenYear}
+										<td class="whitespace-nowrap px-3 py-4 text-right text-sm text-gray-700 tabular-nums">
+											{$inst->expectedRemainingAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}
+										</td>
+									{/if}
+									<td class="whitespace-nowrap px-3 py-4 text-right text-sm font-semibold tabular-nums">
+										{if $inst->settlementCzk > 0}
+											<span class="text-amber-700">Doplatek {$inst->settlementCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+										{elseif $inst->settlementCzk < 0}
+											<span class="text-emerald-700">Přeplatek {abs($inst->settlementCzk)|currency:App\Currency\CurrencyEnum::CZK}</span>
+										{else}
+											<span class="text-gray-600">0 Kč</span>
+										{/if}
+									</td>
+									<td class="px-6 py-4 text-sm text-gray-700">
+										{if $inst->nextAdvanceAmountCzk > 0}
+											<span class="font-semibold text-gray-900 tabular-nums">{$inst->nextAdvanceAmountCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+											<span class="block text-xs text-gray-500">{$inst->nextAdvancePeriodicity} · {$inst->nextAdvanceEffectiveFrom}</span>
+										{else}
+											<span class="text-gray-500">Bez záloh</span>
+										{/if}
+									</td>
+								</tr>
+							{/foreach}
+							<tr class="bg-gray-50 font-semibold">
+								<td class="px-6 py-3.5 text-sm text-gray-900">Celkem</td>
+								<td class="px-3 py-3.5 text-right text-sm text-gray-900 tabular-nums">{$snapshot->totalAnnualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+								<td class="px-3 py-3.5 text-right text-sm text-gray-900 tabular-nums">{$snapshot->totalPaidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+								{if $snapshot->isOpenYear}
+									<td class="px-3 py-3.5 text-right text-sm text-gray-900 tabular-nums">{$snapshot->totalExpectedRemainingAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+								{/if}
+								<td class="px-3 py-3.5 text-right text-sm text-amber-800 tabular-nums">
+									Rezerva {$snapshot->totalReserveToPrepareCzk|currency:App\Currency\CurrencyEnum::CZK}
+								</td>
+								<td class="px-6 py-3.5 text-xs font-normal text-gray-500">
+									{if $snapshot->totalExpectedOverpaymentsCzk > 0}
+										+ očekávané přeplatky {$snapshot->totalExpectedOverpaymentsCzk|currency:App\Currency\CurrencyEnum::CZK}
+									{/if}
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			{* Interaktivní „co když“ scénář pro otevřený rok *}
+			{if $snapshot->isOpenYear}
+				<section id="tax-scenario" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="scenario-heading">
+					<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+						<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+							<div>
+								<h3 id="scenario-heading" class="text-lg font-semibold text-gray-900">Odhad pracovního příjmu a „co když“ scénář</h3>
+								<p class="mt-1 text-sm text-gray-500">
+									Automatický odhad: <strong class="text-gray-900">{$snapshot->businessIncome->autoForecastAnnualIncomeCzk|currency:App\Currency\CurrencyEnum::CZK}</strong> ({$snapshot->businessIncome->autoForecastPeriodDescription}). Okamžitý přepočet běží bez čekání na frontu.
+								</p>
+							</div>
+							{if $snapshot->businessIncome->useCustomForecast}
+								<a n:href="resetForecast!, year => $selectedYear" class="rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+									Vrátit automatický odhad
+								</a>
+							{/if}
+						</div>
+					</div>
+					<div class="grid grid-cols-1 gap-6 px-5 py-6 sm:px-6 lg:grid-cols-2">
+						<div>
+							{control taxForecastForm}
+						</div>
+						<div class="rounded-xl bg-gray-50 p-5 ring-1 ring-inset ring-gray-900/5">
+							{if $scenarioComparison !== null}
+								<div class="flex flex-wrap items-start justify-between gap-3">
+									<div>
+										<p class="text-xs font-semibold uppercase tracking-wide text-blue-700">Porovnání scénáře</p>
+										<p class="mt-1 text-sm text-gray-600">
+											Při ročním příjmu <strong class="text-gray-900">{$scenarioComparison->annualBusinessIncomeCzk|currency:App\Currency\CurrencyEnum::CZK}</strong> (základ § 7: {$scenarioComparison->section7TaxBaseCzk|currency:App\Currency\CurrencyEnum::CZK}):
+										</p>
+									</div>
+									<div class="flex shrink-0 items-center gap-2">
+										<a
+											n:href="default#tax-scenario, year => $selectedYear"
+											class="rounded-md bg-white px-2.5 py-1.5 text-xs font-semibold text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+										>
+											Zrušit
+										</a>
+										<a
+											n:href="applyScenario!, year => $selectedYear, scenarioIncomeCzk => $scenarioComparison->annualBusinessIncomeCzk"
+											class="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-blue-500"
+										>
+											Uložit jako vlastní odhad
+										</a>
+									</div>
+								</div>
+
+								{if $scenarioComparison->isBelowActualReceivedIncome}
+									<div class="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800 ring-1 ring-inset ring-amber-600/20">
+										Zadaná částka je nižší než dosud potvrzené příjmy ({$scenarioComparison->actualReceivedIncomeCzk|currency:App\Currency\CurrencyEnum::CZK}).
+									</div>
+								{/if}
+
+								<dl class="mt-4 grid grid-cols-2 gap-3">
+									<div class="rounded-lg bg-white p-3 ring-1 ring-gray-900/5">
+										<dt class="text-xs text-gray-500">Nová rezerva na doplatek</dt>
+										<dd class="mt-1 text-lg font-semibold text-gray-900 tabular-nums">{$scenarioComparison->totalReserveToPrepareCzk|currency:App\Currency\CurrencyEnum::CZK}</dd>
+									</div>
+									<div class="rounded-lg bg-white p-3 ring-1 ring-gray-900/5">
+										<dt class="text-xs text-gray-500">Změna oproti základu</dt>
+										<dd n:class="'mt-1 text-lg font-semibold tabular-nums', $scenarioComparison->reserveDifferenceFromBaselineCzk > 0 ? 'text-amber-700' : 'text-emerald-700'">
+											{if $scenarioComparison->reserveDifferenceFromBaselineCzk > 0}+{/if}{$scenarioComparison->reserveDifferenceFromBaselineCzk|currency:App\Currency\CurrencyEnum::CZK}
+										</dd>
+									</div>
+								</dl>
+
+								<ul class="mt-4 divide-y divide-gray-200 text-xs">
+									{foreach $scenarioComparison->getInstitutionSummaries() as $scInst}
+										<li class="flex items-center justify-between py-2">
+											<span class="font-medium text-gray-700">{$scInst->institutionLabel}</span>
+											<span class="tabular-nums text-gray-900">
+												Povinnost {$scInst->annualLiabilityCzk|currency:App\Currency\CurrencyEnum::CZK} ·
+												{if $scInst->settlementCzk >= 0}
+													Doplatek {$scInst->settlementCzk|currency:App\Currency\CurrencyEnum::CZK}
+												{else}
+													Přeplatek {abs($scInst->settlementCzk)|currency:App\Currency\CurrencyEnum::CZK}
+												{/if}
+											</span>
+										</li>
+									{/foreach}
+								</ul>
+							{else}
+								<p class="text-sm text-gray-600">
+									Zadejte vlevo libovolný celoroční pracovní příjem (např. při plánovaném navýšení fakturace) a ihned uvidíte dopad na daň, ZP, ČSSZ i potřebnou rezervu — původní automatický odhad zůstane zachován pro srovnání.
+								</p>
+							{/if}
+						</div>
+					</div>
+				</section>
+			{/if}
+
+			{* Detailní podklady pro přiznání a přehledy *}
+			<div id="tax-business" class="grid scroll-mt-6 grid-cols-1 gap-6 xl:grid-cols-2">
+				{* § 7 Podnikání *}
+				<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+						<h3 class="text-lg font-semibold text-gray-900">§ 7 Příjmy ze samostatné činnosti</h3>
+						<p class="mt-1 text-sm text-gray-500">
+							Příjem {$snapshot->businessIncome->usedAnnualIncomeCzk|currency:App\Currency\CurrencyEnum::CZK} − paušál {$snapshot->businessIncome->flatRatePercentage} % ({$snapshot->businessIncome->expensesCzk|currency:App\Currency\CurrencyEnum::CZK}) = základ <strong class="text-gray-900">{$snapshot->businessIncome->taxBaseCzk|currency:App\Currency\CurrencyEnum::CZK}</strong>.
+						</p>
+					</div>
+					<div class="overflow-x-auto">
+						<table class="min-w-full divide-y divide-gray-200 text-sm">
+							<thead class="bg-gray-50">
+								<tr>
+									<th class="px-5 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Období</th>
+									<th class="px-3 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Hodiny</th>
+									<th class="px-5 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Částka</th>
+								</tr>
+							</thead>
+							<tbody class="divide-y divide-gray-100 bg-white">
+								{foreach $snapshot->businessIncome->items as $workItem}
+									<tr n:class="$workItem->isMissing ? 'bg-amber-50/50' : ($workItem->isEstimated ? 'bg-blue-50/40' : '')">
+										<td class="px-5 py-2.5 text-gray-900">
+											{$workItem->label}
+											{if $workItem->isMissing}
+												<span class="ml-1 inline-flex rounded bg-amber-100 px-1.5 py-0.5 text-xs font-medium text-amber-800">chybí</span>
+											{elseif $workItem->isEstimated}
+												<span class="ml-1 inline-flex rounded bg-blue-100 px-1.5 py-0.5 text-xs font-medium text-blue-800">odhad</span>
+											{/if}
+										</td>
+										<td class="px-3 py-2.5 text-right text-gray-600 tabular-nums">{$workItem->hours|number:1}</td>
+										<td class="px-5 py-2.5 text-right font-medium text-gray-900 tabular-nums">{$workItem->amountCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+									</tr>
+								{/foreach}
+								{if $snapshot->businessIncome->manualAdjustmentCzk !== 0}
+									<tr class="bg-gray-50">
+										<td class="px-5 py-2.5 text-gray-700" colspan="2">Ruční úprava{if $snapshot->businessIncome->manualAdjustmentNote !== null}: {$snapshot->businessIncome->manualAdjustmentNote}{/if}</td>
+										<td class="px-5 py-2.5 text-right font-medium text-gray-900 tabular-nums">{$snapshot->businessIncome->manualAdjustmentCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+									</tr>
+								{/if}
+							</tbody>
+						</table>
+					</div>
+				</section>
+
+				{* Výpočet DPFO a obou pojistných *}
+				<section class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+					<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+						<h3 class="text-lg font-semibold text-gray-900">Řádky pro přiznání a přehledy</h3>
+						<p class="mt-1 text-sm text-gray-500">Kontrolní mezivýpočty DPFO, ZP a ČSSZ.</p>
+					</div>
+					<div class="divide-y divide-gray-100 px-5 py-4 text-sm sm:px-6">
+						<div class="py-3">
+							<h4 class="font-semibold text-gray-900">Daň z příjmů (DPFO)</h4>
+							<dl class="mt-2 space-y-1.5 text-xs text-gray-600">
+								<div class="flex justify-between"><dt>Dílčí základy (§ 7 + § 8 + § 10)</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->incomeTaxDetail->section7TaxBaseCzk|currency:App\Currency\CurrencyEnum::CZK} + {$snapshot->incomeTaxDetail->section8TaxBaseCzk|currency:App\Currency\CurrencyEnum::CZK} + {$snapshot->incomeTaxDetail->section10TaxBaseCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Uplatněné odpočty celkem (z toho dary {$snapshot->incomeTaxDetail->deductibleDonationsCzk|currency:App\Currency\CurrencyEnum::CZK})</dt><dd class="font-medium text-gray-900 tabular-nums">−{$snapshot->incomeTaxDetail->totalDeductionsCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Zaokrouhlený základ daně</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->incomeTaxDetail->roundedTaxBaseCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Daň 15 % ({$snapshot->incomeTaxDetail->baseIn15BracketCzk|currency:App\Currency\CurrencyEnum::CZK}) + 23 % ({$snapshot->incomeTaxDetail->baseIn23BracketCzk|currency:App\Currency\CurrencyEnum::CZK})</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->incomeTaxDetail->standardTaxBeforeCreditCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Zápočet zahraniční daně (příloha č. 3)</dt><dd class="font-medium text-gray-900 tabular-nums">−{$snapshot->incomeTaxDetail->foreignTaxCreditCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Slevy (poplatník {$snapshot->incomeTaxDetail->basicTaxpayerCreditCzk|currency:App\Currency\CurrencyEnum::CZK} + ostatní {$snapshot->incomeTaxDetail->otherTaxCreditsCzk|currency:App\Currency\CurrencyEnum::CZK})</dt><dd class="font-medium text-gray-900 tabular-nums">−{($snapshot->incomeTaxDetail->basicTaxpayerCreditCzk + $snapshot->incomeTaxDetail->otherTaxCreditsCzk)|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								{if $snapshot->incomeTaxDetail->separateBase16aTaxAfterCreditCzk > 0}
+									<div class="flex justify-between"><dt>Samostatný základ § 16a po zápočtu (příloha č. 4)</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->incomeTaxDetail->separateBase16aTaxAfterCreditCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								{/if}
+								<div class="flex justify-between border-t border-gray-100 pt-1.5 font-semibold text-gray-900"><dt>Celková roční daň</dt><dd class="tabular-nums">{$snapshot->incomeTaxDetail->totalAnnualTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between text-gray-500"><dt>Základ pro příští zálohy (§ 38a bez § 10 a § 16a)</dt><dd class="tabular-nums">{$snapshot->incomeTaxDetail->advanceBaseTaxWithoutSection10And16aCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+							</dl>
+						</div>
+
+						<div class="py-3">
+							<h4 class="font-semibold text-gray-900">Zdravotní pojištění ({$snapshot->healthInsuranceDetail->activeMonths} měs.)</h4>
+							<dl class="mt-2 space-y-1.5 text-xs text-gray-600">
+								<div class="flex justify-between"><dt>Skutečný VZ (50 % z § 7) / Minimum</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->healthInsuranceDetail->actualAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK, 0} / {$snapshot->healthInsuranceDetail->minimumAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK, 0}</dd></div>
+								<div class="flex justify-between"><dt>Použitý VZ{if $snapshot->healthInsuranceDetail->usedMinimumBase} (minimum){/if}</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->healthInsuranceDetail->usedAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK, 0}</dd></div>
+								<div class="flex justify-between font-semibold text-gray-900"><dt>Roční pojistné (13,5 %)</dt><dd class="tabular-nums">{$snapshot->healthInsuranceDetail->annualInsuranceCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+							</dl>
+						</div>
+
+						<div class="py-3">
+							<h4 class="font-semibold text-gray-900">ČSSZ – důchodové pojištění ({$snapshot->socialInsuranceDetail->activeMonths} měs.)</h4>
+							<dl class="mt-2 space-y-1.5 text-xs text-gray-600">
+								<div class="flex justify-between"><dt>Skutečný VZ (55 % z § 7) / Minimum / Maximum</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->socialInsuranceDetail->actualAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK} / {$snapshot->socialInsuranceDetail->minimumAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK} / {$snapshot->socialInsuranceDetail->maximumAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between"><dt>Použitý VZ{if $snapshot->socialInsuranceDetail->usedMinimumBase} (minimum){elseif $snapshot->socialInsuranceDetail->usedMaximumBase} (strop){/if}</dt><dd class="font-medium text-gray-900 tabular-nums">{$snapshot->socialInsuranceDetail->usedAssessmentBaseCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								<div class="flex justify-between font-semibold text-gray-900"><dt>Roční pojistné (29,2 %)</dt><dd class="tabular-nums">{$snapshot->socialInsuranceDetail->annualInsuranceCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								{if $snapshot->socialInsuranceDetail->sicknessInsurancePaidCzk > 0}
+									<div class="flex justify-between text-gray-500"><dt>Dobrovolné nemocenské (mimo vypořádání)</dt><dd class="tabular-nums">{$snapshot->socialInsuranceDetail->sicknessInsurancePaidCzk|currency:App\Currency\CurrencyEnum::CZK}</dd></div>
+								{/if}
+							</dl>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			{* § 10 Prodeje akcií *}
+			<section id="tax-stocks" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h3 class="text-lg font-semibold text-gray-900">§ 10 Prodeje akcií (příloha č. 2)</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								Celkový obrat {$snapshot->stockSales->totalProceedsCzk|currency:App\Currency\CurrencyEnum::CZK} (limit hodnotového testu {$snapshot->stockSales->proceedsExemptionLimitCzk|currency:App\Currency\CurrencyEnum::CZK}) · Zdanitelný základ § 10: <strong class="text-gray-900">{$snapshot->stockSales->taxBaseSection10Czk|currency:App\Currency\CurrencyEnum::CZK}</strong>.
+							</p>
+						</div>
+						{if $snapshot->stockSales->passedValueTest}
+							<span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800">Osvobozeno hodnotovým testem</span>
+						{/if}
+					</div>
+				</div>
+				<div class="overflow-x-auto">
+					<table class="min-w-full divide-y divide-gray-200 text-sm">
+						<thead class="bg-gray-50">
+							<tr>
+								<th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Akcie</th>
+								<th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Nákup → Prodej</th>
+								<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Výdaj CZK</th>
+								<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Příjem CZK</th>
+								<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Zisk / Ztráta</th>
+								<th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Daňový režim</th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-gray-100 bg-white">
+							{foreach $snapshot->stockSales->items as $sale}
+								<tr>
+									<td class="whitespace-nowrap px-6 py-3.5">
+										<div class="font-medium text-gray-900">{$sale->assetName} ({$sale->ticker})</div>
+										<div class="text-xs text-gray-500">{$sale->pieces} ks{if $sale->hasMissingExchangeRate} · chybí kurz ČNB{/if}</div>
+									</td>
+									<td class="whitespace-nowrap px-3 py-3.5 text-xs text-gray-600">
+										{$sale->buyDate} → {$sale->sellDate}
+										<span class="block text-gray-400">{$sale->holdingDays} dní</span>
+									</td>
+									<td class="whitespace-nowrap px-3 py-3.5 text-right text-gray-700 tabular-nums">{$sale->buyAmountCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+									<td class="whitespace-nowrap px-3 py-3.5 text-right text-gray-700 tabular-nums">{$sale->sellAmountCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+									<td n:class="'whitespace-nowrap px-3 py-3.5 text-right font-medium tabular-nums', $sale->gainCzk < 0 ? 'text-red-600' : 'text-emerald-700'">{$sale->gainCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+									<td class="px-6 py-3.5 text-xs">
+										{if $sale->isExempt}
+											<span class="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 font-medium text-emerald-700">{$sale->exemptionReason}</span>
+										{else}
+											<span class="inline-flex rounded-full bg-amber-50 px-2.5 py-0.5 font-medium text-amber-800">Zdanitelné § 10</span>
+										{/if}
+									</td>
+								</tr>
+							{else}
+								<tr>
+									<td colspan="6" class="px-6 py-6 text-center text-sm text-gray-500">V roce {$selectedYear} nebyly evidovány žádné uzavřené akciové pozice.</td>
+								</tr>
+							{/foreach}
+						</tbody>
+					</table>
+				</div>
+			</section>
+
+			{* § 8 / § 16a Dividendy *}
+			<section id="tax-dividends" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+					<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+						<div>
+							<h3 class="text-lg font-semibold text-gray-900">§ 8 / § 16a Dividendy</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								Zahraniční hrubě: <strong class="text-gray-900">{$snapshot->dividends->foreignGrossCzk|currency:App\Currency\CurrencyEnum::CZK}</strong> · Srážka: {$snapshot->dividends->foreignWithheldTaxCzk|currency:App\Currency\CurrencyEnum::CZK} · Uznatelný zápočet (smlouvy): {$snapshot->dividends->foreignCreditableTaxCzk|currency:App\Currency\CurrencyEnum::CZK} · České (konečná srážka mimo DAP): {$snapshot->dividends->domesticGrossCzk|currency:App\Currency\CurrencyEnum::CZK}.
+							</p>
+						</div>
+						{if $snapshot->dividends->foreignGrossCzk > 0}
+							<div class="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-600 ring-1 ring-gray-200">
+								Porovnání roční daně: zvolený režim <strong class="text-gray-900">{$snapshot->incomeTaxDetail->totalAnnualTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</strong> vs. alternativní <strong class="text-gray-900">{$snapshot->incomeTaxDetail->alternativeModeTotalAnnualTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</strong>
+							</div>
+						{/if}
+					</div>
+				</div>
+
+				{if $snapshot->dividends->countries !== []}
+					<div class="border-b border-gray-100 bg-gray-50/70 px-5 py-4 sm:px-6">
+						<h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500">Souhrn po státech (příloha č. 3 / č. 4)</h4>
+						<div class="mt-3 overflow-x-auto">
+							<table class="min-w-full divide-y divide-gray-200 text-xs">
+								<thead>
+									<tr>
+										<th class="py-2 text-left font-semibold text-gray-500">Stát</th>
+										<th class="px-3 py-2 text-right font-semibold text-gray-500">Hrubé CZK</th>
+										<th class="px-3 py-2 text-right font-semibold text-gray-500">Srážka CZK</th>
+										<th class="px-3 py-2 text-right font-semibold text-gray-500">Smluvní strop</th>
+										<th class="px-3 py-2 text-right font-semibold text-gray-500">Zápočet § 8</th>
+										<th class="px-3 py-2 text-right font-semibold text-gray-500">Zápočet § 16a</th>
+										<th class="py-2 text-right font-semibold text-gray-500">Nadlimitní (refundace)</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-gray-200">
+									{foreach $snapshot->dividends->countries as $country}
+										<tr>
+											<td class="py-2 font-medium text-gray-900">{$country->countryName} ({$country->countryCode})</td>
+											<td class="px-3 py-2 text-right tabular-nums text-gray-700">{$country->grossCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="px-3 py-2 text-right tabular-nums text-gray-700">{$country->withheldTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="px-3 py-2 text-right tabular-nums text-gray-700">{$country->creditableForeignTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{$country->allowedCreditStandardCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="px-3 py-2 text-right tabular-nums font-medium text-gray-900">{$country->allowedCreditSeparate16aCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="py-2 text-right tabular-nums text-gray-500">{$country->excessForeignTaxCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+										</tr>
+									{/foreach}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				{/if}
+
+				{if $snapshot->dividends->items === []}
+					<div class="px-6 py-6 text-center text-sm text-gray-500">
+						V roce {$selectedYear} nebyly evidovány žádné vyplacené dividendy.
+					</div>
+				{else}
+					<details n:attr="open => count($snapshot->dividends->items) <= 10" class="group">
+						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:px-6">
+							<span>Detail jednotlivých dividend ({count($snapshot->dividends->items)})</span>
+							{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+						</summary>
+						<div class="overflow-x-auto border-t border-gray-100">
+							<table class="min-w-full divide-y divide-gray-200 text-sm">
+								<thead class="bg-gray-50">
+									<tr>
+										<th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Společnost</th>
+										<th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Stát</th>
+										<th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Datum</th>
+										<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Hrubá CZK</th>
+										<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Srážka CZK</th>
+										<th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Uznatelný zápočet</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-gray-100 bg-white">
+									{foreach $snapshot->dividends->items as $div}
+										<tr>
+											<td class="whitespace-nowrap px-6 py-3 font-medium text-gray-900">
+												{$div->assetName} ({$div->ticker})
+												<span class="block text-xs font-normal text-gray-500">{$div->grossAmountOriginal|number:2} {$div->currency}{if $div->exchangeRate !== null} · kurz {$div->exchangeRate|number:3}{/if}</span>
+											</td>
+											<td class="whitespace-nowrap px-3 py-3 text-xs text-gray-700">
+												{$div->countryName}
+												{if $div->isCzechDomestic}
+													<span class="block text-gray-400">domácí konečná</span>
+												{elseif $div->countryInferredWithoutIsin}
+													<span class="block text-amber-700">odvozeno z burzy</span>
+												{/if}
+											</td>
+											<td class="whitespace-nowrap px-3 py-3 text-xs text-gray-600">{$div->paymentDate}</td>
+											<td class="whitespace-nowrap px-3 py-3 text-right tabular-nums text-gray-900">{$div->grossCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="whitespace-nowrap px-3 py-3 text-right tabular-nums text-gray-700">{$div->withheldTaxCzk|currency:App\Currency\CurrencyEnum::CZK} ({$div->withheldTaxRatePercentage|number:1} %)</td>
+											<td class="whitespace-nowrap px-6 py-3 text-right tabular-nums font-medium text-gray-900">
+												{if $div->isCzechDomestic}—{else}{$div->creditableForeignTaxCzk|currency:App\Currency\CurrencyEnum::CZK}{/if}
+											</td>
+										</tr>
+									{/foreach}
+								</tbody>
+							</table>
+						</div>
+					</details>
+				{/if}
+			</section>
+
+			{* Započtené bankovní platby *}
+			<section id="tax-payments" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+				<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+					<div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+						<div>
+							<h3 class="text-lg font-semibold text-gray-900">Započtené platby z Expenses ({count($snapshot->payments)})</h3>
+							<p class="mt-1 text-sm text-gray-500">
+								Platby spárované podle daňové role tagu nebo individuálního přepisu na výdaji. Daňové role tagů nastavíte v sekci <a n:href="ExpenseTag:tags" class="font-medium text-blue-600 hover:text-blue-500">Výdajové tagy</a>.
+							</p>
+						</div>
+						{if $snapshot->payments !== []}
+							<div class="flex flex-wrap gap-1.5 text-xs">
+								<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700 tabular-nums">FÚ: {$snapshot->taxOfficeSummary->paidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+								<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700 tabular-nums">ZP: {$snapshot->healthInsuranceSummary->paidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+								<span class="inline-flex rounded-full bg-gray-100 px-2.5 py-1 font-medium text-gray-700 tabular-nums">ČSSZ: {$snapshot->socialInsuranceSummary->paidAdvancesCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+							</div>
+						{/if}
+					</div>
+				</div>
+				{if $snapshot->payments === []}
+					<div class="px-6 py-6 text-center text-sm text-gray-500">
+						Pro rok {$selectedYear} nebyly nalezeny žádné bankovní platby s nastavenou daňovou rolí. Nastavte daňovou roli ve <a n:href="ExpenseTag:tags" class="font-semibold text-blue-600 hover:text-blue-500">Výdajových tazích</a> nebo přímo na výdaji.
+					</div>
+				{else}
+					<details n:attr="open => count($snapshot->payments) <= 10" class="group">
+						<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3.5 text-sm font-medium text-gray-700 hover:bg-gray-50 sm:px-6">
+							<span>Zobrazit rozpis všech {count($snapshot->payments)} spárovaných plateb</span>
+							{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+						</summary>
+						<div class="overflow-x-auto border-t border-gray-100">
+							<table class="min-w-full divide-y divide-gray-200 text-sm">
+								<thead class="bg-gray-50">
+									<tr>
+										<th class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Datum</th>
+										<th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Role</th>
+										<th class="px-3 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">Popis</th>
+										<th class="px-3 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Částka</th>
+										<th class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500">Akce</th>
+									</tr>
+								</thead>
+								<tbody class="divide-y divide-gray-100 bg-white">
+									{foreach $snapshot->payments as $payment}
+										<tr>
+											<td class="whitespace-nowrap px-6 py-3 text-xs text-gray-600">
+												{$payment->date}
+												{if $payment->isYearOverridden}
+													<span class="block text-blue-700">přepis roku {$payment->assignedTaxYear}</span>
+												{/if}
+											</td>
+											<td class="whitespace-nowrap px-3 py-3 text-xs">
+												<span n:class="'inline-flex rounded-full px-2.5 py-0.5 font-medium', $payment->countedAsAdvance ? 'bg-blue-50 text-blue-700' : 'bg-gray-100 text-gray-700'">
+													{$payment->roleLabel}
+												</span>
+											</td>
+											<td class="px-3 py-3 text-xs text-gray-700">{$payment->description}</td>
+											<td class="whitespace-nowrap px-3 py-3 text-right font-medium text-gray-900 tabular-nums">{$payment->amountCzk|currency:App\Currency\CurrencyEnum::CZK}</td>
+											<td class="whitespace-nowrap px-6 py-3 text-right text-xs">
+												<a n:href="Expense:form, id => $payment->bankExpenseId" class="font-semibold text-blue-600 hover:text-blue-500">Upravit výdaj</a>
+											</td>
+										</tr>
+									{/foreach}
+								</tbody>
+							</table>
+						</div>
+					</details>
+				{/if}
+			</section>
+		{/if}
+
+		{* Dary (§ 15 odst. 1) — vždy dostupné pro zadání *}
+		<section id="tax-donations" class="scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5" aria-labelledby="donations-heading">
+			<div class="border-b border-gray-100 px-5 py-5 sm:px-6">
+				<div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+					<div>
+						<h3 id="donations-heading" class="text-lg font-semibold text-gray-900">Dary na veřejně prospěšné účely (§ 15 odst. 1 ZDP)</h3>
+						<p class="mt-1 text-sm text-gray-500">
+							Zadejte dary s daňovým potvrzením (např. Darujme.cz, Donio.cz). Kalkulátor automaticky hlídá minimum (1 000 Kč nebo přes 2 % ZD) i strop ({$donationMaxBasePercentage} % ZD). Bankovní výdaje s rolí „Dar“ se započítají automaticky také.
+						</p>
+					</div>
+					{if $snapshot !== null && $snapshot->incomeTaxDetail->rawDonationsCzk > 0}
+						<span class="inline-flex shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 tabular-nums">
+							Uplatněno v DPFO: {$snapshot->incomeTaxDetail->deductibleDonationsCzk|currency:App\Currency\CurrencyEnum::CZK}
+						</span>
+					{/if}
+				</div>
+			</div>
+			<div class="grid grid-cols-1 gap-6 px-5 py-6 sm:px-6 lg:grid-cols-2">
+				<div class="space-y-5">
+					<div>
+						<h4 class="text-sm font-semibold text-gray-900">Evidované ruční dary za rok {$selectedYear}</h4>
+						<ul class="mt-3 divide-y divide-gray-100 rounded-xl border border-gray-100">
+							{foreach $manualDonations as $donation}
+								<li class="flex items-center justify-between gap-3 px-4 py-3 text-sm">
+									<div>
+										<p class="font-medium text-gray-900">{$donation->getRecipientName()}</p>
+										<p class="text-xs text-gray-500">
+											{if $donation->getDonatedAt() !== null}{$donation->getDonatedAt()|dateFormat}{/if}
+											{if $donation->getNote() !== null} · {$donation->getNote()}{/if}
+										</p>
+									</div>
+									<div class="flex items-center gap-3">
+										<span class="font-semibold text-gray-900 tabular-nums">{$donation->getAmountCzk()|currency:App\Currency\CurrencyEnum::CZK}</span>
+										<a
+											n:href="deleteDonation!, donationId => $donation->getId()->toString(), year => $selectedYear"
+											class="text-xs font-semibold text-red-600 hover:text-red-500"
+										>
+											Smazat
+										</a>
+									</div>
+								</li>
+							{else}
+								<li class="px-4 py-4 text-sm text-gray-500">Zatím nejsou zadané žádné ruční dary pro rok {$selectedYear}.</li>
+							{/foreach}
+						</ul>
+					</div>
+
+					{if $bankDonations !== []}
+						<div>
+							<details n:attr="open => count($bankDonations) <= 5" class="group rounded-xl border border-gray-200 bg-gray-50/50">
+								<summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold text-gray-900">
+									<span>
+										Automaticky načteno z Expenses ({count($bankDonations)} · {$bankDonationsTotalCzk|currency:App\Currency\CurrencyEnum::CZK})
+									</span>
+									{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+								</summary>
+								<div class="border-t border-gray-200 bg-white">
+									<p class="border-b border-gray-100 bg-amber-50/70 px-4 py-2 text-xs text-amber-800">
+										Ověřte, že ke všem níže uvedeným položkám máte daňové potvrzení o daru — jinak změňte roli přímo na výdaji.
+									</p>
+									<ul class="divide-y divide-gray-100">
+										{foreach $bankDonations as $bankDonation}
+											<li class="flex items-center justify-between gap-3 px-4 py-2.5 text-xs">
+												<div class="min-w-0">
+													<p class="truncate font-medium text-gray-900">{$bankDonation->recipientName}</p>
+													{if $bankDonation->donatedAt !== null}
+														<p class="text-gray-500">{$bankDonation->donatedAt}</p>
+													{/if}
+												</div>
+												<div class="flex shrink-0 items-center gap-3">
+													<span class="font-semibold text-gray-900 tabular-nums">{$bankDonation->amountCzk|currency:App\Currency\CurrencyEnum::CZK}</span>
+													<a n:href="Expense:form, id => $bankDonation->id" class="font-semibold text-blue-600 hover:text-blue-500">Upravit</a>
+												</div>
+											</li>
+										{/foreach}
+									</ul>
+								</div>
+							</details>
+						</div>
+					{/if}
+				</div>
+				<div>
+					<h4 class="text-sm font-semibold text-gray-900">Přidat nový dar</h4>
+					<p class="mt-1 text-xs text-gray-500">
+						Zadávejte jen dary, které už nejsou načtené z bankovních výdajů pod rolí „Dar“ (jinak se započítají dvakrát).
+					</p>
+					<div class="mt-3">
+						{control taxYearDonationForm}
+					</div>
+				</div>
+			</div>
+		</section>
+
+		{* Nastavení daňového roku *}
+		<details id="tax-settings" class="group scroll-mt-6 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-gray-900/5">
+			<summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-5 sm:px-6">
+				<div>
+					<h3 class="text-base font-semibold text-gray-900">Nastavení daňového roku {$selectedYear}</h3>
+					<p class="mt-1 text-sm text-gray-500">Výdajový paušál, měsíce pojištění, režim dividend, přepsání záloh, odpočty a slevy.</p>
+				</div>
+				{renderSvg App\UI\Icon\SvgIcon::CHEVRON_DOWN->value, ['class' => 'h-5 w-5 shrink-0 text-gray-400 transition-transform group-open:rotate-180']}
+			</summary>
+			<div class="border-t border-gray-100 px-5 py-6 sm:px-6">
+				{control taxYearProfileForm}
+			</div>
+		</details>
+	</div>
+{/block}

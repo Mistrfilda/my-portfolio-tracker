@@ -104,6 +104,7 @@ class MenuBuilder
 				new MenuItem('ExpenseTag', 'tags', SvgIcon::TAG, 'Výdajové tagy'),
 				new MenuItem('WorkMonthlyIncome', 'default', SvgIcon::COLLECTION, 'Příjmy z práce'),
 				new MenuItem('WorkReport', 'default', SvgIcon::CLIPBOARD_LIST, 'Pracovní přehledy'),
+				new MenuItem('TaxOverview', 'default', SvgIcon::DOCUMENT_DUPLICATE, 'Daně a odvody'),
 				new MenuItem('FinancialIndependence', 'default', SvgIcon::INCOME_CHART, 'Finanční nezávislost'),
 				new MenuItem('BankAccount', 'default', SvgIcon::BANKNOTES, 'Bankovní účty'),
 				new MenuItem('BankIncome', 'default', SvgIcon::COLLECTION, 'Příjmy z banky'),

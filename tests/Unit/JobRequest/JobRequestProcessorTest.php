@@ -12,6 +12,7 @@ use App\Statistic\PeriodStatistic\PortfolioPeriodStatisticFacade;
 use App\Stock\AiAnalysis\StockAiAnalysisGeminiProcessorFacade;
 use App\Stock\Asset\Download\StockAssetDataDownloadFacade;
 use App\Stock\Dividend\Forecast\StockAssetDividendForecastRecordFacade;
+use App\Tax\TaxYearReportFacade;
 use App\Test\UpdatedTestCase;
 use Mockery;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -34,6 +35,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$this->createStub(PortfolioGoalUpdateFacade::class),
 			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
 			$this->createStub(PortfolioPeriodStatisticFacade::class),
+			$this->createStub(TaxYearReportFacade::class),
 		);
 		$processor->process(
 			JobRequestTypeEnum::STOCK_ASSET_DIVIDEND_FORECAST_RECALCULATE_ALL,
@@ -55,6 +57,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$forecasts,
 			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
 			$this->createStub(PortfolioPeriodStatisticFacade::class),
+			$this->createStub(TaxYearReportFacade::class),
 		);
 		$processor->process(
 			JobRequestTypeEnum::PORTFOLIO_GOAL_UPDATE,
@@ -75,6 +78,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$this->createStub(PortfolioGoalUpdateFacade::class),
 			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
 			$this->createStub(PortfolioPeriodStatisticFacade::class),
+			$this->createStub(TaxYearReportFacade::class),
 		);
 		$processor->process(JobRequestTypeEnum::EXPENSE_TAG_PROCESS, ['appAdminId' => $id->toString()]);
 	}
@@ -91,6 +95,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$this->createStub(PortfolioGoalUpdateFacade::class),
 			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
 			$this->createStub(PortfolioPeriodStatisticFacade::class),
+			$this->createStub(TaxYearReportFacade::class),
 		);
 		$processor->process(JobRequestTypeEnum::STOCK_ASSET_DOWNLOAD, ['assetId' => $id->toString()]);
 	}
@@ -110,6 +115,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
 			$portfolioPeriodStatisticFacadeMock,
+			$this->createStub(TaxYearReportFacade::class),
 		);
 
 		$type = JobRequestTypeEnum::EXPENSE_TAG_PROCESS;
@@ -139,6 +145,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
 			$portfolioPeriodStatisticFacadeMock,
+			$this->createStub(TaxYearReportFacade::class),
 		);
 
 		$stockAiAnalysisGeminiProcessorFacadeMock
@@ -168,6 +175,7 @@ class JobRequestProcessorTest extends UpdatedTestCase
 			$portfolioGoalUpdateFacadeMock,
 			$stockAiAnalysisGeminiProcessorFacadeMock,
 			$portfolioPeriodStatisticFacadeMock,
+			$this->createStub(TaxYearReportFacade::class),
 		);
 
 		$portfolioPeriodStatisticFacadeMock
@@ -177,6 +185,32 @@ class JobRequestProcessorTest extends UpdatedTestCase
 
 		$jobRequestProcessor->process(JobRequestTypeEnum::PORTFOLIO_PERIOD_STATISTIC_PROCESS, [
 			'reportId' => 'report-id',
+		]);
+
+		$this->assertTrue(true);
+	}
+
+	public function testProcessTaxYearReport(): void
+	{
+		$taxYearReportFacadeMock = Mockery::mock(TaxYearReportFacade::class);
+
+		$jobRequestProcessor = new JobRequestProcessor(
+			$this->createStub(ExpenseTagFacade::class),
+			$this->createStub(StockAssetDataDownloadFacade::class),
+			$this->createStub(StockAssetDividendForecastRecordFacade::class),
+			$this->createStub(PortfolioGoalUpdateFacade::class),
+			$this->createStub(StockAiAnalysisGeminiProcessorFacade::class),
+			$this->createStub(PortfolioPeriodStatisticFacade::class),
+			$taxYearReportFacadeMock,
+		);
+
+		$taxYearReportFacadeMock
+			->shouldReceive('process')
+			->with('tax-report-id')
+			->once();
+
+		$jobRequestProcessor->process(JobRequestTypeEnum::TAX_YEAR_REPORT_PROCESS, [
+			'reportId' => 'tax-report-id',
 		]);
 
 		$this->assertTrue(true);

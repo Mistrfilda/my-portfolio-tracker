@@ -87,6 +87,32 @@ test('all search result pages render without frontend errors', async ({ page }) 
 	}
 });
 
+test('tax overview renders years and what-if scenario without frontend errors', async ({ page }) => {
+	await login(page);
+	const frontendErrors = watchFrontendErrors(page);
+
+	try {
+		await page.goto('tax-overview/');
+		const main = page.getByRole('main');
+
+		await expect(main.getByRole('heading', { level: 1, name: /Daně a odvody \d{4}/ })).toBeVisible();
+		await expect(main.getByRole('navigation', { name: 'Sekce daňového přehledu' })).toBeVisible();
+
+		await page.goto('tax-overview/?year=2025');
+		await expect(main.getByRole('heading', { level: 1, name: 'Daně a odvody 2025' })).toBeVisible();
+		await expect(main.getByRole('heading', { name: 'Dary na veřejně prospěšné účely (§ 15 odst. 1 ZDP)' })).toBeVisible();
+
+		await page.goto('tax-overview/?year=2026&scenarioIncomeCzk=1650000');
+		await expect(main.getByRole('heading', { level: 1, name: 'Daně a odvody 2026' })).toBeVisible();
+		await expect(main.getByText('Porovnání scénáře')).toBeVisible();
+		await expect(main.getByText('1 650 000')).toBeVisible();
+
+		frontendErrors.assertNoErrors();
+	} finally {
+		frontendErrors.dispose();
+	}
+});
+
 async function getSidebarMenuPages(page: Page): Promise<SidebarMenuPage[]> {
 	return await page.locator('nav[aria-label="Sidebar"]').last().locator('a').evaluateAll((links) => {
 		const menuPages: SidebarMenuPage[] = [];

@@ -52,4 +52,11 @@ class JobRequestFacade
 		]);
 	}
 
+	public function addTaxYearReportProcessToQueue(string $reportId): void
+	{
+		$this->addToQueue(JobRequestTypeEnum::TAX_YEAR_REPORT_PROCESS, [
+			'reportId' => $reportId,
+		]);
+	}
+
 }

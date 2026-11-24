@@ -86,6 +86,29 @@ class StockClosedPositionRepository extends BaseRepository
 		return $qb->getQuery()->getResult();
 	}
 
+	/**
+	 * @return array<StockClosedPosition>
+	 */
+	public function findBetweenDatesForAppAdmin(
+		AppAdmin $appAdmin,
+		ImmutableDateTime $start,
+		ImmutableDateTime $end,
+	): array
+	{
+		$qb = $this->createQueryBuilderForAppAdmin($appAdmin);
+		$qb->addSelect('stockPosition', 'stockAsset');
+		$qb->innerJoin('stockPosition.stockAsset', 'stockAsset');
+		$qb->andWhere(
+			$qb->expr()->gte('stockClosedPosition.orderDate', ':start'),
+			$qb->expr()->lte('stockClosedPosition.orderDate', ':end'),
+		);
+		$qb->setParameter('start', $start);
+		$qb->setParameter('end', $end);
+		$qb->orderBy('stockClosedPosition.orderDate', 'ASC');
+
+		return $qb->getQuery()->getResult();
+	}
+
 	public function createQueryBuilderForAppAdmin(AppAdmin $appAdmin): QueryBuilder
 	{
 		$qb = $this->createQueryBuilder();

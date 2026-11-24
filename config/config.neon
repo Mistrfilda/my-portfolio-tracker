@@ -562,6 +562,29 @@ services:
 	- App\FinancialIndependence\UI\FinancialIndependenceFormFactory
 	- App\FinancialIndependence\UI\FinancialIndependencePresenter
 
+	#TAX
+	- App\Tax\Rules\TaxYearRulesProvider
+	- App\Tax\Rules\TaxTreatyRateProvider
+	- App\Tax\Calculator\BusinessIncomeCalculator
+	- App\Tax\Calculator\HealthInsuranceCalculator
+	- App\Tax\Calculator\SocialInsuranceCalculator
+	- App\Tax\Calculator\StockSalesCalculator
+	- App\Tax\Calculator\DividendTaxCalculator
+	- App\Tax\Calculator\IncomeTaxCalculator
+	- App\Tax\Calculator\TaxYearCalculationOrchestrator
+	- App\Tax\TaxCurrencyConverter
+	- App\Tax\TaxYearProfileRepository(App\Tax\TaxYearProfile)
+	- App\Tax\TaxYearDonationRepository(App\Tax\TaxYearDonation)
+	- App\Tax\TaxYearReportRepository(App\Tax\TaxYearReport)
+	- App\Tax\TaxYearProfileFacade
+	- App\Tax\TaxYearReportBuilder
+	- App\Tax\TaxYearReportFacade
+	- App\Tax\Command\GenerateTaxYearReportCommand
+	- App\Tax\UI\TaxForecastFormFactory
+	- App\Tax\UI\TaxYearDonationFormFactory
+	- App\Tax\UI\TaxYearProfileFormFactory
+	- App\Tax\UI\TaxOverviewPresenter
+
 	- App\Cash\Expense\Bank\BankExpenseRepository(App\Cash\Expense\Bank\BankExpense)
 	- App\Cash\Expense\UI\BankExpenseUploadFormFactory
 	- App\Cash\Expense\UI\BankExpenseFormFactory
