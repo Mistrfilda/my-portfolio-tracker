@@ -191,7 +191,7 @@ orm:
 					directories: [%appDir%]
 					namespace: App
 			defaultCache: Contributte\Psr6\CachePool(
-				Nette\Caching\Cache(namespace: "doctrine/orm")
+				Nette\Caching\Cache(storage: @cache.storage, namespace: "doctrine/orm")
 			)
 			customStringFunctions:
 				group_concat: DoctrineExtensions\Query\Mysql\GroupConcat
