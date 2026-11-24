@@ -27,3 +27,5 @@ docker-compose.yaml
 readme.md
 
 .twui/*
+
+.junie
