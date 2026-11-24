@@ -4505,17 +4505,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/contributte/doctrine-orm.git",
-                "reference": "f2fba56a1a29f3568a378eeaa50628888671d5e8"
+                "reference": "00e3bc16b1c6fd618d12933a04c8cbbceb007330"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/contributte/doctrine-orm/zipball/f2fba56a1a29f3568a378eeaa50628888671d5e8",
-                "reference": "f2fba56a1a29f3568a378eeaa50628888671d5e8",
+                "url": "https://api.github.com/repos/contributte/doctrine-orm/zipball/00e3bc16b1c6fd618d12933a04c8cbbceb007330",
+                "reference": "00e3bc16b1c6fd618d12933a04c8cbbceb007330",
                 "shasum": ""
             },
             "require": {
                 "doctrine/orm": "^3.3.0",
-                "nette/di": "^3.1.2",
+                "nette/di": "^3.2.8",
                 "nettrine/dbal": "^0.10.2 || ^0.11.0",
                 "php": ">=8.2",
                 "psr/cache": "^3.0.0",
@@ -4528,6 +4528,7 @@
                 "contributte/phpstan": "^0.2.0",
                 "contributte/qa": "^0.4",
                 "contributte/tester": "^0.3.0",
+                "doctrine/orm-plugin-second-level-cache": "^1.0.0",
                 "mockery/mockery": "^1.6.12",
                 "monolog/monolog": "^3.8.0",
                 "symfony/cache": "^7.1.9",
@@ -4579,7 +4580,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-06-20T08:45:52+00:00"
+            "time": "2026-11-23T16:04:41+00:00"
         },
         {
             "name": "nikic/fast-route",
