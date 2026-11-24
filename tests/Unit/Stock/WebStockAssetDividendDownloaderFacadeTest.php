@@ -130,6 +130,7 @@ class WebStockAssetDividendDownloaderFacadeTest extends TestCase
 			$entityManager ?? $this->createStub(EntityManagerInterface::class),
 			$this->createStub(LoggerInterface::class),
 			statisticCache: $this->createStub(PortfolioStatisticCache::class),
+			sleepSeconds: 0,
 		);
 	}
 

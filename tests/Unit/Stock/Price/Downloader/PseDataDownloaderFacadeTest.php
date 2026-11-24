@@ -181,6 +181,7 @@ class PseDataDownloaderFacadeTest extends TestCase
 			$logger ?? $this->createStub(LoggerInterface::class),
 			$systemValueFacade ?? $this->createStub(SystemValueFacade::class),
 			$this->createImportGuardStub(),
+			sleepSeconds: 0,
 		);
 	}
 

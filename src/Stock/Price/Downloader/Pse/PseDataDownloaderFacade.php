@@ -49,6 +49,7 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 		private readonly LoggerInterface $logger,
 		private readonly SystemValueFacade $systemValueFacade,
 		private StockAssetDataImportGuard $importGuard,
+		private readonly int $sleepSeconds = 2,
 	)
 	{
 	}
@@ -123,7 +124,9 @@ class PseDataDownloaderFacade implements AssetPriceDownloader
 			}
 
 			//wait before second request
-			sleep(2);
+			if ($this->sleepSeconds > 0) {
+				sleep($this->sleepSeconds);
+			}
 		}
 
 		$priceRecords = [];

@@ -34,6 +34,7 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
 		private readonly PortfolioStatisticCache $statisticCache,
+		private readonly int $sleepSeconds = 5,
 	)
 	{
 	}
@@ -139,7 +140,9 @@ class WebStockAssetDividendDownloaderFacade implements StockAssetDividendDownloa
 
 			$this->entityManager->flush();
 			$this->statisticCache->invalidateAll();
-			sleep(5);
+			if ($this->sleepSeconds > 0) {
+				sleep($this->sleepSeconds);
+			}
 		}
 	}
 

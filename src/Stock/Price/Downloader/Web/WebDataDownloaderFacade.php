@@ -38,6 +38,7 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 		private EntityManagerInterface $entityManager,
 		private LoggerInterface $logger,
 		private readonly PortfolioStatisticCache $statisticCache,
+		private readonly int $sleepSeconds = 5,
 	)
 	{
 	}
@@ -131,7 +132,9 @@ class WebDataDownloaderFacade implements AssetPriceDownloader
 
 			$this->entityManager->flush();
 			$this->statisticCache->invalidateAll();
-			sleep(5);
+			if ($this->sleepSeconds > 0) {
+				sleep($this->sleepSeconds);
+			}
 		}
 
 		return $priceRecords;
