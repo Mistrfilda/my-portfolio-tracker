@@ -5,7 +5,7 @@ description: Diagnose local PHP failures, Tracy output, slow requests, or excess
 
 # Tracy Debugging
 
-Tracy is enabled by `src/Bootstrap.php` unless the caller boots the application with Tracy disabled. Debug mode controls whether the browser shows a BlueScreen; logged production-style failures remain under `log/`.
+Tracy is enabled by `src/Bootstrap.php` unless the caller boots the application with Tracy disabled. Debug mode controls whether the browser shows a BlueScreen; logged production-style failures remain under `log/`. For live production logs and Tracy exception snapshots, use [production-logs-morris](../production-logs-morris/SKILL.md).
 
 ## Local web workflow
 

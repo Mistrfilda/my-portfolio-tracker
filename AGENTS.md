@@ -45,6 +45,7 @@ Treat these as project defaults. Explicit task instructions take precedence over
 - Start with [project-overview](.agents/skills/project-overview/SKILL.md) when the task is broad, cross-module, or you are not sure where the code belongs.
 - For GitHub pull requests, issues, and Actions in this repository, use [github-mcp](.agents/skills/github-mcp/SKILL.md). Keep local Git operations in the CLI.
 - For Docker, Kubernetes, and deployment work across this repository and the separate `/Users/filip/Sites/kubedev` checkout, use [kubernetes-infrastructure](.agents/skills/kubernetes-infrastructure/SKILL.md).
+- For debugging production logs and Tracy exception snapshots via Morris (`http://192.168.1.245:30175`), use [production-logs-morris](.agents/skills/production-logs-morris/SKILL.md).
 - For desktop process boundaries use [desktop-electron](.agents/skills/desktop-electron/SKILL.md); for React/shadcn UI use [desktop-react-ui](.agents/skills/desktop-react-ui/SKILL.md); for packaging, dependencies, or build isolation use [desktop-build](.agents/skills/desktop-build/SKILL.md).
 - Load companion skills and references only when their capability is needed for the current task; a related-skills list is not a prerequisite checklist.
 - For local browser inspection, use [mcp-local-app-access](.agents/skills/mcp-local-app-access/SKILL.md); a request to inspect the local app authorizes its documented login flow using `.env.browser-tests` only in the real local login form, without exposing credentials.

@@ -30,6 +30,7 @@ Use the map to locate the owning code and load only the guidance needed for the 
 
 - **Infrastructure / Docker / Kubernetes / deployment**
 	- Read [kubernetes-infrastructure](../kubernetes-infrastructure/SKILL.md) for image builds, manifests, storage, networking, scheduled workloads, and rollout diagnostics across this repository and `/Users/filip/Sites/kubedev`.
+	- Read [production-logs-morris](../production-logs-morris/SKILL.md) to inspect production application logs and Tracy exception snapshots through the Morris log viewer HTTP API.
 
 - **Desktop application**
 	- Start in `clients/desktop/src/`. Read [desktop-electron](../desktop-electron/SKILL.md) for main/preload/IPC, [desktop-react-ui](../desktop-react-ui/SKILL.md) for the renderer, or [desktop-build](../desktop-build/SKILL.md) for dependencies, packaging, and build isolation.
