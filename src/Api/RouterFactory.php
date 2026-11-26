@@ -11,7 +11,10 @@ use App\Dashboard\Api\DashboardSummaryController;
 use App\Dashboard\Api\DashboardValueController;
 use App\Goal\Api\PortfolioGoalController;
 use App\Home\Device\Record\Api\HomeDeviceRecordController;
+use App\Mcp\Http\McpController;
 use App\OAuth2\Http\AuthorizationController;
+use App\OAuth2\Http\OAuthDiscoveryController;
+use App\OAuth2\Http\OAuthDynamicRegistrationController;
 use App\OAuth2\Http\RevocationController;
 use App\OAuth2\Http\TokenController;
 use App\OAuth2\OAuthScope;
@@ -87,6 +90,24 @@ class RouterFactory
 		$slimApp->post('/api/oauth/token', TokenController::class . ':token');
 		$slimApp->post('/api/oauth/revoke', RevocationController::class . ':revoke');
 		$slimApp->map(['GET', 'POST'], '/api/oauth/authorize', AuthorizationController::class . ':authorize');
+		$slimApp->post('/api/oauth/register', OAuthDynamicRegistrationController::class . ':register');
+
+		$slimApp->get('/.well-known/oauth-protected-resource', OAuthDiscoveryController::class . ':protectedResource');
+		$slimApp->get(
+			'/.well-known/oauth-protected-resource/api/mcp',
+			OAuthDiscoveryController::class . ':protectedResource',
+		);
+		$slimApp->get(
+			'/.well-known/oauth-authorization-server',
+			OAuthDiscoveryController::class . ':authorizationServer',
+		);
+
+		$slimApp->map(['GET', 'POST', 'DELETE'], '/api/mcp', McpController::class . ':handle')
+			->add($this->authentication->create(
+				OAuthScope::MCP_READ,
+				requireUser: true,
+				resourceMetadataPath: '/.well-known/oauth-protected-resource/api/mcp',
+			));
 	}
 
 }

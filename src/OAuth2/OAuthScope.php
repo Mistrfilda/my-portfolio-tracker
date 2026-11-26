@@ -12,6 +12,7 @@ enum OAuthScope: string
 	case MARKET_READ = 'market:read';
 	case HOME_READ = 'home:read';
 	case HOME_WRITE = 'home:write';
+	case MCP_READ = 'mcp:read';
 
 	public function getLabel(): string
 	{
@@ -21,6 +22,7 @@ enum OAuthScope: string
 			self::MARKET_READ => 'Čtení měnových kurzů a dividend společností',
 			self::HOME_READ => 'Čtení vlastních domácích zařízení a měření',
 			self::HOME_WRITE => 'Zápis měření vlastních domácích zařízení',
+			self::MCP_READ => 'Čtení portfolia, valuací, dividend, AI analýz a investičních plánů přes MCP',
 		};
 	}
 

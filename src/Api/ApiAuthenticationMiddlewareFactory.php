@@ -7,6 +7,7 @@ namespace App\Api;
 use App\Admin\CurrentAppAdminGetter;
 use App\OAuth2\Authorization\OAuthUserAuthenticator;
 use App\OAuth2\Client\OAuthClientRepository;
+use App\OAuth2\Http\OAuthPublicOriginResolver;
 use App\OAuth2\Http\OAuthResponses;
 use App\OAuth2\OAuthScope;
 use App\OAuth2\OAuthServerFactory;
@@ -24,6 +25,7 @@ class ApiAuthenticationMiddlewareFactory
 		private OAuthUserAuthenticator $users,
 		private CurrentAppAdminGetter $currentUser,
 		private OAuthResponses $responses,
+		private OAuthPublicOriginResolver $originResolver,
 	)
 	{
 	}
@@ -34,6 +36,7 @@ class ApiAuthenticationMiddlewareFactory
 		bool $allowLegacy = false,
 		bool $requireUser = false,
 		array $alternativeScopes = [],
+		string|null $resourceMetadataPath = null,
 	): ApiAuthenticationMiddleware
 	{
 		return new ApiAuthenticationMiddleware(
@@ -48,6 +51,8 @@ class ApiAuthenticationMiddlewareFactory
 			$this->responses,
 			$requireUser,
 			$alternativeScopes,
+			$resourceMetadataPath,
+			$this->originResolver,
 		);
 	}
 

@@ -72,6 +72,60 @@ class StockAssetRepository extends BaseRepository implements AssetRepository
 		return $this->doctrineRepository->findOneBy(['ticker' => $ticker]);
 	}
 
+	public function findByTickerCaseInsensitive(string $ticker): StockAsset|null
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->andWhere('LOWER(stockAsset.ticker) = LOWER(:ticker)');
+		$qb->setParameter('ticker', trim($ticker));
+		$qb->setMaxResults(1);
+
+		$result = $qb->getQuery()->getOneOrNullResult();
+		assert($result === null || $result instanceof StockAsset);
+
+		return $result;
+	}
+
+	/**
+	 * @return array<StockAsset>
+	 */
+	public function findAllWatchlist(): array
+	{
+		return $this->doctrineRepository->findBy(['watchlist' => true], ['name' => OrderBy::ASC->value]);
+	}
+
+	/**
+	 * @return array<StockAsset>
+	 */
+	public function search(string $query, string|null $sector = null, int $limit = 20): array
+	{
+		$qb = $this->doctrineRepository->createQueryBuilder('stockAsset');
+		$qb->leftJoin('stockAsset.industry', 'industry');
+		$qb->addSelect('industry');
+
+		$trimmedQuery = trim($query);
+		if ($trimmedQuery !== '') {
+			$qb->andWhere(
+				$qb->expr()->orX(
+					'LOWER(stockAsset.ticker) LIKE LOWER(:query)',
+					'LOWER(stockAsset.name) LIKE LOWER(:query)',
+					'LOWER(industry.name) LIKE LOWER(:query)',
+				),
+			);
+			$qb->setParameter('query', '%' . $trimmedQuery . '%');
+		}
+
+		$trimmedSector = $sector !== null ? trim($sector) : '';
+		if ($trimmedSector !== '') {
+			$qb->andWhere('LOWER(industry.name) LIKE LOWER(:sector)');
+			$qb->setParameter('sector', '%' . $trimmedSector . '%');
+		}
+
+		$qb->orderBy('stockAsset.name', OrderBy::ASC->value);
+		$qb->setMaxResults($limit);
+
+		return $qb->getQuery()->getResult();
+	}
+
 	/**
 	 * @return array<StockAsset>
 	 */

@@ -53,6 +53,7 @@ It is a monorepo: the web application and API stay at the root, the macOS deskto
 - `src/JobRequest` - asynchronous processing; `mistrfilda/amqp` provides queue transport and commands, wired in `config/rabbitmq.neon`
 - `src/UI` - shared presenters, controls, datagrids, forms, filters, and charts
 - `src/Api` and `src/OAuth2` - REST API and OAuth authorization, including client registration commands
+- `src/Mcp` - read-only MCP (Model Context Protocol) Streamable HTTP server (`/api/mcp`) for local LAN AI clients; see [MCP setup and tool overview](doc/mcp.md)
 
 The [OAuth2 server skill](.agents/skills/oauth2-server/SKILL.md) covers maintenance rules, scopes, sensor compatibility, and per-account API ownership. Its [client setup reference](.agents/skills/oauth2-server/references/client-setup.md) describes deployment, registration commands, and mobile/desktop integration.
 

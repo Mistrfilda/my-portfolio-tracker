@@ -108,6 +108,11 @@ class OAuthClient implements ClientEntityInterface
 		return $this->active;
 	}
 
+	public function getCreatedAt(): ImmutableDateTime
+	{
+		return $this->createdAt;
+	}
+
 	public function disable(): void
 	{
 		$this->active = false;

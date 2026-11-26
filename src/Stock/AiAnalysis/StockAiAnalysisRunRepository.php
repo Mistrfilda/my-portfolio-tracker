@@ -72,6 +72,53 @@ class StockAiAnalysisRunRepository extends BaseRepository
 	/**
 	 * @return array<StockAiAnalysisRun>
 	 */
+	public function findLatestForAppAdmin(
+		AppAdmin $appAdmin,
+		string|null $type = null,
+		int $limit = 5,
+	): array
+	{
+		$qb = $this->createQueryBuilder($appAdmin);
+
+		if ($type === 'portfolio') {
+			$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.includesPortfolio', ':includesPortfolio'));
+			$qb->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNull('stockAiAnalysisRun.portfolioPromptType'),
+					$qb->expr()->eq('stockAiAnalysisRun.portfolioPromptType', ':portfolioPromptType'),
+				),
+			);
+			$qb->setParameter('includesPortfolio', true);
+			$qb->setParameter('portfolioPromptType', StockAiAnalysisPortfolioPromptTypeEnum::PORTFOLIO_EVALUATION);
+		} elseif ($type === 'watchlist') {
+			$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.includesWatchlist', ':includesWatchlist'));
+			$qb->setParameter('includesWatchlist', true);
+		} elseif ($type === 'market') {
+			$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.includesMarketOverview', ':includesMarketOverview'));
+			$qb->setParameter('includesMarketOverview', true);
+		} elseif ($type === 'daily_brief') {
+			$qb->andWhere($qb->expr()->eq('stockAiAnalysisRun.portfolioPromptType', ':dailyBriefType'));
+			$qb->setParameter('dailyBriefType', StockAiAnalysisPortfolioPromptTypeEnum::DAILY_BRIEF);
+		} elseif ($type === 'single_stock') {
+			$qb->andWhere(
+				$qb->expr()->orX(
+					$qb->expr()->isNotNull('stockAiAnalysisRun.stockAsset'),
+					$qb->expr()->isNotNull('stockAiAnalysisRun.stockTicker'),
+				),
+			);
+		}
+
+		$qb->setMaxResults($limit);
+
+		/** @var array<StockAiAnalysisRun> $results */
+		$results = $qb->getQuery()->getResult();
+
+		return $results;
+	}
+
+	/**
+	 * @return array<StockAiAnalysisRun>
+	 */
 	public function findCompletedPortfolioEvaluations(): array
 	{
 		$qb = $this->createQueryBuilder();
