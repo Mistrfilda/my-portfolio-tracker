@@ -21,6 +21,10 @@ Require all granted
 	# front controller
 	RewriteCond %{REQUEST_FILENAME} !-f
 	RewriteCond %{REQUEST_FILENAME} !-d
+	RewriteRule ^\.well-known/oauth-(protected-resource(/.*)?|authorization-server)$ api.php [L]
+
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
 	RewriteRule ^api/ api.php [L]
 
 	RewriteCond %{REQUEST_FILENAME} !-f

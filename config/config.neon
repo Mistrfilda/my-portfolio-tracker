@@ -105,6 +105,8 @@ parameters:
 		apiKeys: []
 		oauth:
 			keysDirectory: %appDir%/../resources/oauth
+			dynamicClientRegistrationEnabled: true
+			publicBaseUrl: null
 
 application:
 	errorPresenter: Error:Error
@@ -273,18 +275,37 @@ services:
 	- App\OAuth2\Authorization\OAuthAuthorizationStore
 	- App\OAuth2\Authorization\OAuthUserAuthenticator
 	- App\OAuth2\Http\OAuthResponses
+	- App\OAuth2\Http\OAuthPublicOriginResolver(publicBaseUrl: %api.oauth.publicBaseUrl%)
 	- App\OAuth2\Http\OAuthRateLimiter
 	- App\OAuth2\Http\OAuthHttpGuard
 	- App\OAuth2\Http\OAuthClientAuthentication
 	- App\OAuth2\Http\TokenController
 	- App\OAuth2\Http\RevocationController
 	- App\OAuth2\Http\AuthorizationController
+	- App\OAuth2\Http\OAuthDiscoveryController(dynamicClientRegistrationEnabled: %api.oauth.dynamicClientRegistrationEnabled%)
+	- App\OAuth2\Http\OAuthDynamicRegistrationController(enabled: %api.oauth.dynamicClientRegistrationEnabled%)
 	- App\OAuth2\Command\CreateOAuthClientCommand
 	- App\OAuth2\Command\UpdateOAuthClientScopesCommand
 	- App\OAuth2\Command\RotateOAuthClientSecretCommand
 	- App\OAuth2\Command\DisableOAuthClientCommand
 	- App\OAuth2\Command\GenerateOAuthKeysCommand
 	- App\OAuth2\Command\CleanupOAuthCommand
+
+	# MCP Server (read-only Streamable HTTP over OAuth 2.1)
+	- App\Stock\Position\Simulation\StockPurchaseSimulationService
+	- App\Mcp\Support\StockAssetResolver
+	- App\Mcp\Tool\PortfolioOverviewTool
+	- App\Mcp\Tool\WatchlistTool
+	- App\Mcp\Tool\SearchStocksTool
+	- App\Mcp\Tool\StockPriceHistoryTool
+	- App\Mcp\Tool\StockDividendsTool
+	- App\Mcp\Tool\StockValuationDetailTool
+	- App\Mcp\Tool\AiAnalysesTool
+	- App\Mcp\Tool\InvestmentPlansTool
+	- App\Mcp\Tool\SimulateStockPurchaseTool
+	- App\Mcp\Prompt\InvestmentPrompts
+	- App\Mcp\McpServerFactory
+	- App\Mcp\Http\McpController(corsAllowedOrigins: %api.corsAllowedOrigins%)
 
 	latte.latteFactory:
 		setup:

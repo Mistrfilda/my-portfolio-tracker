@@ -109,6 +109,25 @@ class OAuthClientFacade
 		});
 	}
 
+	public function isLoopbackRedirectUri(string $uri): bool
+	{
+		$parts = parse_url($uri);
+		if (
+			$parts === false
+			|| !isset($parts['scheme'])
+			|| isset($parts['fragment'])
+			|| isset($parts['user'])
+			|| isset($parts['pass'])
+			|| str_contains($uri, '*')
+			|| preg_match('/[\s\x00-\x1f]/', $uri) === 1
+		) {
+			return false;
+		}
+
+		return strtolower($parts['scheme']) === 'http'
+			&& in_array(strtolower($parts['host'] ?? ''), ['127.0.0.1', '[::1]', 'localhost'], true);
+	}
+
 	/** @param list<string> $scopes */
 	private function validateScopes(array $scopes): void
 	{
@@ -139,7 +158,7 @@ class OAuthClientFacade
 			return;
 		}
 
-		if ($scheme === 'http' && in_array($parts['host'] ?? '', ['127.0.0.1', '[::1]'], true)) {
+		if ($this->isLoopbackRedirectUri($uri)) {
 			return;
 		}
 

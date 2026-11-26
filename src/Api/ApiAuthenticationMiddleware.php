@@ -7,6 +7,7 @@ namespace App\Api;
 use App\Admin\CurrentAppAdminGetter;
 use App\OAuth2\Authorization\OAuthUserAuthenticator;
 use App\OAuth2\Client\OAuthClientRepository;
+use App\OAuth2\Http\OAuthPublicOriginResolver;
 use App\OAuth2\Http\OAuthResponses;
 use App\OAuth2\OAuthNotConfiguredException;
 use App\OAuth2\OAuthScope;
@@ -37,6 +38,8 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 		private OAuthResponses $responses,
 		private bool $requireUser = false,
 		private array $alternativeScopes = [],
+		private string|null $resourceMetadataPath = null,
+		private OAuthPublicOriginResolver|null $originResolver = null,
 	)
 	{
 	}
@@ -59,7 +62,7 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 					return $this->responses->noStore($this->apiKeys->process($request, $handler));
 				}
 
-				return $this->unauthorized();
+				return $this->unauthorized($request);
 			}
 
 			if (
@@ -69,19 +72,19 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 					$request->getHeaderLine('Authorization'),
 				) !== 1
 			) {
-				return $this->unauthorized();
+				return $this->unauthorized($request);
 			}
 
 			$request = $this->servers->createResourceServer()->validateAuthenticatedRequest($request);
 			$id = $request->getAttribute('oauth_access_token_id');
 			$record = is_string($id) ? $this->tokens->find($id, OAuthTokenType::ACCESS) : null;
 			if ($record === null) {
-				return $this->unauthorized();
+				return $this->unauthorized($request);
 			}
 
 			$client = $this->clients->getClientEntity($record->getClientId());
 			if ($client === null) {
-				return $this->unauthorized();
+				return $this->unauthorized($request);
 			}
 
 			$acceptedScopes = array_map(
@@ -97,14 +100,14 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 				)
 					->withHeader(
 						'WWW-Authenticate',
-						'Bearer error="insufficient_scope", scope="' . $this->scope->value . '"',
+						$this->buildAuthenticateHeader('insufficient_scope', $request, includeScope: true),
 					);
 			}
 
 			// League uses the client ID as JWT sub for client credentials; use persisted user_id.
 			$user = $record->getUserId() === null ? null : $this->users->findActive($record->getUserId());
 			if ($record->getUserId() !== null && $user === null) {
-				return $this->unauthorized();
+				return $this->unauthorized($request);
 			}
 
 			if ($this->requireUser && $user === null) {
@@ -129,7 +132,7 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 				),
 			);
 		} catch (OAuthServerException | HttpUnauthorizedException) {
-			return $this->unauthorized();
+			return $this->unauthorized($request);
 		} catch (OAuthNotConfiguredException) {
 			return $this->responses->error(new Response(), 'temporarily_unavailable', 'OAuth is not configured.', 503);
 		} finally {
@@ -137,10 +140,36 @@ class ApiAuthenticationMiddleware implements MiddlewareInterface
 		}
 	}
 
-	private function unauthorized(): ResponseInterface
+	private function unauthorized(ServerRequestInterface $request): ResponseInterface
 	{
 		return $this->responses->error(new Response(), 'invalid_token', 'A valid access token is required.', 401)
-			->withHeader('WWW-Authenticate', 'Bearer error="invalid_token"');
+			->withHeader(
+				'WWW-Authenticate',
+				$this->buildAuthenticateHeader(
+					'invalid_token',
+					$request,
+					includeScope: $this->resourceMetadataPath !== null,
+				),
+			);
+	}
+
+	private function buildAuthenticateHeader(
+		string $error,
+		ServerRequestInterface $request,
+		bool $includeScope,
+	): string
+	{
+		$parts = ['error="' . $error . '"'];
+		if ($this->resourceMetadataPath !== null) {
+			$resolver = $this->originResolver ?? new OAuthPublicOriginResolver();
+			$parts[] = 'resource_metadata="' . $resolver->resolve($request) . $this->resourceMetadataPath . '"';
+		}
+
+		if ($includeScope) {
+			$parts[] = 'scope="' . $this->scope->value . '"';
+		}
+
+		return 'Bearer ' . implode(', ', $parts);
 	}
 
 }
